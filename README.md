@@ -56,3 +56,5 @@ Selon que vous utilisez `nken`, [`./nken.bat`](./nken.bat) ou [`./nken.sh`](./nk
 - `[nken run]` ou `[nken run proj1 proj2 ... projn]` : pour exécuter le projet par défaut défini dans le fichier [`./Script/manager.py`](./Scripts/manager.py), ou pour exécuter l'un des projets exécutables situés dans le même fichier.
 
 Si vous souhaitez ajouter un autre projet, n'oubliez pas de le spécifier dans [`./Scripts/manager.py`](./Scripts/manager.py), dans [`./premake5.lua`](./premake5.lua), dans [`./config.lua`](./config.lua), et de créer le fichier `premake5.lua` correspondant pour le projet en question.
+
+Copyright (c) 2024 Rihen. All rights reserved.
