@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from platform import system
-import os
+import os, sys
 from enum import Enum
 
 
@@ -75,59 +75,31 @@ class ResultVariableStatus(Enum):
     DOES_NOT_EXIST = 3  # N'existe pas
 
 
-def CheckVariableStatus(nom_variable, chemin_variable):
-    """
-    Vérifie l'état d'une variable d'environnement.
-
-    Args:
-        nom_variable (str): Le nom de la variable d'environnement.
-        chemin_variable (str): Le chemin à vérifier.
-
-    Returns:
-        ResultVariableStatus: L'énumération indiquant l'état de la variable.
-    """
-
-    valeur_existante = os.getenv(nom_variable)
-    if valeur_existante is None:
-        return ResultVariableStatus.DOES_NOT_EXIST
-    elif valeur_existante == chemin_variable:
-        return ResultVariableStatus.EXISTS_CORRECT
-    else:
-        return ResultVariableStatus.CORRUPTED
+def CheckVariableStatus(chemin_variable):
+    path = os.environ.get('PATH', '')
+    return chemin_variable in path.split(os.pathsep)
 
 
-def AddVariable(nom_variable, chemin_variable):
-    """
-    Ajoute ou met à jour une variable d'environnement en fonction de son état.
+def AddVariable(chemin_variable):
+    if CheckVariableStatus(chemin_variable):
+        print(f"Le répertoire {chemin_variable} est déjà dans la variable PATH.")
+        return 1
 
-    Args:
-        nom_variable (str): Le nom de la variable d'environnement.
-        chemin_variable (str): Le chemin à ajouter ou mettre à jour.
-    """
+    os.environ['PATH'] += os.pathsep + chemin_variable
 
-    result = CheckVariableStatus(nom_variable, chemin_variable)
-    print(nom_variable)
-    print(chemin_variable)
+    # Mettre à jour la variable PATH pour la session en cours
+    if IsWindows():
+        os.system(f'setx PATH "%PATH%;" /S System')
+    elif IsLinux():
+        os.system(f'export PATH="$PATH:{chemin_variable}"')
+    elif IsMacos():  # macOS
+        os.system(f'export PATH="$PATH:{chemin_variable}"')
 
-    if result == ResultVariableStatus.DOES_NOT_EXIST:
-        print("Variable n'existe pas. Ajout en cours...")
-        os.environ[nom_variable] = chemin_variable
-        return True
-    elif result == ResultVariableStatus.CORRUPTED:
-        confirm_change = input("Variable existe avec un chemin différent. Modifier? (O/N) ")
-        if confirm_change.lower() in ["o", "oui"]:
-            os.environ[nom_variable] = chemin_variable
-            print("Variable mise à jour avec le nouveau chemin.")
-            return True
-        else:
-            print("Variable conservée avec le chemin existant.")
-            return False
-    else:
-        print("Variable existe avec le chemin correct.")
-        return True
+    print(f"Le répertoire {chemin_variable} a été ajouté à la variable PATH.")
+    return 0
 
 
-VS_BUILD_NAME = "VS_BUILD_PATH"
+
 VS_PATH="\"C:/Programmes/Microsoft Visual Studio/2022/Professional/Common7/IDE/devenv.exe\""
 VS_BUILD_PATH="C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe"
 VS_VERSION_INSTALLER = "2022"

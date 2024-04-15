@@ -32,12 +32,13 @@ def RunCommands(argv):
     len_command = len(argv)
     i = 1
     command_separator = ";"
+    run_command = False
 
     while i < len_command:
         command = ""
         options = []
         j = i
-
+        
         while j < len_command:
             actual = argv[j]
 
@@ -71,6 +72,7 @@ def RunCommands(argv):
             if RunCommand(command, command_path, options) != 0:
                 print("Error: command {} fail ".format(command))
                 return
+            run_command = True
         else:
             print("Error: {} is not a command tips [nken help] to get all command and information for it".format(command))
             print(f'Command "{command}" not found!')
@@ -80,6 +82,11 @@ def RunCommands(argv):
                 if file.endswith('.py') and file != "__init__.py":
                     print(f'- {file[0:-3]}')
             return
-
+        
+    if run_command == False:
+        if RunCommand("help", GetCommandPath("help"), []) != 0:
+                print("Error: command {} fail ".format("help"))
+                return
+        
 
 RunCommands(sys.argv)

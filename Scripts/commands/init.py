@@ -3,6 +3,7 @@
 import sys, os
 from pathlib import Path
 import subprocess
+import winreg
 
 
 def AddParentModule():
@@ -35,14 +36,7 @@ def AddNkenVariable():
     file = Path(__file__).resolve()
     solution_path = file.parents[2]
     solution_path = f"{solution_path}"
-
-    if conf.GetPlatform() == conf.Platforme.WINDOWS:
-        solution_path = f"{solution_path}\\nken.bat"
-    else:
-        solution_path = f"{solution_path}/nken.sh"
-    print(f"path -> {solution_path}")
-    
-    return 0 if conf.AddVariable("nken", solution_path) == True else 1
+    return conf.AddVariable(solution_path)
 
 
 def InstallCompilateur():
@@ -80,13 +74,13 @@ def InitializeNken():
         os.system(command)
     """
     # Exécuter la commande avec nken help
-    os.system(f"nken help")
+    # os.system(f"nken help")
 
 
 if __name__ == '__main__': 
     # exit_code = 0 if AddVsPath() == True else 1
     exit_code = InstallCompilateur()
 
-    InitializeNken()
+    exit_code = InitializeNken() if exit_code == 0 else exit_code
 
     sys.exit(exit_code)

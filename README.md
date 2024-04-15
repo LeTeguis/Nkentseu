@@ -1,86 +1,58 @@
-# NKENTSUU
-La suite Nkentsuu est un ensemble de logiciel graphique multiplateforme qui sera plus tard constituer de :
+# NKENTSEU
 
-    - Moteur de jeu ;
-    - Application d'animation 2D/3D ;
-    - Application de simulation ;
-    - Application de modélisation ;
-    - Application de sculpture numérique ;
-    - Etc.
-    
-À l'état, se repository contient le noyau de suite nommé Nkentsuu et le moteur de jeu en cours de développement Noge.
-Se référentiel est laisser gratuitement et donne la possibilité à toute personne voulant contribuer a son développement de nous contacter pour aider à sa construction.
+La suite Nkentseu est un ensemble d'API et de logiciels graphiques multiplateformes qui comprendra plus tard :
 
-## Utilisation du révérenciel
-le référentiel actuelle est structurer d'une manière très simple et a des éléments de base à activer pour pouvoir compiler et exécuter l'ensembles des projets.
+- Moteur de jeu ;
+- Application d'animation 2D/3D ;
+- Application de simulation ;
+- Application de modélisation ;
+- Application de sculpture numérique ;
+- Etc.
+
+À l'état actuel, ce dépôt contient le noyau de la suite appelée Nkentseu et le moteur de jeu en cours de développement Unkeny. Ce dépôt est laissé gratuitement et donne la possibilité à toute personne souhaitant contribuer à son développement de nous contacter pour aider à sa construction.
+
+## Utilisation du référentiel
+
+Le référentiel actuel est structuré de manière très simple et contient des éléments de base à activer pour pouvoir compiler et exécuter l'ensemble des projets.
 
 ### Hiérarchie de la solution
 
 #### La solution
-La solution est structurer de la manière suivante:
 
-    nkentsuu/
-    │   ├── .gitignore
-    ├── nkentsuu/
-    │   ├── docs/
-    │   ├── src/
-    │   ├── premake5.lua
-    │   ├── README.md
-    │   └── ...
-    ├── external/
-    │   ├── bin/
-    │   ├── libs/
-    │   └── ...
-    ├── tools/
-    │   ├── run.py
-    │   ├── gen.py
-    │   ├── build.py
-    │   └── ...
-    ├── utest/
-    │   ├── src/
-    │   ├── premake5.lua
-    │   └── README.md
-    ├── nts.bat
-    ├── nts.py
-    ├── nts.sh
-    ├── LICENCE
-    ├── premake5.lua
-    ├── README.md
+La solution est structurée de la manière suivante où l'on retrouve dans le dossier racine plusieurs projets aussi importants les uns que les autres :
 
-* nkentsuu : c'est le répertoire racine de tous les projets de la suite nkentsuu
-    -   nkentsuu : c'est le moteur graphique haute performance de base commun à toutes les applications de la suite
-    -   external : c'est ou seront stoker les bibliothèques externes et les binaire utile pour le bon fonctionnement des projets (le third party)
-    -   tools : les scripts de base pour installer les bibliothèques de manière portable
-    -   utest : les tests unitaires et fonctionnelle pour chaque projet
-    -   nts.bat, nts.py, nts.sh : represente les scripts de base pour acceder aux scripts de construction, de build, de run et bien d'autre
+- [Core](./Core): le dossier core contient les API du noyau du système, notamment les APIs :
+    - [NSystem](./Core/NSystem) : qui contient les déclarations des types de base, la gestion de la mémoire et bien d'autres.
+    - [Logger](./Core/Logger) : qui contient notre système de journalisation.
+    - [Ntms](./Core/Ntms) : qui contient notre bibliothèque de maths.
+    - [Unitest](./Core/Unitest) : qui est notre bibliothèque de test unitaire.
+    - [Nkentseu](./Core/Nkentseu) : qui est notre API graphique similaire à la SDL2 ou à la SFML, etc.
+- [Engine](./Engine) : engine contient notre API de moteur de jeu qui descend directement de Nkentseu et l'éditeur du moteur pour l'instant.
+- [Exemples](./Exemples) : va contenir les applications d'exemple développées soit avec Nkentseu soit avec le moteur ou avec toute autre partie de notre système.
+- [Texts](./Texts) : contient l'ensemble de nos scripts qui utilisent notre API de test unitaire pour tester certains systèmes conçus.
+- [External](./External) : va contenir notre générateur premake et toutes les parties tierces que nous aurons utilisées dans nos systèmes.
 
 ## Configuration
-La configuration actuelle du projet passe par des scripts nts*
+
+La configuration actuelle du projet est gérée par des scripts `nken`.
 
 ### Configuration Windows
-- Pour configurer sur windows vous devez avoir visual studio community installer, visual studio code et wsl2
-- Vous devez definir les variables d'environnement VS_BUILD_PATH et VS_PATH pour visual studio community, CODE_PATH pour visual studio code comme definit dans le fichier tools/tmps/script
+- Pour configurer sous Windows, vous devez disposer de Visual Studio Code ou de tout autre IDE pris en charge, tel que Visual Studio (la compilation du projet sur Windows se fait via MSVC).
+- Étant donné que nous utilisons MSVC sous Windows, vous devez modifier les constantes [`VS_PATH`](./Scripts/configuration.py), [`VS_BUILD_PATH`](./Scripts/configuration.py) et [`VS_VERSION_INSTALLER`](./Scripts/configuration.py) dans le fichier [`./Scripts/configuration.py`](./Scripts/configuration.py) en fonction de votre version de Visual Studio.
+- Comme toutes les commandes sont exécutées sous Windows à partir de [`./nken.bat`](./nken.bat), si vous souhaitez utiliser uniquement `nken`, vous devez définir le chemin vers le projet actuel dans les variables d'environnement système.
 
-### Pour toutes les autres plateforms windows compris
-Allez dans le fichier tools/tmps/script puis ouvrir un terminal ubuntu ou wsl sur windows et comme indique
-- Tapez nano ~/.bash_env
-- Puis copie coller le code qui se trouve juste en bas avant le prochain //---
-- Sortez de nano et tapez source ~/.bash_env
-- Tapez  nano ~/.bash_aliases
-- Puis copie et coller le code qui se trouve juste en bas avant le prochain //---
-- Sortez de nano et tapez source ~/.bash_aliases
-- Tapez nano ~/.bashrc
-- Copie et coler le code suivant
-    if [ -f ~/.bash_env ]; then
-        . ~/.bash_env
-    fi
-- Sortez de nano et redemarez votre ordinateur pour configurer toute les commandes
+### Configuration Linux
+- Si vous utilisez WSL sous Windows, vous devez :
+    - Ouvrir un terminal et saisir `nano ~/.bashrc`, puis ajouter le code `export DISPLAY=localhost:0.0`, et enfin saisir `source ~/.bashrc` après avoir quitté nano.
+- Comme toutes les commandes sont exécutées sous Linux à partir de [`./nken.sh`](./nken.sh), si vous souhaitez utiliser uniquement `nken`, vous devez saisir `nano ~/.bash_aliases`, ajouter l'alias `alias nken="./nken.sh"` (en remplaçant `./nken.sh` par le chemin complet si nécessaire, bien que cela soit déconseillé), puis saisir `source ~/.bash_aliases` après avoir quitté nano depuis un terminal.
 
 ## Utilisation du code
-Pour utiliser le projet vous devez comprendre les script actuel
+Selon que vous utilisez `nken`, [`./nken.bat`](./nken.bat) ou [`./nken.sh`](./nken.sh) (que je vais renommer pour simplifier par `nken`), lorsque vous êtes dans le répertoire racine du projet, vous pouvez exécuter les commandes suivantes :
 
-- Generation de projet : pour generer la solution vous devez entrer le code "nts gen"
-- Build du projet : pour compiler le projet vous devez entrer le code "nts build"
-- Run du projet : pour lancer le projet vous devez entrer le code "nts run"
+- `[nken init]` : lorsque vous estimez que le projet n'a jamais été initialisé pour installer certains outils de base sur Windows, Linux ou macOS. Cette commande ne doit être exécutée qu'une seule fois par machine, ou plusieurs fois si vous estimez avoir désinstallé certains outils par erreur.
+- `[nken gen]` : pour générer les projets en fonction de la plateforme cible.
+- `[nken clean]` : pour vider ou supprimer les dossiers de build et de génération. Vous devez ensuite exécuter à nouveau `nken gen` pour continuer à travailler sur les projets.
+- `[nken build]` : pour compiler le projet en fonction de la plateforme cible.
+- `[nken run]` ou `[nken run proj1 proj2 ... projn]` : pour exécuter le projet par défaut défini dans le fichier [`./Script/manager.py`](./Scripts/manager.py), ou pour exécuter l'un des projets exécutables situés dans le même fichier.
 
-si vous voulez ajouter un autre projet n'oubliez pas de le preciser dans ./tools/globals.py, dans ./premake5.lua, dans ./config.lua et de creer le fichier premake5.lua du projet en question
+Si vous souhaitez ajouter un autre projet, n'oubliez pas de le spécifier dans [`./Scripts/manager.py`](./Scripts/manager.py), dans [`./premake5.lua`](./premake5.lua), dans [`./config.lua`](./config.lua), et de créer le fichier `premake5.lua` correspondant pour le projet en question.
