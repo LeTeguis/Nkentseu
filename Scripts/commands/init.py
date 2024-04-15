@@ -42,11 +42,26 @@ def AddNkenVariable():
 def InstallCompilateur():
     platform_name = conf.GetPlatform()
 
+    application_install = ["make", "g++", "nautilus -y", "gnome-text-editor -y"]
+    lib_install = ["libx11-dev", "xorg-dev"]
+    application_snap = ["--classic code"]
+
     if platform_name == conf.Platforme.LINUX:
-        args_command = ["sudo", "apt", "install", "make"]
-        result = subprocess.call(args_command)
-        args_command = ["sudo", "apt", "install", "g++"]
-        result = result if result != 0 else subprocess.call(args_command)
+        for app in application_install:
+            args_command = ["sudo", "apt", "install", app]
+            result = subprocess.call(args_command)
+            if result != 0:
+                return result
+        for app in application_snap:
+            args_command = ["sudo", "snap", "install", app]
+            result = subprocess.call(args_command)
+            if result != 0:
+                return result
+        for lib in lib_install:
+            args_command = ["sudo", "apt-get", "install", lib]
+            result = subprocess.call(args_command)
+            if result != 0:
+                return result
         return result
     elif platform_name == conf.Platforme.MACOS:
         return 0
@@ -57,30 +72,10 @@ def InstallCompilateur():
 
 def InitializeNken():
     AddNkenVariable()
-    """script_name = "nken"
-    script_path = os.path.join(os.getcwd(), script_name)
-    
-    # Vérifier si le script est déjà exécutable
-    is_executable = os.access(script_path, os.X_OK)
-    
-    if not is_executable:
-        # Déterminer le système d'exploitation
-        if conf.GetPlatform() == conf.Platforme.WINDOWS:
-            command = f"attrib +x {script_name}.bat"
-        else:
-            command = f"chmod +x {script_name}.sh"
-        
-        # Rendre le script exécutable
-        os.system(command)
-    """
-    # Exécuter la commande avec nken help
-    # os.system(f"nken help")
 
 
 if __name__ == '__main__': 
     # exit_code = 0 if AddVsPath() == True else 1
     exit_code = InstallCompilateur()
-
-    exit_code = InitializeNken() if exit_code == 0 else exit_code
 
     sys.exit(exit_code)
