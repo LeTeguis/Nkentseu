@@ -3,14 +3,15 @@
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __NKENTSEU_NKENTSEUERROR_H__
-#define __NKENTSEU_NKENTSEUERROR_H__
+#ifndef __NKENTSEU_NKENTSEU_ERROR_H__
+#define __NKENTSEU_NKENTSEU_ERROR_H__
 
 #pragma once
 
 #include "System/System.h"
 #include "System/Nature/Base.h"
 #include <vector>
+
 
 namespace nkentseu {
     enum class NKENTSEU_API NTSErrorCode : bool32 {
@@ -56,4 +57,4 @@ namespace nkentseu {
 #define ErrorMessaging     NTSErrorMessenger::Instance()
 } // namespace nkentseu
 
-#endif    // __NKENTSEU_NKENTSEUERROR_H__
+#endif    // __NKENTSEU_NKENTSEU_ERROR_H__
