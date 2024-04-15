@@ -1,0 +1,39 @@
+//------------------------------------- nano ~/.bash_env
+export PATH="$HOME/bin:$PATH"
+export VS_PATH="\"mnt/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/devenv.exe\""
+export VS_BUILD_PATH="\"/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe\""
+export CODE_PATH="\"/mnt/c/Users/TTRS/AppData/Local/Programs/Microsoft VS Code/Code.exe\""
+//------------------------------------ source ~/.bash_env
+//------------------------------------ nano ~/.bash_aliases
+export PATH="$HOME/bin:$PATH"
+
+alias winc="cd /mnt/c"
+alias wind="cd /mnt/d"
+alias winp="cd /mnt/d/Projects/2024/Suites"
+
+alias aents="winp; cd Aqua; ./aents.sh"
+alias aedir="winp; cd Aqua"
+alias kr="./kr.sh"
+alias nts="./nts.sh"
+alias krdir="winp; cd krypton2"
+alias sldir="winp; cd scrollerlite"
+alias ntsdir="winp; cd Nkentsuu"
+
+alias lua="lua5.3"
+
+alias wincmd="wincmd.sh"
+alias code="\"/mnt/c/Users/teugu/AppData/Local/Programs/Microsoft VS Code/Code.exe\""
+alias vs="\"/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/devenv.exe\""
+//------------------------------------ source ~/.bash_aliases
+//------------------------------------ nano ~/.bashrc
+echo "export DISPLAY=localhost:0.0" >> ~/.bashrc
+//------------------------------------ source ~/.bashrc
+
+
+// update ubuntu : 
+1- sudo apt update
+// install:
+1- Install Gnome Text Editor (sudo apt install gnome-text-editor -y) launch (gnome-text-editor file_you_wont_to_open)
+2- Install Nautilus (sudo apt install nautilus -y) launch (nautilus)
+3- Install Libx11-dev (sudo apt-get install libx11-dev) and (sudo apt-get install xorg-dev)
+4- Install VsCode for linux (sudo snap install --classic code) launch (code)

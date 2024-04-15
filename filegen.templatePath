@@ -1,0 +1,6 @@
+filegen
+  |____${FILENAME}.h            // [cpp] header file
+  |____${FILENAME}.cpp           // [cpp] source file
+  |____${FILENAME}_unittest.pp  // [cpp] unittest file
+  |____${FILEPREFIX}${FILENAME}${FILESUFFIX}.h  // [cpp] gmock extract header file
+  |____${FILEPREFIX}${FILENAME}${FILESUFFIX}.pp  // [cpp] gmock extract source file
