@@ -24,12 +24,12 @@ La solution est structurée de la manière suivante où l'on retrouve dans le do
 - [Core](./Core): le dossier core contient les API du noyau du système, notamment les APIs :
     - [NSystem](./Core/NSystem) : qui contient les déclarations des types de base, la gestion de la mémoire et bien d'autres.
     - [Logger](./Core/Logger) : qui contient notre système de journalisation.
-    - [Ntms](./Core/Ntms) : qui contient notre bibliothèque de maths.
+    - [Ntsm](./Core/Ntsm) : qui contient notre bibliothèque de maths.
     - [Unitest](./Core/Unitest) : qui est notre bibliothèque de test unitaire.
     - [Nkentseu](./Core/Nkentseu) : qui est notre API graphique similaire à la SDL2 ou à la SFML, etc.
 - [Engine](./Engine) : engine contient notre API de moteur de jeu qui descend directement de Nkentseu et l'éditeur du moteur pour l'instant.
 - [Exemples](./Exemples) : va contenir les applications d'exemple développées soit avec Nkentseu soit avec le moteur ou avec toute autre partie de notre système.
-- [Texts](./Texts) : contient l'ensemble de nos scripts qui utilisent notre API de test unitaire pour tester certains systèmes conçus.
+- [Tests](./Tests) : contient l'ensemble de nos scripts qui utilisent notre API de test unitaire pour tester certains systèmes conçus.
 - [External](./External) : va contenir notre générateur premake et toutes les parties tierces que nous aurons utilisées dans nos systèmes.
 
 ## Configuration
