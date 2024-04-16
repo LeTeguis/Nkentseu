@@ -11,6 +11,7 @@
 #ifdef NKENTSEU_PLATFORM_LINUX
 
 #include "WindowEventInternal.h"
+#include "Nkentseu/Platform/PlatformState.h"
 
 namespace nkentseu {
 
@@ -22,42 +23,69 @@ namespace nkentseu {
 
     bool WindowDisplay::Register(bool dbclk) {
         if (m_IsRegistered) return false;
+        m_IsRegistered = false;
+        Log_nts.Debug();
 
-        windowHandle = XOpenDisplay(nullptr);
-        m_IsRegistered = true;
+        xcb_intern_atom_reply_t *intern_atom_reply;
 
-        if (windowHandle == nullptr){
-            Log_nts.Error("Failed to open X diplay {0}", XDisplayName(nullptr));
-            m_IsRegistered = false;
-        }
-        windowRoot = DefaultRootWindow(windowHandle);
-        screen = DefaultScreenOfDisplay(display);
-        screenId = DefaultScreen(display);
+        xcb_connection_t* connection = PlatformState_::Instance().connection;
+        int screen_number = PlatformState_::Instance().screenNumber;
+        Log_nts.Debug();
+
+        /*InterneAtomReply(true, true, "WM_PROTOCOLS", NULL);
+        Log_nts.Debug();
+        if(m_IsRegistered) {
+            Log_nts.Debug();
+            InterneAtomReply(false, true, "WM_DELETE_WINDOW", NULL);
+            Log_nts.Debug();
+        }*/
+        Log_nts.Debug();
+
+        screenHandle = xcb_aux_get_screen(connection, screen_number);
+        Log_nts.Debug();
+
+        windowHandle = xcb_generate_id(connection);
+        Log_nts.Debug();
+
         return m_IsRegistered;
     }
 
-    bool WindowDisplay::UnRegister(bool dbclk) {
-        if (!m_IsRegistered) return false;
-
-        XCloseDisplay(windowHandle);
+    void WindowDisplay::InterneAtomReply(bool type, bool onlyIfExist, const std::string& name, xcb_generic_error_t** generic){
+        Log_nts.Debug();
+        internAtomCookie = xcb_intern_atom(PlatformState_::Instance().connection, onlyIfExist, name.size(), name.c_str());
+        Log_nts.Debug();
+        xcb_intern_atom_reply_t *intern_atom_reply = xcb_intern_atom_reply(PlatformState_::Instance().connection, internAtomCookie, generic);
+        Log_nts.Debug();
+        
+        if (intern_atom_reply){
+            if (type)
+                windowManagerProtocolsProperty = intern_atom_reply->atom;
+            else windowManagerWindowDeleteProtocol = intern_atom_reply->atom;
+            Log_nts.Debug();
+            m_IsRegistered = true;
+        } else {
+            Log_nts.Debug();
+        }
+        Log_nts.Debug();
+        free(intern_atom_reply);
     }
 
-    void WindowDisplay::StaticNative(class nkentseu::Window* window) {
+    void WindowDisplay::StaticNative(class Window* window) {
         currentWindowDisplay = this;
         windowSuper = window;
     }
 
     
-    WindowDisplay* WindowDisplay::GetCurrent(::Display display){
+    WindowDisplay* WindowDisplay::GetCurrent(xcb_window_t windowHandle){
         WindowDisplay* _this;
         if (currentWindowDisplay != nullptr) {
-            windowHandleMap.emplace(display, currentWindowDisplay);
-            currentWindowDisplay->windowHandle = display;
+            windowHandleMap.emplace(windowHandle, currentWindowDisplay);
+            currentWindowDisplay->windowHandle = windowHandle;
             _this = currentWindowDisplay;
             currentWindowDisplay = nullptr;
         }
         else {
-            auto existing = windowHandleMap.find(display);
+            auto existing = windowHandleMap.find(windowHandle);
             _this = existing->second;
         }
         return _this;

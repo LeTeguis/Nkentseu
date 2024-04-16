@@ -37,8 +37,8 @@ namespace nkentseu {
         friend class WindowDisplay;
         friend class WindowInternal;
 
-        static std::shared_ptr<WindowEventInternal> GetInstance() {
-            static std::shared_ptr<WindowEventInternal> eventManager = std::make_shared<WindowEventInternal>();
+        static Memory::Shared<WindowEventInternal> GetInstance() {
+            static Memory::Shared<WindowEventInternal> eventManager = Memory::Alloc<WindowEventInternal>();
             return eventManager;
         }
 

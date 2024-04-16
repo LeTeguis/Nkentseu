@@ -13,22 +13,26 @@
 
 namespace nkentseu {
 
-    // ** Class representing modifier key state **
-
-    class NKENTSEU_API ModifierState {
+    class ButtonState {
     public:
         // ** Type alias for button state **
         // This alias defines a `ButtonState` type as a `uint32`. It can be used to represent 
         // different states of buttons (Down, Up, None).
-        using ButtonState = uint32;
+        using Code = uint32;
 
         // ** Enum for button states **
         // This enum defines three possible states for buttons: Down, Up, and None.
-        enum : ButtonState {
-            Down,  // Button is currently pressed
-            Up,    // Button is currently released
-            None,  // Button state is unknown or not applicable
+        enum : Code {
+            Down_ev,  // Button is currently pressed
+            Up_ev,    // Button is currently released
+            None_ev,  // Button state is unknown or not applicable
         };
+    };
+
+    // ** Class representing modifier key state **
+
+    class NKENTSEU_API ModifierState {
+    public:
 
         // ** Member variables for individual modifier keys **
         // These boolean variables indicate the state of specific modifier keys:

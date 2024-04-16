@@ -89,14 +89,12 @@ namespace nkentseu {
         Vector2u m_WindowFrameSize = Vector2u(6, 30);
         Memory::Shared<WindowDisplay> m_NativeWindow = nullptr;
         bool m_IsWindowClosed = false;
-        bool m_IsEventPick = false;
         uint64 m_WindowID = 0;
         bool m_IsWindowCreated = false;
 
         class Window* m_MainWindow = nullptr;
 
         static uint64 s_WindowIDCounter;
-#define NWD_VALID(variable) (m_NativeWindowData != nullptr && m_NativeWindowData->##variable != nullptr)
 
         // Méthodes pour convertir les types Vector2u et Vector2i en types Windows
         DWORD GetWindowStyleInternal(const nkentseu::WindowProperties& props);

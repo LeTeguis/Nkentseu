@@ -23,27 +23,27 @@ namespace nkentseu {
 
         // Enum to represent various event categories using bit flags
         enum : Code {
-            None = 0,
+            None_ev = 0,
 
             // Application category (for events related to the application itself)
-            Application = BIT(0),
+            Application_ev = BIT(0),
 
             // Input category (for events related to user input)
-            Input = BIT(1),
+            Input_ev = BIT(1),
 
             // Subcategories within Input (more specific categories can be added)
-            Keyboard = BIT(2),
-            Mouse = BIT(3),
-            MouseButton = BIT(4),  // Consider using a separate enum for mouse button events
+            Keyboard_ev = BIT(2),
+            Mouse_ev = BIT(3),
+            MouseButton_ev = BIT(4),  // Consider using a separate enum for mouse button events
 
-            Window = BIT(5),
-            Graphics = BIT(6),
-            Touch = BIT(7),
-            Gamepad = BIT(8),
-            Custom = BIT(9),
-            Transfer = BIT(10),
-            GenericInput = BIT(11),
-            DragAndDrop = BIT(12)
+            Window_ev = BIT(5),
+            Graphics_ev = BIT(6),
+            Touch_ev = BIT(7),
+            Gamepad_ev = BIT(8),
+            Custom_ev = BIT(9),
+            Transfer_ev = BIT(10),
+            GenericInput_ev = BIT(11),
+            DragAndDrop_ev = BIT(12)
         };
 
         // Function to convert an event category code to a human-readable string

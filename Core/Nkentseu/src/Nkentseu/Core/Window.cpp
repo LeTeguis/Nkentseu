@@ -180,7 +180,9 @@ namespace nkentseu {
 	}
 
 	const WindowProperties& Window::GetProperties() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, WindowProperties(), GetProperties);
+		static WindowProperties prop;
+		ValidateObject(m_WindowInternalInfo, InternalInfo, true, prop, GetProperties);
+		return prop;
 	}
 
 	uint64 Window::ID() {

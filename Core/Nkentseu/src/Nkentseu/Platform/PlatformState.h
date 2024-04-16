@@ -17,6 +17,7 @@
 #endif
 
 #if defined(NKENTSEU_PLATFORM_LINUX)
+#include <xcb/xcb.h>
 #endif
 
 #if defined(NKENTSEU_PLATFORM_ANDROID)
@@ -56,6 +57,13 @@ namespace nkentseu {
 
         void Init(android_app* app);
 
+        #elif defined(NKENTSEU_PLATFORM_LINUX)
+        int screenNumber = 0;
+        xcb_connection_t* connection;
+
+        void Init(int argc, const char** argv);
+
+        void Close();
         #else
 
         void Init(int argc, const char** argv);

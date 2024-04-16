@@ -24,7 +24,7 @@ namespace nkentseu {
 #define BUTTON_MASK(X) ((1 << ((X)-1)))
 
 // Define a type alias for `uint32` representing a mouse button
-        using Button = uint32;
+        using Button = int64;
 
         // Enum to define all supported mouse buttons
         enum : Button {

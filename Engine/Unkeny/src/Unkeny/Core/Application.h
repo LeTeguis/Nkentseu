@@ -12,6 +12,8 @@
 #include "System/Nature/Base.h"
 #include "System/Definitions/Memory.h"
 
+#include "Nkentseu/Event/EventCategory.h"
+
 #include <vector>
 #include <string>
 
@@ -33,6 +35,8 @@ namespace nkentseu {
         bool OnWindowCloseEvent(class WindowCloseEvent& e);
         bool OnKeyPressedEvent(class KeyPressedEvent& e);
 
+        void Saut(const std::string& name, EventCategory::Code categorie, int64 code, bool pressed, bool released);
+        void Course(const std::string& name, EventCategory::Code categorie, int64 code, float32 value);
     private:
         Memory::Shared<class Window> m_Window;
         bool m_Running;

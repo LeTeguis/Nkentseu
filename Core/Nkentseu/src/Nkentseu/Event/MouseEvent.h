@@ -28,8 +28,8 @@ namespace nkentseu {
         virtual bool IsEqual(Event& e) const override;
 
         // Flags d'événement
-        EVENT_TYPE_FLAGS(EventType::MouseWheelScrolled)
-            EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+        EVENT_TYPE_FLAGS(EventType::MouseWheelScrolled_ev)
+            EVENT_CATEGORY_FLAGS(EventCategory::Mouse_ev | EventCategory::Input_ev)
     private:
         float32 m_Delta;
         ModifierState m_State;
@@ -44,7 +44,7 @@ namespace nkentseu {
         bool IsButton(Mouse::Button b) const;
         bool IsMState(ModifierState ms) const;
         virtual bool IsEqual(Event& e) const override;
-        EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+        EVENT_CATEGORY_FLAGS(EventCategory::Mouse_ev | EventCategory::Input_ev)
     protected:
         MouseButtonEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2& position = { 0.0f });
         MouseButtonEvent(const MouseButtonEvent& event);
@@ -62,7 +62,7 @@ namespace nkentseu {
 
         // Méthode publique
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::MouseButtonPressed)
+        EVENT_TYPE_FLAGS(EventType::MouseButtonPressed_ev)
     };
 
     class NKENTSEU_API MouseButtonDBCLKEvent : public MouseButtonEvent {
@@ -74,7 +74,7 @@ namespace nkentseu {
 
         // Méthode publique
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::MouseButtonPressed)
+        EVENT_TYPE_FLAGS(EventType::MouseButtonPressed_ev)
     };
 
     class NKENTSEU_API MouseButtonReleasedEvent : public MouseButtonEvent {
@@ -86,7 +86,7 @@ namespace nkentseu {
 
         // Méthode publique
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::MouseButtonReleased)
+        EVENT_TYPE_FLAGS(EventType::MouseButtonReleased_ev)
     };
 
     class NKENTSEU_API MouseButtonRawEvent : public MouseButtonEvent {
@@ -100,7 +100,7 @@ namespace nkentseu {
         Vector2i GetDelta() const;
         bool IsPressed() const;
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::MouseButtonRawInput)
+        EVENT_TYPE_FLAGS(EventType::MouseButtonRawInput_ev)
 
     private:
         Vector2i m_Delta;
@@ -119,8 +119,8 @@ namespace nkentseu {
         Vector2 GetPositionGlobal() const;
         virtual std::string ToString() const override;
         virtual bool IsEqual(Event& e) const override;
-        EVENT_TYPE_FLAGS(EventType::MouseMoved)
-            EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+        EVENT_TYPE_FLAGS(EventType::MouseMoved_ev)
+            EVENT_CATEGORY_FLAGS(EventCategory::Mouse_ev | EventCategory::Input_ev)
     private:
         Vector2 m_Position;
         Vector2 m_Move;
@@ -135,8 +135,8 @@ namespace nkentseu {
 
         // Méthode publique
         virtual bool IsEqual(Event& e) const override;
-        EVENT_TYPE_FLAGS(EventType::MouseEnteredWindow)
-            EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+        EVENT_TYPE_FLAGS(EventType::MouseEnteredWindow_ev)
+            EVENT_CATEGORY_FLAGS(EventCategory::Mouse_ev | EventCategory::Input_ev)
     };
 
     class NKENTSEU_API MouseExitedEvent : public Event {
@@ -147,8 +147,8 @@ namespace nkentseu {
 
         // Méthode publique
         virtual bool IsEqual(Event& e) const override;
-        EVENT_TYPE_FLAGS(EventType::MouseExitedWindow)
-            EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+        EVENT_TYPE_FLAGS(EventType::MouseExitedWindow_ev)
+            EVENT_CATEGORY_FLAGS(EventCategory::Mouse_ev | EventCategory::Input_ev)
     };
 } // namespace nkentseu
 

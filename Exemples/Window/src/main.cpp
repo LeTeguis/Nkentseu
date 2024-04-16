@@ -2,16 +2,18 @@
 #include "Nkentseu/Nkentseu.h"
 #include <Nkentseu/Core/Events.h>
 
+#include <Nkentseu/Core/Window.h>
+
 using namespace nkentseu;
 
 nkentseu::int32 Main(const nkentseu::ARGV& argv) {
     WindowProperties windowProperty;
-    windowProperty.Title = "Window Test";
-    windowProperty.Size = Vector2u(1000, 600);
+    windowProperty.title = "Window Test";
+    windowProperty.size = Vector2u(1000, 600);
 
-    Memory::Shared<Window> window = Memory::Alloc<Window>(windowProperty);
+    Memory::Shared<nkentseu::Window> window = Memory::Alloc<nkentseu::Window>(windowProperty);
 
-    NTSErrorCode error = ErrorMessaging.PopError();
+    /*NTSErrorCode error = ErrorMessaging.PopError();
 
     if (window == nullptr || (error != NTSErrorCode::Error_No && error != NTSErrorCode::Window_StayInWindowMode)) {
         Memory::Reset(window);
@@ -31,7 +33,7 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
                 running = false;
             }
         }
-    }
+    }*/
 
     // Memory::Reset(window);
     return 0;

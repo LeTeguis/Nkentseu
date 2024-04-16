@@ -39,7 +39,7 @@ namespace nkentseu {
         GenericInputEvent(uint64 win, const GenericInputInfos& genericInputInfos);
 
         GenericInputInfos GetGenericInputInfos() const;
-        EVENT_CATEGORY_FLAGS(EventCategory::GenericInput | EventCategory::Input)
+        EVENT_CATEGORY_FLAGS(EventCategory::GenericInput_ev | EventCategory::Input_ev)
     protected:
         GenericInputInfos m_GenericInputInfos;
     };
@@ -50,7 +50,7 @@ namespace nkentseu {
 
         virtual std::string ToString() const override;
 
-        EVENT_TYPE_FLAGS(EventType::GenericInputConnected)
+        EVENT_TYPE_FLAGS(EventType::GenericInputConnected_ev)
     };
 
     class NKENTSEU_API GenericInputDisconnectedEvent : public GenericInputEvent {
@@ -59,7 +59,7 @@ namespace nkentseu {
 
         virtual std::string ToString() const override;
 
-        EVENT_TYPE_FLAGS(EventType::GenericInputDisconnected)
+        EVENT_TYPE_FLAGS(EventType::GenericInputDisconnected_ev)
     };
 
 
@@ -76,14 +76,14 @@ namespace nkentseu {
     public:
         GenericInputButtonPressedEvent(uint64 win, const GenericInputInfos& genericInputInfos, GenericInput::Button button);
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::GenericInputPressed)
+        EVENT_TYPE_FLAGS(EventType::GenericInputPressed_ev)
     };
 
     class NKENTSEU_API GenericInputButtonReleasedEvent : public GenericInputButtonEvent {
     public:
         GenericInputButtonReleasedEvent(uint64 win, const GenericInputInfos& genericInputInfos, GenericInput::Button button);
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::GenericInputReleased)
+        EVENT_TYPE_FLAGS(EventType::GenericInputReleased_ev)
     };
 
     class NKENTSEU_API GenericInputAxisEvent : public GenericInputEvent {
@@ -93,7 +93,7 @@ namespace nkentseu {
         GenericInput::Axis GetAxis() const;
         float32 GetValue() const;
 
-        EVENT_TYPE_FLAGS(EventType::GenericInputAxisMoved)
+        EVENT_TYPE_FLAGS(EventType::GenericInputAxisMoved_ev)
             virtual std::string ToString() const override;
     protected:
         GenericInput::Axis m_Axis;

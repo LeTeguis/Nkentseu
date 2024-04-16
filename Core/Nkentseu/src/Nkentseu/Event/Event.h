@@ -69,7 +69,7 @@ namespace nkentseu {
         inline bool IsInCategory(EventCategory::Code category);
 
         // Flag indicating if the event has been handled
-        bool m_Handled = false;
+        bool handled = false;
 
         // Friend function for streaming Event objects to ostream (e.g., std::cout)
         friend std::ostream& operator<<(std::ostream& os, const Event& e) {
@@ -78,13 +78,13 @@ namespace nkentseu {
 
         // Template method for type checking events
         template<typename T>
-        bool IsEqual() {
+        bool IsA() {
             return GetEventType() == T::GetStaticType();
         }
 
         // Template method for casting Event to specific event type
         template<typename T>
-        T& GetProps() {
+        T& GetProperties() {
             return static_cast<T&>(*this);
         }
 

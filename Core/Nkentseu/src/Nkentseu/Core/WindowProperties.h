@@ -22,8 +22,8 @@ namespace nkentseu {
     public:
         static const WindowProperties& GetInValid() {
             static WindowProperties prop;
-            prop.Size = Vector2u();
-            prop.MaxSize = Vector2u();
+            prop.size = Vector2u();
+            prop.maxSize = Vector2u();
             return prop;
         }
 
@@ -31,99 +31,99 @@ namespace nkentseu {
         // Transform
         // 
         // Window Size
-        Vector2u Size = Vector2u(640, 480);
+        Vector2u size = Vector2u(640, 480);
         // Window minimum Size
-        Vector2u MinSize = Vector2u(0, 0);
+        Vector2u minSize = Vector2u(0, 0);
         // Window maximum Size
-        Vector2u MaxSize = Vector2u(0xFFFF, 0xFFFF);
+        Vector2u maxSize = Vector2u(0xFFFF, 0xFFFF);
 
         // Window position based on Top Left
-        Vector2i Position = Vector2i(0, 0);
+        Vector2i position = Vector2i(0, 0);
         // Should this window be centered on creation?
-        WindowPositionType PositionType = WindowPositionType::CenteredPosition;
+        WindowPositionType positionType = WindowPositionType::CenteredPosition;
 
         // Window Settings
         // 
         // Whether this window is resizable
-        bool Resizable = true;
+        bool resizable = true;
         // Whether this window is movable
-        bool Movable = true;
+        bool movable = true;
         // Whether this window is closable
-        bool Closable = true;
+        bool closable = true;
         // Whether this window is minimizable
-        bool Minimizable = true;
+        bool minimizable = true;
         // whether this window is maximizable
-        bool Maximizable = true;
+        bool maximizable = true;
         // Whether this window can be fullscreened
-        bool CanFullscreen = true;
+        bool canFullscreen = true;
         // Vertical syncronization
-        bool VSyn = true;
+        bool vSyn = true;
 
-        bool AcceptFile = true;
+        bool acceptFile = true;
 
-        bool StayInTop = false;
+        bool stayInTop = false;
 
         // Color and Style
         // 
         // Hexidecimal background color (0xffffffff = white)
         //Color BackgroundColor = 0xFFFFFFFF;
-        Color BackgroundColor;
+        Color backgroundColor;
         // makes this window transparent
-        bool Transparent = false;
+        bool transparent = false;
         // does this window feature a frame?
-        bool Frame = true;
+        bool frame = true;
         // if this window has a shadow
-        bool HasShadow = false;
+        bool hasShadow = false;
 
         // States
         // 
         // Is this window visible?
-        bool Visible = true;
+        bool visible = true;
         // Is this window full screen?
-        bool Fullscreen = false;
+        bool fullscreen = false;
         // Is this window a modal?
-        bool Modal = false;
+        bool modal = false;
 
         // App Data
         // 
         // Window Title
-        std::string Title = std::string("Nkentseu");
+        std::string title = std::string("Nkentseu");
         // Window name ID
-        std::string Name = std::string("NkentseuApp");
+        std::string name = std::string("NkentseuLib");
         // Icon Path
-        std::string IconPath = "";
+        std::string iconPath = "";
 
         // Mouse Data
-        bool DoubleClick = true;
+        bool doubleClick = true;
 
         // context info
         // ContextInfo ContextInfo;
 
         // mouse 
-        bool CursorVisible = true;
+        bool cursorVisible = true;
 
         // bpp
-        uint32 BitsPerPixel{};
+        uint32 bitsPerPixel{};
         static WindowProperties GetDesktopProperties();
         static const std::vector<WindowProperties>& GetFullscreenProperties();
 
         friend bool operator==(const WindowProperties& left, const WindowProperties& right) {
-            return (left.Size == right.Size) && (left.BitsPerPixel == right.BitsPerPixel);
+            return (left.size == right.size) && (left.bitsPerPixel == right.bitsPerPixel);
         }
         friend bool operator!=(const WindowProperties& left, const WindowProperties& right) {
             return !(left == right);
         }
         friend bool operator<(const WindowProperties& left, const WindowProperties& right) {
-            if (left.BitsPerPixel == right.BitsPerPixel) {
-                if (left.Size.x == right.Size.x) {
-                    return left.Size.y < right.Size.y;
+            if (left.bitsPerPixel == right.bitsPerPixel) {
+                if (left.size.x == right.size.x) {
+                    return left.size.y < right.size.y;
                 }
                 else {
-                    return left.Size.x < right.Size.x;
+                    return left.size.x < right.size.x;
                 }
             }
             else {
-                return left.BitsPerPixel < right.BitsPerPixel;
+                return left.bitsPerPixel < right.bitsPerPixel;
             }
         }
         friend bool operator>(const WindowProperties& left, const WindowProperties& right) {

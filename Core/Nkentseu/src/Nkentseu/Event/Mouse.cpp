@@ -28,9 +28,9 @@ namespace nkentseu {
         case Horizontal_ev: return "Horizontal";
         case Vertical_ev: return "Vertical";
         case HorizontalRel_ev: return "HorizontalRel";
-        case VerticalRel_ev: return "VerticalRel";
-        default_ev: return "Unknown";
+        case VerticalRel_ev: return "VerticalRel"; 
         }
+        return "Unknown";
     }
 
     // Implementation of the static method FromString

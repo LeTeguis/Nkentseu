@@ -85,13 +85,13 @@ namespace nkentseu {
 
     void Assertion::PreWrite(const std::string& message)
     {
-        m_LoggerInfos.SetSeverity(Severity::Fatal_ev);
+        m_LoggerInfos.SetSeverity(Severity::Assert_ev);
 
         m_LoggerInfos.SetMessages(message);
 
         m_LoggerInfos.SetHeader(
             Formatter::Instance().
-            Format("[{0} {1}] | [{2} >> {3} >> {4} ] | [{5}] :",
+            Format("[{0} {1}] | [{2} >> {3} >> {4} ] |",
                 m_LoggerInfos.GetDate(), m_LoggerInfos.GetTime(),
                 m_LoggerInfos.GetFile(), m_LoggerInfos.GetLine(), m_LoggerInfos.GetFunction(),
                 m_LoggerInfos.GetName()));
@@ -109,16 +109,16 @@ namespace nkentseu {
         std::string header = loggerInfos.GetHeader();
         std::string message = loggerInfos.GetMessages();
 
-        std::string beginColor = "\033[1; 41m";
+        std::string beginColor = "\033[1;41m"; // "\033[1;41m"
         std::string endColor = "\033[0m";
 
         #ifdef NKENTSEU_PLATFORM_ANDROID
-            __android_log_print(ANDROID_LOG_INFO, "", " %s [%s%s%s] %s", header.c_str(), beginColor.c_str(), logType.c_str(), endColor.c_str(), message.c_str());
+            __android_log_print(ANDROID_LOG_INFO, "", "(%s%s%s) : %s [%s%s%s] >> %s", beginColor.c_str(), loggerInfos.GetName().c_str(), endColor.c_str(), header.c_str(), beginColor.c_str(), logType.c_str(), endColor.c_str(), message.c_str());
         #elif defined(NKENTSEU_PLATFORM_IOS)
-            printf(" %s [%s%s%s] %s", header.c_str(), beginColor.c_str(), logType.c_str(), endColor.c_str(), message.c_str());
+            printf("(%s%s%s) : %s [%s%s%s] >> %s", beginColor.c_str(), loggerInfos.GetName().c_str(), endColor.c_str(), header.c_str(), beginColor.c_str(), logType.c_str(), endColor.c_str(), message.c_str());
         #else
             // Code par défaut pour les autres plates-formes (Linux, macOS, etc.)
-            std::cout << header << " [" << beginColor << logType << endColor << "] >> " << message << std::endl;
+            std::cout << " (" << beginColor << loggerInfos.GetName() << endColor << ") : " << header << " [" << beginColor << logType << endColor << "] >> " << message << std::endl;
         #endif
     }
 

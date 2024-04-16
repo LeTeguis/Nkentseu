@@ -9,7 +9,7 @@
 namespace nkentseu {
 
     EventType::Code Event::GetEventType() const {
-        return EventType::None;
+        return EventType::None_ev;
     }
 
     const char* Event::GetName() const {
@@ -21,7 +21,7 @@ namespace nkentseu {
     }
 
     int32 Event::GetCategoryFlags() const {
-        return EventCategory::None;
+        return EventCategory::None_ev;
     }
 
     bool Event::IsEqual(Event& event) const {
@@ -38,5 +38,5 @@ namespace nkentseu {
 
     Event::Event(uint64 windowId) : m_WindowID(windowId) {}
     Event::Event() : m_WindowID(0) {}
-    Event::Event(const Event& e) : m_WindowID(e.m_WindowID), m_Handled(e.m_Handled) {}
+    Event::Event(const Event& e) : m_WindowID(e.m_WindowID), handled(e.handled) {}
 }    // namespace nkentseu

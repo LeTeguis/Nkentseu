@@ -45,6 +45,7 @@
 #include <inttypes.h>
 #include <Dbt.h>
 #include <hidpi.h>
+#include <Nkentseu/Event/InputManager.h>
 
 #pragma comment(lib, "hid.lib")
 
@@ -83,7 +84,7 @@ namespace nkentseu {
 			DispatchMessage(&msg);
 		}
 
-		//Input.private__update__axis();
+		Input.private__update__axis();
 	}
 
 	Event* WindowEventInternal::Front() {
@@ -225,9 +226,8 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::FinalizePushEvent(Event* event, LRESULT info, MSG msg, WindowDisplay* native, const RECT& currentWindowRect) {
-		if (event->GetEventType() != EventType::None) {
+		if (event->GetEventType() != EventType::None_ev) {
 			if (!isQueueLocked) {
-				//eventQueue.emplace(event);
 				eventQueue.push_back(event);
 			}
 
@@ -430,7 +430,7 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::HandleWindowNCCALCSIZEEvent(MSG msg, WindowDisplay* window) {
-		if (!window->windowProperties.Frame) {
+		if (!window->windowProperties.frame) {
 			if (msg.lParam && msg.wParam) {
 				NCCALCSIZE_PARAMS* sz = (NCCALCSIZE_PARAMS*)msg.lParam;
 				int32 titleHeight = TITLEBARHEIGHT;
@@ -450,16 +450,20 @@ namespace nkentseu {
 	LRESULT WindowEventInternal::HandleWindowGETMINMAXINFOEvent(MSG msg, WindowDisplay* window) {
 		MINMAXINFO* min_max = reinterpret_cast<MINMAXINFO*>(msg.lParam);
 
-		min_max->ptMinTrackSize.x = window->windowProperties.MinSize.width;
-		min_max->ptMinTrackSize.y = window->windowProperties.MinSize.height;
+		min_max->ptMinTrackSize.x = window->windowProperties.minSize.width;
+		min_max->ptMinTrackSize.y = window->windowProperties.minSize.height;
+
+		min_max->ptMaxSize.x = window->windowProperties.maxSize.width;
+		min_max->ptMaxSize.y = window->windowProperties.maxSize.height;
 		return 0;
 	}
 
 	LRESULT WindowEventInternal::HandleWindowMoveEvent(MSG msg, WindowDisplay* window, uint8 t) {
-		if (!window->windowProperties.Movable) {
-			//return 0;
+		if (!window->windowProperties.movable) {
+			window->windowSuper->SetPosition(window->windowProperties.position);
+			return 0;
 		}
-		Vector2i position;
+		Vector2i position = window->windowProperties.position;
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 
 		if (t % 3 == 0) {
@@ -479,6 +483,7 @@ namespace nkentseu {
 				position = Vector2i(r->left, r->top);
 			}
 		}
+		window->windowProperties.position = position;
 		return FinalizePushEvent(new WindowMovedEvent(window->windowSuper->ID(), position), 0, msg, window, currentWindowRect);
 	}
 

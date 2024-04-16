@@ -67,7 +67,7 @@ namespace nkentseu {
                         contextFailed++;
                         if (m_PrintFailedDetails) {
                             m_Logger.Details(unitestInfo.GetFile().c_str(), unitestInfo.GetLine(), unitestInfo.GetFunction().c_str())
-                                .Error("{0}", unitestInfo.GetMessage());
+                                .Asserts("{0}", unitestInfo.GetMessage());
                         }
                     }
                 }
@@ -95,7 +95,7 @@ namespace nkentseu {
 
         // Log final test summary
         if (!failedTests.empty()) {
-            m_Logger.Details(__FILE__, __LINE__, __FUNCTION__).Error("{0} Failed / {1} Total > \n[{2}\n]", totalFailed, totalRun, failedTests);
+            m_Logger.Details(__FILE__, __LINE__, __FUNCTION__).Asserts("{0} Failed / {1} Total > \n[{2}\n]", totalFailed, totalRun, failedTests);
         }
         if (!passedTests.empty()) {
             m_Logger.Details(__FILE__, __LINE__, __FUNCTION__).Info("{0} Passed / {1} Total > \n[{2}\n]", totalPassed, totalRun, passedTests);

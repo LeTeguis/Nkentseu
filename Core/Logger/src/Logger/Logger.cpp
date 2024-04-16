@@ -124,7 +124,7 @@ namespace nkentseu {
 
         m_LoggerInfos.SetHeader(
             Formatter::Instance().
-            Format("[{0} {1}] | [{2} >> {3} >> {4} ] | ",
+            Format("[{0} {1}] | [{2} >> {3} >> {4} ] |",
                 m_LoggerInfos.GetDate(), m_LoggerInfos.GetTime(),
                 m_LoggerInfos.GetFile(), m_LoggerInfos.GetLine(), m_LoggerInfos.GetFunction()));
         // Notify all registered observers using a range-based for loop

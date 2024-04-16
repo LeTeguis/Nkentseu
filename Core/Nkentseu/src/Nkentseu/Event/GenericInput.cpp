@@ -6,6 +6,8 @@
 #include "NkentseuPch/ntspch.h"
 #include "GenericInput.h"
 
+#include <cstring>
+
 namespace nkentseu {
 
 	std::string GenericInput::GetButton(Button button) {

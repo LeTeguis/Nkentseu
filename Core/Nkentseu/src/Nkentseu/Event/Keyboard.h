@@ -18,10 +18,10 @@ namespace nkentseu {
         #define MASK (1<<30)
         #define SCANCODE_TO_KEYCODE(X)  (X | MASK)
 
-        using KeyCode = uint64;
-        using ScanCode = uint64;
-        using KeyMod = uint64;
-        using Code = uint64;
+        using KeyCode = int64;
+        using ScanCode = int64;
+        using KeyMod = int64;
+        using Code = int64;
 
         enum : Code {
             Unknown_ev = 0,

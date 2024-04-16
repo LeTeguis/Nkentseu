@@ -31,36 +31,47 @@ def help_command():
     print("Initialise les systèmes en téléchargeant les éléments nécessaires et en configurant le système.")
 
 
+# Vérifie si une application est déjà installée
+def IsInstalled(app_name):
+    result = subprocess.run(['which', app_name], capture_output=True, text=True)
+    return result.returncode == 0
+
+
 # Installe les compilateurs et les dépendances
 def InstallCompilateur():
     platform_name = conf.GetPlatform()
 
-    application_install = ["make", "g++", "nautilus -y", "gnome-text-editor -y"]
-    lib_install = ["libx11-dev", "xorg-dev"]
+    application_install = ["make", "g++", "nautilus", "gnome-text-editor"]
+    lib_install = ["libx11-dev", "xorg-dev", "libxcb1", "libxcb1-dev", "libxcb-util-dev", "libxcb-icccm4-dev"]
     application_snap = ["--classic code"]
 
     if platform_name == conf.Platforme.LINUX:
-        # Installe les applications nécessaires via apt-get
+        # Installe les applications nécessaires via apt-get si elles ne sont pas déjà installées
         for app in application_install:
-            args_command = ["sudo", "apt", "install", app]
-            result = subprocess.call(args_command)
-            if result != 0:
-                return result
+            if not IsInstalled(app):
+                args_command = ["sudo", "apt", "install", app, "-y"]
+                result = subprocess.call(args_command)
+                if result != 0:
+                    return result
         
-        # Installe les applications via Snap
+        # Installe les applications via Snap si elles ne sont pas déjà installées
         for app in application_snap:
-            args_command = ["sudo", "snap", "install", app]
-            result = subprocess.call(args_command)
-            if result != 0:
-                return result
+            app_name = app.split()[1]
+            if not IsInstalled(app_name):
+                args_command = ["sudo", "snap", "install", app]
+                result = subprocess.call(args_command)
+                if result != 0:
+                    return result
         
-        # Installe les bibliothèques nécessaires via apt-get
+        # Installe les bibliothèques nécessaires via apt-get si elles ne sont pas déjà installées
         for lib in lib_install:
-            args_command = ["sudo", "apt-get", "install", lib]
-            result = subprocess.call(args_command)
-            if result != 0:
-                return result
-        return result
+            lib_name = lib.split()[0]
+            if not IsInstalled(lib_name):
+                args_command = ["sudo", "apt-get", "install", lib, "-y"]
+                result = subprocess.call(args_command)
+                if result != 0:
+                    return result
+        return 0
     elif platform_name == conf.Platforme.MACOS:
         # Pour MacOS, l'installation des outils est gérée différemment
         return 0

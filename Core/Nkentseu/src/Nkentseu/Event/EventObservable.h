@@ -13,12 +13,14 @@
 #include <functional>
 #include "Event.h"
 
+#include <System/Definitions/Memory.h>
+
 namespace nkentseu {
     using EventObserver = std::function<void(Event&)>;
-
+#ifdef NKENTSEU_PLATFORM_WINDOWS
     class NKENTSEU_API EventObservable {
     public:
-        static std::shared_ptr<EventObservable> Instance();
+        static Memory::Shared<EventObservable> Instance();
 
         void AddObserver(EventObserver observer);
         void RemoveObserver(const EventObserver& observer);
@@ -35,6 +37,7 @@ namespace nkentseu {
     };
 
     #define EventTrack       EventObservable::Instance()
+#endif
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_EVENTOBSERVABLE_H__

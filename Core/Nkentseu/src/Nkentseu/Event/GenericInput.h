@@ -15,10 +15,10 @@ namespace nkentseu {
     class NKENTSEU_API GenericInput
     {
     public:
-        using GICode = int32;
-        using Button = int32;
-        using Axis = int32;
-        using Hat = int32;
+        using GICode = int64;
+        using Button = int64;
+        using Axis = int64;
+        using Hat = int64;
 
         enum : GICode {
             InvalidButton = -1,

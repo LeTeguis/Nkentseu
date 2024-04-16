@@ -76,13 +76,8 @@ project "Nkentseu"
 
     filter "system:linux"
         links {
-            "X11"
+            "xcb", "xcb-util", "xcb-icccm"
         }
-        --files{
-        --    "./src/Nkentseu/Platform/Window/Linux/**", 
-        --    "./src/Nkentseu/Platform/Main/Main.h", 
-        --    "./src/Nkentseu/Platform/Main/LinuxMain.h"
-        --}
 
         -- Ajout d'options de compilation pour toutes les configurations sous Linux
         buildoptions { "-fPIC", "-pthread" }

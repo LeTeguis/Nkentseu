@@ -64,11 +64,6 @@ namespace nkentseu {
     static thread_local WindowDisplay* currentWindowDisplay = nullptr;
     static thread_local std::unordered_map<HWND, WindowDisplay*> windowHandleMap = {};
 
-    enum WindowStyle : DWORD {
-        Windowed = WS_OVERLAPPEDWINDOW,
-        AeroBorderless = WS_POPUP | WS_THICKFRAME,
-        BasicBorderless = WS_CAPTION | WS_OVERLAPPED | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX
-    };
 } // namespace nkentseu
 
 #endif    //    NKENTSEU_PLATFORM_WINDOWS

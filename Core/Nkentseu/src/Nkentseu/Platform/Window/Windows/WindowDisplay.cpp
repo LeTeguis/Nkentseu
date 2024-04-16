@@ -29,10 +29,10 @@ namespace nkentseu {
     bool WindowDisplay::Register(bool dbclk) {
         if (m_IsRegistered) return false;
 
-        windowClassName = std::wstring(windowProperties.Name.begin(), windowProperties.Name.end());
+        windowClassName = std::wstring(windowProperties.name.begin(), windowProperties.name.end());
 
         windowClass.cbSize = sizeof(WNDCLASSEX);
-        windowClass.style = CS_HREDRAW | CS_VREDRAW | (dbclk ? CS_DBLCLKS : 0) | ((windowProperties.HasShadow) ? CS_DROPSHADOW : 0);
+        windowClass.style = CS_HREDRAW | CS_VREDRAW | (dbclk ? CS_DBLCLKS : 0) | ((windowProperties.hasShadow) ? CS_DROPSHADOW : 0);
         windowClass.lpfnWndProc = WindowEventInternal::WindowProcStatic;
         windowClass.cbClsExtra = 0;
         windowClass.cbWndExtra = WS_EX_NOPARENTNOTIFY;

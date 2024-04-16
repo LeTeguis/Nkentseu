@@ -7,7 +7,7 @@
 #include "WindowProperties.h"
 
 namespace nkentseu {
-    WindowProperties::WindowProperties() : BackgroundColor(Color::DarkGray)
+    WindowProperties::WindowProperties() : backgroundColor(Color::DarkGray)
     {
     }
 
@@ -21,8 +21,8 @@ namespace nkentseu {
         EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &win32Mode);
 
         WindowProperties wprop;
-        wprop.Size = Vector2u(win32Mode.dmPelsWidth, win32Mode.dmPelsHeight);
-        wprop.BitsPerPixel = win32Mode.dmBitsPerPel;
+        wprop.size = Vector2u(win32Mode.dmPelsWidth, win32Mode.dmPelsHeight);
+        wprop.bitsPerPixel = win32Mode.dmBitsPerPel;
 
         return wprop;
     }
@@ -36,8 +36,8 @@ namespace nkentseu {
             win32Mode.dmDriverExtra = 0;
             for (int32 count = 0; EnumDisplaySettings(nullptr, static_cast<DWORD>(count), &win32Mode); ++count) {
                 WindowProperties mode;
-                mode.Size = Vector2u(win32Mode.dmPelsWidth, win32Mode.dmPelsHeight);
-                mode.BitsPerPixel = win32Mode.dmBitsPerPel;
+                mode.size = Vector2u(win32Mode.dmPelsWidth, win32Mode.dmPelsHeight);
+                mode.bitsPerPixel = win32Mode.dmBitsPerPel;
 
                 if (std::find(modes.begin(), modes.end(), mode) == modes.end()) {
                     modes.push_back(mode);

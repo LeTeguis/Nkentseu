@@ -42,13 +42,13 @@ namespace nkentseu {
         int32 nCmdShow = PlatformState.NCmdShow;
 
         m_NativeWindow->windowProperties = properties;
-        m_NativeWindow->backgroundColor.SetColor(m_NativeWindow->windowProperties.BackgroundColor);
+        m_NativeWindow->backgroundColor.SetColor(m_NativeWindow->windowProperties.backgroundColor);
 
-        Vector2i position = m_NativeWindow->windowProperties.Position;
-        Vector2u size = m_NativeWindow->windowProperties.Size;// +m_WinFrame;
+        Vector2i position = m_NativeWindow->windowProperties.position;
+        Vector2u size = m_NativeWindow->windowProperties.size;// +m_WinFrame;
         WindowProperties properties_ = m_NativeWindow->windowProperties;
 
-        if (!m_NativeWindow->Register(properties_.DoubleClick)) {
+        if (!m_NativeWindow->Register(properties_.doubleClick)) {
             /**
                 * Either an OS Error or a window with the same "name" id will cause
                 * this to fail:
@@ -59,7 +59,7 @@ namespace nkentseu {
 
         Vector2i screenSize(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 
-        if (properties_.Fullscreen) {
+        if (properties_.fullscreen) {
             DEVMODE dmScreenSettings;
             memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
             dmScreenSettings.dmSize = sizeof(dmScreenSettings);
@@ -74,8 +74,8 @@ namespace nkentseu {
                     ErrorMessaging.PushError(NTSErrorCode::Window_StayInWindowMode);
                 }
             }
-            properties_.Size = screenSize;
-            size = properties_.Size;
+            properties_.size = screenSize;
+            size = properties_.size;
         }
 
         DWORD dwStyle = GetWindowStyleInternal(properties_);
@@ -85,7 +85,7 @@ namespace nkentseu {
         DPI_AWARENESS_CONTEXT previousDpiContext = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
         RECT windowRect = UpdateWindowExtension(position, size, dwStyle, dwExStyle);
 
-        std::wstring title(properties_.Title.begin(), properties_.Title.end());
+        std::wstring title(properties_.title.begin(), properties_.title.end());
 
         m_NativeWindow->StaticNative(m_MainWindow);
 
@@ -108,11 +108,11 @@ namespace nkentseu {
         BOOL isNCRenderingEnabled{ TRUE };
         DwmSetWindowAttribute(m_NativeWindow->windowHandle, DWMWA_NCRENDERING_ENABLED, &isNCRenderingEnabled, sizeof(isNCRenderingEnabled));
 
-        if (!properties_.Fullscreen) {
-            InitWindowPosition(windowRect, position, size, properties_.PositionType, m_NativeWindow);
+        if (!properties_.fullscreen) {
+            InitWindowPosition(windowRect, position, size, properties_.positionType, m_NativeWindow);
         }
 
-        if (properties_.Visible) {
+        if (properties_.visible) {
             ShowWindow(m_NativeWindow->windowHandle, SW_SHOW);
             SetForegroundWindow(m_NativeWindow->windowHandle);
             SetFocus(m_NativeWindow->windowHandle);
@@ -189,33 +189,33 @@ namespace nkentseu {
     DWORD WindowInternal::GetWindowStyleInternal(const nkentseu::WindowProperties& props) {
         DWORD style = 0;
 
-        if (props.Fullscreen) {
+        if (props.fullscreen) {
             style |= WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
         }
         else {
             // Fenetre standard avec bordure (WS_OVERLAPPEDWINDOW)
-            style |= (props.Frame) ? WS_OVERLAPPEDWINDOW : WS_POPUP;
+            style |= (props.frame) ? WS_OVERLAPPEDWINDOW : WS_POPUP;
 
-            if (props.Frame) {
+            if (props.frame) {
                 // Supprime le bouton de fermeture
-                style = (props.Closable) ? style | WS_SYSMENU : style & (~WS_SYSMENU);
+                style = (props.closable) ? style | WS_SYSMENU : style & (~WS_SYSMENU);
 
                 // Supprime le bouton de minimisation
-                style = (props.Minimizable) ? style | WS_MINIMIZEBOX : style & (~WS_MINIMIZEBOX);
+                style = (props.minimizable) ? style | WS_MINIMIZEBOX : style & (~WS_MINIMIZEBOX);
 
                 // Supprime le bouton de maximisation
-                style = (props.Maximizable) ? style | WS_MAXIMIZEBOX : style & (~WS_MAXIMIZEBOX);
+                style = (props.maximizable) ? style | WS_MAXIMIZEBOX : style & (~WS_MAXIMIZEBOX);
             }
 
             // Supprime le bouton de maximisation
-            style = (props.Movable) ? style | WS_POPUP : style;
+            style = (props.movable) ? style | WS_POPUP : style;
 
             // Fenetre redimensionnable
-            style = (props.Resizable) ? style | WS_THICKFRAME : style & (~WS_THICKFRAME);
+            style = (props.resizable) ? style | WS_THICKFRAME : style & (~WS_THICKFRAME);
 
-            style = (props.Visible) ? style | WS_VISIBLE : style;
+            style = (props.visible) ? style | WS_VISIBLE : style;
 
-            style = (props.Modal) ? style | WS_POPUP : style;
+            style = (props.modal) ? style | WS_POPUP : style;
         }
         return style;
     }
@@ -223,7 +223,7 @@ namespace nkentseu {
     DWORD WindowInternal::GetWindowExStyleInternal(const nkentseu::WindowProperties& props) {
         DWORD exStyle = 0;
         // Plein ecran
-        if (props.Fullscreen) {
+        if (props.fullscreen) {
             exStyle |= WS_EX_APPWINDOW;
         }
         else {
@@ -232,20 +232,20 @@ namespace nkentseu {
             exStyle |= WS_EX_APPWINDOW | WS_EX_STATICEDGE;
 
             // Bordure et style etendu de base
-            exStyle |= (props.Frame) ? WS_EX_WINDOWEDGE : WS_EX_TOOLWINDOW;
+            exStyle |= (props.frame) ? WS_EX_WINDOWEDGE : WS_EX_TOOLWINDOW;
 
             // Transparence
-            exStyle |= (props.Transparent) ? WS_EX_TRANSPARENT : 0;
+            exStyle |= (props.transparent) ? WS_EX_TRANSPARENT : 0;
 
             // Effets visuels
-            exStyle |= (props.HasShadow) ? WS_EX_LAYERED : 0;
+            exStyle |= (props.hasShadow) ? WS_EX_LAYERED : 0;
 
             // Supprime le bouton de maximisation
-            exStyle |= (props.Movable) ? WS_EX_TOOLWINDOW : 0;
+            exStyle |= (props.movable) ? WS_EX_TOOLWINDOW : 0;
 
-            exStyle |= (props.AcceptFile) ? WS_EX_ACCEPTFILES : 0;
+            exStyle |= (props.acceptFile) ? WS_EX_ACCEPTFILES : 0;
 
-            exStyle |= (props.StayInTop) ? WS_EX_TOPMOST : 0;
+            exStyle |= (props.stayInTop) ? WS_EX_TOPMOST : 0;
 
         }
         return exStyle;
@@ -264,7 +264,7 @@ namespace nkentseu {
 
     void WindowInternal::SetTitle(std::string title) {
         if (NATIVE_WINDOW_IS_VALID(windowHandle)) {
-            m_NativeWindow->windowProperties.Title = title;
+            m_NativeWindow->windowProperties.title = title;
             std::wstring wtitle(title.begin(), title.end());
             SetWindowText(m_NativeWindow->windowHandle, wtitle.c_str());
         }
@@ -274,8 +274,8 @@ namespace nkentseu {
         if (NATIVE_WINDOW_IS_VALID(windowHandle)) {
             RECT lpRect;
             GetWindowRect(m_NativeWindow->windowHandle, &lpRect);
-            m_NativeWindow->windowProperties.Position = Vector2i(lpRect.left, lpRect.top);
-            return m_NativeWindow->windowProperties.Position;
+            m_NativeWindow->windowProperties.position = Vector2i(lpRect.left, lpRect.top);
+            return m_NativeWindow->windowProperties.position;
         }
         return {};
     }
@@ -283,7 +283,7 @@ namespace nkentseu {
     void WindowInternal::SetPosition(int32 x, int32 y) {
         if (NATIVE_WINDOW_IS_VALID(windowHandle)) {
             SetWindowPos(m_NativeWindow->windowHandle, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-            m_NativeWindow->windowProperties.Position = Vector2i(x, y);
+            m_NativeWindow->windowProperties.position = Vector2i(x, y);
         }
     }
 
@@ -296,7 +296,7 @@ namespace nkentseu {
 
             int32 titlebarHeight = GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CXPADDEDBORDER);
 
-            m_NativeWindow->windowProperties.Size = Vector2u(lpRect.right - lpRect.left, lpRect.bottom - lpRect.top - titlebarHeight);
+            m_NativeWindow->windowProperties.size = Vector2u(lpRect.right - lpRect.left, lpRect.bottom - lpRect.top - titlebarHeight);
             return Vector2u(lpRect.right - lpRect.left, lpRect.bottom - lpRect.top - titlebarHeight);
         }
         return Vector2u();
@@ -320,7 +320,7 @@ namespace nkentseu {
                 width + border.right + border.left, // + m_WinFrame.w,
                 height + border.top + border.bottom + titlebarHeight, // + m_WinFrame.height,
                 SWP_NOMOVE | SWP_NOREDRAW);
-            m_NativeWindow->windowProperties.Size = Vector2u(width, height);
+            m_NativeWindow->windowProperties.size = Vector2u(width, height);
         }
     }
 
@@ -386,12 +386,12 @@ namespace nkentseu {
     }
 
     Color WindowInternal::GetBackgroundColor() {
-        return m_NativeWindow == nullptr ? 0x00000000 : m_NativeWindow->windowProperties.BackgroundColor;
+        return m_NativeWindow == nullptr ? 0x00000000 : m_NativeWindow->windowProperties.backgroundColor;
     }
 
     void WindowInternal::SetBackgroundColor(const Color& color) {
         if (m_NativeWindow != nullptr) {
-            m_NativeWindow->windowProperties.BackgroundColor = color;
+            m_NativeWindow->windowProperties.backgroundColor = color;
 #if defined(NKENTSUU_GAPI_SOFTWARE)
             m_NativeWindow->backgroundColor.SetColor(color);
 #endif
@@ -436,11 +436,11 @@ namespace nkentseu {
     }
 
     void WindowInternal::Show() {
-        if (m_NativeWindow == nullptr || m_NativeWindow->windowProperties.Visible) {
+        if (m_NativeWindow == nullptr || m_NativeWindow->windowProperties.visible) {
             return;
         }
 
-        m_NativeWindow->windowProperties.Visible = true;
+        m_NativeWindow->windowProperties.visible = true;
 
         ShowWindow(m_NativeWindow->windowHandle, SW_SHOW);
         SetForegroundWindow(m_NativeWindow->windowHandle);
@@ -448,11 +448,11 @@ namespace nkentseu {
     }
 
     void WindowInternal::Hide() {
-        if (m_NativeWindow == nullptr || !m_NativeWindow->windowProperties.Visible) {
+        if (m_NativeWindow == nullptr || !m_NativeWindow->windowProperties.visible) {
             return;
         }
 
-        m_NativeWindow->windowProperties.Visible = false;
+        m_NativeWindow->windowProperties.visible = false;
 
         ShowWindow(m_NativeWindow->windowHandle, SW_HIDE);
         SetForegroundWindow(m_NativeWindow->windowHandle);

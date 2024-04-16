@@ -10,20 +10,20 @@ namespace nkentseu {
 
     // Map to store event category codes and their corresponding strings
     static std::unordered_map<EventCategory::Code, std::string> eventCategoryStrings = {
-      {EventCategory::None, "None"},
-      {EventCategory::Application, "Application"},
-      {EventCategory::Input, "Input"},
-      {EventCategory::Keyboard, "Keyboard"},
-      {EventCategory::Mouse, "Mouse"},
-      {EventCategory::MouseButton, "MouseButton"},
-      {EventCategory::Window, "Window"},
-      {EventCategory::Graphics, "Graphics"},
-      {EventCategory::Touch, "Touch"},
-      {EventCategory::Gamepad, "Gamepad"},
-      {EventCategory::Custom, "Custom"},
-      {EventCategory::Transfer, "Transfer"},
-      {EventCategory::GenericInput, "GenericInput"},
-      {EventCategory::DragAndDrop, "DragDrop"},
+      {EventCategory::None_ev, "None"},
+      {EventCategory::Application_ev, "Application"},
+      {EventCategory::Input_ev, "Input"},
+      {EventCategory::Keyboard_ev, "Keyboard"},
+      {EventCategory::Mouse_ev, "Mouse"},
+      {EventCategory::MouseButton_ev, "MouseButton"},
+      {EventCategory::Window_ev, "Window"},
+      {EventCategory::Graphics_ev, "Graphics"},
+      {EventCategory::Touch_ev, "Touch"},
+      {EventCategory::Gamepad_ev, "Gamepad"},
+      {EventCategory::Custom_ev, "Custom"},
+      {EventCategory::Transfer_ev, "Transfer"},
+      {EventCategory::GenericInput_ev, "GenericInput"},
+      {EventCategory::DragAndDrop_ev, "DragDrop"},
     };
 
     // Function to convert an event category code to a human-readable string
@@ -41,7 +41,7 @@ namespace nkentseu {
 
     // Function to convert a human-readable string to an event category code (if valid)
     EventCategory::Code EventCategory::FromString(const std::string& type) {
-        EventCategory::Code code = EventCategory::None;
+        EventCategory::Code code = EventCategory::None_ev;
         // Loop through the map to find matching string, also consider bit flags
         for (const auto& pair : eventCategoryStrings) {
             if (pair.second == type) {

@@ -41,7 +41,7 @@ namespace nkentseu {
         virtual bool IsEqual(Event& e) const override; // Needs implementation
 
         // Event category flags using macro
-        EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
+        EVENT_CATEGORY_FLAGS(EventCategory::Keyboard_ev | EventCategory::Input_ev)
 
     protected:
         // Protected constructor with window ID, key code, scan code, and modifier state
@@ -68,7 +68,7 @@ namespace nkentseu {
         virtual std::string ToString() const override; // Needs implementation
 
         // Event type flags using macro
-        EVENT_TYPE_FLAGS(EventType::KeyPressed)
+        EVENT_TYPE_FLAGS(EventType::KeyPressed_ev)
 
     private:
         int32 m_RepeatCount;  // The number of times the key has been pressed (repeat count)
@@ -84,7 +84,7 @@ namespace nkentseu {
         virtual std::string ToString() const override; // Needs implementation
 
         // Event type flags using macro
-        EVENT_TYPE_FLAGS(EventType::KeyReleased)
+        EVENT_TYPE_FLAGS(EventType::KeyReleased_ev)
 
     };
 
@@ -101,8 +101,8 @@ namespace nkentseu {
         virtual std::string ToString() const override; // Needs implementation
 
           // Event type and category flags using macros
-        EVENT_TYPE_FLAGS(EventType::CharEntered)
-            EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
+        EVENT_TYPE_FLAGS(EventType::CharEntered_ev)
+            EVENT_CATEGORY_FLAGS(EventCategory::Keyboard_ev | EventCategory::Input_ev)
 
     private:
         uint64 m_Character;  // The pressed character

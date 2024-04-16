@@ -27,6 +27,8 @@ namespace nkentseu {
         public:
 			template <typename T> using Shared = std::shared_ptr<T>;
 			template <typename T> using Unique = std::unique_ptr<T>;
+			
+			#define null_pointer nullptr
 
 			template <typename T, typename... Args>
 			static Shared<T> Alloc(Args&&... args) {
