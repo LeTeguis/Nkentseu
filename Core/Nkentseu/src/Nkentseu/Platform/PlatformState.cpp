@@ -82,6 +82,7 @@ namespace nkentseu {
             // Affichez un message d'erreur et quittez si la connexion a échoué
             Log_nts.Error("Erreur de connexion au serveur X.");
             exit(EXIT_FAILURE);
+            return;
         }
 
         // Affichez un message de confirmation de la connexion réussie au serveur X
