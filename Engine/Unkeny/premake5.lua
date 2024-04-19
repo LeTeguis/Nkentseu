@@ -28,6 +28,7 @@ project "Unkeny"
         "NSystem",
         "Logger",
         "Ntsm",
+        "Stb",
         "Nkentseu"
     }
 

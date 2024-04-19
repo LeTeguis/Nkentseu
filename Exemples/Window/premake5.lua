@@ -25,6 +25,7 @@ project "Window"
         "NSystem",
         "Logger",
         "Ntsm",
+        "Stb",
         "Nkentseu"
     }
 
@@ -39,6 +40,7 @@ project "Window"
         PostBuilds("Logger", "%{prj.name}")
         PostBuilds("Ntsm", "%{prj.name}")
         PostBuilds("NSystem", "%{prj.name}")
+        PostBuilds("Stb", "%{prj.name}")
     
     filter "system:macosx"
 

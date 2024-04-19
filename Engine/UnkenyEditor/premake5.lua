@@ -26,6 +26,7 @@ project "UnkenyEditor"
         "NSystem",
         "Logger",
         "Ntsm",
+        "Stb",
         "Nkentseu",
         "Unkeny"
     }
@@ -42,6 +43,7 @@ project "UnkenyEditor"
         PostBuilds("Ntsm", "%{prj.name}")
         PostBuilds("NSystem", "%{prj.name}")
         PostBuilds("Unkeny", "%{prj.name}")
+        PostBuilds("Stb", "%{prj.name}")
     
     filter "system:macosx"
 

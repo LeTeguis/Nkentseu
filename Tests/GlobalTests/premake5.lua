@@ -27,6 +27,7 @@ project "GlobalTests"
         "NSystem",
         "Logger",
         "Ntsm",
+        "Stb",
         "Nkentseu",
         "Unitest"
     }
@@ -43,7 +44,7 @@ project "GlobalTests"
         PostBuilds("Ntsm", "%{prj.name}")
         PostBuilds("Unitest", "%{prj.name}")
         PostBuilds("NSystem", "%{prj.name}")
-        -- PostBuilds("Stb", "%{prj.name}")
+        PostBuilds("Stb", "%{prj.name}")
     
     filter "system:macosx"
     filter {}

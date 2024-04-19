@@ -18,7 +18,7 @@ project "Nkentseu"
 
     includedirs {
         "./src",
-        -- "%{Externals.Stb}/include",
+        "%{Externals.Stb}/include",
         "%{Internals.NSystem}/src",
         "%{Internals.Logger}/src",
         "%{Internals.Ntsm}/src",
@@ -28,7 +28,7 @@ project "Nkentseu"
         "NSystem",
         "Logger",
         "Ntsm",
-        -- "Stb"
+        "Stb"
     }
 
     defines {
@@ -42,11 +42,6 @@ project "Nkentseu"
     links {
     }
 
-    --removefiles{
-    --    "./src/Nkentseu/Platform/Window/**", 
-    --    "./src/Nkentseu/Platform/Main/**"
-    --}
-
     filter "system:windows"
         systemversion "latest"
 		optimize "off"
@@ -54,12 +49,6 @@ project "Nkentseu"
         links {
             "kernel32", "user32", "hid", "Xinput"
         }
-        --files{
-        --    "./src/Nkentseu/Platform/Window/Windows/**", 
-        --    "./src/Nkentseu/Platform/Main/Main.h", 
-        --    "./src/Nkentseu/Platform/Main/WindowsMain.h"
-        --}
-
         linkoptions { "-lpthread" }
 
     filter "system:macosx"

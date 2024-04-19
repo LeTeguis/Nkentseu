@@ -37,7 +37,7 @@ group "Engine"
 group ""
 
 group "External"
-	--include "External/Libs/Stb"
+	include "External/Libs/Stb"
 group ""
 
 group "Tests"
