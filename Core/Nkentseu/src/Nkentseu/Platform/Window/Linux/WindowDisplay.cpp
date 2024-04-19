@@ -23,6 +23,7 @@ namespace nkentseu {
 
     bool WindowDisplay::Register(bool dbclk) {
         if (m_IsRegistered) return false;
+        
         m_IsRegistered = false;
         Log_nts.Debug();
 
@@ -32,20 +33,20 @@ namespace nkentseu {
         int screen_number = PlatformState_::Instance().screenNumber;
         Log_nts.Debug();
 
-        /*InterneAtomReply(true, true, "WM_PROTOCOLS", NULL);
+        InterneAtomReply(true, true, "WM_PROTOCOLS", NULL);
         Log_nts.Debug();
         if(m_IsRegistered) {
             Log_nts.Debug();
             InterneAtomReply(false, true, "WM_DELETE_WINDOW", NULL);
             Log_nts.Debug();
-        }*/
-        Log_nts.Debug();
+        }
+        //Log_nts.Debug();
 
         screenHandle = xcb_aux_get_screen(connection, screen_number);
-        Log_nts.Debug();
+        //Log_nts.Debug();
 
         windowHandle = xcb_generate_id(connection);
-        Log_nts.Debug();
+        //Log_nts.Debug();
 
         return m_IsRegistered;
     }
