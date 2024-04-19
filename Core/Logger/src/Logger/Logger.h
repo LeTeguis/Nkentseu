@@ -75,42 +75,42 @@ namespace nkentseu {
         // Specific log methods for different severity levels (examples)
         template<typename... Args>
         void Info(const char* format = "", Args&&... args) {
-            Log(Severity::Info_ev, format, args...);
+            Log(Severity::Info, format, args...);
         }
 
         template<typename... Args>
         void Asserts(const char* format = "", Args&&... args) {
-            Log(Severity::Assert_ev, format, args...);
+            Log(Severity::Assert, format, args...);
         }
 
         template<typename... Args>
         void Error(const char* format = "", Args&&... args) {
-            Log(Severity::Error_ev, format, args...);
+            Log(Severity::Error, format, args...);
         }
 
         template<typename... Args>
         void Warning(const char* format = "", Args&&... args) {
-            Log(Severity::Warning_ev, format, args...);
+            Log(Severity::Warning, format, args...);
         }
 
         template<typename... Args>
         void Debug(const char* format = "", Args&&... args) {
-            Log(Severity::Debug_ev, format, args...);
+            Log(Severity::Debug, format, args...);
         }
 
         template<typename... Args>
         void Trace(const char* format = "", Args&&... args) {
-            Log(Severity::Trace_ev, format, args...);
+            Log(Severity::Trace, format, args...);
         }
 
         template<typename... Args>
         void Critical(const char* format = "", Args&&... args) {
-            Log(Severity::Critical_ev, format, args...);
+            Log(Severity::Critical, format, args...);
         }
 
         template<typename... Args>
         void Fatal(const char* format = "", Args&&... args) {
-            Log(Severity::Fatal_ev, format, args...);
+            Log(Severity::Fatal, format, args...);
         }
         /**
          * @brief Adds an observer (callback) to be notified when a log message is written

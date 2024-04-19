@@ -21,42 +21,42 @@ namespace nkentseu {
     class NKENTSEU_API SymbolStyle {
     public:
         using Code = uint32;
-        // _EV = Enum value pour les distinguer de donner de type define
+        //  = Enum value pour les distinguer de donner de type define
         enum : Code {
             /**
              * @brief No symbol used.
              *
              * This value indicates that no special symbol should be included in the formatting.
              */
-            None_ev,
+            Unknow,
             /**
              * @brief Parentheses symbol '()'.
              */
-             Paren_ev,
+             Paren,
              /**
              * @brief Square brackets symbol '[]'.
              */
-             Bracket_ev,
+             Bracket,
              /**
              * @brief Curly braces symbol '{}'.
              */
-             Brace_ev,
+             Brace,
              /**
              * @brief Angle brackets symbol '<>'.
              */
-             Angle_ev,
+             Angle,
              /**
              * @brief Percent symbol '%%'.
              */
-             Percent_ev,
+             Percent,
              /**
              * @brief Ampersand symbol '&&'.
              */
-             Amp_ev,
+             Amp,
              /**
              * @brief Dollar symbol '$$'.
              */
-             Dollar_ev
+             Dollar
         };
 
         static std::string GetSymbolStyleString(SymbolStyle::Code style);

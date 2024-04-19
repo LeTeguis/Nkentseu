@@ -11,16 +11,16 @@ namespace nkentseu {
     // ---- KeyEvent ----
 
     // Constructor for KeyEvent, initializes with window ID, key code, scan code, and modifier state
-    KeyEvent::KeyEvent(uint64 win, Keyboard::KeyCode key, Keyboard::ScanCode scan, const ModifierState& state)
+    KeyEvent::KeyEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state)
         : Event(win), m_Key(key), m_Scan(scan), m_State(state) {}
 
     // Get the virtual key code of the pressed/released key
-    Keyboard::KeyCode KeyEvent::GetKey() const {
+    Keyboard::Keycode KeyEvent::GetKey() const {
         return m_Key;
     }
 
     // Get the hardware scancode of the pressed/released key
-    Keyboard::ScanCode KeyEvent::GetScan() const {
+    Keyboard::Scancode KeyEvent::GetScan() const {
         return m_Scan;
     }
 
@@ -30,12 +30,12 @@ namespace nkentseu {
     }
 
     // Check if a specific key was pressed/released
-    bool KeyEvent::IsKey(Keyboard::KeyCode k) const {
+    bool KeyEvent::IsKey(Keyboard::Keycode k) const {
         return m_Key == k;
     }
 
     // Check if a specific scancode was pressed/released
-    bool KeyEvent::IsScan(Keyboard::ScanCode s) const {
+    bool KeyEvent::IsScan(Keyboard::Scancode s) const {
         return m_Scan == s;
     }
 
@@ -56,7 +56,7 @@ namespace nkentseu {
     // ---- KeyPressedEvent ----
 
     // Constructor for KeyPressedEvent, inherits from KeyEvent and adds a repeat count
-    KeyPressedEvent::KeyPressedEvent(uint64 win, Keyboard::KeyCode key, Keyboard::ScanCode scan, const ModifierState& state, int32 repeatCount)
+    KeyPressedEvent::KeyPressedEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state, int32 repeatCount)
         : KeyEvent(win, key, scan, state), m_RepeatCount(repeatCount) {}
 
     // Check if the key is a repeated key press
@@ -79,7 +79,7 @@ namespace nkentseu {
     // ---- KeyReleasedEvent ----
 
     // Constructor for KeyReleasedEvent, inherits from KeyEvent
-    KeyReleasedEvent::KeyReleasedEvent(uint64 win, Keyboard::KeyCode key, Keyboard::ScanCode scan, const ModifierState& state)
+    KeyReleasedEvent::KeyReleasedEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state)
         : KeyEvent(win, key, scan, state) {}
 
     // Override the ToString method to provide a string representation of the event

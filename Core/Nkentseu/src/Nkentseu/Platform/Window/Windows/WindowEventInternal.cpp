@@ -14,6 +14,7 @@
 #include "Nkentseu/Event/MouseEvent.h"
 #include "Nkentseu/Event/GenericInputEvent.h"
 
+#include "WindowEventCode.h"
 #include "WindowDisplay.h"
 #include "Nkentseu/Core/Window.h"
 
@@ -46,6 +47,7 @@
 #include <Dbt.h>
 #include <hidpi.h>
 #include <Nkentseu/Event/InputManager.h>
+#include <Nkentseu/Core/NkentseuLogger.h>
 
 #pragma comment(lib, "hid.lib")
 
@@ -73,7 +75,10 @@ namespace nkentseu {
 	INT  g_NumberOfButtons;
 
 	WindowEventInternal::WindowEventInternal() : isInitialized(false) {
-		//JoystickInternalInof = PtrAlloc(JoystickInternal);
+		joysticks = GInput.createJoysticks();
+	}
+
+	WindowEventInternal::~WindowEventInternal() {
 	}
 
 	void WindowEventInternal::Update() {
@@ -82,6 +87,34 @@ namespace nkentseu {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+		}
+
+		GInput.updateJoysticks(&joysticks);
+		for (unsigned int joystickIndex = 0; joystickIndex < joysticks.count; ++joystickIndex)
+		{
+			JoystickState* state = &joysticks.states[joystickIndex];
+			for (unsigned int inputIndex = 0; inputIndex < state->inputCount; ++inputIndex)
+			{
+				if (state->currentInputs[inputIndex] > 0.5 && state->previousInputs[inputIndex] <= 0.5f)
+				{
+					const char* inputName = GInput.getInputName(joysticks, joystickIndex, inputIndex);
+					Log_nts.Trace("{0}", inputName);
+				}
+
+				float rumbleLeft = 0;
+				float rumbleRight = 0;
+				if (state->type == JoystickType::JoystickTypeXbox) {
+					state->lightRumble = state->currentInputs[(int32)XboxInputs::XboxInputLeftTrigger];
+					state->heavyRumble = state->currentInputs[(int32)XboxInputs::XboxInputRightTrigger];
+				}
+				else if (state->type == JoystickType::JoystickTypeDualshock4) {
+					state->heavyRumble = state->currentInputs[(int32)DS4Inputs::DS4InputL2];
+					state->lightRumble = state->currentInputs[(int32)DS4Inputs::DS4InputR2];
+					state->ledRed = (state->currentInputs[(int32)DS4Inputs::DS4InputCircle] || state->currentInputs[(int32)DS4Inputs::DS4InputSquare]) ? 1.0f : 0.0f;
+					state->ledGreen = state->currentInputs[(int32)DS4Inputs::DS4InputTriangle];
+					state->ledBlue = (state->currentInputs[(int32)DS4Inputs::DS4InputX] || state->currentInputs[(int32)DS4Inputs::DS4InputSquare]) ? 1.0f : 0.0f;
+				}
+			}
 		}
 
 		Input.private__update__axis();
@@ -153,12 +186,14 @@ namespace nkentseu {
 			return 0;
 		}
 
+		Joysticks* joysticks = (Joysticks*)GetPropA(window->windowHandle, "userData");
+
 		UINT message = msg.message;
 		LRESULT result = 0;
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 		static bool move = false;
 
-		#define CBTN ((HIWORD(msg.wParam) & XBUTTON1) ? Mouse::X1_ev : Mouse::X2_ev)
+		#define CBTN ((HIWORD(msg.wParam) & XBUTTON1) ? Mouse::X1 : Mouse::X2)
 
 		switch (message) {
 		case WM_SETCURSOR:
@@ -171,10 +206,10 @@ namespace nkentseu {
 		}
 		// input
 		case WM_INPUT:
-		{ return HandleInputRawEvent(msg, window); break; }
+		{ GInput.updateRawInput(joysticks, msg.lParam); return HandleInputRawEvent(msg, window); break; }
 		case WM_DEVICECHANGE:
 		case WM_INPUT_DEVICE_CHANGE:
-		{ return HandleInputDeviceChangeEvent(msg, window); break; }
+		{ GInput.updateConnectionStatus(joysticks, (HANDLE)msg.lParam, msg.wParam); return HandleInputDeviceChangeEvent(msg, window); break; }
 
 		// create event
 		case WM_CREATE: { return HandleCreateEvent(msg, window); break; }
@@ -199,13 +234,14 @@ namespace nkentseu {
 		case WM_GETMINMAXINFO: { return HandleWindowGETMINMAXINFOEvent(msg, window); break; }
 
 							 //Mouse event
-		case WM_MOUSEWHEEL: { return HandleMouseWheelEvent(msg, window); break; }
+		case WM_MOUSEHWHEEL:
+		case WM_MOUSEWHEEL: { return HandleMouseWheelEvent(msg, window, WM_MOUSEWHEEL == message); break; }
 		case WM_LBUTTONDBLCLK: case WM_LBUTTONDOWN: case WM_LBUTTONUP:
-		{ return HandleMouseButtonEvent(msg, window, Mouse::Left_ev, WM_LBUTTONDOWN == message, WM_LBUTTONDBLCLK == message); break; }
+		{ return HandleMouseButtonEvent(msg, window, Mouse::Left, WM_LBUTTONDOWN == message, WM_LBUTTONDBLCLK == message); break; }
 		case WM_MBUTTONDBLCLK: case WM_MBUTTONDOWN: case WM_MBUTTONUP:
-		{ return HandleMouseButtonEvent(msg, window, Mouse::Middle_ev, WM_MBUTTONDOWN == message, WM_MBUTTONDBLCLK == message); break; }
+		{ return HandleMouseButtonEvent(msg, window, Mouse::Middle, WM_MBUTTONDOWN == message, WM_MBUTTONDBLCLK == message); break; }
 		case WM_RBUTTONDBLCLK: case WM_RBUTTONDOWN: case WM_RBUTTONUP:
-		{ return HandleMouseButtonEvent(msg, window, Mouse::Right_ev, WM_RBUTTONDOWN == message, WM_RBUTTONDBLCLK == message); break; }
+		{ return HandleMouseButtonEvent(msg, window, Mouse::Right, WM_RBUTTONDOWN == message, WM_RBUTTONDBLCLK == message); break; }
 		case WM_XBUTTONDBLCLK: case WM_XBUTTONDOWN: case WM_XBUTTONUP:
 		{ return HandleMouseButtonEvent(msg, window, CBTN, WM_XBUTTONDOWN == message, WM_XBUTTONDBLCLK == message); break; }
 		case WM_MOUSEMOVE: { return HandleMouseMoveEvent(msg, window); break; }
@@ -217,6 +253,7 @@ namespace nkentseu {
 		case WM_SYSCHAR: case WM_UNICHAR: case WM_CHAR: case WM_DEADCHAR: case WM_IME_CHAR:
 		{ return HandleCharEvent(msg, window, message != WM_SYSCHAR); break; }
 		case WM_DROPFILES: { return HandleDropFilesEvent(msg, window); break; }
+		case WM_WINDOWPOSCHANGED: return RestricWindowSize(msg, window); break;
 		default:
 			// Do nothing
 			break;
@@ -226,7 +263,7 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::FinalizePushEvent(Event* event, LRESULT info, MSG msg, WindowDisplay* native, const RECT& currentWindowRect) {
-		if (event->GetEventType() != EventType::None_ev) {
+		if (event->GetEventType() != EventType::NotDefine) {
 			if (!isQueueLocked) {
 				eventQueue.push_back(event);
 			}
@@ -253,6 +290,21 @@ namespace nkentseu {
 		return info;
 	}
 
+	void WindowEventInternal::TriggerEvent(Event* event)
+	{
+		if (event->GetEventType() != EventType::NotDefine) {
+			if (!isQueueLocked) {
+				eventQueue.push_back(event);
+			}
+
+			for (auto& eventCallback : eventObservers) {
+				if (eventCallback != nullptr) {
+					eventCallback(*event);
+				}
+			}
+		}
+	}
+
 	LRESULT WindowEventInternal::HandleCreateEvent(MSG msg, WindowDisplay* window) {
 		HandleWindowCreateEvent(msg, window);
 
@@ -275,7 +327,7 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::HandleWindowCreateEvent(MSG msg, WindowDisplay* window) {
-		//Input;
+		// Input;
 		return FinalizePushEvent(new WindowCreateEvent(window->windowSuper->ID()), 0, msg, window);
 	}
 
@@ -450,11 +502,21 @@ namespace nkentseu {
 	LRESULT WindowEventInternal::HandleWindowGETMINMAXINFOEvent(MSG msg, WindowDisplay* window) {
 		MINMAXINFO* min_max = reinterpret_cast<MINMAXINFO*>(msg.lParam);
 
-		min_max->ptMinTrackSize.x = window->windowProperties.minSize.width;
-		min_max->ptMinTrackSize.y = window->windowProperties.minSize.height;
+		RECT rectangleMin = { 0, 0, static_cast<long>(window->windowProperties.minSize.x), static_cast<long>(window->windowProperties.minSize.y) };
+		AdjustWindowRect(&rectangleMin, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		const auto widthMin = rectangleMin.right - rectangleMin.left;
+		const auto heightMin = rectangleMin.bottom - rectangleMin.top;
 
-		min_max->ptMaxSize.x = window->windowProperties.maxSize.width;
-		min_max->ptMaxSize.y = window->windowProperties.maxSize.height;
+		RECT rectangleMax = { 0, 0, static_cast<long>(window->windowProperties.maxSize.x), static_cast<long>(window->windowProperties.maxSize.y) };
+		AdjustWindowRect(&rectangleMax, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		const auto widthMax = rectangleMax.right - rectangleMax.left;
+		const auto heightMax = rectangleMax.bottom - rectangleMax.top;
+
+		min_max->ptMinTrackSize.x = widthMin;
+		min_max->ptMinTrackSize.y = heightMin;
+
+		min_max->ptMaxSize.x = widthMax;
+		min_max->ptMaxSize.y = heightMax;
 		return 0;
 	}
 
@@ -487,11 +549,20 @@ namespace nkentseu {
 		return FinalizePushEvent(new WindowMovedEvent(window->windowSuper->ID(), position), 0, msg, window, currentWindowRect);
 	}
 
-	LRESULT WindowEventInternal::HandleMouseWheelEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleMouseWheelEvent(MSG msg, WindowDisplay* window, bool vertical) {
 		short modifiers = LOWORD(msg.wParam);
 		float32 delta = GET_WHEEL_DELTA_WPARAM(msg.wParam) / (float32)WHEEL_DELTA;
 		ModifierState ms(modifiers & MK_CONTROL, modifiers & MK_ALT, modifiers & MK_SHIFT, modifiers & 0);
-		return FinalizePushEvent(new MouseWheelEvent(window->windowSuper->ID(), delta, ms), 0, msg, window);
+
+		POINT position;
+		position.x = static_cast<std::int16_t>(LOWORD(msg.lParam));
+		position.y = static_cast<std::int16_t>(HIWORD(msg.lParam));
+
+		ScreenToClient(window->windowHandle, &position);
+
+		Mouse::Button wheel = (vertical) ? Mouse::Vertical : Mouse::Horizontal;
+
+		return FinalizePushEvent(new MouseWheelEvent(window->windowSuper->ID(), wheel, delta, Vector2i(position.x, position.y), ms), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleMouseButtonEvent(MSG msg, WindowDisplay* window, uint8 btn, bool pressed, bool dbclick) {
@@ -546,12 +617,12 @@ namespace nkentseu {
 #define PP(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN | RI_MOUSE_##v##_UP))
 
 		bool pressed = PPD(LEFT_BUTTON) || PPD(RIGHT_BUTTON) || PPD(MIDDLE_BUTTON) || PPD(BUTTON_4) || PPD(BUTTON_5);
-		uint8 btn = Mouse::Unknown_ev;
-		if (PP(LEFT_BUTTON)) btn = Mouse::Left_ev;
-		if (PP(RIGHT_BUTTON)) btn = Mouse::Right_ev;
+		uint8 btn = Mouse::NotDefine;
+		if (PP(LEFT_BUTTON)) btn = Mouse::Left;
+		if (PP(RIGHT_BUTTON)) btn = Mouse::Right;
 		if (PP(MIDDLE_BUTTON)) btn = MOUSE(Middle);
-		if (PP(BUTTON_4)) btn = Mouse::X1_ev;
-		if (PP(BUTTON_5)) btn = Mouse::X2_ev;
+		if (PP(BUTTON_4)) btn = Mouse::X1;
+		if (PP(BUTTON_5)) btn = Mouse::X2;
 
 		return FinalizePushEvent(new MouseButtonRawEvent(window->windowSuper->ID(), ms, btn, delta, pressed, mousePosition), 0, msg, window);
 	}
@@ -618,47 +689,34 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::HandleKeyboardEvent(MSG msg, WindowDisplay* window, bool keydown) {
-		#define SCANDCODE_TO_KEYCODE(scancode) static_cast<uint64>(MapVirtualKey(scancode, MAPVK_VSC_TO_VK))
-		#define KEYCODE_TO_SCANCODE(keycode) static_cast<uint64>(MapVirtualKey(keycode, MAPVK_VK_TO_VSC))
-
 		short modifiers = LOWORD(msg.wParam);
-		ModifierState ms(GetKeyState(VK_CONTROL) & 0x8000, GetKeyState(VK_MENU) & 0x8000,
-			(GetKeyState(VK_SHIFT) & 0x8000) | (GetKeyState(VK_CAPITAL) & 0x0001), false);
+		ModifierState ms = WindowEventCode::ModifierStateToWinkey();
 
-		// Le parametre wParam contient le code de la touche (keycode)
-		uint64 keycode = static_cast<uint64>(msg.wParam);
+		WORD keycode = LOWORD(msg.wParam);                                 
 
-		// Le parametre lParam contient le scancode dans les bits 16 a 23
-		uint64 scancode = static_cast<uint64>((msg.lParam >> 16) & 0xFF);
-		scancode = SCANDCODE_TO_KEYCODE(scancode);
+		WORD keyFlags = HIWORD(msg.lParam);
 
-		#define CORRECT_ASSIGN(k, v1, v2, r) if (k == Keyboard::v1##_ev && GetKeyState(v2)) { k = Keyboard::r##_ev; }
-		#define CORRECT_SHIFT(k, v, r) if (k == Keyboard::v##_ev) { k = Keyboard::r##_ev; }
+		WORD scancode = LOBYTE(keyFlags);                             
+		BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED; 
 
-		CORRECT_ASSIGN(keycode, LCtrl, VK_RCONTROL, RCtrl)
-		CORRECT_ASSIGN(keycode, LAlt, VK_RMENU, RAlt)
-		CORRECT_ASSIGN(keycode, LShift, VK_RSHIFT, RShift)
-
-		CORRECT_ASSIGN(scancode, LCtrl, VK_RCONTROL, RCtrl)
-		CORRECT_ASSIGN(scancode, LAlt, VK_RMENU, RAlt)
-		CORRECT_ASSIGN(scancode, LShift, VK_RSHIFT, RShift)
-
-		if (ms.Shift) {
-			CORRECT_SHIFT(keycode, Semicolon, Colon)
-			CORRECT_SHIFT(keycode, Apostrophe, Quotation)
-			CORRECT_SHIFT(keycode, Equal, Plus)
-
-			CORRECT_SHIFT(scancode, Semicolon, Colon)
-			CORRECT_SHIFT(scancode, Apostrophe, Quotation)
-			CORRECT_SHIFT(scancode, Equal, Plus)
+		if (isExtendedKey) {
+			scancode = MAKEWORD(scancode, 0xE0);
 		}
+
+		BOOL wasKeyDown = (keyFlags & KF_REPEAT) == KF_REPEAT;        
+		WORD repeatCount = LOWORD(msg.lParam);                       
+
+		BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
+
+		// WORD scancode_value = static_cast<WORD>(MapVirtualKey(scancode, MAPVK_VSC_TO_VK));
+
+		Keyboard::Keycode nts_keycode = WindowEventCode::WinkeyToKeycodeSpecial(keycode, ms.Shift);
+		Keyboard::Scancode nts_scancode = WindowEventCode::WinkeyToScancodeSpecial(scancode, ms.Shift);
 
 		if (keydown) {
-			//Key::Distribution(keycode, true);
-			return FinalizePushEvent(new KeyPressedEvent(window->windowSuper->ID(), keycode, scancode, ms), 0, msg, window);
+			return FinalizePushEvent(new KeyPressedEvent(window->windowSuper->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
 		}
-		//Key::Distribution(keycode, false);
-		return FinalizePushEvent(new KeyReleasedEvent(window->windowSuper->ID(), keycode, scancode, ms), 0, msg, window);
+		return FinalizePushEvent(new KeyReleasedEvent(window->windowSuper->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleCharEvent(MSG msg, WindowDisplay* window, bool interpret) {
@@ -669,6 +727,7 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::HandleInputRawEvent(MSG msg, WindowDisplay* window) {
+
 		LRESULT result = 0;
 
 		UINT size;
@@ -739,7 +798,7 @@ namespace nkentseu {
 
 				free(usages);
 
-				for (GenericInput::Button j = GenericInput::Button0_ev; j < GenericInput::ButtonMAX_ev; j++) {
+				for (GenericInput::Button j = GenericInput::Buttons::B0; j < GenericInput::Buttons::BMax; j++) {
 					if (bButtonStates[j] == GInputState::PrepareToPressed) {
 						bButtonStates[j] = GInputState::Pressed;
 						AnalyzeButtonRawInput(msg, window, deviceInfo.hid, name, j, true);
@@ -756,7 +815,7 @@ namespace nkentseu {
 	}
 
 	void WindowEventInternal::AnalyzeAxisRawInput(MSG msg, WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value) {
-		if (axis >= GenericInput::AxisMax_ev) return;
+		if (axis >= GenericInput::Axes::AMax) return;
 
 		//if ((devicecInfoHid.dwProductId == 0x09CC || devicecInfoHid.dwProductId == 0x05C4) && devicecInfoHid.dwVendorId == 0x054C) // PS4
 
@@ -771,7 +830,7 @@ namespace nkentseu {
 	}
 
 	void WindowEventInternal::AnalyzeButtonRawInput(MSG msg, WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed) {
-		if (button >= GenericInput::ButtonMAX_ev) return;
+		if (button >= GenericInput::Buttons::BMax) return;
 
 		if (devicecInfoHid.dwProductId == 0x0268 && devicecInfoHid.dwVendorId == 0x054C) {
 			SetPS3GamepadButton(msg, window, devicecInfoHid, name, button, isPressed);
@@ -788,10 +847,68 @@ namespace nkentseu {
 	}
 
 	LRESULT WindowEventInternal::HandleInputDeviceChangeEvent(MSG msg, WindowDisplay* window) {
+		// Some sort of device change has happened, update joystick connections
+		if ((msg.wParam == DBT_DEVICEARRIVAL) || (msg.wParam == DBT_DEVICEREMOVECOMPLETE))
+		{
+			// Some sort of device change has happened, update joystick connections if it is a device interface
+			auto* deviceBroadcastHeader = reinterpret_cast<DEV_BROADCAST_HDR*>(msg.lParam);
+
+			if (deviceBroadcastHeader && (deviceBroadcastHeader->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)) {
+				// connection to joystick
+				Log_nts.Debug("arrival");
+			}
+		}
 		return 0;
 	}
 
 	LRESULT WindowEventInternal::HandleDropFilesEvent(MSG msg, WindowDisplay* window) {
+		return 0;
+	}
+
+	LRESULT WindowEventInternal::RestricWindowSize(MSG msg, WindowDisplay* window)
+	{
+		WINDOWPOS& pos = *reinterpret_cast<PWINDOWPOS>(msg.lParam);
+		if (pos.flags & SWP_NOSIZE)
+			return 0;
+
+		RECT rectangleMax = { 0, 0, static_cast<long>(window->windowProperties.maxSize.x), static_cast<long>(window->windowProperties.maxSize.y) };
+		AdjustWindowRect(&rectangleMax, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		const auto widthMax = rectangleMax.right - rectangleMax.left;
+		const auto heightMax = rectangleMax.bottom - rectangleMax.top;
+
+		Vector2i maximumSize = { widthMax, heightMax };
+
+		RECT rectangleMin = { 0, 0, static_cast<long>(window->windowProperties.minSize.x), static_cast<long>(window->windowProperties.minSize.y) };
+		AdjustWindowRect(&rectangleMin, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		const auto widthMin = rectangleMin.right - rectangleMin.left;
+		const auto heightMin = rectangleMin.bottom - rectangleMin.top;
+
+		Vector2i minimumSize = { widthMin, heightMin };
+
+		bool shouldResize = false;
+		if (pos.cx > maximumSize.x)
+		{
+			pos.cx = maximumSize.x;
+			shouldResize = true;
+		}
+		if (pos.cy > maximumSize.y)
+		{
+			pos.cy = maximumSize.y;
+			shouldResize = true;
+		}
+		if (pos.cx < minimumSize.x)
+		{
+			pos.cx = minimumSize.x;
+			shouldResize = true;
+		}
+		if (pos.cy < minimumSize.y)
+		{
+			pos.cy = minimumSize.y;
+			shouldResize = true;
+		}
+
+		if (shouldResize)
+			SetWindowPos(window->windowHandle, pos.hwndInsertAfter, pos.x, pos.y, pos.cx, pos.cy, 0);
 		return 0;
 	}
 

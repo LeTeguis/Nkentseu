@@ -15,7 +15,7 @@
 
 namespace nkentseu {
     enum class NKENTSEU_API NTSErrorCode : bool32 {
-        Error_No = 0x0000,
+        NoError = 0x0000,
         Window_CreateNative = 0x0001,
         Window_RegisterWindowClass = 0x0002,
         Window_StayInWindowMode = 0x0003,
@@ -24,7 +24,7 @@ namespace nkentseu {
     };
 
     enum class NKENTSEU_API NTSErrorSeverity : bool32{
-        Error_No = 0x0000
+        NoError = 0x0000
     };
 
     struct NKENTSEU_API NTSErrorInfo {

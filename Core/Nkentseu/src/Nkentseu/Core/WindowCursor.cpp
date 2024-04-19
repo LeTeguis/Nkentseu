@@ -159,27 +159,27 @@ void CloseDisplay(Display* display)
 
         // clang-format off
         switch (type) {
-        case WindowCursor::Arrow_ev:                  shape = IDC_ARROW;       break;
-        case WindowCursor::ArrowWait_ev:              shape = IDC_APPSTARTING; break;
-        case WindowCursor::Wait_ev:                   shape = IDC_WAIT;        break;
-        case WindowCursor::Text_ev:                   shape = IDC_IBEAM;       break;
-        case WindowCursor::Hand_ev:                   shape = IDC_HAND;        break;
-        case WindowCursor::SizeHorizontal_ev:         shape = IDC_SIZEWE;      break;
-        case WindowCursor::SizeVertical_ev:           shape = IDC_SIZENS;      break;
-        case WindowCursor::SizeTopLeftBottomRight_ev: shape = IDC_SIZENWSE;    break;
-        case WindowCursor::SizeBottomLeftTopRight_ev: shape = IDC_SIZENESW;    break;
-        case WindowCursor::SizeLeft_ev:               shape = IDC_SIZEWE;      break;
-        case WindowCursor::SizeRight_ev:              shape = IDC_SIZEWE;      break;
-        case WindowCursor::SizeTop_ev:                shape = IDC_SIZENS;      break;
-        case WindowCursor::SizeBottom_ev:             shape = IDC_SIZENS;      break;
-        case WindowCursor::SizeTopLeft_ev:            shape = IDC_SIZENWSE;    break;
-        case WindowCursor::SizeBottomRight_ev:        shape = IDC_SIZENWSE;    break;
-        case WindowCursor::SizeBottomLeft_ev:         shape = IDC_SIZENESW;    break;
-        case WindowCursor::SizeTopRight_ev:           shape = IDC_SIZENESW;    break;
-        case WindowCursor::SizeAll_ev:                shape = IDC_SIZEALL;     break;
-        case WindowCursor::Cross_ev:                  shape = IDC_CROSS;       break;
-        case WindowCursor::Help_ev:                   shape = IDC_HELP;        break;
-        case WindowCursor::NotAllowed_ev:             shape = IDC_NO;          break;
+        case WindowCursor::Arrow:                  shape = IDC_ARROW;       break;
+        case WindowCursor::ArrowWait:              shape = IDC_APPSTARTING; break;
+        case WindowCursor::Wait:                   shape = IDC_WAIT;        break;
+        case WindowCursor::Text:                   shape = IDC_IBEAM;       break;
+        case WindowCursor::Hand:                   shape = IDC_HAND;        break;
+        case WindowCursor::SizeHorizontal:         shape = IDC_SIZEWE;      break;
+        case WindowCursor::SizeVertical:           shape = IDC_SIZENS;      break;
+        case WindowCursor::SizeTopLeftBottomRight: shape = IDC_SIZENWSE;    break;
+        case WindowCursor::SizeBottomLeftTopRight: shape = IDC_SIZENESW;    break;
+        case WindowCursor::SizeLeft:               shape = IDC_SIZEWE;      break;
+        case WindowCursor::SizeRight:              shape = IDC_SIZEWE;      break;
+        case WindowCursor::SizeTop:                shape = IDC_SIZENS;      break;
+        case WindowCursor::SizeBottom:             shape = IDC_SIZENS;      break;
+        case WindowCursor::SizeTopLeft:            shape = IDC_SIZENWSE;    break;
+        case WindowCursor::SizeBottomRight:        shape = IDC_SIZENWSE;    break;
+        case WindowCursor::SizeBottomLeft:         shape = IDC_SIZENESW;    break;
+        case WindowCursor::SizeTopRight:           shape = IDC_SIZENESW;    break;
+        case WindowCursor::SizeAll:                shape = IDC_SIZEALL;     break;
+        case WindowCursor::Cross:                  shape = IDC_CROSS;       break;
+        case WindowCursor::Help:                   shape = IDC_HELP;        break;
+        case WindowCursor::NotAllowed:             shape = IDC_NO;          break;
         }
         // clang-format on
 
@@ -326,24 +326,24 @@ void CloseDisplay(Display* display)
         {
         default: return false;
 
-        case WindowCursor::Arrow_ev:           shape = XC_arrow;               break;
-        case WindowCursor::Wait_ev:            shape = XC_watch;               break;
-        case WindowCursor::Text_ev:            shape = XC_xterm;               break;
-        case WindowCursor::Hand_ev:            shape = XC_hand2;               break;
-        case WindowCursor::SizeHorizontal_ev:  shape = XC_sb_h_double_arrow;   break;
-        case WindowCursor::SizeVertical_ev:    shape = XC_sb_v_double_arrow;   break;
-        case WindowCursor::SizeLeft_ev:        shape = XC_left_side;           break;
-        case WindowCursor::SizeRight_ev:       shape = XC_right_side;          break;
-        case WindowCursor::SizeTop_ev:         shape = XC_top_side;            break;
-        case WindowCursor::SizeBottom_ev:      shape = XC_bottom_side;         break;
-        case WindowCursor::SizeTopLeft_ev:     shape = XC_top_left_corner;     break;
-        case WindowCursor::SizeBottomRight_ev: shape = XC_bottom_right_corner; break;
-        case WindowCursor::SizeBottomLeft_ev:  shape = XC_bottom_left_corner;  break;
-        case WindowCursor::SizeTopRight_ev:    shape = XC_top_right_corner;    break;
-        case WindowCursor::SizeAll_ev:         shape = XC_fleur;               break;
-        case WindowCursor::Cross_ev:           shape = XC_crosshair;           break;
-        case WindowCursor::Help_ev:            shape = XC_question_arrow;      break;
-        case WindowCursor::NotAllowed_ev:      shape = XC_X_cursor;            break;
+        case WindowCursor::Arrow:           shape = XC_arrow;               break;
+        case WindowCursor::Wait:            shape = XC_watch;               break;
+        case WindowCursor::Text:            shape = XC_xterm;               break;
+        case WindowCursor::Hand:            shape = XC_hand2;               break;
+        case WindowCursor::SizeHorizontal:  shape = XC_sb_h_double_arrow;   break;
+        case WindowCursor::SizeVertical:    shape = XC_sb_v_double_arrow;   break;
+        case WindowCursor::SizeLeft:        shape = XC_left_side;           break;
+        case WindowCursor::SizeRight:       shape = XC_right_side;          break;
+        case WindowCursor::SizeTop:         shape = XC_top_side;            break;
+        case WindowCursor::SizeBottom:      shape = XC_bottom_side;         break;
+        case WindowCursor::SizeTopLeft:     shape = XC_top_left_corner;     break;
+        case WindowCursor::SizeBottomRight: shape = XC_bottom_right_corner; break;
+        case WindowCursor::SizeBottomLeft:  shape = XC_bottom_left_corner;  break;
+        case WindowCursor::SizeTopRight:    shape = XC_top_right_corner;    break;
+        case WindowCursor::SizeAll:         shape = XC_fleur;               break;
+        case WindowCursor::Cross:           shape = XC_crosshair;           break;
+        case WindowCursor::Help:            shape = XC_question_arrow;      break;
+        case WindowCursor::NotAllowed:      shape = XC_X_cursor;            break;
         }
         // clang-format on
 

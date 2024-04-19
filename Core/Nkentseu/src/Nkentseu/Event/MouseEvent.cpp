@@ -11,16 +11,26 @@ namespace nkentseu {
     // ---- MouseWheelEvent ----
 
     // Constructor with window ID, delta value, and modifier state
-    MouseWheelEvent::MouseWheelEvent(uint64 win, float32 delta, const ModifierState& state) : Event(win), m_Delta(delta), m_State(state) {}
+    MouseWheelEvent::MouseWheelEvent(uint64 win, Mouse::Button wheel, float32 delta, const Vector2i& position, const ModifierState& state) : Event(win), m_Delta(delta), m_State(state), m_Wheel(wheel), m_Position(position) {}
 
     // Copy constructor
     MouseWheelEvent::MouseWheelEvent(const MouseWheelEvent& event) : Event(event.GetWindow()), m_Delta(event.m_Delta), m_State(event.m_State) {}
 
     // Get the delta value of the wheel movement
-    inline float32 MouseWheelEvent::GetDelta() const { return m_Delta; }
+    float32 MouseWheelEvent::GetDelta() const { return m_Delta; }
+
+    Vector2i MouseWheelEvent::GetPosition() const
+    {
+        return m_Position;
+    }
+
+    Mouse::Button MouseWheelEvent::GetWheel() const
+    {
+        return m_Wheel;
+    }
 
     // Get the modifier state associated with the event
-    inline ModifierState MouseWheelEvent::GetState() const { return m_State; }
+    ModifierState MouseWheelEvent::GetState() const { return m_State; }
 
     // Override the ToString method to provide a string representation of the event
     std::string MouseWheelEvent::ToString() const {
@@ -37,10 +47,10 @@ namespace nkentseu {
 
     // ---- MouseButtonEvent ----
 
-    // Inline methods to access member variables
-    inline Mouse::Button MouseButtonEvent::GetButton() const { return m_Button; }
-    inline Vector2i MouseButtonEvent::GetPosition() const { return m_Position; }
-    inline ModifierState MouseButtonEvent::GetState() const { return m_State; }
+    // methods to access member variables
+    Mouse::Button MouseButtonEvent::GetButton() const { return m_Button; }
+    Vector2i MouseButtonEvent::GetPosition() const { return m_Position; }
+    ModifierState MouseButtonEvent::GetState() const { return m_State; }
 
     // Check if a specific button was pressed/released
     bool MouseButtonEvent::IsButton(Mouse::Button b) const {

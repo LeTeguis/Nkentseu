@@ -85,7 +85,7 @@ namespace nkentseu {
 
     void Assertion::PreWrite(const std::string& message)
     {
-        m_LoggerInfos.SetSeverity(Severity::Assert_ev);
+        m_LoggerInfos.SetSeverity(Severity::Assert);
 
         m_LoggerInfos.SetMessages(message);
 

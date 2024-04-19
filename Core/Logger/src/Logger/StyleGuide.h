@@ -28,14 +28,14 @@ namespace nkentseu {
              *
              * No formatting is applied to the text.
              */
-            Plain_ev,
+            Plain,
             /**
             * @brief Bracketed style.
             *
             * The text is enclosed within delimiters (e.g., square brackets, parentheses).
             * The specific delimiters might be configurable.
             */
-            Brack_ev,
+            Brack,
             /**
             * @brief Numbered bracketed style.
             *
@@ -43,9 +43,9 @@ namespace nkentseu {
             * then enclosed within delimiters (e.g., square brackets, parentheses).
             * The specific delimiters might be configurable.
             */
-            NumBrack_ev,
+            NumBrack,
 
-            FullGuide_ev
+            FullGuide
         };
     };
 } // namespace nkentseu

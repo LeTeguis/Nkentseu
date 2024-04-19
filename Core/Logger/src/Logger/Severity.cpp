@@ -12,28 +12,26 @@ namespace nkentseu {
 
     // Mapping between Severity::Type enum values and their corresponding strings
     static const std::unordered_map<Severity::Code, std::string> static_SeverityStringMap = {
-        { Severity::None_ev, "None" },
-        { Severity::Info_ev, "Info" },
-        { Severity::Trace_ev, "Trace" },
-        { Severity::Debug_ev, "Debug" },
-        { Severity::Warning_ev, "Warning" },
-        { Severity::Error_ev, "Error" },
-        { Severity::Critical_ev, "Critical" },
-        { Severity::Fatal_ev, "Fatal" },
-        { Severity::Assert_ev, "Assert" }
+        { Severity::Info, "Info" },
+        { Severity::Trace, "Trace" },
+        { Severity::Debug, "Debug" },
+        { Severity::Warning, "Warning" },
+        { Severity::Error, "Error" },
+        { Severity::Critical, "Critical" },
+        { Severity::Fatal, "Fatal" },
+        { Severity::Assert, "Assert" }
     };
 
     // Mapping between strings and Severity::Type enum values (reverse lookup)
     static const std::unordered_map<std::string, Severity::Code> static_SeverityTypeMap = {
-        { "None", Severity::None_ev },
-        { "Info", Severity::Info_ev },
-        { "Trace", Severity::Trace_ev },
-        { "Debug", Severity::Debug_ev },
-        { "Warning", Severity::Warning_ev },
-        { "Error", Severity::Error_ev },
-        { "Critical", Severity::Critical_ev },
-        { "Fatal", Severity::Fatal_ev },
-        { "Assert", Severity::Assert_ev }
+        { "Info", Severity::Info },
+        { "Trace", Severity::Trace },
+        { "Debug", Severity::Debug },
+        { "Warning", Severity::Warning },
+        { "Error", Severity::Error },
+        { "Critical", Severity::Critical },
+        { "Fatal", Severity::Fatal },
+        { "Assert", Severity::Assert }
     };
 
     // Implementation of Severity::ToString(Severity::Type)
@@ -45,7 +43,7 @@ namespace nkentseu {
         }
         else {
             // Handle unknown type (return empty string or throw an exception)
-            return "NONE";  // Example (replace with appropriate behavior)
+            return "Unknow";  // Example (replace with appropriate behavior)
         }
     }
 
@@ -58,7 +56,7 @@ namespace nkentseu {
         }
         else {
             // Handle unknown string (return default value or throw an exception)
-            return Severity::None_ev;  // Example (replace with appropriate behavior)
+            return Severity::Default;  // Example (replace with appropriate behavior)
         }
     }
 

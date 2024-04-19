@@ -27,6 +27,7 @@ namespace nkentseu {
 
         void Pick();
         bool Pick(Event** event);
+        void TriggerEvent(Event* event);
 
         Vector2i GetMousePosition() const;
         Vector2i GetMousePositionGlobal() const;

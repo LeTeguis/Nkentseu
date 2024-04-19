@@ -10,11 +10,10 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "GenericInput.h"
-#include "InputManager.h"
 
 namespace nkentseu {
-    ActionCommand::ActionCommand(const std::string& name, const EventCategory::Code& category, int64 code, ModifierState modifierState, bool repeatable)
-        : m_Name(name), m_Category(category), m_Repeatable(repeatable), m_Code(code), m_ModifierState(modifierState) {
+    ActionCommand::ActionCommand(const std::string& name, ActionCode code, bool repeatable)
+        : m_Name(name), m_Repeatable(repeatable), m_Code(code) {
         m_PrivateRepeatable = m_Repeatable;
     }
 
@@ -23,24 +22,14 @@ namespace nkentseu {
         return m_Name;
     }
 
-    EventCategory::Code ActionCommand::GetCategory() const
-    {
-        return m_Category;
-    }
-
     bool ActionCommand::IsRepeatable() const
     {
         return m_Repeatable;
     }
 
-    int64 ActionCommand::GetCode() const
+    const ActionCode& ActionCommand::GetCode() const
     {
         return m_Code;
-    }
-
-    ModifierState ActionCommand::GetModifierState() const
-    {
-        return m_ModifierState;
     }
 
     bool ActionCommand::IsPrivateRepeatable() const
@@ -55,7 +44,7 @@ namespace nkentseu {
 
     bool ActionCommand::operator==(const ActionCommand& other) const
     {
-        return m_Category == other.m_Category && m_Code == other.m_Code && m_ModifierState == other.m_ModifierState;
+        return m_Code == other.m_Code;
     }
 
     bool ActionCommand::operator!=(const ActionCommand& other) const
@@ -64,19 +53,14 @@ namespace nkentseu {
     }
 
     //************************************************
-    AxisCommand::AxisCommand(const std::string& name, const EventCategory::Code& category, int64 code, float32 scale, float32 minInterval) : m_Name(name), m_Category(category), m_Code(code), m_Scale(scale), m_Value(0.0f), m_MinInterval(minInterval) {}
+    AxisCommand::AxisCommand(const std::string& name, AxisCode code, float32 scale, float32 minInterval) : m_Name(name), m_Code(code), m_Scale(scale), m_Value(0.0f), m_MinInterval(minInterval) {}
 
     std::string AxisCommand::GetName() const
     {
         return m_Name;
     }
 
-    EventCategory::Code AxisCommand::GetCategory() const
-    {
-        return m_Category;
-    }
-
-    int64 AxisCommand::GetCode() const
+    const AxisCode& AxisCommand::GetCode() const
     {
         return m_Code;
     }
@@ -98,7 +82,7 @@ namespace nkentseu {
 
     bool AxisCommand::operator==(const AxisCommand& other) const
     {
-        return m_Category == other.m_Category && m_Code == other.m_Code;;
+        return m_Code == other.m_Code;;
     }
 
     bool AxisCommand::operator!=(const AxisCommand& other) const
@@ -165,58 +149,34 @@ namespace nkentseu {
         actions.erase(std::remove(actions.begin(), actions.end(), command), actions.end());
     }
 
-    void ActionManager::CheckEventStatus(const std::string& name, bool isValueDown, bool isValueUp, ActionCommand& command)
+    void ActionManager::CheckEventStatus(const std::string& name, ButtonState::Code state, ActionCommand& command)
     {
-        if (isValueDown) {
+        if (state == ButtonState::Down) {
             if (command.IsRepeatable() || (!command.IsRepeatable() && !command.IsPrivateRepeatable())) {
                 // Declencher l'action correspondante avec ses parametres
                 ActionSubscriber subscriber = m_Actions.at(name);
-                subscriber(name, command.GetCategory(), command.GetCode(), true, false);
+                subscriber(name, command.GetCode(), true, false);
                 Log_nts.Debug();
 
                 command.SetPrivateRepeatable(true);
             }
         }
 
-        if (isValueUp) {
+        if (state == ButtonState::Up) {
             command.SetPrivateRepeatable(false);
         }
     }
 
-    void ActionManager::TriggerAction()
+    void ActionManager::TriggerAction(const ActionCode& actionCode, ButtonState::Code state)
     {
-        bool ctrl = Input.IsKeyDown(Keyboard::LCtrl_ev) || Input.IsKeyDown(Keyboard::RCtrl_ev);
-        bool alt = Input.IsKeyDown(Keyboard::LAlt_ev) || Input.IsKeyDown(Keyboard::RAlt_ev);
-        bool shift = Input.IsKeyDown(Keyboard::LShift_ev) || Input.IsKeyDown(Keyboard::RShift_ev);
-        bool super = Input.IsKeyDown(Keyboard::LSuper_ev) || Input.IsKeyDown(Keyboard::RSuper_ev);
-
         // Verifier chaque action et ses evenements pour voir si un evenement est declencher
+        //Log_nts.Debug("number = {0}-{1}", m_Commands.size(), m_Actions.size());
+        //Log_nts.Debug("Action len = {0}; CAc len = {1}", GetActionNumber(), GetCommandNumber());
+        //Log_nts.Debug("Action len = {0}; CAc len = {1} | {02}", GetActionNumber(), GetCommandNumber(), this);
         for (auto&& [actionName, events] : m_Commands) {
-            //LOG.Debug("{0}-{1}", actionName, events.size());
             for (auto& action : events) {
-                if (action.GetModifierState().Alt != alt && action.GetModifierState().Ctrl != ctrl &&
-                    action.GetModifierState().Shift != shift && action.GetModifierState() != super)
-                    continue;
-                /* clavier */
-                if (EventCategory::Keyboard_ev == action.GetCategory()) {
-                    bool isKeyDown = Input.IsKeyDown((Keyboard::Code)action.GetCode());
-                    bool isKeyUp = Input.IsKeyUp((Keyboard::Code)action.GetCode());
-
-                    Log_nts.Debug("{0}-{1}-{2}", Keyboard::GetKeycode((Keyboard::Code)action.GetCode()), (int32)isKeyDown, (int32)isKeyUp);
-
-                    CheckEventStatus(actionName, isKeyDown, isKeyUp, action);
-
-                    continue;
-                }
-
-                /* Souris */
-                if (EventCategory::Mouse_ev == action.GetCategory()) {
-                    bool isKeyDown = Input.IsMouseDown((Mouse::Button)action.GetCode());
-                    bool isKeyUp = Input.IsMouseUp((Mouse::Button)action.GetCode());
-
-                    CheckEventStatus(actionName, isKeyDown, isKeyUp, action);
-
-                    continue;
+                if (action.GetCode() == actionCode) {
+                    CheckEventStatus(actionName, state, action);
                 }
             }
         }
@@ -279,32 +239,39 @@ namespace nkentseu {
         axis_.erase(std::remove(axis_.begin(), axis_.end(), command), axis_.end());
     }
 
-    bool AxisManager::CheckEventStatus(const std::string& name, bool isType, float32 value, AxisCommand& axis)
+    void AxisManager::CheckEventStatus(const std::string& name, float32 value, AxisCommand& axis)
     {
-        if (isType) {
-            float32 min_a = 0.0f; // borne inferieure de l'intervalle de a
-            float32 max_a = 1.0f; // borne superieure de l'intervalle de a
-            float32 prop_a = (value - min_a) / (max_a - min_a);
-            float32 result;
+        float32 min_a = 0.0f; // borne inferieure de l'intervalle de a
+        float32 max_a = 1.0f; // borne superieure de l'intervalle de a
+        float32 prop_a = (value - min_a) / (max_a - min_a);
+        float32 result;
 
-            result = (axis.GetMinInterval() + prop_a) * axis.GetScale();
-            m_Axes.at(name)(name, axis.GetCategory(), axis.GetCode(), result);
-            return true;
-        }
-        return false;
+        result = (axis.GetMinInterval() + prop_a) * axis.GetScale();
+        m_Axes.at(name)(name, axis.GetCode(), result);
     }
 
-    void AxisManager::UpdateAxis()
+    void AxisManager::UpdateAxis(const AxisUpdateFromCode& update)
     {
+        // Log_nts.Debug("numper = {0}-{1}", m_Commands.size(), this);
         for (auto&& [axisName, events] : m_Commands) {
+            //Log_nts.Debug("number running = {0}", m_Commands.size());
             for (auto& axis : events) {
                 /* clavier */
-                Keyboard::Code key = static_cast<Keyboard::Code>(axis.GetCode());
-                if (CheckEventStatus(axisName, EventCategory::Keyboard_ev == axis.GetCategory(), Input.KeyAxis(key), axis)) continue;
+                if (EventCategory::Keyboard == axis.GetCode().category) {
+                    Keyboard::Code code = axis.GetCode().keyboard;
+                    CheckEventStatus(axisName, update(EventCategory::Keyboard, code), axis);
+
+                    continue;
+                }
 
                 /* Souris */
-                Mouse::Button mouse = static_cast<Mouse::Button>(axis.GetCode());
-                if (CheckEventStatus(axisName, EventCategory::Mouse_ev == axis.GetCategory(), Input.MouseAxis(mouse), axis)) continue;
+                if (EventCategory::MouseButton == axis.GetCode().category) {
+                    Mouse::Code code = axis.GetCode().mouse;
+
+                    CheckEventStatus(axisName, update(EventCategory::MouseButton, code), axis);
+
+                    continue;
+                }//*/
             }
         }
     }

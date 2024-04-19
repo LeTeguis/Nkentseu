@@ -9,7 +9,7 @@
 namespace nkentseu {
 
     EventType::Code Event::GetEventType() const {
-        return EventType::None_ev;
+        return EventType::NotDefine;
     }
 
     const char* Event::GetName() const {
@@ -21,7 +21,7 @@ namespace nkentseu {
     }
 
     int32 Event::GetCategoryFlags() const {
-        return EventCategory::None_ev;
+        return EventCategory::NotDefine;
     }
 
     bool Event::IsEqual(Event& event) const {

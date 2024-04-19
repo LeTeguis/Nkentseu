@@ -16,11 +16,13 @@
 #include <windowsx.h>
 
 #include <hidsdi.h>
+#include <Dbt.h>
 #pragma comment(lib, "dwmapi.lib")
 
 namespace nkentseu {
 
     uint64 WindowInternal::s_WindowIDCounter = 0;
+    const GUID guidDevinterfaceHid = { 0x4d1e55b2, 0xf16f, 0x11cf, {0x88, 0xcb, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30} };
 
     WindowInternal::WindowInternal(class Window* window, const WindowProperties& properties) : m_WindowID(++s_WindowIDCounter), m_MainWindow(window), m_IsWindowCreated(false) {
 
@@ -117,6 +119,11 @@ namespace nkentseu {
             SetForegroundWindow(m_NativeWindow->windowHandle);
             SetFocus(m_NativeWindow->windowHandle);
         }
+
+        // Register to receive device interface change notifications (used for joystick connection handling)
+        DEV_BROADCAST_DEVICEINTERFACE deviceInterface =
+        { sizeof(DEV_BROADCAST_DEVICEINTERFACE), DBT_DEVTYP_DEVICEINTERFACE, 0, guidDevinterfaceHid, {0} };
+        RegisterDeviceNotification(m_NativeWindow->windowHandle, &deviceInterface, DEVICE_NOTIFY_WINDOW_HANDLE);
 
         static const DWM_BLURBEHIND blurBehind{ {0}, {TRUE}, {NULL}, {TRUE} };
         DwmEnableBlurBehindWindow(m_NativeWindow->windowHandle, &blurBehind);

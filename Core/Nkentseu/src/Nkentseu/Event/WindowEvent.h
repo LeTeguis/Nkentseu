@@ -21,8 +21,8 @@ namespace nkentseu {
         WindowCreateEvent(const WindowCreateEvent& e);
         virtual bool IsEqual(Event& e) const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowCreated_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowCreated)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window)
     };
 
     class NKENTSEU_API WindowPaintEvent : public Event
@@ -36,8 +36,8 @@ namespace nkentseu {
 
         virtual bool IsEqual(Event& e) const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowPainted_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev | EventCategory::Graphics_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowPainted)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window | EventCategory::Graphics)
     private:
         Rectangle m_Rect;
         Color m_Color;
@@ -54,8 +54,8 @@ namespace nkentseu {
 
         virtual bool IsEqual(Event& e) const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowBackgroundErased_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev | EventCategory::Graphics_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowBackgroundErased)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window | EventCategory::Graphics)
     private:
         Rectangle m_Rect;
         Color m_Color;
@@ -68,8 +68,8 @@ namespace nkentseu {
 
         virtual bool IsEqual(Event& e) const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowClosed_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowClosed)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window)
     };
 
     class NKENTSEU_API WindowFocusEvent : public Event {
@@ -83,8 +83,8 @@ namespace nkentseu {
 
         virtual std::string ToString() const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowFocused_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowFocused)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window)
     private:
         bool m_Focus;
     };
@@ -102,8 +102,8 @@ namespace nkentseu {
 
         virtual bool IsEqual(Event& e) const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowResized_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev | EventCategory::Graphics_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowResized)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window | EventCategory::Graphics)
     private:
         Vector2u m_Size;
         bool m_Resizing;
@@ -120,8 +120,8 @@ namespace nkentseu {
 
         virtual std::string ToString() const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowDpiChanged_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowDpiChanged)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window)
     private:
         float32 m_Dpi;
     };
@@ -138,8 +138,8 @@ namespace nkentseu {
 
         virtual bool IsEqual(Event& e) const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowMoved_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window_ev)
+        EVENT_TYPE_FLAGS(EventType::WindowMoved)
+            EVENT_CATEGORY_FLAGS(EventCategory::Window)
     private:
         Vector2i m_Position;
     };

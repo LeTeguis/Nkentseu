@@ -20,19 +20,19 @@ namespace nkentseu {
     class NKENTSEU_API KeyEvent : public Event {
     public:
         // Get the virtual key code of the pressed/released key
-        Keyboard::KeyCode GetKey() const; // Needs implementation
+        Keyboard::Keycode GetKey() const; // Needs implementation
 
         // Get the hardware scancode of the pressed/released key
-        Keyboard::ScanCode GetScan() const; // Needs implementation
+        Keyboard::Scancode GetScan() const; // Needs implementation
 
         // Get the modifier state associated with the event
         ModifierState GetState() const; // Needs implementation
 
         // Check if a specific key was pressed/released
-        bool IsKey(Keyboard::KeyCode k) const; // Needs implementation
+        bool IsKey(Keyboard::Keycode k) const; // Needs implementation
 
         // Check if a specific scancode was pressed/released
-        bool IsScan(Keyboard::ScanCode s) const; // Needs implementation
+        bool IsScan(Keyboard::Scancode s) const; // Needs implementation
 
         // Check for a specific modifier state
         bool IsMState(ModifierState ms) const; // Needs implementation
@@ -41,14 +41,14 @@ namespace nkentseu {
         virtual bool IsEqual(Event& e) const override; // Needs implementation
 
         // Event category flags using macro
-        EVENT_CATEGORY_FLAGS(EventCategory::Keyboard_ev | EventCategory::Input_ev)
+        EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
 
     protected:
         // Protected constructor with window ID, key code, scan code, and modifier state
-        KeyEvent(uint64 win, Keyboard::KeyCode key, Keyboard::ScanCode scan, const ModifierState& state); // Needs implementation
+        KeyEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state); // Needs implementation
 
-        Keyboard::KeyCode m_Key;  // The virtual key code of the pressed/released key
-        Keyboard::ScanCode m_Scan;  // The hardware scancode of the pressed/released key
+        Keyboard::Keycode m_Key;  // The virtual key code of the pressed/released key
+        Keyboard::Scancode m_Scan;  // The hardware scancode of the pressed/released key
         ModifierState m_State;     // The modifier state associated with the event
     };
 
@@ -56,7 +56,7 @@ namespace nkentseu {
     class NKENTSEU_API KeyPressedEvent : public KeyEvent {
     public:
         // Constructors with window ID, key code, scan code, modifier state, and optional repeat count
-        KeyPressedEvent(uint64 win, Keyboard::KeyCode key, Keyboard::ScanCode scan, const ModifierState& state, int32 repeatCount = 1); // Needs implementation
+        KeyPressedEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state, int32 repeatCount = 1); // Needs implementation
 
         // Check if the key is a repeated key press
         bool IsRepeat() const; // Needs implementation
@@ -68,7 +68,7 @@ namespace nkentseu {
         virtual std::string ToString() const override; // Needs implementation
 
         // Event type flags using macro
-        EVENT_TYPE_FLAGS(EventType::KeyPressed_ev)
+        EVENT_TYPE_FLAGS(EventType::KeyPressed)
 
     private:
         int32 m_RepeatCount;  // The number of times the key has been pressed (repeat count)
@@ -78,13 +78,13 @@ namespace nkentseu {
     class NKENTSEU_API KeyReleasedEvent : public KeyEvent {
     public:
         // Constructor with window ID, key code, scan code, and modifier state
-        KeyReleasedEvent(uint64 win, Keyboard::KeyCode key, Keyboard::ScanCode scan, const ModifierState& state); // Needs implementation
+        KeyReleasedEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state); // Needs implementation
 
         // Override the ToString method to provide a string representation of the event
         virtual std::string ToString() const override; // Needs implementation
 
         // Event type flags using macro
-        EVENT_TYPE_FLAGS(EventType::KeyReleased_ev)
+        EVENT_TYPE_FLAGS(EventType::KeyReleased)
 
     };
 
@@ -101,8 +101,8 @@ namespace nkentseu {
         virtual std::string ToString() const override; // Needs implementation
 
           // Event type and category flags using macros
-        EVENT_TYPE_FLAGS(EventType::CharEntered_ev)
-            EVENT_CATEGORY_FLAGS(EventCategory::Keyboard_ev | EventCategory::Input_ev)
+        EVENT_TYPE_FLAGS(EventType::CharEntered)
+            EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
 
     private:
         uint64 m_Character;  // The pressed character

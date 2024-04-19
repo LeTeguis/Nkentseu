@@ -24,29 +24,30 @@ namespace nkentseu {
 #define BUTTON_MASK(X) ((1 << ((X)-1)))
 
 // Define a type alias for `uint32` representing a mouse button
-        using Button = int64;
+        using Code = int64;
+        using Button = Code;
 
         // Enum to define all supported mouse buttons
         enum : Button {
-            Unknown_ev = 0,
-            Left_ev = 1,
-            Middle_ev = 2,
-            Right_ev = 3,
-            X1_ev = 4,
-            X2_ev = 5,
-            Horizontal_ev = 6,  // Scrolling horizontally
-            Vertical_ev = 7,   // Scrolling vertically
-            HorizontalRel_ev = 8,  // Relative horizontal movement
-            VerticalRel_ev = 9,   // Relative vertical movement
-            LeftMask_ev = BUTTON_MASK(Left_ev),  // Bitmask for left button
-            MiddleMask_ev = BUTTON_MASK(Middle_ev),  // Bitmask for middle button
-            RightMask_ev = BUTTON_MASK(Right_ev),  // Bitmask for right button
-            X1Mask_ev = BUTTON_MASK(X1_ev),        // Bitmask for extra button 1
-            X2Mask_ev = BUTTON_MASK(X2_ev),        // Bitmask for extra button 2
+            NotDefine = 0,
+            Left = 1,
+            Middle = 2,
+            Right = 3,
+            X1 = 4,
+            X2 = 5,
+            Horizontal = 6,  // Scrolling horizontally
+            Vertical = 7,   // Scrolling vertically
+            HorizontalRel = 8,  // Relative horizontal movement
+            VerticalRel = 9,   // Relative vertical movement
+            LeftMask = BUTTON_MASK(Left),  // Bitmask for left button
+            MiddleMask = BUTTON_MASK(Middle),  // Bitmask for middle button
+            RightMask = BUTTON_MASK(Right),  // Bitmask for right button
+            X1Mask = BUTTON_MASK(X1),        // Bitmask for extra button 1
+            X2Mask = BUTTON_MASK(X2),        // Bitmask for extra button 2
 
-            Num_ev = 14,  // Total number of buttons defined
-            FistButton_ev = Left_ev,  // The first defined button (Left)
-            LastButton_ev = X2Mask_ev,  // The last defined button (Right extra button)
+            Num = 14,  // Total number of buttons defined
+            FistButton = Left,  // The first defined button (Left)
+            LastButton = X2Mask,  // The last defined button (Right extra button)
         };
 
         // Static function to check if a given code represents a valid mouse button
@@ -59,7 +60,7 @@ namespace nkentseu {
         static Mouse::Button FromString(const std::string& mb);
     };
 
-    #define MOUSE(button) Mouse::button##_ev
+    #define MOUSE(button) Mouse::button
 } // namespace nkentseu
 
 #endif // __NKENTSEU_MOUSE_H__

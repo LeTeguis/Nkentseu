@@ -3,8 +3,8 @@
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __NKENTSEU_INPUTMANAGER_H__
-#define __NKENTSEU_INPUTMANAGER_H__
+#ifndef __NKENTSEU_INPUT_MANAGER_H__
+#define __NKENTSEU_INPUT_MANAGER_H__
 
 #pragma once
 
@@ -12,15 +12,14 @@
 #include <Ntsm/Vector/Vector2.h>
 #include <Nkentseu/Event/ModifierState.h>
 
-#include "EventObservable.h"
-#include "EventBroker.h"
 #include "InputController.h"
 
 #include "MouseEvent.h"
 #include "KeyboardEvent.h"
 #include "GenericInputEvent.h"
 
-#include "System/Epoch/Timer.h"*
+#include "System/Epoch/Timer.h"
+#include <Ntsm/Random.h>
 
 
 namespace nkentseu {
@@ -37,16 +36,13 @@ namespace nkentseu {
                                                             axis[key] = 1.0f;\
                                                         }\
                                                     }\
-                                                }
+                                                }\
 
     class NKENTSEU_API InputManager
     {
 
     public:
-        static InputManager& Instance() {
-            static InputManager input;
-            return input;
-        }
+        static InputManager& Instance();
 
         /* Moouse */
         inline Vector2i MousePosition();
@@ -103,17 +99,32 @@ namespace nkentseu {
         inline uint32 GenericInputHat(GenericInput::Hat hate);
         inline uint32 GenericInputHat(const std::string& hate);
 
-        /* Event Binding */
-        AxisManager axisManager;
-        ActionManager actionManager;
+        void CreateAction(const std::string& actionName, const ActionSubscriber& handler);
+        void AddCommand(const ActionCommand& command);
+        void RemoveAction(const std::string& actionName);
+        void RemoveCommand(const ActionCommand& command);
 
-        float32 CalibrerAxis = 10.0f;
+        void CreateAxis(const std::string& axisName, const AxisSubscriber& handler);
+        void AddCommand(const AxisCommand& command);
+        void RemoveAxis(const std::string& axisName);
+        void RemoveCommand(const AxisCommand& command);
+
+        uint64 GetActionNumber();
+        uint64 GetAxisNumber();
+        uint64 GetCommandNumber(bool action, const std::string& actionName);
+        uint64 GetCommandNumber(bool action);
+
+        float32 CalibrerAxis = 100.0f;
 
         void private__update__axis();
 
     private:
 
         Timer m_Clock;
+
+        /* Event Binding */
+        AxisManager m_AxisManager;
+        ActionManager m_ActionManager;
 
         Vector2i m_MousePosition;
         std::unordered_map<Mouse::Button, float32> m_MouseAxis;
@@ -134,7 +145,7 @@ namespace nkentseu {
         std::unordered_map<GenericInput::Button, bool> m_GenericsButtonUp;
 
 
-        static bool Initialize;
+        static bool s_initialize;
 
         InputManager();
 
@@ -149,9 +160,10 @@ namespace nkentseu {
         bool OnGenericsButtonReleasedEvent(GenericInputButtonReleasedEvent& e);
         bool OnGenericsAxisEvent(GenericInputAxisEvent& e);
         //bool OnGenericsHatEvent(GenericInputHatEvent& e);
+
     };
 
     #define Input       InputManager::Instance()
 } // namespace nkentseu
 
-#endif    // __NKENTSEU_INPUTMANAGER_H__
+#endif    // __NKENTSEU_INPUT_MANAGER_H__

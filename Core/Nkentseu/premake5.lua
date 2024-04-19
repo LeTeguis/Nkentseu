@@ -52,6 +52,7 @@ project "Nkentseu"
 		optimize "off"
 
         links {
+            "kernel32", "user32", "hid", "Xinput"
         }
         --files{
         --    "./src/Nkentseu/Platform/Window/Windows/**", 

@@ -52,15 +52,15 @@ namespace nkentseu {
          * - Assert: Assertion failure message
          */
         enum : Code {
-            None_ev = 0,
-            Info_ev,
-            Trace_ev,
-            Debug_ev,
-            Warning_ev,
-            Error_ev,
-            Critical_ev,
-            Fatal_ev,
-            Assert_ev
+            Info = 1,
+            Trace,
+            Debug,
+            Warning,
+            Error,
+            Critical,
+            Fatal,
+            Assert,
+            Default = Trace,
         };
 
 

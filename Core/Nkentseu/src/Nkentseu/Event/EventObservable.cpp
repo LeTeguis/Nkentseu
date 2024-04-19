@@ -86,6 +86,13 @@ namespace nkentseu {
         return true;
     }
 
+    void EventObservable::TriggerEvent(Event* event)
+    {
+        if (event != nullptr) {
+            EventInternal->TriggerEvent(event);
+        }
+    }
+
     void EventObservable::AddObserver(EventObserver observer) {
         if (observer == 0) return;
 

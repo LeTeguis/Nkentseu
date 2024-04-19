@@ -55,7 +55,7 @@ namespace nkentseu {
 				}
 			}
 		}
-		return NTSErrorCode::Error_No;
+		return NTSErrorCode::NoError;
 	}
 
 	Window::~Window() {

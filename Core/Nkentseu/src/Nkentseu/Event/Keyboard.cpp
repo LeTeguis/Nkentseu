@@ -11,7 +11,7 @@
 namespace nkentseu {
 
     const char* Keyboard::GetCodeName(Keyboard::Code code) {
-#define CODE_STR(code_id) if (code == code_id##_ev) return #code_id
+        #define CODE_STR(code_id) if (code == code_id) return #code_id
 
         CODE_STR(Back);
         CODE_STR(Tab);
@@ -52,16 +52,16 @@ namespace nkentseu {
         CODE_STR(Delete);
         CODE_STR(Help);
 
-        CODE_STR(KP_0);
-        CODE_STR(KP_1);
-        CODE_STR(KP_2);
-        CODE_STR(KP_3);
-        CODE_STR(KP_4);
-        CODE_STR(KP_5);
-        CODE_STR(KP_6);
-        CODE_STR(KP_7);
-        CODE_STR(KP_8);
-        CODE_STR(KP_9);
+        CODE_STR(Keypad0);
+        CODE_STR(Keypad1);
+        CODE_STR(Keypad2);
+        CODE_STR(Keypad3);
+        CODE_STR(Keypad4);
+        CODE_STR(Keypad5);
+        CODE_STR(Keypad6);
+        CODE_STR(Keypad7);
+        CODE_STR(Keypad8);
+        CODE_STR(Keypad9);
 
         CODE_STR(A);
         CODE_STR(B);
@@ -95,16 +95,16 @@ namespace nkentseu {
         CODE_STR(Apps);
         CODE_STR(Sleep);
 
-        CODE_STR(Num0);
-        CODE_STR(Num1);
-        CODE_STR(Num2);
-        CODE_STR(Num3);
-        CODE_STR(Num4);
-        CODE_STR(Num5);
-        CODE_STR(Num6);
-        CODE_STR(Num7);
-        CODE_STR(Num8);
-        CODE_STR(Num9);
+        CODE_STR(Numpad0);
+        CODE_STR(Numpad1);
+        CODE_STR(Numpad2);
+        CODE_STR(Numpad3);
+        CODE_STR(Numpad4);
+        CODE_STR(Numpad5);
+        CODE_STR(Numpad6);
+        CODE_STR(Numpad7);
+        CODE_STR(Numpad8);
+        CODE_STR(Numpad9);
 
         CODE_STR(Multiply);
         CODE_STR(Add);
@@ -199,11 +199,11 @@ namespace nkentseu {
         CODE_STR(Quotation);
         CODE_STR(Plus);
 
-        return "Unknown";
+        return "NotDefine";
     }
 
     Keyboard::Code Keyboard::GetCodeFromName(const char* codeName) {
-        #define CASE_CODE(code_id) if (strcmp(codeName, #code_id) == 0) return Keyboard::code_id##_ev
+        #define CASE_CODE(code_id) if (strcmp(codeName, #code_id) == 0) return Keyboard::code_id
 
         CASE_CODE(Back);
         CASE_CODE(Tab);
@@ -244,16 +244,16 @@ namespace nkentseu {
         CASE_CODE(Delete);
         CASE_CODE(Help);
 
-        CASE_CODE(KP_0);
-        CASE_CODE(KP_1);
-        CASE_CODE(KP_2);
-        CASE_CODE(KP_3);
-        CASE_CODE(KP_4);
-        CASE_CODE(KP_5);
-        CASE_CODE(KP_6);
-        CASE_CODE(KP_7);
-        CASE_CODE(KP_8);
-        CASE_CODE(KP_9);
+        CASE_CODE(Keypad0);
+        CASE_CODE(Keypad1);
+        CASE_CODE(Keypad2);
+        CASE_CODE(Keypad3);
+        CASE_CODE(Keypad4);
+        CASE_CODE(Keypad5);
+        CASE_CODE(Keypad6);
+        CASE_CODE(Keypad7);
+        CASE_CODE(Keypad8);
+        CASE_CODE(Keypad9);
 
         CASE_CODE(A);
         CASE_CODE(B);
@@ -287,16 +287,16 @@ namespace nkentseu {
         CASE_CODE(Apps);
         CASE_CODE(Sleep);
 
-        CASE_CODE(Num0);
-        CASE_CODE(Num1);
-        CASE_CODE(Num2);
-        CASE_CODE(Num3);
-        CASE_CODE(Num4);
-        CASE_CODE(Num5);
-        CASE_CODE(Num6);
-        CASE_CODE(Num7);
-        CASE_CODE(Num8);
-        CASE_CODE(Num9);
+        CASE_CODE(Numpad0);
+        CASE_CODE(Numpad1);
+        CASE_CODE(Numpad2);
+        CASE_CODE(Numpad3);
+        CASE_CODE(Numpad4);
+        CASE_CODE(Numpad5);
+        CASE_CODE(Numpad6);
+        CASE_CODE(Numpad7);
+        CASE_CODE(Numpad8);
+        CASE_CODE(Numpad9);
 
         CASE_CODE(Multiply);
         CASE_CODE(Add);
@@ -391,7 +391,7 @@ namespace nkentseu {
         CASE_CODE(Quotation);
         CASE_CODE(Plus);
 
-        return Keyboard::Unknown_ev;
+        return Keyboard::NotDefine;
     }
 
 
@@ -404,58 +404,39 @@ namespace nkentseu {
         return GetCodeFromName(str.c_str());
     }
 
-    std::string Keyboard::GetKeycode(Keyboard::KeyCode keycode) {
+    std::string Keyboard::GetKeycode(Keyboard::Keycode keycode) {
         return GetCodeName(keycode);
     }
 
-    Keyboard::KeyCode Keyboard::GetKeycode(const std::string& str) {
+    Keyboard::Keycode Keyboard::GetKeycode(const std::string& str) {
         return FromString(str);
     }
 
-    std::string Keyboard::GetScancode(Keyboard::ScanCode keycode) {
+    std::string Keyboard::GetScancode(Keyboard::Scancode keycode) {
         return GetCodeName(keycode);
     }
 
-    Keyboard::ScanCode Keyboard::GetScancode(const std::string& str) {
+    Keyboard::Scancode Keyboard::GetScancode(const std::string& str) {
         return FromString(str);
     }
 
-    bool Keyboard::IsKeyCode(Keyboard::KeyCode key) {
-        if (key == 0x08 || key == 0x09 || key == 0x0C || key == 0x0D) return true;
-        if (key >= 0x10 && key <= 0x2F) return true;
-        if (key >= 0x30 && key <= 0x39) return true;
-        if (key >= 0x41 && key <= 0x5A) return true;
-        if (key >= 0x5B && key <= 0x5D) return true;
-        if (key == 0x5F) return true;
-        if (key >= 0x60 && key <= 0x69) return true;
-        if (key >= 0x6A && key <= 0x6F) return true;
-        if (key >= 0x70 && key <= 0x87) return true;
-        if (key >= 0x90 && key <= 0x91) return true;
-        if (key >= 0xA0 && key <= 0xB7) return true;
-        if (key >= 0xBA && key <= 0xC0) return true;
-        if (key >= 0xDB && key <= 0xDF) return true;
-        if (key == 0xE2) return true;
-        if (key == 0xE5) return true;
-        if (key == 0xE7) return true;
-        if (key >= 0xF6 && key <= 0xFE) return true;
-        if (key == Colon_ev) return true;
-        if (key == Quotation_ev) return true;
-        if (key == Plus_ev) return true;
+    bool Keyboard::IsKeyCode(Keyboard::Keycode key) {
+        if (FirstCode <= (uint64)key && (uint64)key <= LastCode) return true;
         return false;
     }
 
 
-    bool Keyboard::IsScanCode(Keyboard::ScanCode key) {
+    bool Keyboard::IsScanCode(Keyboard::Scancode key) {
         return IsKeyCode(key);
     }
 
     bool Keyboard::IsKeyMode(Keyboard::KeyMod key) {
         if (IsKeyCode(key) || IsScanCode(key)) {
-            if (key == Keyboard::Ctrl_ev || key == Keyboard::LCtrl_ev || key == Keyboard::RCtrl_ev ||
-                key == Keyboard::Alt_ev || key == Keyboard::LAlt_ev || key == Keyboard::RAlt_ev ||
-                key == Keyboard::Shift_ev || key == Keyboard::LShift_ev || key == Keyboard::RShift_ev ||
-                key == Keyboard::LSuper_ev || key == Keyboard::RSuper_ev ||
-                key == Keyboard::Num_ev || key == Keyboard::CapsLock_ev || key == Keyboard::ModeChange_ev || key == Keyboard::ScrollLock_ev) {
+            if (key == Keyboard::Ctrl || key == Keyboard::LCtrl || key == Keyboard::RCtrl ||
+                key == Keyboard::Alt || key == Keyboard::LAlt || key == Keyboard::RAlt ||
+                key == Keyboard::Shift || key == Keyboard::LShift || key == Keyboard::RShift ||
+                key == Keyboard::LSuper || key == Keyboard::RSuper ||
+                key == Keyboard::Num || key == Keyboard::CapsLock || key == Keyboard::ModeChange || key == Keyboard::ScrollLock) {
                 return true;
             }
         }

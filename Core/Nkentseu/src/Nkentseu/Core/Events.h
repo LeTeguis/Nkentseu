@@ -14,6 +14,7 @@
 #include "Nkentseu/Event/KeyboardEvent.h"
 #include "Nkentseu/Event/GenericInputEvent.h"
 #include "Nkentseu/Event/EventObservable.h"
+#include "Nkentseu/Event/GenericInputEvent.h"
 
 
 #endif    // __NKENTSEU_EVENTS_H__

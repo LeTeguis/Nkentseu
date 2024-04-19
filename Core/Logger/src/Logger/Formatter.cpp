@@ -13,11 +13,11 @@ namespace nkentseu {
     Formatter& Formatter::Instance()
     {
         // Implementation using static member variable
-        static Formatter instance(StyleGuide::NumBrack_ev, SymbolStyle::Brace_ev);
+        static Formatter instance(StyleGuide::NumBrack, SymbolStyle::Brace);
         return instance;
     }
 
-    Formatter::Formatter() : m_StyleGuide(StyleGuide::NumBrack_ev), m_SymboleStyle(SymbolStyle::Brace_ev)
+    Formatter::Formatter() : m_StyleGuide(StyleGuide::NumBrack), m_SymboleStyle(SymbolStyle::Brace)
     {
     }
 
@@ -71,14 +71,14 @@ namespace nkentseu {
                 replacement_index -= add;
                 // 3.1.2 Handle replacement based on style guide
                 if (replacement_index >= 0) {
-                    if (m_StyleGuide == StyleGuide::FullGuide_ev || m_StyleGuide == StyleGuide::NumBrack_ev) {
+                    if (m_StyleGuide == StyleGuide::FullGuide || m_StyleGuide == StyleGuide::NumBrack) {
                         if (replacement_index < arguments.size()) {
                             formatted_string.erase(current_index, search_index - current_index + 1);
                             formatted_string.insert(current_index, arguments[replacement_index]);
                         }
                         else replacement_index = -1;
                     }
-                    else if (m_StyleGuide == StyleGuide::FullGuide_ev || m_StyleGuide == StyleGuide::Brack_ev) {
+                    else if (m_StyleGuide == StyleGuide::FullGuide || m_StyleGuide == StyleGuide::Brack) {
                         replacement_index_step++;
                         if (replacement_index_step < arguments.size()) {
                             formatted_string.erase(current_index, search_index - current_index + 1);
@@ -104,21 +104,21 @@ namespace nkentseu {
     std::string SymbolStyle::GetSymbolStyleString(SymbolStyle::Code style)
     {
         switch (style) {
-        case SymbolStyle::None_ev:
+        case SymbolStyle::Unknow:
             return ""; // No string for None
-        case SymbolStyle::Paren_ev:
+        case SymbolStyle::Paren:
             return "()";
-        case SymbolStyle::Bracket_ev:
+        case SymbolStyle::Bracket:
             return "[]";
-        case SymbolStyle::Brace_ev:
+        case SymbolStyle::Brace:
             return "{}";
-        case SymbolStyle::Angle_ev:
+        case SymbolStyle::Angle:
             return "<>";
-        case SymbolStyle::Percent_ev:
+        case SymbolStyle::Percent:
             return "%%"; // Percent symbol itself represents opening and closing
-        case SymbolStyle::Amp_ev:
+        case SymbolStyle::Amp:
             return "&&"; // Ampersand symbol itself represents opening and closing
-        case SymbolStyle::Dollar_ev:
+        case SymbolStyle::Dollar:
             return "$$"; // Dollar symbol itself represents opening and closing
 
         }

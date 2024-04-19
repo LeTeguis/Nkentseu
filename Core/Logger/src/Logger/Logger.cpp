@@ -27,14 +27,14 @@ namespace nkentseu {
         */
         std::string GetColorCode(Severity::Code severity) {
             switch (severity) {
-            case Severity::Error_ev:   return "\033[1;31m"; // Red for errors
-            case Severity::Warning_ev: return "\033[1;33m"; // Yellow for warnings
-            case Severity::Debug_ev:   return "\033[1;34m"; // Blue for debug messages
-            case Severity::Trace_ev:   return "\033[1;36m"; // Cyan for trace messages
-            case Severity::Critical_ev: return "\033[1;35m"; // Purple for critical messages
-            case Severity::Info_ev:    return "\033[1;32m"; // Green for informational messages
-            case Severity::Assert_ev:
-            case Severity::Fatal_ev:   return "\033[1;41m"; // Dark red for asserts and fatal errors
+            case Severity::Error:   return "\033[1;31m"; // Red for errors
+            case Severity::Warning: return "\033[1;33m"; // Yellow for warnings
+            case Severity::Debug:   return "\033[1;34m"; // Blue for debug messages
+            case Severity::Trace:   return "\033[1;36m"; // Cyan for trace messages
+            case Severity::Critical: return "\033[1;35m"; // Purple for critical messages
+            case Severity::Info:    return "\033[1;32m"; // Green for informational messages
+            case Severity::Assert:
+            case Severity::Fatal:   return "\033[1;41m"; // Dark red for asserts and fatal errors
             default: return "";
             }
         }

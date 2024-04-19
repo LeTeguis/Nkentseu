@@ -7,11 +7,14 @@
 #include "PlatformState.h"
 
 #include "Nkentseu/Core/NkentseuLogger.h"
+#include "Nkentseu/Event/InputManager.h"
 
 namespace nkentseu {
 
 #if defined(NKENTSEU_PLATFORM_WINDOWS)
     void PlatformState_::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int32 nCmdShow) {
+        //Input;
+
         MSG msg;    // message
         int argc = 0;
 
@@ -52,6 +55,8 @@ namespace nkentseu {
     }*/
 
     void PlatformState_::Init(int argc, const char** argv) {
+        //Input;
+
         if (argc == 0 || argv == 0) {
             return;
         }
@@ -91,12 +96,15 @@ namespace nkentseu {
 #elif defined(NKENTSEU_PLATFORM_ANDROID)
 
     void PlatformState_::Init(android_app* app) {
+        //Input;
         App = app;
     }
 
 #else
 
     void PlatformState_::Init(int argc, const char** argv) {
+        //Input;
+
         if (argc == 0 || argv == 0) {
             return;
         }

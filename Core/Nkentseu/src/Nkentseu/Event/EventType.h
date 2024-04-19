@@ -3,8 +3,8 @@
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __NKENTSEU_EVENT_TYPE_H__
-#define __NKENTSEU_EVENT_TYPE_H__
+#ifndef __NKENTSEUENT_TYPE_H__
+#define __NKENTSEUENT_TYPE_H__
 
 #pragma once
 
@@ -24,74 +24,74 @@ namespace nkentseu {
 
         // Enum to represent various event codes
         enum : Code {
-            None_ev = 0,
+            NotDefine = 0,
 
             // Window Events (for describing window-related events)
-            WindowCreated_ev,
-            WindowPainted_ev,
-            WindowBackgroundErased_ev,
-            WindowClosed_ev,
-            WindowResized_ev,
-            WindowFocused_ev,
-            WindowLostFocus_ev,
-            WindowDpiChanged_ev,
-            WindowMoved_ev,
+            WindowCreated,
+            WindowPainted,
+            WindowBackgroundErased,
+            WindowClosed,
+            WindowResized,
+            WindowFocused,
+            WindowLostFocus,
+            WindowDpiChanged,
+            WindowMoved,
 
             // Application Events (for application-specific events)
-            ApplicationTick_ev,
-            ApplicationUpdate_ev,
-            ApplicationRender_ev,
+            ApplicationTick,
+            ApplicationUpdate,
+            ApplicationRender,
 
             // Keyboard Events (for keyboard input events)
-            KeyPressed_ev,
-            KeyReleased_ev,
-            CharEntered_ev,
+            KeyPressed,
+            KeyReleased,
+            CharEntered,
 
             // Mouse Events (for mouse input events)
-            MouseButtonPressed_ev,
-            MouseButtonReleased_ev,
-            MouseButtonDoubleClicked_ev,
-            MouseButtonRawInput_ev,
-            MouseMoved_ev,
-            MouseWheelScrolled_ev,
-            MouseEnteredWindow_ev,
-            MouseExitedWindow_ev,
+            MouseButtonPressed,
+            MouseButtonReleased,
+            MouseButtonDoubleClicked,
+            MouseButtonRawInput,
+            MouseMoved,
+            MouseWheelScrolled,
+            MouseEnteredWindow,
+            MouseExitedWindow,
 
             // Gamepad Events (for gamepad input events)
-            GamepadConnected_ev,
-            GamepadDisconnected_ev,
-            GamepadButtonPressed_ev,
-            GamepadButtonReleased_ev,
-            GamepadAxisMoved_ev,
-            GamepadStickMoved_ev,
-            GamepadTriggerMoved_ev,
+            GamepadConnected,
+            GamepadDisconnected,
+            GamepadButtonPressed,
+            GamepadButtonReleased,
+            GamepadAxisMoved,
+            GamepadStickMoved,
+            GamepadTriggerMoved,
 
             // Touchpad Events (for touch input events)
-            TouchReleased_ev,
-            TouchPressed_ev,
-            TouchMoved_ev,
-            TouchCancelled_ev,
-            TouchPinchGesture_ev,
+            TouchReleased,
+            TouchPressed,
+            TouchMoved,
+            TouchCancelled,
+            TouchPinchGesture,
 
             // Drag and Drop Events (for drag and drop interactions)
-            FilesDropped_ev,
-            DragStarted_ev,
-            DropCompleted_ev,
+            FilesDropped,
+            DragStarted,
+            DropCompleted,
 
             // Transfer Events (for data and file transfer events)
-            DataTransfer_ev,
-            FileTransfer_ev,
+            DataTransfer,
+            FileTransfer,
 
             // Generic Input Events (for handling various input devices)
-            GenericInputConnected_ev,
-            GenericInputDisconnected_ev,
-            GenericInputPressed_ev,
-            GenericInputReleased_ev,
-            GenericInputAxisMoved_ev,
-            GenericInputHatMoved_ev,
+            GenericInputConnected,
+            GenericInputDisconnected,
+            GenericInputPressed,
+            GenericInputReleased,
+            GenericInputAxisMoved,
+            GenericInputHatMoved,
 
             // Custom Event (for handling application-specific events)
-            CustomEvent_ev
+            CustomEvent
         };
 
         // Function to convert an event code to a human-readable string
@@ -102,4 +102,4 @@ namespace nkentseu {
     };
 } // namespace nkentseu
 
-#endif // __NKENTSEU_EVENT_TYPE_H__
+#endif // __NKENTSEUENT_TYPE_H__

@@ -3,6 +3,7 @@
 #include <Nkentseu/Core/Events.h>
 
 #include <Nkentseu/Core/Window.h>
+#include <Nkentseu/Event/InputManager.h>
 
 using namespace nkentseu;
 
@@ -13,9 +14,9 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
 
     Memory::Shared<nkentseu::Window> window = Memory::Alloc<nkentseu::Window>(windowProperty);
 
-    /*NTSErrorCode error = ErrorMessaging.PopError();
+    NTSErrorCode error = ErrorMessaging.PopError();
 
-    if (window == nullptr || (error != NTSErrorCode::Error_No && error != NTSErrorCode::Window_StayInWindowMode)) {
+    if (window == nullptr || (error != NTSErrorCode::NoError && error != NTSErrorCode::Window_StayInWindowMode)) {
         Memory::Reset(window);
         Assert_nts.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", (bool32)error);
         return false;
@@ -28,12 +29,17 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
 
     while (running) {
         Event* event;
+        #ifdef NKENTSEU_PLATFORM_WINDOWS
         while (EventTrack->Pick(&event)) {
-            if (event->IsEqual<WindowCloseEvent>()) {
+            if (event->IsA<WindowCloseEvent>()) {
                 running = false;
             }
         }
-    }*/
+        #endif
+        if (Input.IsKeyDown(Keyboard::Up)) {
+
+        }
+    }
 
     // Memory::Reset(window);
     return 0;

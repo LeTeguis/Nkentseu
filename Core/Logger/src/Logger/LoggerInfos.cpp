@@ -8,7 +8,7 @@
 
 namespace nkentseu {
 
-    LoggerInfos::LoggerInfos() : m_Name("Log"), m_Severity(Severity::None_ev), m_File(""), m_Function(), m_Line(0), m_Header(""), m_Message("") {}
+    LoggerInfos::LoggerInfos() : m_Name("Log"), m_Severity(Severity::Default), m_File(""), m_Function(), m_Line(0), m_Header(""), m_Message("") {}
 
     LoggerInfos::LoggerInfos(Severity::Code severity, const std::string& name, const std::string& file,
         const std::string& function, uint32 line, const std::string& header,

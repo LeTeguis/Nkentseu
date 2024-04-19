@@ -14,6 +14,7 @@
 #include <Nkentseu/Core/Events.h>
 #include <Nkentseu/Graphics/Color.h>
 #include <Nkentseu/Event/EventBroker.h>
+
 #include <Nkentseu/Event/InputManager.h>
 
 namespace nkentseu {
@@ -35,7 +36,7 @@ namespace nkentseu {
         nkentseu::Log.Debug("Unkeny Engine");
         NTSErrorCode error = ErrorMessaging.PopError();
 
-        if (m_Window == nullptr || (error != NTSErrorCode::Error_No && error != NTSErrorCode::Window_StayInWindowMode)) {
+        if (m_Window == nullptr || (error != NTSErrorCode::NoError && error != NTSErrorCode::Window_StayInWindowMode)) {
             Memory::Reset(m_Window);
             // Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", ErrorMessaging.GetErrorInfos(error));
             Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", (bool32)error);
@@ -44,11 +45,17 @@ namespace nkentseu {
         #ifdef NKENTSEU_PLATFORM_WINDOWS
         EventTrack->AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
 
-        Input.actionManager.CreateAction("Saut", REGISTER_ACTION_SUBSCRIBER(Application::Saut));
-        Input.actionManager.AddCommand(ActionCommand("Saut", EventCategory::Keyboard_ev, Keyboard::Up_ev));
+        Log.Debug("Action len = {0}; Axis Len = {1}", Input.GetActionNumber(), Input.GetAxisNumber());
+        Log.Debug("CAc len = {0}; CAx Len = {1}", Input.GetCommandNumber(true), Input.GetCommandNumber(false));
 
-        Input.axisManager.CreateAxis("Course", REGISTER_AXIS_SUBSCRIBER(Application::Course));
-        Input.axisManager.AddCommand(AxisCommand("Course", EventCategory::Keyboard_ev, Keyboard::Down_ev));
+        Input.CreateAction("Saut", REGISTER_ACTION_SUBSCRIBER(Application::Saut));
+        Input.AddCommand(ActionCommand("Saut", ActionCode(EventCategory::Keyboard, Keyboard::Space)));
+
+        Input.CreateAxis("Course", REGISTER_AXIS_SUBSCRIBER(Application::Course));
+        Input.AddCommand(AxisCommand("Course", AxisCode(EventCategory::Keyboard, Keyboard::Up)));
+
+        Log.Debug("Action len = {0}; Axis Len = {1}", Input.GetActionNumber(), Input.GetAxisNumber());
+        Log.Debug("CAc len = {0}; CAx Len = {1}", Input.GetCommandNumber(true), Input.GetCommandNumber(false));
         #endif
 
         m_Running = true;
@@ -57,15 +64,20 @@ namespace nkentseu {
 
     void Application::Run()
     {
-
         Log.Trace("Unkeny Engine in Run methode");
         if (m_Window == nullptr) return;
-        Log.Trace("Unkeny Engine Run");
+        Log.Trace("Unkeny Engine Run {0}", &Input);
 
         while (m_Running) {
+            //Log.Debug("Action len = {0}; Axis Len = {1}", Input.GetActionNumber(), Input.GetAxisNumber());
+            //Log.Debug("CAc len = {0}; CAx Len = {1}", Input.GetCommandNumber(true), Input.GetCommandNumber(false));
             #ifdef NKENTSEU_PLATFORM_WINDOWS
             EventTrack->Pick();
             #endif
+
+            if (Input.IsKeyDown(Keyboard::Up)) {
+                // Log.Debug("up pressed");
+            }
         }
 
     }
@@ -76,6 +88,11 @@ namespace nkentseu {
 
         broker.Route<WindowCloseEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowCloseEvent));
         broker.Route<KeyPressedEvent>(REGISTER_CLIENT_EVENT(Application::OnKeyPressedEvent));
+        broker.Route<GenericInputConnectedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadConnectedEvent));
+        broker.Route<GenericInputDisconnectedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadDisconnectedEvent));
+        broker.Route<GenericInputButtonPressedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadButtonPressedEvent));
+        broker.Route<GenericInputButtonReleasedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadButtonReleasedEvent));
+        broker.Route<GenericInputAxisEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadAxisEvent));
     }
 
     bool Application::OnWindowCloseEvent(WindowCloseEvent& e)
@@ -86,17 +103,49 @@ namespace nkentseu {
 
     bool Application::OnKeyPressedEvent(KeyPressedEvent& e)
     {
+        //Log.Debug("Keycode = {0}, Scancode = {1}", Keyboard::GetKeycode(e.GetKey()), Keyboard::GetScancode(e.GetScan()));
         return false;
     }
 
-    void Application::Saut(const std::string& name, EventCategory::Code categorie, int64 code, bool pressed, bool released)
+    bool Application::OnGamepadConnectedEvent(GenericInputConnectedEvent& e)
+    {
+        //Log.Debug("Connexion");
+        return false;
+    }
+
+    bool Application::OnGamepadDisconnectedEvent(GenericInputDisconnectedEvent& e)
+    {
+        //Log.Debug("Deconnection");
+        return false;
+    }
+
+    bool Application::OnGamepadButtonPressedEvent(GenericInputButtonPressedEvent& e)
+    {
+        //Log.Debug("Presse");
+        return false;
+    }
+
+    bool Application::OnGamepadButtonReleasedEvent(GenericInputButtonReleasedEvent& e)
+    {
+        //Log.Debug("Release");
+        return false;
+    }
+
+    bool Application::OnGamepadAxisEvent(GenericInputAxisEvent& e)
+    {
+        //Log.Debug("Axis");
+        return false;
+    }
+
+    void Application::Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released)
     {
         Log.Debug("Saut");
     }
 
-    void Application::Course(const std::string& name, EventCategory::Code categorie, int64 code, float32 value)
+    void Application::Course(const std::string& name, const AxisCode& axisCode, float32 value)
     {
-        //Log.Debug("Run");
+        if (value != 0)
+            Log.Debug("Run {0}", value);
     }
 
 }    // namespace nkentseu

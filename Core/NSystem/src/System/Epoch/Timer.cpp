@@ -72,7 +72,7 @@ namespace nkentseu {
             endTime = m_EndTime;
         }
 
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - m_StartTime).count();
+        return std::chrono::duration<float64, std::nano>(endTime - m_StartTime).count();
     }
 
     /**

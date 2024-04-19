@@ -13,6 +13,8 @@
 #include "System/Definitions/Memory.h"
 
 #include "Nkentseu/Event/EventCategory.h"
+#include "Nkentseu/Core/Events.h"
+#include "Nkentseu/Event/InputCode.h"
 
 #include <vector>
 #include <string>
@@ -34,9 +36,14 @@ namespace nkentseu {
         void OnEvent(class Event& event);
         bool OnWindowCloseEvent(class WindowCloseEvent& e);
         bool OnKeyPressedEvent(class KeyPressedEvent& e);
+        bool OnGamepadConnectedEvent(class GenericInputConnectedEvent& e);
+        bool OnGamepadDisconnectedEvent(class GenericInputDisconnectedEvent& e);
+        bool OnGamepadButtonPressedEvent(class GenericInputButtonPressedEvent& e);
+        bool OnGamepadButtonReleasedEvent(class GenericInputButtonReleasedEvent& e);
+        bool OnGamepadAxisEvent(class GenericInputAxisEvent& e);
 
-        void Saut(const std::string& name, EventCategory::Code categorie, int64 code, bool pressed, bool released);
-        void Course(const std::string& name, EventCategory::Code categorie, int64 code, float32 value);
+        void Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released);
+        void Course(const std::string& name, const AxisCode& axisCode, float32 value);
     private:
         Memory::Shared<class Window> m_Window;
         bool m_Running;

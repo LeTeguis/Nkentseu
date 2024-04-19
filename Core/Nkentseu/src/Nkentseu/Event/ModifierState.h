@@ -23,9 +23,9 @@ namespace nkentseu {
         // ** Enum for button states **
         // This enum defines three possible states for buttons: Down, Up, and None.
         enum : Code {
-            Down_ev,  // Button is currently pressed
-            Up_ev,    // Button is currently released
-            None_ev,  // Button state is unknown or not applicable
+            Down,  // Button is currently pressed
+            Up,    // Button is currently released
+            NotDefine  // Button state is unknown or not applicable
         };
     };
 

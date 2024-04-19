@@ -29,9 +29,11 @@
 #include <Nkentseu/Event/GenericInput.h>
 #include <Ntsm/Vector/Vector2.h>
 #include <Nkentseu/Event/EventObservable.h>
+#include <Nkentseu/Platform/Window/Windows/WindowGenericInput.h>
 
 
 namespace nkentseu {
+
     class NKENTSEU_API WindowEventInternal {
     public:
         friend class WindowDisplay;
@@ -45,6 +47,7 @@ namespace nkentseu {
         // Méthodes
 
         WindowEventInternal();
+        ~WindowEventInternal();
 
         void Update();
 
@@ -67,11 +70,14 @@ namespace nkentseu {
         Vector2i mousePosition;
         Vector2i globalMousePosition;
         Vector2i previousMousePosition;
-        //PtrType(JoystickInternal) joystickInfo;
+
+        Joysticks joysticks;
 
 
         LRESULT PushEvent(MSG msg, class WindowDisplay* window);
         LRESULT FinalizePushEvent(Event* event, LRESULT info, MSG msg, class WindowDisplay* native, const RECT& currentWindowRect = { -1, -1, -1, -1 });
+
+        void TriggerEvent(Event* event);
 
         // Handle Event
         LRESULT HandleCreateEvent(MSG msg, class WindowDisplay* window);
@@ -88,7 +94,7 @@ namespace nkentseu {
         LRESULT HandleWindowGETMINMAXINFOEvent(MSG msg, class WindowDisplay* window);
         LRESULT HandleWindowMoveEvent(MSG msg, class WindowDisplay* window, uint8 t);
 
-        LRESULT HandleMouseWheelEvent(MSG msg, class WindowDisplay* window);
+        LRESULT HandleMouseWheelEvent(MSG msg, class WindowDisplay* window, bool vertical);
         LRESULT HandleMouseButtonEvent(MSG msg, class WindowDisplay* window, uint8 btn, bool pressed, bool dbclick);
         LRESULT HandleMouseButtonRawEvent(MSG msg, class WindowDisplay* window, RAWINPUT* raw);
         LRESULT HandleMouseMoveEvent(MSG msg, class WindowDisplay* window);
@@ -101,6 +107,7 @@ namespace nkentseu {
         LRESULT HandleInputDeviceChangeEvent(MSG msg, class WindowDisplay* window);
         LRESULT HandleDropFilesEvent(MSG msg, class WindowDisplay* window);
 
+        LRESULT RestricWindowSize(MSG msg, class WindowDisplay* window);
 
         void SetMouseTracking(bool track, class WindowDisplay* window);
         void ParseRawInputData(MSG msg, class WindowDisplay* window, PRAWINPUT pRawInput, UINT size);

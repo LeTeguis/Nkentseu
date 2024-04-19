@@ -15,10 +15,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include "Nkentseu/Event/InputManager.h"
 
 extern nkentseu::int32 Main(const nkentseu::ARGV& argv);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw) {
+
     #ifdef NKENTSEU_DEBUG
     AllocConsole();
     FILE* pCout;

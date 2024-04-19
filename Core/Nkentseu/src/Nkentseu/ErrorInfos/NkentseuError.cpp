@@ -23,7 +23,7 @@ namespace nkentseu {
             m_Messages.erase(m_Messages.end() - 1);
             return error;
         }
-        return NTSErrorCode::Error_No;
+        return NTSErrorCode::NoError;
     }
 
     NTSErrorCode NTSErrorMessenger::GetError() {
@@ -31,7 +31,7 @@ namespace nkentseu {
             NTSErrorCode error = m_Messages[m_Messages.size() - 1];
             return error;
         }
-        return NTSErrorCode::Error_No;
+        return NTSErrorCode::NoError;
     }
 
     NTSErrorInfo NTSErrorMessenger::GetErrorInfos(NTSErrorCode Message) {
