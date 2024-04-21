@@ -35,9 +35,6 @@ namespace nkentseu {
 
             xcb_screen_t* screenHandle;
             xcb_window_t windowHandle;
-            xcb_intern_atom_cookie_t internAtomCookie;
-            xcb_atom_t windowManagerProtocolsProperty;
-            xcb_atom_t windowManagerWindowDeleteProtocol;
 
             WindowProperties windowProperties;
 
@@ -49,7 +46,6 @@ namespace nkentseu {
         private:
             bool m_IsRegistered = false;
             static WindowDisplay* GetCurrent(xcb_window_t window);
-            void InterneAtomReply(bool type, bool onlyIfExist, const std::string& name, xcb_generic_error_t** generic);
     };
 
     static thread_local WindowDisplay* currentWindowDisplay = nullptr;

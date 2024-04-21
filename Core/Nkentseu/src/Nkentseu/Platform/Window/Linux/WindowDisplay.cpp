@@ -23,51 +23,26 @@ namespace nkentseu {
 
     bool WindowDisplay::Register(bool dbclk) {
         if (m_IsRegistered) return false;
-        m_IsRegistered = false;
-        Log_nts.Debug();
-
-        xcb_intern_atom_reply_t *intern_atom_reply;
+        m_IsRegistered = true;
 
         xcb_connection_t* connection = PlatformState_::Instance().connection;
         int screen_number = PlatformState_::Instance().screenNumber;
-        Log_nts.Debug();
 
-        /*InterneAtomReply(true, true, "WM_PROTOCOLS", NULL);
-        Log_nts.Debug();
-        if(m_IsRegistered) {
-            Log_nts.Debug();
-            InterneAtomReply(false, true, "WM_DELETE_WINDOW", NULL);
-            Log_nts.Debug();
-        }*/
-        Log_nts.Debug();
+        screenHandle = xcb_setup_roots_iterator(xcb_get_setup(connection)).data;
 
-        screenHandle = xcb_aux_get_screen(connection, screen_number);
-        Log_nts.Debug();
-
+        if (screenHandle == NULL) {
+            Log_nts.Error("Failed to get screen iterator");
+            return false;
+        }
+        
         windowHandle = xcb_generate_id(connection);
-        Log_nts.Debug();
+
+        if (windowHandle == 0) {
+            Log_nts.Error("Failed to generate window ID");
+            return 1;
+        }
 
         return m_IsRegistered;
-    }
-
-    void WindowDisplay::InterneAtomReply(bool type, bool onlyIfExist, const std::string& name, xcb_generic_error_t** generic){
-        Log_nts.Debug();
-        internAtomCookie = xcb_intern_atom(PlatformState_::Instance().connection, onlyIfExist, name.size(), name.c_str());
-        Log_nts.Debug();
-        xcb_intern_atom_reply_t *intern_atom_reply = xcb_intern_atom_reply(PlatformState_::Instance().connection, internAtomCookie, generic);
-        Log_nts.Debug();
-        
-        if (intern_atom_reply){
-            if (type)
-                windowManagerProtocolsProperty = intern_atom_reply->atom;
-            else windowManagerWindowDeleteProtocol = intern_atom_reply->atom;
-            Log_nts.Debug();
-            m_IsRegistered = true;
-        } else {
-            Log_nts.Debug();
-        }
-        Log_nts.Debug();
-        free(intern_atom_reply);
     }
 
     void WindowDisplay::StaticNative(class Window* window) {

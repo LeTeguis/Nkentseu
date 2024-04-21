@@ -42,21 +42,14 @@ namespace nkentseu {
             Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", (bool32)error);
             return false;
         }
-        #ifdef NKENTSEU_PLATFORM_WINDOWS
+        
         EventTrack->AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
-
-        Log.Debug("Action len = {0}; Axis Len = {1}", Input.GetActionNumber(), Input.GetAxisNumber());
-        Log.Debug("CAc len = {0}; CAx Len = {1}", Input.GetCommandNumber(true), Input.GetCommandNumber(false));
-
+        
         Input.CreateAction("Saut", REGISTER_ACTION_SUBSCRIBER(Application::Saut));
         Input.AddCommand(ActionCommand("Saut", ActionCode(EventCategory::Keyboard, Keyboard::Space)));
 
         Input.CreateAxis("Course", REGISTER_AXIS_SUBSCRIBER(Application::Course));
         Input.AddCommand(AxisCommand("Course", AxisCode(EventCategory::Keyboard, Keyboard::Up)));
-
-        Log.Debug("Action len = {0}; Axis Len = {1}", Input.GetActionNumber(), Input.GetAxisNumber());
-        Log.Debug("CAc len = {0}; CAx Len = {1}", Input.GetCommandNumber(true), Input.GetCommandNumber(false));
-        #endif
 
         m_Running = true;
         return m_Running;
@@ -69,11 +62,7 @@ namespace nkentseu {
         Log.Trace("Unkeny Engine Run {0}", &Input);
 
         while (m_Running) {
-            //Log.Debug("Action len = {0}; Axis Len = {1}", Input.GetActionNumber(), Input.GetAxisNumber());
-            //Log.Debug("CAc len = {0}; CAx Len = {1}", Input.GetCommandNumber(true), Input.GetCommandNumber(false));
-            #ifdef NKENTSEU_PLATFORM_WINDOWS
             EventTrack->Pick();
-            #endif
 
             if (Input.IsKeyDown(Keyboard::Up)) {
                 // Log.Debug("up pressed");
@@ -98,6 +87,7 @@ namespace nkentseu {
     bool Application::OnWindowCloseEvent(WindowCloseEvent& e)
     {
         m_Running = false;
+        Log.Debug("close");
         return m_Running;
     }
 

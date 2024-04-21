@@ -82,12 +82,18 @@ namespace nkentseu {
 
         virtual bool IsCreate();
         void SetProgress(float32 progress);
+
+        static WindowInternal* GetCurrent(HWND hwnd);
     private:
+        friend class WindowEventInternal;
+
         #define NATIVE_WINDOW_IS_VALID(variable) (m_NativeWindow != nullptr && m_NativeWindow->##variable != nullptr)
 
 
         Vector2u m_WindowFrameSize = Vector2u(6, 30);
         Memory::Shared<WindowDisplay> m_NativeWindow = nullptr;
+        WindowProperties m_Properties;
+
         bool m_IsWindowClosed = false;
         uint64 m_WindowID = 0;
         bool m_IsWindowCreated = false;
@@ -108,6 +114,9 @@ namespace nkentseu {
         // Méthode pour capturer le curseur
         void GrabWindowCursor(bool grabbed);
     };
+
+    static thread_local WindowInternal* currentWindowInternal = nullptr;
+    static thread_local std::unordered_map<HWND, WindowInternal*> windowHandleMap = {};
 } // namespace nkentseu
 
 #endif

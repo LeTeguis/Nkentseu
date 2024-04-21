@@ -7,7 +7,6 @@
 #include "PlatformState.h"
 
 #include "Nkentseu/Core/NkentseuLogger.h"
-#include "Nkentseu/Event/InputManager.h"
 
 namespace nkentseu {
 
@@ -46,17 +45,7 @@ namespace nkentseu {
     }
 
 #elif defined(NKENTSEU_PLATFORM_LINUX)
-    /*void PlatformState_::Init(int argc, const char** argv) {
-        connection = xcb_connect(NULL, &screenNumber);
-
-        Assert_nts.ATrue(xcb_connection_has_error(connection) != 0, "Erreur de connexion au serveur x");
-
-        Log_nts.Trace("Connexion etablit avec le serveur X");
-    }*/
-
     void PlatformState_::Init(int argc, const char** argv) {
-        //Input;
-
         if (argc == 0 || argv == 0) {
             return;
         }
@@ -66,6 +55,8 @@ namespace nkentseu {
                 this->argv.push_back(argv[index]);
             }
         }
+
+        if (connection != NULL) return;
 
         // Assurez-vous que la variable d'environnement DISPLAY est définie pour pointer vers votre serveur X
         if (getenv("DISPLAY") == nullptr) {
@@ -77,12 +68,18 @@ namespace nkentseu {
         // Connectez-vous au serveur X en utilisant la variable d'environnement DISPLAY
         connection = xcb_connect(getenv("DISPLAY"), &screenNumber);
 
+        if (connection == NULL) {
+            Log_nts.Error("Failed to connect to X server");
+            exit(EXIT_FAILURE);
+        }
+
         // Vérifiez si la connexion au serveur X a réussi
         if (xcb_connection_has_error(connection)) {
             // Affichez un message d'erreur et quittez si la connexion a échoué
-            Log_nts.Error("Erreur de connexion au serveur X.");
+            Log_nts.Error("Error during connection");
+            xcb_disconnect(connection);
+            connection = NULL;
             exit(EXIT_FAILURE);
-            return;
         }
 
         // Affichez un message de confirmation de la connexion réussie au serveur X
@@ -90,8 +87,10 @@ namespace nkentseu {
     }
 
     void PlatformState_::Close() {
-        xcb_disconnect(connection);
-        Log_nts.Trace("Connexion terminer avec le serveur X");
+        if (connection != NULL){
+            xcb_disconnect(connection);
+            Log_nts.Trace("Connexion terminer avec le serveur X");
+        }
     }
 
 #elif defined(NKENTSEU_PLATFORM_ANDROID)

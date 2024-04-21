@@ -9,24 +9,10 @@
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 
 #include "WindowEventInternal.h"
+#include <Nkentseu/Core/WindowProperties.h>
 
 namespace nkentseu {
-    WindowDisplay* WindowDisplay::GetCurrent(HWND hwnd) {
-        WindowDisplay* _this;
-        if (currentWindowDisplay != nullptr) {
-            windowHandleMap.emplace(hwnd, currentWindowDisplay);
-            currentWindowDisplay->windowHandle = hwnd;
-            _this = currentWindowDisplay;
-            currentWindowDisplay = nullptr;
-        }
-        else {
-            auto existing = windowHandleMap.find(hwnd);
-            _this = existing->second;
-        }
-        return _this;
-    }
-
-    bool WindowDisplay::Register(bool dbclk) {
+    bool WindowDisplay::Register(bool dbclk, const WindowProperties& windowProperties) {
         if (m_IsRegistered) return false;
 
         windowClassName = std::wstring(windowProperties.name.begin(), windowProperties.name.end());
@@ -49,11 +35,6 @@ namespace nkentseu {
         m_IsRegistered = RegisterClassEx(&windowClass);
 
         return m_IsRegistered;
-    }
-
-    void WindowDisplay::StaticNative(Window* win) {
-        currentWindowDisplay = this;
-        windowSuper = win;
     }
 
     const WCHAR* WindowDisplay::GetWindowClassName() {

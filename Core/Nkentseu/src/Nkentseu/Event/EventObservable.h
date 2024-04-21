@@ -17,7 +17,7 @@
 
 namespace nkentseu {
     using EventObserver = std::function<void(Event&)>;
-#ifdef NKENTSEU_PLATFORM_WINDOWS
+    
     class NKENTSEU_API EventObservable {
     public:
         static Memory::Shared<EventObservable> Instance();
@@ -38,7 +38,7 @@ namespace nkentseu {
     };
 
     #define EventTrack       EventObservable::Instance()
-#endif
+    
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_EVENTOBSERVABLE_H__

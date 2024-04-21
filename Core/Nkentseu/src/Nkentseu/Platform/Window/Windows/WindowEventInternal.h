@@ -36,7 +36,6 @@ namespace nkentseu {
 
     class NKENTSEU_API WindowEventInternal {
     public:
-        friend class WindowDisplay;
         friend class WindowInternal;
 
         static Memory::Shared<WindowEventInternal> GetInstance() {
@@ -60,7 +59,7 @@ namespace nkentseu {
         size_t Size();
 
         static LRESULT WindowProcStatic(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-        LRESULT WindowProc(uint32 msg, WPARAM wparam, LPARAM lparam, class WindowDisplay* nativeWindow);
+        LRESULT WindowProc(uint32 msg, WPARAM wparam, LPARAM lparam, class WindowInternal* nativeWindow);
 
         // Variables membres
         bool isInitialized;
@@ -74,54 +73,54 @@ namespace nkentseu {
         Joysticks joysticks;
 
 
-        LRESULT PushEvent(MSG msg, class WindowDisplay* window);
-        LRESULT FinalizePushEvent(Event* event, LRESULT info, MSG msg, class WindowDisplay* native, const RECT& currentWindowRect = { -1, -1, -1, -1 });
+        LRESULT PushEvent(MSG msg, class WindowInternal* window);
+        LRESULT FinalizePushEvent(Event* event, LRESULT info, MSG msg, class WindowInternal* native, const RECT& currentWindowRect = { -1, -1, -1, -1 });
 
         void TriggerEvent(Event* event);
 
         // Handle Event
-        LRESULT HandleCreateEvent(MSG msg, class WindowDisplay* window);
+        LRESULT HandleCreateEvent(MSG msg, class WindowInternal* window);
 
-        LRESULT HandleWindowCreateEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowPaintEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowBackgroundEraseEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowCloseEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowFocusedEvent(MSG msg, class WindowDisplay* window, bool focused);
-        LRESULT HandleWindowResizeEvent(MSG msg, class WindowDisplay* window, bool resizing);
-        LRESULT HandleWindowNCHITTESTEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowDpiEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowNCCALCSIZEEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowGETMINMAXINFOEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleWindowMoveEvent(MSG msg, class WindowDisplay* window, uint8 t);
+        LRESULT HandleWindowCreateEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowPaintEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowBackgroundEraseEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowCloseEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowFocusedEvent(MSG msg, class WindowInternal* window, bool focused);
+        LRESULT HandleWindowResizeEvent(MSG msg, class WindowInternal* window, bool resizing);
+        LRESULT HandleWindowNCHITTESTEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowDpiEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowNCCALCSIZEEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowGETMINMAXINFOEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleWindowMoveEvent(MSG msg, class WindowInternal* window, uint8 t);
 
-        LRESULT HandleMouseWheelEvent(MSG msg, class WindowDisplay* window, bool vertical);
-        LRESULT HandleMouseButtonEvent(MSG msg, class WindowDisplay* window, uint8 btn, bool pressed, bool dbclick);
-        LRESULT HandleMouseButtonRawEvent(MSG msg, class WindowDisplay* window, RAWINPUT* raw);
-        LRESULT HandleMouseMoveEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleMouseLeaveEvent(MSG msg, class WindowDisplay* window);
+        LRESULT HandleMouseWheelEvent(MSG msg, class WindowInternal* window, bool vertical);
+        LRESULT HandleMouseButtonEvent(MSG msg, class WindowInternal* window, uint8 btn, bool pressed, bool dbclick);
+        LRESULT HandleMouseButtonRawEvent(MSG msg, class WindowInternal* window, RAWINPUT* raw);
+        LRESULT HandleMouseMoveEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleMouseLeaveEvent(MSG msg, class WindowInternal* window);
 
-        LRESULT HandleKeyboardEvent(MSG msg, class WindowDisplay* window, bool keydown);
-        LRESULT HandleCharEvent(MSG msg, class WindowDisplay* window, bool interpret);
+        LRESULT HandleKeyboardEvent(MSG msg, class WindowInternal* window, bool keydown);
+        LRESULT HandleCharEvent(MSG msg, class WindowInternal* window, bool interpret);
 
-        LRESULT HandleInputRawEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleInputDeviceChangeEvent(MSG msg, class WindowDisplay* window);
-        LRESULT HandleDropFilesEvent(MSG msg, class WindowDisplay* window);
+        LRESULT HandleInputRawEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleInputDeviceChangeEvent(MSG msg, class WindowInternal* window);
+        LRESULT HandleDropFilesEvent(MSG msg, class WindowInternal* window);
 
-        LRESULT RestricWindowSize(MSG msg, class WindowDisplay* window);
+        LRESULT RestricWindowSize(MSG msg, class WindowInternal* window);
 
-        void SetMouseTracking(bool track, class WindowDisplay* window);
-        void ParseRawInputData(MSG msg, class WindowDisplay* window, PRAWINPUT pRawInput, UINT size);
-        void UpdateRawInputData(MSG msg, class WindowDisplay* window, RAWINPUT* input);
-        void AnalyzeAxisRawInput(MSG msg, class WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value);
-        void AnalyzeButtonRawInput(MSG msg, class WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed);
+        void SetMouseTracking(bool track, class WindowInternal* window);
+        void ParseRawInputData(MSG msg, class WindowInternal* window, PRAWINPUT pRawInput, UINT size);
+        void UpdateRawInputData(MSG msg, class WindowInternal* window, RAWINPUT* input);
+        void AnalyzeAxisRawInput(MSG msg, class WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value);
+        void AnalyzeButtonRawInput(MSG msg, class WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed);
 
         // game pad type
-        void SetPS3GamepadAxis(MSG msg, class WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value);
-        void SetPS3GamepadButton(MSG msg, class WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed);
+        void SetPS3GamepadAxis(MSG msg, class WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value);
+        void SetPS3GamepadButton(MSG msg, class WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed);
     };
-} // namespace nkentseu
 
-#define EventInternal      WindowEventInternal::GetInstance()
+    #define EventInternal      WindowEventInternal::GetInstance()
+} // namespace nkentseu
 
 #endif    // NKENTSEU_PLATFORM_WINDOWS
 

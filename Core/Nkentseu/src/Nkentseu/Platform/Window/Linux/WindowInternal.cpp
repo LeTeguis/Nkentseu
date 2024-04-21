@@ -32,13 +32,11 @@ namespace nkentseu {
         Vector2u size = m_NativeWindow->windowProperties.size;
         WindowProperties properties_ = m_NativeWindow->windowProperties;
 
-        Log_nts.Debug();
         if (!m_NativeWindow->Register(properties_.doubleClick)) {
             ErrorMessaging.PushError(NTSErrorCode::Window_RegisterWindowClass);
-            Log_nts.Debug();
             return;
         }
-        Log_nts.Debug();
+        // Log_nts.Debug();
 
         xcb_connection_t *connection = PlatformState_::Instance().connection;
 
@@ -47,10 +45,10 @@ namespace nkentseu {
             .background_pixel = properties_.backgroundColor.ToUint32A(),
             .event_mask = XCB_EVENT_MASK_EXPOSURE
         };
-        Log_nts.Debug();
+        // Log_nts.Debug();
 
         xcb_create_window_aux(connection,
-                                m_NativeWindow->screenHandle->root_depth,
+                                m_NativeWindow->windowProperties.bitsPerPixel,
                                 m_NativeWindow->windowHandle,
                                 m_NativeWindow->screenHandle->root,
                                 position.x, position.y, size.width, size.height,
@@ -60,7 +58,7 @@ namespace nkentseu {
                                 XCB_CW_EVENT_MASK | XCB_CW_BACK_PIXEL, &valueList
                             );
 
-        xcb_atom_t xcb_atom = {m_NativeWindow->windowManagerWindowDeleteProtocol};
+        /*xcb_atom_t xcb_atom = {m_NativeWindow->windowManagerWindowDeleteProtocol};
 
         xcb_icccm_set_wm_name(connection, m_NativeWindow->windowHandle, XCB_ATOM_STRING, 8, properties_.title.size(), properties_.title.c_str());
         xcb_icccm_set_wm_protocols(connection, m_NativeWindow->windowHandle, m_NativeWindow->windowManagerProtocolsProperty, 1, &xcb_atom);
@@ -71,7 +69,7 @@ namespace nkentseu {
             xcb_icccm_size_hints_set_max_size(&window_size_hints, properties_.maxSize.width, properties_.maxSize.height);
             xcb_icccm_set_wm_size_hints(connection, m_NativeWindow->windowHandle, XCB_ATOM_WM_NORMAL_HINTS, &window_size_hints);
         }
-        Log_nts.Debug();
+        Log_nts.Debug();*/
         xcb_map_window(connection, m_NativeWindow->windowHandle);
         Assert_nts.ATrue(xcb_flush(connection) <= 0);
     }

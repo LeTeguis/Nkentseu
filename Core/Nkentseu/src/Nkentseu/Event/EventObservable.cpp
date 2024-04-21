@@ -26,7 +26,6 @@
 #include "Nkentseu/Core/NkentseuLogger.h"
 
 namespace nkentseu {
-#ifdef NKENTSEU_PLATFORM_WINDOWS
     Memory::Shared<EventObservable> EventObservable::Instance() {
         static Memory::Shared<EventObservable> eventObservable = Memory::Alloc<EventObservable>();
         WindowEventInternal::GetInstance();
@@ -128,11 +127,11 @@ namespace nkentseu {
     }
 
     void EventObservable::SetMousePosition(int32 x, int32 y) {
-        SetCursorPos(x, y);
+        //SetCursorPos(x, y);
     }
 
     void EventObservable::SetMousePosition(const Vector2i& pos) {
         SetMousePosition(pos.x, pos.y);
     }
-#endif
+    
 }    // namespace nkentseu

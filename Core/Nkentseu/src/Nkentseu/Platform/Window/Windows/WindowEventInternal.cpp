@@ -15,8 +15,7 @@
 #include "Nkentseu/Event/GenericInputEvent.h"
 
 #include "WindowEventCode.h"
-#include "WindowDisplay.h"
-#include "Nkentseu/Core/Window.h"
+#include "WindowInternal.h"
 
 #include <windowsx.h>
 
@@ -145,7 +144,7 @@ namespace nkentseu {
 	LRESULT WindowEventInternal::WindowProcStatic(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 		if (hwnd == nullptr) return 0;
 
-		WindowDisplay* nativeWindow = WindowDisplay::GetCurrent(hwnd);
+		WindowInternal* nativeWindow = WindowInternal::GetCurrent(hwnd);
 
 		if (nativeWindow == nullptr) {
 			return 0;
@@ -154,11 +153,11 @@ namespace nkentseu {
 		return EventInternal->WindowProc(msg, wparam, lparam, nativeWindow);
 	}
 
-	LRESULT WindowEventInternal::WindowProc(UINT msg, WPARAM wparam, LPARAM lparam, WindowDisplay* nativeWindow) {
-		if (nativeWindow == nullptr) return 0;
+	LRESULT WindowEventInternal::WindowProc(UINT msg, WPARAM wparam, LPARAM lparam, WindowInternal* nativeWindow) {
+		if (nativeWindow == nullptr || nativeWindow->GetWindowDisplay() == nullptr) return 0;
 
 		MSG message;
-		message.hwnd = nativeWindow->windowHandle;
+		message.hwnd = nativeWindow->GetWindowDisplay()->windowHandle;
 		message.lParam = lparam;
 		message.wParam = wparam;
 		message.message = msg;
@@ -176,17 +175,13 @@ namespace nkentseu {
 
 		if (result > 0) return result;
 
-		return DefWindowProc(nativeWindow->windowHandle, msg, wparam, lparam);
+		return DefWindowProc(nativeWindow->GetWindowDisplay()->windowHandle, msg, wparam, lparam);
 	}
 
-	LRESULT WindowEventInternal::PushEvent(MSG msg, WindowDisplay* window) {
-		if (window == nullptr || window->windowHandle == nullptr) return 0;
+	LRESULT WindowEventInternal::PushEvent(MSG msg, WindowInternal* window) {
+		if (window->GetWindowDisplay()->windowHandle == nullptr) return 0;
 
-		if (window->windowSuper == nullptr) {
-			return 0;
-		}
-
-		Joysticks* joysticks = (Joysticks*)GetPropA(window->windowHandle, "userData");
+		Joysticks* joysticks = (Joysticks*)GetPropA(window->GetWindowDisplay()->windowHandle, "userData");
 
 		UINT message = msg.message;
 		LRESULT result = 0;
@@ -199,7 +194,7 @@ namespace nkentseu {
 		case WM_SETCURSOR:
 		{
 			if (LOWORD(msg.lParam) == HTCLIENT) {
-				SetCursor(window->isCursorVisible ? window->lastCursor : nullptr);
+				SetCursor(window->GetWindowDisplay()->isCursorVisible ? window->GetWindowDisplay()->lastCursor : nullptr);
 			}
 
 			break;
@@ -262,7 +257,7 @@ namespace nkentseu {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::FinalizePushEvent(Event* event, LRESULT info, MSG msg, WindowDisplay* native, const RECT& currentWindowRect) {
+	LRESULT WindowEventInternal::FinalizePushEvent(Event* event, LRESULT info, MSG msg, WindowInternal* native, const RECT& currentWindowRect) {
 		if (event->GetEventType() != EventType::NotDefine) {
 			if (!isQueueLocked) {
 				eventQueue.push_back(event);
@@ -280,7 +275,7 @@ namespace nkentseu {
 			currentWindowRect.right == currentWindowRect.bottom &&
 			currentWindowRect.right == -1)) {
 			RECT* const prcNewWindow = (RECT*)msg.lParam;
-			SetWindowPos(native->windowHandle, NULL, currentWindowRect.left,
+			SetWindowPos(native->GetWindowDisplay()->windowHandle, NULL, currentWindowRect.left,
 				currentWindowRect.top,
 				currentWindowRect.right - currentWindowRect.left,
 				currentWindowRect.bottom - currentWindowRect.top,
@@ -305,7 +300,7 @@ namespace nkentseu {
 		}
 	}
 
-	LRESULT WindowEventInternal::HandleCreateEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleCreateEvent(MSG msg, WindowInternal* window) {
 		HandleWindowCreateEvent(msg, window);
 
 		RAWINPUTDEVICE deviceList[2] = { 0 };
@@ -313,12 +308,12 @@ namespace nkentseu {
 		deviceList[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
 		deviceList[0].usUsage = HID_USAGE_GENERIC_JOYSTICK;
 		deviceList[0].dwFlags = RIDEV_INPUTSINK;
-		deviceList[0].hwndTarget = window->windowHandle;
+		deviceList[0].hwndTarget = window->GetWindowDisplay()->windowHandle;
 
 		deviceList[1].usUsagePage = HID_USAGE_PAGE_GENERIC;
 		deviceList[1].usUsage = HID_USAGE_GENERIC_GAMEPAD;
 		deviceList[1].dwFlags = RIDEV_INPUTSINK;
-		deviceList[1].hwndTarget = window->windowHandle;
+		deviceList[1].hwndTarget = window->GetWindowDisplay()->windowHandle;
 
 		UINT deviceCount = sizeof(deviceList) / sizeof(*deviceList);
 		RegisterRawInputDevices(deviceList, deviceCount, sizeof(RAWINPUTDEVICE));
@@ -326,12 +321,12 @@ namespace nkentseu {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::HandleWindowCreateEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowCreateEvent(MSG msg, WindowInternal* window) {
 		// Input;
-		return FinalizePushEvent(new WindowCreateEvent(window->windowSuper->ID()), 0, msg, window);
+		return FinalizePushEvent(new WindowCreateEvent(window->ID()), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleWindowPaintEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowPaintEvent(MSG msg, WindowInternal* window) {
 		// Call InvalidateRect. This function forces the window to be repainted. InvalidateRect(m_hwnd, NULL, FALSE);
 
 		LRESULT result = 0;
@@ -346,12 +341,12 @@ namespace nkentseu {
 				RECT rect;
 				Rectangle rectangle;
 
-				hDC = BeginPaint(window->windowHandle, &ps);
+				hDC = BeginPaint(window->GetWindowDisplay()->windowHandle, &ps);
 				SetBkMode(hDC, TRANSPARENT);
 
 				{
-					//GetWindowRect(window->windowHandle, &rect);
-					GetClientRect(window->windowHandle, &rect);
+					//GetWindowRect(window->GetWindowDisplay()->windowHandle, &rect);
+					GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
 					rectangle = Rectangle(rect.left, rect.bottom, rect.right - rect.left, rect.bottom - rect.top);
 
 					bg = window->Properties__.BackgroundColor;
@@ -367,65 +362,65 @@ namespace nkentseu {
 					DeleteObject(hBr);
 				}
 
-				EndPaint(window->windowHandle, &ps);
+				EndPaint(window->GetWindowDisplay()->windowHandle, &ps);
 
 		#endif
 
 		return result;
 	}
 
-	LRESULT WindowEventInternal::HandleWindowBackgroundEraseEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowBackgroundEraseEvent(MSG msg, WindowInternal* window) {
 		LRESULT result = 0;
 
 #if defined(NKENTSEU_GAPI_SOFTWARE)
 
 		PAINTSTRUCT ps;
-		BeginPaint(window->windowHandle, &ps);
+		BeginPaint(window->GetWindowDisplay()->windowHandle, &ps);
 		RECT rect;
-		GetWindowRect(window->windowHandle, &rect);
+		GetWindowRect(window->GetWindowDisplay()->windowHandle, &rect);
 		Rectangle r(rect.left, rect.bottom, rect.right - rect.left, rect.bottom - rect.top);
 		Color bg = window->Properties__.BackgroundColor;
 		HBRUSH BorderBrush = CreateSolidBrush(RGB(bg.R(), bg.G(), bg.B()));
 		FillRect(ps.hdc, &rect, BorderBrush);
 
-		result = FinalizePushEvent(new WindowPaintEvent(window->windowSuper->ID(), r, bg), 0, msg, window);
+		result = FinalizePushEvent(new WindowPaintEvent(window->ID(), r, bg), 0, msg, window);
 
-		EndPaint(window->windowHandle, &ps);
+		EndPaint(window->GetWindowDisplay()->windowHandle, &ps);
 
 #endif
 
 		return result;
 	}
 
-	LRESULT WindowEventInternal::HandleWindowCloseEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowCloseEvent(MSG msg, WindowInternal* window) {
 		// Restore the previous video mode (in case we were running in fullscreen)
 		ChangeDisplaySettingsW(nullptr, 0);
 
 		// Unhide the mouse cursor (in case it was hidden)
-		window->windowSuper->ShowMouse(true);
+		window->ShowMouse(true);
 
 		// No longer track the cursor
 		SetMouseTracking(false, window);
 
 		// No longer capture the cursor
 		ReleaseCapture();
-		return FinalizePushEvent(new WindowCloseEvent(window->windowSuper->ID()), 0, msg, window);
+		return FinalizePushEvent(new WindowCloseEvent(window->ID()), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleWindowFocusedEvent(MSG msg, WindowDisplay* window, bool focused) {
-		return FinalizePushEvent(new WindowFocusEvent(window->windowSuper->ID(), focused), 0, msg, window);
+	LRESULT WindowEventInternal::HandleWindowFocusedEvent(MSG msg, WindowInternal* window, bool focused) {
+		return FinalizePushEvent(new WindowFocusEvent(window->ID(), focused), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleWindowResizeEvent(MSG msg, WindowDisplay* window, bool resizing) {
+	LRESULT WindowEventInternal::HandleWindowResizeEvent(MSG msg, WindowInternal* window, bool resizing) {
 		LRESULT result = 0;
 
 		Vector2u size;
 		if (!resizing) {
 			RECT r;
-			GetClientRect(window->windowHandle, &r);
+			GetClientRect(window->GetWindowDisplay()->windowHandle, &r);
 			size.width = r.right - r.left;
 			size.height = r.bottom - r.top;
-			RedrawWindow(window->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
+			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 		}
 		else {
 			uint32 STEP = 1;
@@ -433,29 +428,29 @@ namespace nkentseu {
 
 			// Get the window and client dimensions
 			tagRECT wind, rect;
-			GetWindowRect(window->windowHandle, &wind);
-			GetClientRect(window->windowHandle, &rect);
+			GetWindowRect(window->GetWindowDisplay()->windowHandle, &wind);
+			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
 
 			size.width = rect.right - rect.left;
 			size.height = rect.bottom - rect.top;
 
 			// Redraw window to refresh it while resizing
-			RedrawWindow(window->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
+			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 			result = WVR_REDRAW;
 		}
-		return FinalizePushEvent(new WindowResizeEvent(window->windowSuper->ID(), size, resizing), result, msg, window);
+		return FinalizePushEvent(new WindowResizeEvent(window->ID(), size, resizing), result, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleWindowNCHITTESTEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowNCHITTESTEvent(MSG msg, WindowInternal* window) {
 		LRESULT result = 0;
 		RECT rect;
-		GetWindowRect(window->windowHandle, &rect);
+		GetWindowRect(window->GetWindowDisplay()->windowHandle, &rect);
 		int x, y, width, height;
 		x = static_cast<int>(GET_X_LPARAM(msg.lParam)) - rect.left;
 		y = static_cast<int>(GET_Y_LPARAM(msg.lParam)) - rect.top;
 		width = static_cast<int>(rect.right - rect.left);
 		height = static_cast<int>(rect.bottom - rect.top);
-		int topBorder = IsZoomed(window->windowHandle) ? 0 : BORDERWIDTH;
+		int topBorder = IsZoomed(window->GetWindowDisplay()->windowHandle) ? 0 : BORDERWIDTH;
 
 		if (y > topBorder && x > 260 && x < (width - 260) && y < 32) {
 			return HTCAPTION;
@@ -467,29 +462,29 @@ namespace nkentseu {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::HandleWindowDpiEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowDpiEvent(MSG msg, WindowInternal* window) {
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 		WORD curDPI = HIWORD(msg.wParam);
 		FLOAT fscale = (float)curDPI / USER_DEFAULT_SCREEN_DPI;
 
-		if (!IsZoomed(window->windowHandle)) {
+		if (!IsZoomed(window->GetWindowDisplay()->windowHandle)) {
 			RECT* const prcNewWindow = (RECT*)msg.lParam;
 			if (prcNewWindow) {
 				currentWindowRect = *prcNewWindow;
 			}
 		}
-		return FinalizePushEvent(new WindowDpiEvent(window->windowSuper->ID(), fscale), 0, msg, window, currentWindowRect);
+		return FinalizePushEvent(new WindowDpiEvent(window->ID(), fscale), 0, msg, window, currentWindowRect);
 	}
 
-	LRESULT WindowEventInternal::HandleWindowNCCALCSIZEEvent(MSG msg, WindowDisplay* window) {
-		if (!window->windowProperties.frame) {
+	LRESULT WindowEventInternal::HandleWindowNCCALCSIZEEvent(MSG msg, WindowInternal* window) {
+		if (!window->GetProperties().frame) {
 			if (msg.lParam && msg.wParam) {
 				NCCALCSIZE_PARAMS* sz = (NCCALCSIZE_PARAMS*)msg.lParam;
 				int32 titleHeight = TITLEBARHEIGHT;
-				if (IsZoomed(window->windowHandle)) {
+				if (IsZoomed(window->GetWindowDisplay()->windowHandle)) {
 					titleHeight = TITLEBARZOOMHEIGHT;
 				}
-				int32 iDpi = GetDpiForWindow(window->windowHandle);
+				int32 iDpi = GetDpiForWindow(window->GetWindowDisplay()->windowHandle);
 				if (iDpi != USER_DEFAULT_SCREEN_DPI) {
 					titleHeight = MulDiv(titleHeight, iDpi, USER_DEFAULT_SCREEN_DPI);
 				}
@@ -499,16 +494,16 @@ namespace nkentseu {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::HandleWindowGETMINMAXINFOEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleWindowGETMINMAXINFOEvent(MSG msg, WindowInternal* window) {
 		MINMAXINFO* min_max = reinterpret_cast<MINMAXINFO*>(msg.lParam);
 
-		RECT rectangleMin = { 0, 0, static_cast<long>(window->windowProperties.minSize.x), static_cast<long>(window->windowProperties.minSize.y) };
-		AdjustWindowRect(&rectangleMin, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		RECT rectangleMin = { 0, 0, static_cast<long>(window->GetProperties().minSize.x), static_cast<long>(window->GetProperties().minSize.y) };
+		AdjustWindowRect(&rectangleMin, static_cast<DWORD>(GetWindowLongPtr(window->GetWindowDisplay()->windowHandle, GWL_STYLE)), false);
 		const auto widthMin = rectangleMin.right - rectangleMin.left;
 		const auto heightMin = rectangleMin.bottom - rectangleMin.top;
 
-		RECT rectangleMax = { 0, 0, static_cast<long>(window->windowProperties.maxSize.x), static_cast<long>(window->windowProperties.maxSize.y) };
-		AdjustWindowRect(&rectangleMax, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		RECT rectangleMax = { 0, 0, static_cast<long>(window->GetProperties().maxSize.x), static_cast<long>(window->GetProperties().maxSize.y) };
+		AdjustWindowRect(&rectangleMax, static_cast<DWORD>(GetWindowLongPtr(window->GetWindowDisplay()->windowHandle, GWL_STYLE)), false);
 		const auto widthMax = rectangleMax.right - rectangleMax.left;
 		const auto heightMax = rectangleMax.bottom - rectangleMax.top;
 
@@ -520,12 +515,12 @@ namespace nkentseu {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::HandleWindowMoveEvent(MSG msg, WindowDisplay* window, uint8 t) {
-		if (!window->windowProperties.movable) {
-			window->windowSuper->SetPosition(window->windowProperties.position);
+	LRESULT WindowEventInternal::HandleWindowMoveEvent(MSG msg, WindowInternal* window, uint8 t) {
+		if (!window->GetProperties().movable) {
+			window->SetPosition(window->GetProperties().position);
 			return 0;
 		}
-		Vector2i position = window->windowProperties.position;
+		Vector2i position = window->GetProperties().position;
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 
 		if (t % 3 == 0) {
@@ -545,11 +540,11 @@ namespace nkentseu {
 				position = Vector2i(r->left, r->top);
 			}
 		}
-		window->windowProperties.position = position;
-		return FinalizePushEvent(new WindowMovedEvent(window->windowSuper->ID(), position), 0, msg, window, currentWindowRect);
+		window->m_Properties.position = position;
+		return FinalizePushEvent(new WindowMovedEvent(window->ID(), position), 0, msg, window, currentWindowRect);
 	}
 
-	LRESULT WindowEventInternal::HandleMouseWheelEvent(MSG msg, WindowDisplay* window, bool vertical) {
+	LRESULT WindowEventInternal::HandleMouseWheelEvent(MSG msg, WindowInternal* window, bool vertical) {
 		short modifiers = LOWORD(msg.wParam);
 		float32 delta = GET_WHEEL_DELTA_WPARAM(msg.wParam) / (float32)WHEEL_DELTA;
 		ModifierState ms(modifiers & MK_CONTROL, modifiers & MK_ALT, modifiers & MK_SHIFT, modifiers & 0);
@@ -558,16 +553,16 @@ namespace nkentseu {
 		position.x = static_cast<std::int16_t>(LOWORD(msg.lParam));
 		position.y = static_cast<std::int16_t>(HIWORD(msg.lParam));
 
-		ScreenToClient(window->windowHandle, &position);
+		ScreenToClient(window->GetWindowDisplay()->windowHandle, &position);
 
 		Mouse::Button wheel = (vertical) ? Mouse::Vertical : Mouse::Horizontal;
 
-		return FinalizePushEvent(new MouseWheelEvent(window->windowSuper->ID(), wheel, delta, Vector2i(position.x, position.y), ms), 0, msg, window);
+		return FinalizePushEvent(new MouseWheelEvent(window->ID(), wheel, delta, Vector2i(position.x, position.y), ms), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleMouseButtonEvent(MSG msg, WindowDisplay* window, uint8 btn, bool pressed, bool dbclick) {
+	LRESULT WindowEventInternal::HandleMouseButtonEvent(MSG msg, WindowInternal* window, uint8 btn, bool pressed, bool dbclick) {
 		if (pressed) {
-			SetCapture(window->windowHandle);
+			SetCapture(window->GetWindowDisplay()->windowHandle);
 		}
 		else {
 			ReleaseCapture();
@@ -579,7 +574,7 @@ namespace nkentseu {
 		Vector2i positionGlobal(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 
 		RECT area;
-		GetClientRect(window->windowHandle, &area);
+		GetClientRect(window->GetWindowDisplay()->windowHandle, &area);
 
 		Vector2i position(positionGlobal.x - area.left, positionGlobal.y - area.top);
 		Vector2i move = positionGlobal - previousMousePosition;
@@ -589,15 +584,15 @@ namespace nkentseu {
 		globalMousePosition = positionGlobal;
 
 		if (dbclick) {
-			return FinalizePushEvent(new MouseButtonDBCLKEvent(window->windowSuper->ID(), ms, btn, position), 0, msg, window);
+			return FinalizePushEvent(new MouseButtonDBCLKEvent(window->ID(), ms, btn, position), 0, msg, window);
 		}
 		if (pressed) {
-			return FinalizePushEvent(new MouseButtonPressedEvent(window->windowSuper->ID(), ms, btn, position), 0, msg, window);
+			return FinalizePushEvent(new MouseButtonPressedEvent(window->ID(), ms, btn, position), 0, msg, window);
 		}
-		return FinalizePushEvent(new MouseButtonReleasedEvent(window->windowSuper->ID(), ms, btn, position), 0, msg, window);
+		return FinalizePushEvent(new MouseButtonReleasedEvent(window->ID(), ms, btn, position), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleMouseButtonRawEvent(MSG msg, WindowDisplay* window, RAWINPUT* raw) {
+	LRESULT WindowEventInternal::HandleMouseButtonRawEvent(MSG msg, WindowInternal* window, RAWINPUT* raw) {
 		short modifiers = LOWORD(msg.wParam);
 		ModifierState ms(modifiers & MK_CONTROL, modifiers & MK_ALT, modifiers & MK_SHIFT, modifiers & 0);
 
@@ -624,39 +619,39 @@ namespace nkentseu {
 		if (PP(BUTTON_4)) btn = Mouse::X1;
 		if (PP(BUTTON_5)) btn = Mouse::X2;
 
-		return FinalizePushEvent(new MouseButtonRawEvent(window->windowSuper->ID(), ms, btn, delta, pressed, mousePosition), 0, msg, window);
+		return FinalizePushEvent(new MouseButtonRawEvent(window->ID(), ms, btn, delta, pressed, mousePosition), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleMouseMoveEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleMouseMoveEvent(MSG msg, WindowInternal* window) {
 		LRESULT result = 0;
 		//Vector2i positionGlobal(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		Vector2i positionGlobal(static_cast<std::int16_t>(LOWORD(msg.lParam)), static_cast<std::int16_t>(HIWORD(msg.lParam)));
 
 		RECT area;
-		GetClientRect(window->windowHandle, &area);
+		GetClientRect(window->GetWindowDisplay()->windowHandle, &area);
 
 		if ((msg.wParam & (MK_LBUTTON | MK_MBUTTON | MK_RBUTTON | MK_XBUTTON1 | MK_XBUTTON2)) == 0) {
-			if (GetCapture() == window->windowHandle) {
+			if (GetCapture() == window->GetWindowDisplay()->windowHandle) {
 				ReleaseCapture();
 			}
 		}
-		else if (GetCapture() != window->windowHandle) {
-			SetCapture(window->windowHandle);
+		else if (GetCapture() != window->GetWindowDisplay()->windowHandle) {
+			SetCapture(window->GetWindowDisplay()->windowHandle);
 		}
 
 		if ((positionGlobal.x < area.left) || (positionGlobal.x > area.right) ||
 			(positionGlobal.y < area.top) || (positionGlobal.y > area.bottom)) {
-			if (window->isMouseInside) {
-				window->isMouseInside = false;
+			if (window->GetWindowDisplay()->isMouseInside) {
+				window->GetWindowDisplay()->isMouseInside = false;
 				SetMouseTracking(false, window);
-				FinalizePushEvent(new MouseExitedEvent(window->windowSuper->ID()), 0, msg, window);
+				FinalizePushEvent(new MouseExitedEvent(window->ID()), 0, msg, window);
 			}
 		}
 		else {
-			if (!window->isMouseInside) {
-				window->isMouseInside = true;
+			if (!window->GetWindowDisplay()->isMouseInside) {
+				window->GetWindowDisplay()->isMouseInside = true;
 				SetMouseTracking(true, window);
-				FinalizePushEvent(new MouseEnteredEvent(window->windowSuper->ID()), 0, msg, window);
+				FinalizePushEvent(new MouseEnteredEvent(window->ID()), 0, msg, window);
 			}
 		}
 
@@ -667,28 +662,28 @@ namespace nkentseu {
 		mousePosition = position;
 		globalMousePosition = positionGlobal;
 
-		return FinalizePushEvent(new MouseMovedEvent(window->windowSuper->ID(), position, move, positionGlobal), 0, msg, window);
+		return FinalizePushEvent(new MouseMovedEvent(window->ID(), position, move, positionGlobal), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleMouseLeaveEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleMouseLeaveEvent(MSG msg, WindowInternal* window) {
 		// Avoid this firing a second time in case the cursor is dragged outside
-		if (window->isMouseInside) {
-			window->isMouseInside = false;
-			return FinalizePushEvent(new MouseExitedEvent(window->windowSuper->ID()), 0, msg, window);
+		if (window->GetWindowDisplay()->isMouseInside) {
+			window->GetWindowDisplay()->isMouseInside = false;
+			return FinalizePushEvent(new MouseExitedEvent(window->ID()), 0, msg, window);
 		}
 		return 0;
 	}
 
-	void WindowEventInternal::SetMouseTracking(bool track, WindowDisplay* window) {
+	void WindowEventInternal::SetMouseTracking(bool track, WindowInternal* window) {
 		TRACKMOUSEEVENT mouseEvent;
 		mouseEvent.cbSize = sizeof(TRACKMOUSEEVENT);
 		mouseEvent.dwFlags = track ? TME_LEAVE : TME_CANCEL;
-		mouseEvent.hwndTrack = window->windowHandle;
+		mouseEvent.hwndTrack = window->GetWindowDisplay()->windowHandle;
 		mouseEvent.dwHoverTime = HOVER_DEFAULT;
 		TrackMouseEvent(&mouseEvent);
 	}
 
-	LRESULT WindowEventInternal::HandleKeyboardEvent(MSG msg, WindowDisplay* window, bool keydown) {
+	LRESULT WindowEventInternal::HandleKeyboardEvent(MSG msg, WindowInternal* window, bool keydown) {
 		short modifiers = LOWORD(msg.wParam);
 		ModifierState ms = WindowEventCode::ModifierStateToWinkey();
 
@@ -714,19 +709,19 @@ namespace nkentseu {
 		Keyboard::Scancode nts_scancode = WindowEventCode::WinkeyToScancodeSpecial(scancode, ms.Shift);
 
 		if (keydown) {
-			return FinalizePushEvent(new KeyPressedEvent(window->windowSuper->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
+			return FinalizePushEvent(new KeyPressedEvent(window->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
 		}
-		return FinalizePushEvent(new KeyReleasedEvent(window->windowSuper->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
+		return FinalizePushEvent(new KeyReleasedEvent(window->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
 	}
 
-	LRESULT WindowEventInternal::HandleCharEvent(MSG msg, WindowDisplay* window, bool interpret) {
+	LRESULT WindowEventInternal::HandleCharEvent(MSG msg, WindowInternal* window, bool interpret) {
 		if (interpret) {
-			return FinalizePushEvent(new CharPressedEvent(window->windowSuper->ID(), (uint64)msg.wParam), 0, msg, window);
+			return FinalizePushEvent(new CharPressedEvent(window->ID(), (uint64)msg.wParam), 0, msg, window);
 		}
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::HandleInputRawEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleInputRawEvent(MSG msg, WindowInternal* window) {
 
 		LRESULT result = 0;
 
@@ -747,10 +742,10 @@ namespace nkentseu {
 		return result;
 	}
 
-	void WindowEventInternal::ParseRawInputData(MSG msg, WindowDisplay* window, PRAWINPUT pRawInput, UINT size) {
+	void WindowEventInternal::ParseRawInputData(MSG msg, WindowInternal* window, PRAWINPUT pRawInput, UINT size) {
 	}
 
-	void WindowEventInternal::UpdateRawInputData(MSG msg, WindowDisplay* window, RAWINPUT* input) {
+	void WindowEventInternal::UpdateRawInputData(MSG msg, WindowInternal* window, RAWINPUT* input) {
 		UINT size;
 		GetRawInputDeviceInfo(input->header.hDevice, RIDI_PREPARSEDDATA, 0, &size);
 		_HIDP_PREPARSED_DATA* data = (_HIDP_PREPARSED_DATA*)malloc(size);
@@ -814,7 +809,7 @@ namespace nkentseu {
 		free(data);
 	}
 
-	void WindowEventInternal::AnalyzeAxisRawInput(MSG msg, WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value) {
+	void WindowEventInternal::AnalyzeAxisRawInput(MSG msg, WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value) {
 		if (axis >= GenericInput::Axes::AMax) return;
 
 		//if ((devicecInfoHid.dwProductId == 0x09CC || devicecInfoHid.dwProductId == 0x05C4) && devicecInfoHid.dwVendorId == 0x054C) // PS4
@@ -825,11 +820,11 @@ namespace nkentseu {
 		}
 		else {
 			GenericInputInfos ginfos(devicecInfoHid.dwVendorId, devicecInfoHid.dwProductId, devicecInfoHid.dwVersionNumber, devicecInfoHid.usUsage, devicecInfoHid.usUsagePage, name);
-			FinalizePushEvent(new GenericInputAxisEvent(window->windowSuper->ID(), ginfos, axis, transmit_value), 0, msg, window);
+			FinalizePushEvent(new GenericInputAxisEvent(window->ID(), ginfos, axis, transmit_value), 0, msg, window);
 		}
 	}
 
-	void WindowEventInternal::AnalyzeButtonRawInput(MSG msg, WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed) {
+	void WindowEventInternal::AnalyzeButtonRawInput(MSG msg, WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed) {
 		if (button >= GenericInput::Buttons::BMax) return;
 
 		if (devicecInfoHid.dwProductId == 0x0268 && devicecInfoHid.dwVendorId == 0x054C) {
@@ -838,15 +833,15 @@ namespace nkentseu {
 		else {
 			GenericInputInfos ginfos(devicecInfoHid.dwVendorId, devicecInfoHid.dwProductId, devicecInfoHid.dwVersionNumber, devicecInfoHid.usUsage, devicecInfoHid.usUsagePage, name);
 			if (isPressed) {
-				FinalizePushEvent(new GenericInputButtonPressedEvent(window->windowSuper->ID(), ginfos, button), 0, msg, window);
+				FinalizePushEvent(new GenericInputButtonPressedEvent(window->ID(), ginfos, button), 0, msg, window);
 			}
 			else {
-				FinalizePushEvent(new GenericInputButtonReleasedEvent(window->windowSuper->ID(), ginfos, button), 0, msg, window);
+				FinalizePushEvent(new GenericInputButtonReleasedEvent(window->ID(), ginfos, button), 0, msg, window);
 			}
 		}
 	}
 
-	LRESULT WindowEventInternal::HandleInputDeviceChangeEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleInputDeviceChangeEvent(MSG msg, WindowInternal* window) {
 		// Some sort of device change has happened, update joystick connections
 		if ((msg.wParam == DBT_DEVICEARRIVAL) || (msg.wParam == DBT_DEVICEREMOVECOMPLETE))
 		{
@@ -861,25 +856,25 @@ namespace nkentseu {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::HandleDropFilesEvent(MSG msg, WindowDisplay* window) {
+	LRESULT WindowEventInternal::HandleDropFilesEvent(MSG msg, WindowInternal* window) {
 		return 0;
 	}
 
-	LRESULT WindowEventInternal::RestricWindowSize(MSG msg, WindowDisplay* window)
+	LRESULT WindowEventInternal::RestricWindowSize(MSG msg, WindowInternal* window)
 	{
 		WINDOWPOS& pos = *reinterpret_cast<PWINDOWPOS>(msg.lParam);
 		if (pos.flags & SWP_NOSIZE)
 			return 0;
 
-		RECT rectangleMax = { 0, 0, static_cast<long>(window->windowProperties.maxSize.x), static_cast<long>(window->windowProperties.maxSize.y) };
-		AdjustWindowRect(&rectangleMax, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		RECT rectangleMax = { 0, 0, static_cast<long>(window->GetProperties().maxSize.x), static_cast<long>(window->GetProperties().maxSize.y) };
+		AdjustWindowRect(&rectangleMax, static_cast<DWORD>(GetWindowLongPtr(window->GetWindowDisplay()->windowHandle, GWL_STYLE)), false);
 		const auto widthMax = rectangleMax.right - rectangleMax.left;
 		const auto heightMax = rectangleMax.bottom - rectangleMax.top;
 
 		Vector2i maximumSize = { widthMax, heightMax };
 
-		RECT rectangleMin = { 0, 0, static_cast<long>(window->windowProperties.minSize.x), static_cast<long>(window->windowProperties.minSize.y) };
-		AdjustWindowRect(&rectangleMin, static_cast<DWORD>(GetWindowLongPtr(window->windowHandle, GWL_STYLE)), false);
+		RECT rectangleMin = { 0, 0, static_cast<long>(window->GetProperties().minSize.x), static_cast<long>(window->GetProperties().minSize.y) };
+		AdjustWindowRect(&rectangleMin, static_cast<DWORD>(GetWindowLongPtr(window->GetWindowDisplay()->windowHandle, GWL_STYLE)), false);
 		const auto widthMin = rectangleMin.right - rectangleMin.left;
 		const auto heightMin = rectangleMin.bottom - rectangleMin.top;
 
@@ -908,14 +903,14 @@ namespace nkentseu {
 		}
 
 		if (shouldResize)
-			SetWindowPos(window->windowHandle, pos.hwndInsertAfter, pos.x, pos.y, pos.cx, pos.cy, 0);
+			SetWindowPos(window->GetWindowDisplay()->windowHandle, pos.hwndInsertAfter, pos.x, pos.y, pos.cx, pos.cy, 0);
 		return 0;
 	}
 
-	void WindowEventInternal::SetPS3GamepadAxis(MSG msg, WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value) {
+	void WindowEventInternal::SetPS3GamepadAxis(MSG msg, WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Axis axis, float32 transmit_value) {
 	}
 
-	void WindowEventInternal::SetPS3GamepadButton(MSG msg, WindowDisplay* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed) {
+	void WindowEventInternal::SetPS3GamepadButton(MSG msg, WindowInternal* window, RID_DEVICE_INFO_HID devicecInfoHid, const std::string& name, GenericInput::Button button, bool isPressed) {
 	}
 }    // namespace nkentseu
 

@@ -59,7 +59,7 @@ namespace nkentseu {
 
         #elif defined(NKENTSEU_PLATFORM_LINUX)
         int screenNumber = 0;
-        xcb_connection_t* connection;
+        xcb_connection_t* connection = NULL;
 
         void Init(int argc, const char** argv);
 
