@@ -87,7 +87,7 @@ namespace nkentseu {
 
         std::wstring title(m_Properties.title.begin(), m_Properties.title.end());
 
-        m_NativeWindow->StaticNative(m_MainWindow);
+        // m_NativeWindow->StaticNative(m_MainWindow);
 
         m_NativeWindow->windowHandle = CreateWindowEx(0,
             m_NativeWindow->GetWindowClassName(), title.c_str(),

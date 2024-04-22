@@ -24,10 +24,10 @@ project "GlobalTests"
     }
 
     links {
+        "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
-        "Stb",
         "Nkentseu",
         "Unitest"
     }

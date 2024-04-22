@@ -25,10 +25,10 @@ project "Unkeny"
     }
 
     links {
+        "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
-        "Stb",
         "Nkentseu"
     }
 

@@ -22,10 +22,10 @@ project "Window"
     }
 
     links {
+        "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
-        "Stb",
         "Nkentseu"
     }
 

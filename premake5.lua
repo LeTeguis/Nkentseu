@@ -23,6 +23,10 @@ OutputDir()
 BuildDir()
 BuildIntDir()
 
+group "External"
+	include "External/Libs/Stb"
+group ""
+
 group "Core"
 	include "Core/NSystem"
 	include "Core/Logger"
@@ -36,14 +40,10 @@ group "Engine"
 	include "Engine/UnkenyEditor"
 group ""
 
-group "External"
-	include "External/Libs/Stb"
+group "Exemples"
+	include "Exemples/Window"
 group ""
 
 group "Tests"
 	include "Tests/GlobalTests"
-group ""
-
-group "Exemples"
-	include "Exemples/Window"
 group ""

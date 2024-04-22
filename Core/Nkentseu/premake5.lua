@@ -25,10 +25,10 @@ project "Nkentseu"
     }
 
     links {
+        "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
-        "Stb"
     }
 
     defines {

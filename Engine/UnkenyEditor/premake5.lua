@@ -23,10 +23,10 @@ project "UnkenyEditor"
     }
 
     links {
+        "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
-        "Stb",
         "Nkentseu",
         "Unkeny"
     }
