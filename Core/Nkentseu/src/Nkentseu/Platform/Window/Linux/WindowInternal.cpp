@@ -14,7 +14,7 @@ namespace nkentseu {
 
     uint64 WindowInternal::s_WindowIDCounter = 0;
 
-    WindowInternal::WindowInternal(class Window* window, const WindowProperties& properties) : m_WindowID(++s_WindowIDCounter), m_MainWindow(window), m_IsWindowCreated(false) {
+    WindowInternal::WindowInternal(class Window* window, const WindowProperties& properties) : m_WindowID(++s_WindowIDCounter), m_MainWindow(window), m_IsWindowCreated(false), m_Properties(properties) {
         if (window == nullptr) {
             ErrorMessaging.PushError(NTSErrorCode::Window_ExternalAssign);
             return;
@@ -27,12 +27,10 @@ namespace nkentseu {
             return;
         }
 
-        m_NativeWindow->windowProperties = properties;
-        Vector2i position = m_NativeWindow->windowProperties.position;
-        Vector2u size = m_NativeWindow->windowProperties.size;
-        WindowProperties properties_ = m_NativeWindow->windowProperties;
+        Vector2i position = m_Properties.position;
+        Vector2u size = m_Properties.size;
 
-        if (!m_NativeWindow->Register(properties_.doubleClick)) {
+        if (!m_NativeWindow->Register(m_Properties.doubleClick)) {
             ErrorMessaging.PushError(NTSErrorCode::Window_RegisterWindowClass);
             return;
         }
@@ -40,37 +38,36 @@ namespace nkentseu {
 
         xcb_connection_t *connection = PlatformState_::Instance().connection;
 
+        // mask
+        uint32 mask;
+        mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
+
         // Stocker la valeur dans une variable locale
-        xcb_create_window_value_list_t valueList = {
-            .background_pixel = properties_.backgroundColor.ToUint32A(),
-            .event_mask = XCB_EVENT_MASK_EXPOSURE
-        };
+        uint32 values[2];
+        values[0] = m_Properties.backgroundColor.ToUint32A();
+        values[1] = XCB_EVENT_MASK_EXPOSURE       | XCB_EVENT_MASK_BUTTON_PRESS         |
+                    XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION       |
+                    XCB_EVENT_MASK_ENTER_WINDOW   | XCB_EVENT_MASK_LEAVE_WINDOW         |
+                    XCB_EVENT_MASK_KEY_PRESS      | XCB_EVENT_MASK_KEY_RELEASE          |
+                    XCB_EVENT_MASK_FOCUS_CHANGE   | XCB_EVENT_MASK_VISIBILITY_CHANGE    |
+                    XCB_EVENT_MASK_OWNER_GRAB_BUTTON;
         // Log_nts.Debug();
 
-        xcb_create_window_aux(connection,
-                                m_NativeWindow->windowProperties.bitsPerPixel,
+        xcb_create_window(connection,
+                                m_Properties.bitsPerPixel,
                                 m_NativeWindow->windowHandle,
                                 m_NativeWindow->screenHandle->root,
                                 position.x, position.y, size.width, size.height,
                                 1,
                                 XCB_WINDOW_CLASS_INPUT_OUTPUT,
                                 m_NativeWindow->screenHandle->root_visual,
-                                XCB_CW_EVENT_MASK | XCB_CW_BACK_PIXEL, &valueList
+                                mask, values
                             );
 
-        /*xcb_atom_t xcb_atom = {m_NativeWindow->windowManagerWindowDeleteProtocol};
-
-        xcb_icccm_set_wm_name(connection, m_NativeWindow->windowHandle, XCB_ATOM_STRING, 8, properties_.title.size(), properties_.title.c_str());
-        xcb_icccm_set_wm_protocols(connection, m_NativeWindow->windowHandle, m_NativeWindow->windowManagerProtocolsProperty, 1, &xcb_atom);
-
-        if (!properties_.resizable) {
-            xcb_size_hints_t window_size_hints;
-            xcb_icccm_size_hints_set_min_size(&window_size_hints, properties_.minSize.width, properties_.minSize.height);
-            xcb_icccm_size_hints_set_max_size(&window_size_hints, properties_.maxSize.width, properties_.maxSize.height);
-            xcb_icccm_set_wm_size_hints(connection, m_NativeWindow->windowHandle, XCB_ATOM_WM_NORMAL_HINTS, &window_size_hints);
+        if (m_Properties.visible){
+            xcb_map_window(connection, m_NativeWindow->windowHandle);
         }
-        Log_nts.Debug();*/
-        xcb_map_window(connection, m_NativeWindow->windowHandle);
+
         Assert_nts.ATrue(xcb_flush(connection) <= 0);
     }
 
@@ -85,10 +82,13 @@ namespace nkentseu {
     }
 
     Vector2i WindowInternal::GetPosition() const {
-        return {};
+        return m_Properties.position;
     }
 
     void WindowInternal::SetPosition(int32 x, int32 y) {
+        m_Properties.position = Vector2i{x, y};
+        const uint32 values[] = {x,y};
+        xcb_configure_window(PlatformState_::Instance().connection, m_NativeWindow->windowHandle, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
     }
 
     void WindowInternal::SetPosition(const Vector2i& pos) { SetPosition(pos.x, pos.y); }
@@ -97,19 +97,13 @@ namespace nkentseu {
         if (m_NativeWindow == nullptr) {
             return {};
         }
-        xcb_get_geometry_cookie_t cokie = xcb_get_geometry(PlatformState_::Instance().connection, m_NativeWindow->windowHandle);
-        xcb_get_geometry_reply_t* reply = xcb_get_geometry_reply(PlatformState_::Instance().connection, cokie, NULL);
-        
-        if (!reply){
-            return m_NativeWindow->windowProperties.size;
-        }
-
-        Vector2u size = {reply->width, reply->height};
-        m_NativeWindow->windowProperties.size = size;
-        return size;
+        return m_Properties.size;
     }
 
-    void WindowInternal::SetSize(uint32 width, uint32 height) {
+    void WindowInternal::SetSize(uint32 width, uint32 height) {    
+        const uint32 values[] = {m_Properties.size.x, m_Properties.size.y};
+        xcb_configure_window(PlatformState_::Instance().connection, m_NativeWindow->windowHandle, XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
+    
     }
 
     void WindowInternal::SetSize(const Vector2u& size) { SetSize(size.width, size.height); }
@@ -141,11 +135,11 @@ namespace nkentseu {
     }
 
     bool WindowInternal::IsMouseInside() {
-        return false;
+        return m_NativeWindow == nullptr ? false :(*m_NativeWindow).isMouseInside;
     }
 
     Color WindowInternal::GetBackgroundColor() {
-        return m_NativeWindow == nullptr ? 0x00000000 : m_NativeWindow->windowProperties.backgroundColor;
+        return m_NativeWindow == nullptr ? 0x00000000 : m_Properties.backgroundColor;
     }
 
     void WindowInternal::SetBackgroundColor(const Color& color) {
@@ -169,6 +163,10 @@ namespace nkentseu {
     }
 
     void WindowInternal::Show() {
+        if (!m_Properties.visible){
+            m_Properties.visible = true;
+            xcb_map_window(PlatformState_::Instance().connection, m_NativeWindow->windowHandle);
+        }
     }
 
     void WindowInternal::Hide() {
@@ -183,7 +181,7 @@ namespace nkentseu {
 
     const WindowProperties& WindowInternal::GetProperties() {
         if (m_NativeWindow != nullptr) {
-            return m_NativeWindow->windowProperties;
+            return m_Properties;
         }
         return WindowProperties::GetInValid();
     }
@@ -196,6 +194,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::Swapbuffer() {
+        xcb_flush(PlatformState.connection);
     }
 
     void WindowInternal::SetProgress(float32 progress) {
@@ -214,6 +213,20 @@ namespace nkentseu {
         return m_IsWindowCreated;
     }
 
+    WindowInternal* WindowInternal::GetCurrent(xcb_window_t window) {
+        WindowInternal* _this;
+        if (currentWindowInternal != nullptr) {
+            windowHandleMap.emplace(window, currentWindowInternal);
+            currentWindowInternal->m_NativeWindow->windowHandle = window;
+            _this = currentWindowInternal;
+            currentWindowInternal = nullptr;
+        }
+        else {
+            auto existing = windowHandleMap.find(window);
+            _this = existing->second;
+        }
+        return _this;
+    }
 }    // namespace nkentseu
 
 #endif

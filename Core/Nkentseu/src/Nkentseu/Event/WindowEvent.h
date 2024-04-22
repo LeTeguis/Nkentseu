@@ -74,10 +74,11 @@ namespace nkentseu {
 
     class NKENTSEU_API WindowFocusEvent : public Event {
     public:
-        WindowFocusEvent(uint64 win, bool focus);
+        WindowFocusEvent(uint64 win, bool focus, const Rectangle& exposure);
         WindowFocusEvent(const WindowFocusEvent& e);
 
         bool HasFocus();
+        Rectangle GetExposureRegion();
 
         virtual bool IsEqual(Event& e) const override;
 
@@ -87,6 +88,7 @@ namespace nkentseu {
             EVENT_CATEGORY_FLAGS(EventCategory::Window)
     private:
         bool m_Focus;
+        Rectangle m_Exposure;
     };
 
     class NKENTSEU_API WindowResizeEvent : public Event

@@ -107,6 +107,9 @@ namespace nkentseu {
         static WindowProperties GetDesktopProperties();
         static const std::vector<WindowProperties>& GetFullscreenProperties();
 
+        uint32 blackPixel;
+        uint32 whitePixel;
+
         friend bool operator==(const WindowProperties& left, const WindowProperties& right) {
             return (left.size == right.size) && (left.bitsPerPixel == right.bitsPerPixel);
         }

@@ -5,6 +5,7 @@
 
 #include "NkentseuPch/ntspch.h"
 #include "WindowProperties.h"
+#include "Nkentseu/Platform/PlatformState.h"
 
 namespace nkentseu {
     WindowProperties::WindowProperties() : backgroundColor(Color::DarkGray)
@@ -44,6 +45,60 @@ namespace nkentseu {
                 }
             }
             std::sort(modes.begin(), modes.end(), std::greater<>());
+            return modes;
+        }();
+
+        return modes;
+    }
+#elif defined(NKENTSEU_PLATFORM_LINUX)
+
+    WindowProperties WindowProperties::GetDesktopProperties() {
+        WindowProperties wprop;
+        int screen_number = PlatformState.screenNumber;
+        xcb_screen_iterator_t iter;
+        iter = xcb_setup_roots_iterator(xcb_get_setup(PlatformState.connection));
+
+        for (; iter.rem; --screen_number, xcb_screen_next(&iter)){
+            xcb_screen_t *screen = (xcb_screen_t*)iter.data;
+            if (screen != nullptr && screen_number == 0){
+                WindowProperties prop;
+
+                prop.size.x = (*screen).width_in_pixels;
+                prop.size.y = (*screen).height_in_pixels;
+                prop.bitsPerPixel = (*screen).root_depth;
+                prop.blackPixel = (*screen).black_pixel;
+                prop.whitePixel = (*screen).white_pixel;
+
+                return prop;
+            }
+        }
+
+        return wprop;
+    }
+
+    const std::vector<WindowProperties>& WindowProperties::GetFullscreenProperties() {
+        static const auto modes = [] {
+            std::vector<WindowProperties> modes;
+            int screen_number = PlatformState.screenNumber;
+            xcb_screen_iterator_t iter;
+
+            iter = xcb_setup_roots_iterator(xcb_get_setup(PlatformState.connection));
+
+            for (; iter.rem; --screen_number, xcb_screen_next(&iter)){
+                xcb_screen_t *screen = (xcb_screen_t*)iter.data;
+                if (screen != nullptr){
+                    WindowProperties prop;
+
+                    prop.size.x = (*screen).width_in_pixels;
+                    prop.size.y = (*screen).height_in_pixels;
+                    prop.bitsPerPixel = (*screen).root_depth;
+                    prop.blackPixel = (*screen).black_pixel;
+                    prop.whitePixel = (*screen).white_pixel;
+
+                    modes.push_back(prop);
+                }
+            }
+
             return modes;
         }();
 

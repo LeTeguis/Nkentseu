@@ -62,7 +62,9 @@ namespace nkentseu {
         Log.Trace("Unkeny Engine Run {0}", &Input);
 
         while (m_Running) {
+            // Log.Trace();
             EventTrack->Pick();
+            // Log.Trace();
 
             if (Input.IsKeyDown(Keyboard::Up)) {
                 // Log.Debug("up pressed");

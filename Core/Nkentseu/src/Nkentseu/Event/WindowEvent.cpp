@@ -41,10 +41,14 @@ namespace nkentseu {
         return (e.GetEventType() == GetEventType() && e.GetCategoryFlags() == GetCategoryFlags());
     }
 
-    WindowFocusEvent::WindowFocusEvent(uint64 win, bool focus) : Event(win), m_Focus(focus) {}
-    WindowFocusEvent::WindowFocusEvent(const WindowFocusEvent& e) : Event(e.GetWindow()), m_Focus(e.m_Focus) {}
+    WindowFocusEvent::WindowFocusEvent(uint64 win, bool focus, const Rectangle& exposure) : Event(win), m_Focus(focus), m_Exposure(exposure) {}
+    WindowFocusEvent::WindowFocusEvent(const WindowFocusEvent& e) : Event(e.GetWindow()), m_Focus(e.m_Focus), m_Exposure(e.m_Exposure) {}
 
     bool WindowFocusEvent::HasFocus() { return m_Focus; }
+
+    Rectangle WindowFocusEvent::GetExposureRegion(){
+        return m_Exposure;
+    }
 
     bool WindowFocusEvent::IsEqual(Event& e) const {
         return (e.GetEventType() == GetEventType());

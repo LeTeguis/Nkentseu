@@ -21,9 +21,7 @@
 #include <xcb/xcb_icccm.h>
 
 namespace nkentseu {
-    class WindowInternal;
     class WindowEventInternal;
-    class Window;
 
     class NKENTSEU_API WindowDisplay
     {
@@ -35,21 +33,14 @@ namespace nkentseu {
 
             xcb_screen_t* screenHandle;
             xcb_window_t windowHandle;
-
-            WindowProperties windowProperties;
-
-            class Window* windowSuper;
+            bool isMouseInside = true;
+            
             friend class WindowEventInternal;
 
             bool Register(bool dbclk);
-            void StaticNative(class Window*);
         private:
             bool m_IsRegistered = false;
-            static WindowDisplay* GetCurrent(xcb_window_t window);
     };
-
-    static thread_local WindowDisplay* currentWindowDisplay = nullptr;
-    static thread_local std::unordered_map<xcb_window_t, WindowDisplay*> windowHandleMap;
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_WINDOW_DISPLAY_H__

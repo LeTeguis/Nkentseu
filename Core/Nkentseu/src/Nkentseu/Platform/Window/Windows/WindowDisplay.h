@@ -48,7 +48,6 @@ namespace nkentseu {
         WindowDisplay() {}
 
         bool Register(bool dbclk, const class WindowProperties& windowProperties);
-        void StaticNative(class Window*);
         const WCHAR* GetWindowClassName();
 
     private:

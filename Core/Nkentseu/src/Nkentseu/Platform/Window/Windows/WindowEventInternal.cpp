@@ -644,14 +644,14 @@ namespace nkentseu {
 			if (window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = false;
 				SetMouseTracking(false, window);
-				FinalizePushEvent(new MouseExitedEvent(window->ID()), 0, msg, window);
+				FinalizePushEvent(new MouseExitedEvent(window->ID(), Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
 			}
 		}
 		else {
 			if (!window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = true;
 				SetMouseTracking(true, window);
-				FinalizePushEvent(new MouseEnteredEvent(window->ID()), 0, msg, window);
+				FinalizePushEvent(new MouseEnteredEvent(window->ID(), Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
 			}
 		}
 

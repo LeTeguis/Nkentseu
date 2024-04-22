@@ -100,6 +100,7 @@ def GenerateProject():
     if platform_name == conf.Platforme.WINDOWS:
         call_args = ["cmd.exe", "/c"] + call_args  # Insérer "cmd.exe" au début pour Windows
 
+    print(call_args)
     return subprocess.call(call_args)  # Appeler subprocess.call avec la liste d'arguments complète
 
 

@@ -56,7 +56,7 @@ namespace nkentseu {
             }
         }
 
-        if (connection != NULL) return;
+        if (connection != nullptr) return;
 
         // Assurez-vous que la variable d'environnement DISPLAY est définie pour pointer vers votre serveur X
         if (getenv("DISPLAY") == nullptr) {
@@ -66,9 +66,10 @@ namespace nkentseu {
         }
 
         // Connectez-vous au serveur X en utilisant la variable d'environnement DISPLAY
-        connection = xcb_connect(getenv("DISPLAY"), &screenNumber);
+        // connection = xcb_connect(getenv("DISPLAY"), &screenNumber);
+        connection = xcb_connect(nullptr, &screenNumber);
 
-        if (connection == NULL) {
+        if (connection == nullptr) {
             Log_nts.Error("Failed to connect to X server");
             exit(EXIT_FAILURE);
         }
@@ -78,7 +79,7 @@ namespace nkentseu {
             // Affichez un message d'erreur et quittez si la connexion a échoué
             Log_nts.Error("Error during connection");
             xcb_disconnect(connection);
-            connection = NULL;
+            connection = nullptr;
             exit(EXIT_FAILURE);
         }
 
@@ -87,8 +88,9 @@ namespace nkentseu {
     }
 
     void PlatformState_::Close() {
-        if (connection != NULL){
+        if (connection != nullptr){
             xcb_disconnect(connection);
+            connection = nullptr;
             Log_nts.Trace("Connexion terminer avec le serveur X");
         }
     }

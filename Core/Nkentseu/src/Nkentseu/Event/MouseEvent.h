@@ -134,25 +134,33 @@ namespace nkentseu {
     class NKENTSEU_API MouseEnteredEvent : public Event {
     public:
         // Constructeurs et destructeur
-        MouseEnteredEvent(uint64 win);
+        MouseEnteredEvent(uint64 win, const Vector2& position);
         MouseEnteredEvent(const MouseEnteredEvent& event);
+
+        Vector2 GetPosition() const;
 
         // Méthode publique
         virtual bool IsEqual(Event& e) const override;
         EVENT_TYPE_FLAGS(EventType::MouseEnteredWindow)
             EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+    private:
+        Vector2i m_Position;
     };
 
     class NKENTSEU_API MouseExitedEvent : public Event {
     public:
         // Constructeurs et destructeur
-        MouseExitedEvent(uint64 win);
+        MouseExitedEvent(uint64 win, const Vector2& position);
         MouseExitedEvent(const MouseExitedEvent& event);
+
+        Vector2 GetPosition() const;
 
         // Méthode publique
         virtual bool IsEqual(Event& e) const override;
         EVENT_TYPE_FLAGS(EventType::MouseExitedWindow)
             EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
+    private:
+        Vector2i m_Position;
     };
 } // namespace nkentseu
 

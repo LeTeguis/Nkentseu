@@ -15,7 +15,6 @@
 
 #pragma once
 
-
 #include <xcb/xcb.h>
 #include <xcb/xcb_util.h>
 #include <xcb/xcb_icccm.h>
@@ -26,10 +25,12 @@
 #include "Nkentseu/Event/EventObservable.h"
 
 namespace nkentseu {
+
+    class XCBGenericEvent;
+
     class NKENTSEU_API WindowEventInternal {
     public:
-        friend class WindowDisplay;
-        friend class WindowInternal;
+        // friend class WindowInternal;
 
         static Memory::Shared<WindowEventInternal> GetInstance() {
             static Memory::Shared<WindowEventInternal> eventManager = Memory::Alloc<WindowEventInternal>();
@@ -60,42 +61,42 @@ namespace nkentseu {
         Vector2i globalMousePosition;
         Vector2i previousMousePosition;
 
-        xcb_generic_event_t* genericEvent;
+        // class XCBGenericEvent genericEvent;
 
         uint64 PushEvent(xcb_generic_event_t* msg);
         uint64 FinalizePushEvent(Event* event, uint64 info);
 
         void TriggerEvent(Event* event);
 
-        // Handle Event
-        uint64 HandleCreateEvent(xcb_generic_event_t msg, class WindowDisplay* window);
+        // Handle Event 
+        uint64 HandleCreateEvent(xcb_generic_event_t* msg);
 
-        uint64 HandleWindowCreateEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowPaintEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowBackgroundEraseEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowCloseEvent(xcb_client_message_event_t* msg);
-        uint64 HandleWindowFocusedEvent(xcb_generic_event_t msg, class WindowDisplay* window, bool focused);
-        uint64 HandleWindowResizeEvent(xcb_generic_event_t msg, class WindowDisplay* window, bool resizing);
-        uint64 HandleWindowNCHITTESTEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowDpiEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowNCCALCSIZEEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowGETMINMAXINFOEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleWindowMoveEvent(xcb_generic_event_t msg, class WindowDisplay* window, uint8 t);
+        uint64 HandleWindowCreateEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowPaintEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowBackgroundEraseEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowCloseEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowFocusedEvent(xcb_generic_event_t* msg, uint32 value);
+        uint64 HandleWindowResizeEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowNCHITTESTEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowDpiEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowNCCALCSIZEEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowGETMINMAXINFOEvent(xcb_generic_event_t* msg);
+        uint64 HandleWindowMoveEvent(xcb_generic_event_t* msg);
 
-        uint64 HandleMouseWheelEvent(xcb_generic_event_t msg, class WindowDisplay* window, bool vertical);
-        uint64 HandleMouseButtonEvent(xcb_generic_event_t msg, class WindowDisplay* window, uint8 btn, bool pressed, bool dbclick);
-        uint64 HandleMouseButtonRawEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleMouseMoveEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleMouseLeaveEvent(xcb_generic_event_t msg, class WindowDisplay* window);
+        uint64 HandleMouseWheelEvent(xcb_generic_event_t* msg);
+        uint64 HandleMouseButtonEvent(xcb_generic_event_t* msg, bool isPressed);
+        uint64 HandleMouseButtonRawEvent(xcb_generic_event_t* msg);
+        uint64 HandleMouseMoveEvent(xcb_generic_event_t* msg);
+        uint64 HandleMouseLeaveEvent(xcb_generic_event_t* msg, bool isLeave);
 
-        uint64 HandleKeyboardEvent(xcb_generic_event_t msg, class WindowDisplay* window, bool keydown);
-        uint64 HandleCharEvent(xcb_generic_event_t msg, class WindowDisplay* window, bool interpret);
+        uint64 HandleKeyboardEvent(xcb_generic_event_t* msg, bool isPressed);
+        uint64 HandleCharEvent(xcb_generic_event_t* msg);
 
-        uint64 HandleInputRawEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleInputDeviceChangeEvent(xcb_generic_event_t msg, class WindowDisplay* window);
-        uint64 HandleDropFilesEvent(xcb_generic_event_t msg, class WindowDisplay* window);
+        uint64 HandleInputRawEvent(xcb_generic_event_t* msg);
+        uint64 HandleInputDeviceChangeEvent(xcb_generic_event_t* msg);
+        uint64 HandleDropFilesEvent(xcb_generic_event_t* msg);
 
-        uint64 RestricWindowSize(xcb_generic_event_t msg, class WindowDisplay* window);
+        uint64 RestricWindowSize(xcb_generic_event_t* msg);
     };
     #define EventInternal      WindowEventInternal::GetInstance()
 } // namespace nkentseu

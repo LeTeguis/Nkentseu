@@ -26,8 +26,6 @@ namespace nkentseu {
         m_IsRegistered = true;
 
         xcb_connection_t* connection = PlatformState_::Instance().connection;
-        int screen_number = PlatformState_::Instance().screenNumber;
-
         screenHandle = xcb_setup_roots_iterator(xcb_get_setup(connection)).data;
 
         if (screenHandle == NULL) {
@@ -44,28 +42,6 @@ namespace nkentseu {
 
         return m_IsRegistered;
     }
-
-    void WindowDisplay::StaticNative(class Window* window) {
-        currentWindowDisplay = this;
-        windowSuper = window;
-    }
-
-    
-    WindowDisplay* WindowDisplay::GetCurrent(xcb_window_t windowHandle){
-        WindowDisplay* _this;
-        if (currentWindowDisplay != nullptr) {
-            windowHandleMap.emplace(windowHandle, currentWindowDisplay);
-            currentWindowDisplay->windowHandle = windowHandle;
-            _this = currentWindowDisplay;
-            currentWindowDisplay = nullptr;
-        }
-        else {
-            auto existing = windowHandleMap.find(windowHandle);
-            _this = existing->second;
-        }
-        return _this;
-    }
-
 }    // namespace nkentseu
 
 #endif

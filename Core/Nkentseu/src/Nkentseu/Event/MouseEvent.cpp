@@ -199,10 +199,12 @@ namespace nkentseu {
     // ---- MouseEnteredEvent ----
 
     // Constructor with window ID
-    MouseEnteredEvent::MouseEnteredEvent(uint64 win) : Event(win) {}
+    MouseEnteredEvent::MouseEnteredEvent(uint64 win, const Vector2& position) : Event(win), m_Position(position) {}
 
     // Copy constructor
     MouseEnteredEvent::MouseEnteredEvent(const MouseEnteredEvent& event) : Event(event.GetWindow()) {}
+
+    Vector2 MouseEnteredEvent::GetPosition() const { return m_Position; }
 
     // Override the IsEqual method to compare event types
     bool MouseEnteredEvent::IsEqual(Event& e) const {
@@ -212,10 +214,12 @@ namespace nkentseu {
     // ---- MouseExitedEvent ----
 
     // Constructor with window ID
-    MouseExitedEvent::MouseExitedEvent(uint64 win) : Event(win) {}
+    MouseExitedEvent::MouseExitedEvent(uint64 win, const Vector2& position) : Event(win), m_Position(position) {}
 
     // Copy constructor
     MouseExitedEvent::MouseExitedEvent(const MouseExitedEvent& event) : Event(event.GetWindow()) {}
+
+    Vector2 MouseExitedEvent::GetPosition() const { return m_Position; }
 
     // Override the IsEqual method to compare event types
     bool MouseExitedEvent::IsEqual(Event& e) const {

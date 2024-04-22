@@ -84,21 +84,25 @@ namespace nkentseu {
 
         virtual bool IsCreate();
         void SetProgress(float32 progress);
+
+        static WindowInternal* GetCurrent(xcb_window_t window);
+
     private:
-#define NATIVE_WINDOW_IS_VALID(variable) (m_NativeWindow != nullptr && m_NativeWindow->##variable != nullptr)
-
-
         Vector2u m_WindowFrameSize = Vector2u(6, 30);
         Memory::Shared<WindowDisplay> m_NativeWindow = nullptr;
         bool m_IsWindowClosed = false;
         bool m_IsEventPick = false;
         uint64 m_WindowID = 0;
         bool m_IsWindowCreated = false;
+        WindowProperties m_Properties;
 
         class Window* m_MainWindow = nullptr;
 
         static uint64 s_WindowIDCounter;
     };
+
+    static thread_local WindowInternal* currentWindowInternal = nullptr;
+    static thread_local std::unordered_map<xcb_window_t, WindowInternal*> windowHandleMap = {};
 } // namespace nkentseu
 
 #endif
