@@ -12,54 +12,56 @@ namespace nkentseu {
 
     // Map to store event codes and their corresponding strings
     static std::unordered_map<EventType::Code, std::string> staticEventTypeStrings = {
-        {EventType::NotDefine, "NotDefine"},
-        {EventType::WindowCreated, "WindowCreated"},
-        {EventType::WindowPainted, "WindowPainted"},
+        {EventType::WindowStatus, "WindowStatus"},   // Created, Closed
+        {EventType::WindowRendered, "WindowRendered"},
         {EventType::WindowBackgroundErased, "WindowBackgroundErased"},
-        {EventType::WindowClosed, "WindowClosed"},
-        {EventType::WindowResized, "WindowResized"},
-        {EventType::WindowFocused, "WindowFocused"},
-        {EventType::WindowLostFocus, "WindowLostFocus"},
+        {EventType::WindowResized, "WindowResized"},  // Expand, Reduce
+        {EventType::WindowFocused, "WindowFocused"},    // Focused, LosFocus
         {EventType::WindowDpiChanged, "WindowDpiChanged"},
         {EventType::WindowMoved, "WindowMoved"},
+
+            // Application Events (for application-specific events)
         {EventType::ApplicationTick, "ApplicationTick"},
         {EventType::ApplicationUpdate, "ApplicationUpdate"},
         {EventType::ApplicationRender, "ApplicationRender"},
-        {EventType::KeyPressed, "KeyPressed"},
-        {EventType::KeyReleased, "KeyReleased"},
+
+            // Keyboard Events (for keyboard input events) (Pressed, Released)
+        {EventType::KeyboardInput, "KeyboardInput"},
         {EventType::CharEntered, "CharEntered"},
-        {EventType::MouseButtonPressed, "MouseButtonPressed"},
-        {EventType::MouseButtonReleased, "MouseButtonReleased"},
-        {EventType::MouseButtonDoubleClicked, "MouseButtonDoubleClicked"},
-        {EventType::MouseButtonRawInput, "MouseButtonRawInput"},
-        {EventType::MouseMoved, "MouseMoved"},
-        {EventType::MouseWheelScrolled, "MouseWheelScrolled"},
-        {EventType::MouseEnteredWindow, "MouseEnteredWindow"},
-        {EventType::MouseExitedWindow, "MouseExitedWindow"},
-        {EventType::GamepadConnected, "GamepadConnected"},
-        {EventType::GamepadDisconnected, "GamepadDisconnected"},
-        {EventType::GamepadButtonPressed, "GamepadButtonPressed"},
-        {EventType::GamepadButtonReleased, "GamepadButtonReleased"},
-        {EventType::GamepadAxisMoved, "GamepadAxisMoved"},
-        {EventType::GamepadStickMoved, "GamepadStickMoved"},
-        {EventType::GamepadTriggerMoved, "GamepadTriggerMoved"},
-        {EventType::TouchReleased, "TouchReleased"},
-        {EventType::TouchPressed, "TouchPressed"},
-        {EventType::TouchMoved, "TouchMoved"},
-        {EventType::TouchCancelled, "TouchCancelled"},
-        {EventType::TouchPinchGesture, "TouchPinchGesture"},
-        {EventType::FilesDropped, "FilesDropped"},
-        {EventType::DragStarted, "DragStarted"},
-        {EventType::DropCompleted, "DropCompleted"},
-        {EventType::DataTransfer, "DataTransfer"},
-        {EventType::FileTransfer, "FileTransfer"},
-        {EventType::GenericInputConnected, "GenericInputConnected"},
-        {EventType::GenericInputDisconnected, "GenericInputDisconnected"},
-        {EventType::GenericInputPressed, "GenericInputPressed"},
-        {EventType::GenericInputReleased, "GenericInputReleased"},
-        {EventType::GenericInputAxisMoved, "GenericInputAxisMoved"},
-        {EventType::GenericInputHatMoved, "GenericInputHatMoved"},
-        {EventType::CustomEvent, "CustomEvent"},
+
+            // Mouse Events (for mouse input events) 
+        {EventType::MouseInput, "MouseInput"},    // Pressed, Released
+        {EventType::MouseMoved, "MouseMoved"},     // Vertical, Horizontal, value
+        {EventType::MouseWheel, "MouseWheel"},     // Vertical, Horizontal, value
+        {EventType::MouseWindow, "MouseWindow"},    // Entered, Exited
+
+            // Gamepad Events (for gamepad input events)
+        {EventType::GamepadStatus, "GamepadStatus" },   // Connected, Disconnected
+        {EventType::GamepadInput, "GamepadInput" },
+        {EventType::GamepadAxis, "GamepadAxis" },
+        {EventType::GamepadStick, "GamepadStick" },
+        {EventType::GamepadTrigger, "GamepadTrigger" },
+
+            // Touchpad Events (for touch input events)
+        {EventType::TouchButton, "TouchButton" },    // Pressed, Released
+        {EventType::TouchMoved, "TouchMoved" },     // moved
+        {EventType::TouchCancelled, "TouchCancelled" },
+        {EventType::TouchPinchGesture, "TouchPinchGesture" },
+
+            // Drag and Drop Events (for drag and drop interactions)
+        {EventType::FilesEntered, "FilesEntered" },
+        {EventType::DraggedStatus, "DraggedStatus" },  // Dragged, Dropped, DragDropEnd
+
+            // Transfer Events (for data and file transfer events)
+        {EventType::Transfer, "Transfer" },   // Data, File
+
+            // Generic Input Events (for handling various input devices)
+        {EventType::GenericStatus, "GenericStatus" }, // Connected, Disconnected
+        {EventType::GenericInput, "GenericInput" },  // Pressed, Released
+        {EventType::GenericAxis, "GenericAxis" },
+        {EventType::GenericHat, "GenericHat" },
+
+        {EventType::NotDefine, "NotDefine"},
     };
 
     // Function to convert an event code to a human-readable string

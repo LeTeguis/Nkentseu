@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 4/13/2024 at 9:55:04 AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 4/13/2024 at 9:55:04 AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include "Nkentseu/Event/InputManager.h"
+#include "Nkentseu/Core/NkentseuLogger.h"
 
 extern nkentseu::int32 Main(const nkentseu::ARGV& argv);
 
@@ -29,8 +30,11 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw) {
     freopen_s(&pCerr, "CONOUT$", "w+", stderr);
     #endif
 
-    nkentseu::PlatformState.Init(hInst, hPrev, szCmdLine, sw);
-    nkentseu::int32 result = Main(nkentseu::PlatformState.argv);
+    nkentseu::int32 result = nkentseu::PlatformState.Init(hInst, hPrev, szCmdLine, sw);
+
+    if (result == 0){
+        result = Main(nkentseu::PlatformState.argv);
+    }
 
     #ifdef NKENTSEU_DEBUG
     FreeConsole();

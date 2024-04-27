@@ -349,7 +349,7 @@ namespace nkentseu {
 				return wgi;
 			}
         private:
-			WindowGenericInput::WindowGenericInput() {
+			WindowGenericInput() {
 			}
     };
 

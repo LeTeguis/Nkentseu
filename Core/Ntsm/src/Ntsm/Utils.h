@@ -101,7 +101,7 @@ namespace nkentseu {
 									w * m.ptr[3 * 4 + mRow]
 
 		#define M4SWAP(x, y) \
-									{float t = x; x = y; y = t; }
+									{float64 t = x; x = y; y = t; }
 
 		#define M4_3X3MINOR(x, c0, c1, c2, r0, r1, r2) \
 									(x[c0 * 4 + r0] * (x[c1 * 4 + r1] * x[c2 * 4 + r2] - x[c1 * 4 + r2] * \

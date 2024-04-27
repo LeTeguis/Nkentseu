@@ -1,8 +1,7 @@
 project "GlobalTests"
     kind "ConsoleApp"
 
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
@@ -24,7 +23,7 @@ project "GlobalTests"
     }
 
     links {
-        "Stb",
+        --"Stb",
         "NSystem",
         "Logger",
         "Ntsm",
@@ -44,7 +43,7 @@ project "GlobalTests"
         PostBuilds("Ntsm", "%{prj.name}")
         PostBuilds("Unitest", "%{prj.name}")
         PostBuilds("NSystem", "%{prj.name}")
-        PostBuilds("Stb", "%{prj.name}")
+        --PostBuilds("Stb", "%{prj.name}")
     
     filter "system:macosx"
     filter {}
@@ -53,6 +52,9 @@ project "GlobalTests"
         links {
             "X11",
             "Xcursor", "Xrandr", "Xfixes"
+        }
+        links {
+            "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
         }
     filter {}
 

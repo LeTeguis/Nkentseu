@@ -151,7 +151,7 @@ namespace nkentseu {
 
     void ActionManager::CheckEventStatus(const std::string& name, ButtonState::Code state, ActionCommand& command)
     {
-        if (state == ButtonState::Down) {
+        if (state == ButtonState::Pressed) {
             if (command.IsRepeatable() || (!command.IsRepeatable() && !command.IsPrivateRepeatable())) {
                 // Declencher l'action correspondante avec ses parametres
                 ActionSubscriber subscriber = m_Actions.at(name);
@@ -162,7 +162,7 @@ namespace nkentseu {
             }
         }
 
-        if (state == ButtonState::Up) {
+        if (state == ButtonState::Released) {
             command.SetPrivateRepeatable(false);
         }
     }
@@ -170,9 +170,6 @@ namespace nkentseu {
     void ActionManager::TriggerAction(const ActionCode& actionCode, ButtonState::Code state)
     {
         // Verifier chaque action et ses evenements pour voir si un evenement est declencher
-        //Log_nts.Debug("number = {0}-{1}", m_Commands.size(), m_Actions.size());
-        //Log_nts.Debug("Action len = {0}; CAc len = {1}", GetActionNumber(), GetCommandNumber());
-        //Log_nts.Debug("Action len = {0}; CAc len = {1} | {02}", GetActionNumber(), GetCommandNumber(), this);
         for (auto&& [actionName, events] : m_Commands) {
             for (auto& action : events) {
                 if (action.GetCode() == actionCode) {
@@ -257,19 +254,16 @@ namespace nkentseu {
             //Log_nts.Debug("number running = {0}", m_Commands.size());
             for (auto& axis : events) {
                 /* clavier */
-                if (EventCategory::Keyboard == axis.GetCode().category) {
+                if (EventType::KeyboardInput == axis.GetCode().inputType) {
                     Keyboard::Code code = axis.GetCode().keyboard;
                     CheckEventStatus(axisName, update(EventCategory::Keyboard, code), axis);
-
                     continue;
                 }
 
                 /* Souris */
-                if (EventCategory::MouseButton == axis.GetCode().category) {
+                if (EventType::MouseInput == axis.GetCode().inputType) {
                     Mouse::Code code = axis.GetCode().mouse;
-
-                    CheckEventStatus(axisName, update(EventCategory::MouseButton, code), axis);
-
+                    CheckEventStatus(axisName, update(EventCategory::Mouse, code), axis);
                     continue;
                 }//*/
             }

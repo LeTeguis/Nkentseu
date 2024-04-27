@@ -1,8 +1,7 @@
 project "UnkenyEditor"
     kind "ConsoleApp"
 
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
@@ -23,7 +22,7 @@ project "UnkenyEditor"
     }
 
     links {
-        "Stb",
+        -- "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
@@ -43,7 +42,7 @@ project "UnkenyEditor"
         PostBuilds("Ntsm", "%{prj.name}")
         PostBuilds("NSystem", "%{prj.name}")
         PostBuilds("Unkeny", "%{prj.name}")
-        PostBuilds("Stb", "%{prj.name}")
+        --PostBuilds("Stb", "%{prj.name}")
     
     filter "system:macosx"
 
@@ -51,6 +50,9 @@ project "UnkenyEditor"
         links {
             "X11",
             "Xcursor", "Xrandr", "Xfixes"
+        }
+        links {
+            "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
         }
 
     filter "configurations:Debug"

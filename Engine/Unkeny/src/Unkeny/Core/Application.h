@@ -34,13 +34,8 @@ namespace nkentseu {
 
     private:
         void OnEvent(class Event& event);
-        bool OnWindowCloseEvent(class WindowCloseEvent& e);
-        bool OnKeyPressedEvent(class KeyPressedEvent& e);
-        bool OnGamepadConnectedEvent(class GenericInputConnectedEvent& e);
-        bool OnGamepadDisconnectedEvent(class GenericInputDisconnectedEvent& e);
-        bool OnGamepadButtonPressedEvent(class GenericInputButtonPressedEvent& e);
-        bool OnGamepadButtonReleasedEvent(class GenericInputButtonReleasedEvent& e);
-        bool OnGamepadAxisEvent(class GenericInputAxisEvent& e);
+        bool OnWindowStatusEvent(class WindowStatusEvent& event);
+        bool OnKeyboardEvent(class KeyboardEvent& event);
 
         void Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released);
         void Course(const std::string& name, const AxisCode& axisCode, float32 value);

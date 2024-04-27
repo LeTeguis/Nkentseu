@@ -10,120 +10,107 @@
 
 #include "System/System.h"
 #include "Event.h"
+
 #include <Nkentseu/Graphics/Color.h>
 #include <Ntsm/Shapes/Rectangle.h>
+#include <Nkentseu/Core/WindowProperties.h>
 
 namespace nkentseu {
-    class NKENTSEU_API WindowCreateEvent : public Event
+    class NKENTSEU_API WindowStatusEvent : public Event
     {
     public:
-        WindowCreateEvent(uint64 win);
-        WindowCreateEvent(const WindowCreateEvent& e);
-        virtual bool IsEqual(Event& e) const override;
+        EVENT_TYPE_FLAGS(EventType::WindowStatus)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowStatusEvent(uint64 win, WindowState::Code state, const WindowProperties& properties = {});
+        WindowStatusEvent(const WindowStatusEvent& e);
+        virtual std::string ToString() const override;
 
-        EVENT_TYPE_FLAGS(EventType::WindowCreated)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window)
+        WindowState::Code GetState() const;
+        WindowProperties GetProperties() const;
+
+    private:
+        WindowState::Code m_State;
+        WindowProperties m_Properties;
     };
 
-    class NKENTSEU_API WindowPaintEvent : public Event
+    class NKENTSEU_API WindowRenderedEvent : public Event
     {
     public:
-        WindowPaintEvent(uint64 win, const Rectangle& rect, const Color& color);
-        WindowPaintEvent(const WindowPaintEvent& e);
-
-        Rectangle GetRect();
-        Color GetColor();
-
-        virtual bool IsEqual(Event& e) const override;
-
-        EVENT_TYPE_FLAGS(EventType::WindowPainted)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window | EventCategory::Graphics)
+        EVENT_TYPE_FLAGS(EventType::WindowRendered)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window) 
+    public:
+        WindowRenderedEvent(uint64 win, Rectangle rectangle, Color color);
+        WindowRenderedEvent(const WindowRenderedEvent& e);
+        virtual std::string ToString() const override;  
+        
+        Rectangle GetRenderRec() const;
+        Color GetRenderColor() const;
     private:
-        Rectangle m_Rect;
+        Rectangle m_Rectangle;
         Color m_Color;
     };
 
-    class NKENTSEU_API WindowBackgroundEraseEvent : public Event
+    class NKENTSEU_API WindowBackgroundErasedEvent : public Event
     {
     public:
-        WindowBackgroundEraseEvent(uint64 win, const Rectangle& rect, const Color& color);
-        WindowBackgroundEraseEvent(const WindowBackgroundEraseEvent& e);
-
-        Rectangle GetRect();
-        Color GetColor();
-
-        virtual bool IsEqual(Event& e) const override;
-
         EVENT_TYPE_FLAGS(EventType::WindowBackgroundErased)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window | EventCategory::Graphics)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowBackgroundErasedEvent(uint64 win, Rectangle rectangle, Color color);
+        WindowBackgroundErasedEvent(const WindowBackgroundErasedEvent& e);
+        virtual std::string ToString() const override;
+
+        Rectangle GetBackgroundRec() const;
+        Color GetBackgroundColor() const;
     private:
-        Rectangle m_Rect;
+        Rectangle m_Rectangle;
         Color m_Color;
     };
 
-    class NKENTSEU_API WindowCloseEvent : public Event {
-    public:
-        WindowCloseEvent(uint64 win);
-        WindowCloseEvent(const WindowCloseEvent& e);
-
-        virtual bool IsEqual(Event& e) const override;
-
-        EVENT_TYPE_FLAGS(EventType::WindowClosed)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window)
-    };
-
-    class NKENTSEU_API WindowFocusEvent : public Event {
-    public:
-        WindowFocusEvent(uint64 win, bool focus, const Rectangle& exposure);
-        WindowFocusEvent(const WindowFocusEvent& e);
-
-        bool HasFocus();
-        Rectangle GetExposureRegion();
-
-        virtual bool IsEqual(Event& e) const override;
-
-        virtual std::string ToString() const override;
-
-        EVENT_TYPE_FLAGS(EventType::WindowFocused)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window)
-    private:
-        bool m_Focus;
-        Rectangle m_Exposure;
-    };
-
-    class NKENTSEU_API WindowResizeEvent : public Event
+    class NKENTSEU_API WindowResizedEvent : public Event
     {
     public:
-        WindowResizeEvent(uint64 win, const Vector2u& size, bool resizing);
-        WindowResizeEvent(const WindowResizeEvent& e);
-
-        Vector2u GetSize();
-        bool IsResizing();
-
+        EVENT_TYPE_FLAGS(EventType::WindowResized)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowResizedEvent(uint64 win, ResizeState::Code state, const Rectangle& rectangle = {});
+        WindowResizedEvent(const WindowResizedEvent& e);
         virtual std::string ToString() const override;
 
-        virtual bool IsEqual(Event& e) const override;
-
-        EVENT_TYPE_FLAGS(EventType::WindowResized)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window | EventCategory::Graphics)
+        Rectangle GetWindowRec() const;
+        ResizeState::Code GetRisizeState() const;
     private:
-        Vector2u m_Size;
-        bool m_Resizing;
+        Rectangle m_Rectangle;
+        ResizeState::Code m_State;
     };
 
-    class NKENTSEU_API WindowDpiEvent : public Event {
+    class NKENTSEU_API WindowFocusedEvent : public Event
+    {
     public:
-        WindowDpiEvent(uint64 win, float32 dpi);
-        WindowDpiEvent(const WindowDpiEvent& e);
-
-        float32 GetDpi();
-
-        virtual bool IsEqual(Event& e) const override;
-
+        EVENT_TYPE_FLAGS(EventType::WindowFocused)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowFocusedEvent(uint64 win, FocusState::Code state);
+        WindowFocusedEvent(const WindowFocusedEvent& e);
         virtual std::string ToString() const override;
 
+        FocusState::Code GetFocusState() const;
+    private:
+        FocusState::Code m_State;
+    };
+
+    class NKENTSEU_API WindowDpiChangedEvent : public Event
+    {
+    public:
         EVENT_TYPE_FLAGS(EventType::WindowDpiChanged)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowDpiChangedEvent(uint64 win, float32 dpi);
+        WindowDpiChangedEvent(const WindowDpiChangedEvent& e);
+        virtual std::string ToString() const override;
+
+        float32 GetDpi() const;
     private:
         float32 m_Dpi;
     };
@@ -131,19 +118,33 @@ namespace nkentseu {
     class NKENTSEU_API WindowMovedEvent : public Event
     {
     public:
-        WindowMovedEvent(uint64 win, const Vector2i& position);
-        WindowMovedEvent(const WindowMovedEvent& e);
-
-        Vector2i GetPosition();
-
-        virtual std::string ToString() const override;
-
-        virtual bool IsEqual(Event& e) const override;
-
         EVENT_TYPE_FLAGS(EventType::WindowMoved)
-            EVENT_CATEGORY_FLAGS(EventCategory::Window)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowMovedEvent(uint64 win, Vector2i position, Vector2i lastPosition);
+        WindowMovedEvent(const WindowMovedEvent& e);
+        virtual std::string ToString() const override;
+        
+        Vector2i GetPosition() const;
+        Vector2i GetLastPosition() const;
     private:
         Vector2i m_Position;
+        Vector2i m_LastPosition;
+    };
+
+    class NKENTSEU_API WindowVisibleEvent : public Event
+    {
+    public:
+        EVENT_TYPE_FLAGS(EventType::WindowVisible)
+        EVENT_CATEGORY_FLAGS(EventCategory::Window)
+    public:
+        WindowVisibleEvent(uint64 win, bool visible);
+        WindowVisibleEvent(const WindowVisibleEvent& e);
+        virtual std::string ToString() const override;
+        
+        bool IsVisible() const;
+    private:
+        bool m_Visible;
     };
 } // namespace nkentseu
 

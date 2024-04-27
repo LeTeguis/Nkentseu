@@ -29,18 +29,22 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
 
     while (running) {
         Event* event;
-        #ifdef NKENTSEU_PLATFORM_WINDOWS
-        while (EventTrack->Pick(&event)) {
-            if (event->IsA<WindowCloseEvent>()) {
-                running = false;
+        
+        while (EventTrack.Pick(&event)) {
+            if (event->IsA<WindowStatusEvent>()) {
+                WindowStatusEvent& status = event->GetProperties<WindowStatusEvent>();
+
+                if (status.GetState() == WindowState::Closed) {
+                    running = false;
+                }
             }
         }
-        #endif
+        
         if (Input.IsKeyDown(Keyboard::Up)) {
 
         }
     }
-
+    Log_nts.Debug("finish");
     // Memory::Reset(window);
     return 0;
 }

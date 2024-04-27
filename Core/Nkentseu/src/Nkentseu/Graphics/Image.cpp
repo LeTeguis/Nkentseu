@@ -707,7 +707,7 @@ namespace nkentseu {
         bbox_size = (Vector2u)(corner1 - corner2 + Vector2i(1, 1));
     }
 
-    Image Image::DoOperation(Image& other, Operation operation) {
+    Image Image::DoOperation(Image& other, Operation::Code operation) {
         Image image;
 
         if (!m_Data || !image.Create(m_Size)) {
@@ -757,7 +757,7 @@ namespace nkentseu {
         return image;
     }
 
-    Image Image::DoOperation(Image& other, Vector2i otherPosition, Operation operation) {
+    Image Image::DoOperation(Image& other, Vector2i otherPosition, Operation::Code operation) {
         Image image;
 
         if (!m_Data || !image.Create(m_Size)) {

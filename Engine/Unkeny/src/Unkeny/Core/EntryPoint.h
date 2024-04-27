@@ -24,7 +24,6 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
 	if (app->Initialize()) {
 
 		app->Run();
-
 		return (EXIT_SUCCESS);
 	}
 

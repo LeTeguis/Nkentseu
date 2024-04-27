@@ -15,14 +15,13 @@ namespace nkentseu {
       {EventCategory::Input, "Input"},
       {EventCategory::Keyboard, "Keyboard"},
       {EventCategory::Mouse, "Mouse"},
-      {EventCategory::MouseButton, "MouseButton"},
       {EventCategory::Window, "Window"},
       {EventCategory::Graphics, "Graphics"},
       {EventCategory::Touch, "Touch"},
       {EventCategory::Gamepad, "Gamepad"},
       {EventCategory::Custom, "Custom"},
       {EventCategory::Transfer, "Transfer"},
-      {EventCategory::GenericInput, "GenericInput"},
+      {EventCategory::GenericHid, "GenericInput"},
       {EventCategory::DragAndDrop, "DragDrop"},
     };
 

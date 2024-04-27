@@ -1,7 +1,6 @@
 project "NSystem"
     kind (libraryType)
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")

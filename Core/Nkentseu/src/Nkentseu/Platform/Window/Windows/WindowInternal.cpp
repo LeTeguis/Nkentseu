@@ -38,6 +38,8 @@ namespace nkentseu {
             return;
         }
 
+        currentWindowInternal = this;
+
         m_NativeWindow->instanceHandle = PlatformState.HInstance;
         HINSTANCE hPrevInstance = PlatformState.HPrevInstance;
         LPSTR lpCmdLine = PlatformState.LPCmdLine;
@@ -76,8 +78,8 @@ namespace nkentseu {
             }
             m_Properties.size = screenSize;
             size = m_Properties.size;
+            m_Properties.position = Vector2i();
         }
-
         DWORD dwStyle = GetWindowStyleInternal(m_Properties);
         DWORD dwExStyle = GetWindowExStyleInternal(m_Properties);
 
@@ -86,8 +88,6 @@ namespace nkentseu {
         RECT windowRect = UpdateWindowExtension(position, size, dwStyle, dwExStyle);
 
         std::wstring title(m_Properties.title.begin(), m_Properties.title.end());
-
-        // m_NativeWindow->StaticNative(m_MainWindow);
 
         m_NativeWindow->windowHandle = CreateWindowEx(0,
             m_NativeWindow->GetWindowClassName(), title.c_str(),
@@ -146,26 +146,28 @@ namespace nkentseu {
     void WindowInternal::InitWindowPosition(RECT windowRect, const Vector2i& position, const Vector2u& size, 
                                             WindowPositionType positionType, Memory::Shared<WindowDisplay> native) {
         // Adjust size to match DPI
-        int iDpi = GetDpiForWindow(native->windowHandle);
+        /*int iDpi = GetDpiForWindow(native->windowHandle);
+        Vector2i size_win(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
         if (iDpi != USER_DEFAULT_SCREEN_DPI) {
-            windowRect.bottom = MulDiv(windowRect.bottom, iDpi, USER_DEFAULT_SCREEN_DPI);
-            windowRect.right = MulDiv(windowRect.right, iDpi, USER_DEFAULT_SCREEN_DPI);
-        }
+            size_win.width = MulDiv(size_win.width, iDpi, USER_DEFAULT_SCREEN_DPI);
+            size_win.height = MulDiv(size_win.height, iDpi, USER_DEFAULT_SCREEN_DPI);
+        }*/
         int32 x;
         int32 y;
         if (positionType == WindowPositionType::CenteredPosition) {
-            x = ((long)GetSystemMetrics(SM_CXSCREEN) - windowRect.right) / 2;
-            y = ((long)GetSystemMetrics(SM_CYSCREEN) - windowRect.bottom) / 2;
+            x = ((long)GetSystemMetrics(SM_CXSCREEN) - size.width) / 2;
+            y = ((long)GetSystemMetrics(SM_CYSCREEN) - size.height) / 2;
         }
         else if (positionType == WindowPositionType::RandomPosition) {
-            x = Random.NextUInt32((long)GetSystemMetrics(SM_CXSCREEN) - windowRect.right);
-            y = Random.NextUInt32((long)GetSystemMetrics(SM_CYSCREEN) - windowRect.bottom);
+            x = Random.NextUInt32((long)GetSystemMetrics(SM_CXSCREEN) - size.width);
+            y = Random.NextUInt32((long)GetSystemMetrics(SM_CYSCREEN) - size.height);
         }
         else {
             x = windowRect.left;
             y = windowRect.top;
         }
-        SetWindowPos(native->windowHandle, 0, x, y, windowRect.right, windowRect.bottom, 0);
+        m_Properties.position = Vector2i(x, y);
+        SetWindowPos(native->windowHandle, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
     }
 
     RECT WindowInternal::UpdateWindowExtension(const Vector2i& position, const Vector2u& size, DWORD style, DWORD styleEx) {
@@ -175,9 +177,8 @@ namespace nkentseu {
         windowRect.right = position.x + (long)size.width;
         windowRect.bottom = position.y + (long)size.height;
 
-        //LOG.Debug("{0}, {1}, {2}, {3}", windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
         AdjustWindowRectEx(&windowRect, style, FALSE, styleEx);
-        // LOG.Debug("{0}, {1}, {2}, {3}", windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
+        
         if (windowRect.left < 0) {
             windowRect.right = windowRect.right - windowRect.left;
             windowRect.left = 0;
@@ -186,7 +187,6 @@ namespace nkentseu {
             windowRect.bottom = windowRect.bottom - windowRect.top;
             windowRect.top = 0;
         }
-        //LOG.Debug("{0}, {1}, {2}, {3}", windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
         return windowRect;
     }
 
@@ -324,10 +324,10 @@ namespace nkentseu {
 
     float32 WindowInternal::GetDpiScale() const {
         if (NATIVE_WINDOW_IS_VALID(windowHandle)) {
-            float32 currentDpi = GetDpiForWindow(m_NativeWindow->windowHandle);
+            float32 currentDpi = static_cast<float32>(GetDpiForWindow(m_NativeWindow->windowHandle));
             float32 defaultDpi = USER_DEFAULT_SCREEN_DPI;
 
-            return static_cast<float32>(currentDpi) / static_cast<float32>(defaultDpi);
+            return currentDpi / defaultDpi;
         }
         return 0.0f;
     }
@@ -417,6 +417,12 @@ namespace nkentseu {
                 DestroyIcon(m_NativeWindow->icon);
 
             DestroyWindow(m_NativeWindow->windowHandle);
+
+            auto it = windowHandleMap.find(m_NativeWindow->windowHandle);
+            if (it != windowHandleMap.end()) {
+                windowHandleMap.erase(it);
+            }
+
             m_NativeWindow->windowHandle = nullptr;
             Memory::Reset(m_NativeWindow);
             m_IsWindowClosed = true;

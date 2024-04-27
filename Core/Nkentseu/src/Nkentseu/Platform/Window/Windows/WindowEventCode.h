@@ -13,24 +13,22 @@
 
 #pragma once
 
-#include "System/System.h"
-
 #include "Nkentseu/Event/Keyboard.h"
 #include "Nkentseu/Event/Mouse.h"
 #include "Nkentseu/Event/GenericInput.h"
-#include <Nkentseu/Event/ModifierState.h>
+#include <Nkentseu/Event/EventState.h>
 
 namespace nkentseu {
     class NKENTSEU_API WindowEventCode
     {
         public:
-            static uint64 KeycodeToWinkey(Keyboard::Code code);
-            static Keyboard::Code WinkeyToKeycode(uint64 winkeycode);
+            static uint64 ConvertKeycodeWinkey(uint64 code, bool keycode_to_vkey = false);
+            // static Keyboard::Code WinkeyToKeycode(uint64 winkeycode);
 
             static Keyboard::Code WinkeyToKeycodeSpecial(uint64 winkeycode, bool shifDown);
 
-            static uint64 ScancodeToWinkey(Keyboard::Code code);
-            static Keyboard::Code WinkeyToScancode(uint64 winkeycode);
+            static uint64 ConvertScancodeWinkey(uint64 code, bool scancode_to_vkey = false);
+            //static Keyboard::Code WinkeyToScancode(uint64 winkeycode);
 
             static Keyboard::Code WinkeyToScancodeSpecial(uint64 winkeycode, bool shifDown);
 

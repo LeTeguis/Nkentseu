@@ -32,6 +32,8 @@ namespace nkentseu {
         windowProperty.size.width = 1000;
         windowProperty.size.height = 600;
 
+        Log.Debug("Size = {0}", windowProperty.size);
+
         m_Window = Memory::Alloc<Window>(windowProperty);
         nkentseu::Log.Debug("Unkeny Engine");
         NTSErrorCode error = ErrorMessaging.PopError();
@@ -42,14 +44,16 @@ namespace nkentseu {
             Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", (bool32)error);
             return false;
         }
+
+        Log.Debug("Size = {0}", windowProperty.size);
         
-        EventTrack->AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
+        EventTrack.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
         
         Input.CreateAction("Saut", REGISTER_ACTION_SUBSCRIBER(Application::Saut));
-        Input.AddCommand(ActionCommand("Saut", ActionCode(EventCategory::Keyboard, Keyboard::Space)));
+        Input.AddCommand(ActionCommand("Saut", ActionCode(EventType::KeyboardInput, Keyboard::Space)));
 
         Input.CreateAxis("Course", REGISTER_AXIS_SUBSCRIBER(Application::Course));
-        Input.AddCommand(AxisCommand("Course", AxisCode(EventCategory::Keyboard, Keyboard::Up)));
+        Input.AddCommand(AxisCommand("Course", AxisCode(EventType::KeyboardInput, Keyboard::Up)));
 
         m_Running = true;
         return m_Running;
@@ -63,7 +67,7 @@ namespace nkentseu {
 
         while (m_Running) {
             // Log.Trace();
-            EventTrack->Pick();
+            EventTrack.Pick();
             // Log.Trace();
 
             if (Input.IsKeyDown(Keyboard::Up)) {
@@ -76,56 +80,29 @@ namespace nkentseu {
     void Application::OnEvent(Event& event)
     {
         EventBroker broker(event);
+        Log.Debug("{0}", event);
 
-        broker.Route<WindowCloseEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowCloseEvent));
-        broker.Route<KeyPressedEvent>(REGISTER_CLIENT_EVENT(Application::OnKeyPressedEvent));
-        broker.Route<GenericInputConnectedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadConnectedEvent));
-        broker.Route<GenericInputDisconnectedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadDisconnectedEvent));
-        broker.Route<GenericInputButtonPressedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadButtonPressedEvent));
-        broker.Route<GenericInputButtonReleasedEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadButtonReleasedEvent));
-        broker.Route<GenericInputAxisEvent>(REGISTER_CLIENT_EVENT(Application::OnGamepadAxisEvent));
+        broker.Route<WindowStatusEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowStatusEvent));
+        broker.Route<KeyboardEvent>(REGISTER_CLIENT_EVENT(Application::OnKeyboardEvent));
     }
 
-    bool Application::OnWindowCloseEvent(WindowCloseEvent& e)
+    bool Application::OnWindowStatusEvent(WindowStatusEvent& event)
     {
-        m_Running = false;
-        Log.Debug("close");
-        return m_Running;
+        if (event.GetState() == WindowState::Closed) {
+            m_Running = false;
+            Log.Debug("close");
+            return m_Running;
+        }
+        return true;
     }
 
-    bool Application::OnKeyPressedEvent(KeyPressedEvent& e)
+    bool Application::OnKeyboardEvent(KeyboardEvent& event)
     {
+        //Log.Debug("{0}", e);
+        if (event.GetKeycode() == Keyboard::Escape){
+            m_Running = false;
+        }
         //Log.Debug("Keycode = {0}, Scancode = {1}", Keyboard::GetKeycode(e.GetKey()), Keyboard::GetScancode(e.GetScan()));
-        return false;
-    }
-
-    bool Application::OnGamepadConnectedEvent(GenericInputConnectedEvent& e)
-    {
-        //Log.Debug("Connexion");
-        return false;
-    }
-
-    bool Application::OnGamepadDisconnectedEvent(GenericInputDisconnectedEvent& e)
-    {
-        //Log.Debug("Deconnection");
-        return false;
-    }
-
-    bool Application::OnGamepadButtonPressedEvent(GenericInputButtonPressedEvent& e)
-    {
-        //Log.Debug("Presse");
-        return false;
-    }
-
-    bool Application::OnGamepadButtonReleasedEvent(GenericInputButtonReleasedEvent& e)
-    {
-        //Log.Debug("Release");
-        return false;
-    }
-
-    bool Application::OnGamepadAxisEvent(GenericInputAxisEvent& e)
-    {
-        //Log.Debug("Axis");
         return false;
     }
 

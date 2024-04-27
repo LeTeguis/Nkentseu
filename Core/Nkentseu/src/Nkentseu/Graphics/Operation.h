@@ -9,17 +9,28 @@
 #pragma once
 
 #include "System/System.h"
+#include <System/Nature/Base.h>
+#include <string>
 
 namespace nkentseu {
-	enum class Operation {
-		Add,
-		Multiply,
-		Subtract,
-		Divide,
-		Modulo,
-		And,
-		Or,
-		Xor
+	class Operation {
+	public:
+		using Code = uint64;
+
+		enum : Code {
+			NotDefine = 0,
+			Add,
+			Multiply,
+			Subtract,
+			Divide,
+			Modulo,
+			And,
+			Or,
+			Xor
+		};
+
+		std::string ToString(Operation::Code operation);
+		Operation::Code FromString(const std::string& operation);
 	};
 } // namespace nkentseu
 

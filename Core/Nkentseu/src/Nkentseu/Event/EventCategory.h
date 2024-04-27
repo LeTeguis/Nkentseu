@@ -26,15 +26,15 @@ namespace nkentseu {
             NotDefine = 0,
 
             // Application category (for events related to the application itself)
-            Application = BIT(0),
+            Application = BIT(1),
 
             // Input category (for events related to user input)
-            Input = BIT(1),
+            Input = BIT(2),
 
             // Subcategories within Input (more specific categories can be added)
-            Keyboard = BIT(2),
-            Mouse = BIT(3),
-            MouseButton = BIT(4),  // Consider using a separate enum for mouse button events
+            Keyboard = BIT(3),
+            Mouse = BIT(4),
+            //MouseButton = BIT(4),  // Consider using a separate enum for mouse button events
 
             Window = BIT(5),
             Graphics = BIT(6),
@@ -42,7 +42,7 @@ namespace nkentseu {
             Gamepad = BIT(8),
             Custom = BIT(9),
             Transfer = BIT(10),
-            GenericInput = BIT(11),
+            GenericHid = BIT(11),
             DragAndDrop = BIT(12)
         };
 

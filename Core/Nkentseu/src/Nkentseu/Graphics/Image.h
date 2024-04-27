@@ -106,8 +106,8 @@ namespace nkentseu {
 		std::vector<Image> FindAllSubImageOptimize(Color color);
 		Image FindSubImageOptimize(Vector2i point, Color color);
 
-		Image DoOperation(Image& other, Operation operation);
-		Image DoOperation(Image& other, Vector2i otherPosition, Operation operation);
+		Image DoOperation(Image& other, Operation::Code operation);
+		Image DoOperation(Image& other, Vector2i otherPosition, Operation::Code operation);
 	private:
 		Vector2u m_Size;
 		uint32 m_Channels;

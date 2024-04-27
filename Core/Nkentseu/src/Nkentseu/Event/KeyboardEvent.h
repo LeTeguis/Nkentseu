@@ -12,98 +12,46 @@
 #include "System/System.h"
 #include "Event.h"
 #include "Keyboard.h"
-#include <Nkentseu/Event/ModifierState.h>
 
 namespace nkentseu {
 
-    // Class representing a keyboard key event, inherits from the Event class
-    class NKENTSEU_API KeyEvent : public Event {
+    class NKENTSEU_API KeyboardEvent : public Event {
     public:
-        // Get the virtual key code of the pressed/released key
-        Keyboard::Keycode GetKey() const; // Needs implementation
-
-        // Get the hardware scancode of the pressed/released key
-        Keyboard::Scancode GetScan() const; // Needs implementation
-
-        // Get the modifier state associated with the event
-        ModifierState GetState() const; // Needs implementation
-
-        // Check if a specific key was pressed/released
-        bool IsKey(Keyboard::Keycode k) const; // Needs implementation
-
-        // Check if a specific scancode was pressed/released
-        bool IsScan(Keyboard::Scancode s) const; // Needs implementation
-
-        // Check for a specific modifier state
-        bool IsMState(ModifierState ms) const; // Needs implementation
-
-        // Override the IsEqual method to compare event types and key code
-        virtual bool IsEqual(Event& e) const override; // Needs implementation
-
-        // Event category flags using macro
+        EVENT_TYPE_FLAGS(EventType::KeyboardInput)
         EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
+    public:
+        KeyboardEvent(uint64 win, ButtonState::Code buttonState, Keyboard::Keycode keycode, Keyboard::Scancode scancode, const ModifierState& modifierState, uint64 keychar, uint32 repeatCount = 0);
+        KeyboardEvent(const KeyboardEvent& e);
+        virtual std::string ToString() const override;
 
+        Keyboard::Keycode GetKeycode() const;
+        Keyboard::Scancode GetScancode() const;
+        ModifierState GetModifierState() const;
+        bool IsKeycode(Keyboard::Keycode keycode) const;
+        bool IsScancode(Keyboard::Scancode scancode) const;
+        bool IsModifierState(const ModifierState& modiferState) const;
+        uint64 GetKeychar() const;
+        ButtonState::Code GetState() const;
+        uint32 GetRepeatCount() const;
     protected:
-        // Protected constructor with window ID, key code, scan code, and modifier state
-        KeyEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state); // Needs implementation
-
-        Keyboard::Keycode m_Key;  // The virtual key code of the pressed/released key
-        Keyboard::Scancode m_Scan;  // The hardware scancode of the pressed/released key
-        ModifierState m_State;     // The modifier state associated with the event
+        Keyboard::Keycode m_Keycode;
+        Keyboard::Scancode m_Scancode;
+        ModifierState m_ModifierState;
+        uint64 m_Keychar;
+        ButtonState::Code m_ButtonState;
+        uint32 m_RepeatCount;
     };
 
-    // Class representing a key pressed event, inherits from the KeyEvent class
-    class NKENTSEU_API KeyPressedEvent : public KeyEvent {
+    class NKENTSEU_API CharEnteredEvent : public Event {
     public:
-        // Constructors with window ID, key code, scan code, modifier state, and optional repeat count
-        KeyPressedEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state, int32 repeatCount = 1); // Needs implementation
-
-        // Check if the key is a repeated key press
-        bool IsRepeat() const; // Needs implementation
-
-        // Get the number of times the key has been pressed (repeat count)
-        int32 GetRepeatCount() const; // Needs implementation
-
-        // Override the ToString method to provide a string representation of the event
-        virtual std::string ToString() const override; // Needs implementation
-
-        // Event type flags using macro
-        EVENT_TYPE_FLAGS(EventType::KeyPressed)
-
-    private:
-        int32 m_RepeatCount;  // The number of times the key has been pressed (repeat count)
-    };
-
-    // Class representing a key released event, inherits from the KeyEvent class
-    class NKENTSEU_API KeyReleasedEvent : public KeyEvent {
-    public:
-        // Constructor with window ID, key code, scan code, and modifier state
-        KeyReleasedEvent(uint64 win, Keyboard::Keycode key, Keyboard::Scancode scan, const ModifierState& state); // Needs implementation
-
-        // Override the ToString method to provide a string representation of the event
-        virtual std::string ToString() const override; // Needs implementation
-
-        // Event type flags using macro
-        EVENT_TYPE_FLAGS(EventType::KeyReleased)
-
-    };
-
-    // Class representing a character pressed event, inherits from the Event class
-    class NKENTSEU_API CharPressedEvent : public Event {
-    public:
-        // Constructor with window ID and the pressed character
-        CharPressedEvent(uint64 win, uint64 character); // Needs implementation
-
-        // Get the pressed character
-        uint64 GetChar() const; // Needs implementation
-
-        // Override the ToString method to provide a string representation of the event
-        virtual std::string ToString() const override; // Needs implementation
-
-          // Event type and category flags using macros
         EVENT_TYPE_FLAGS(EventType::CharEntered)
-            EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
+        EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
+    public:
+        CharEnteredEvent(uint64 win, uint64 character);
+        CharEnteredEvent(const CharEnteredEvent& e);
+        virtual std::string ToString() const override;
 
+        uint64 GetCharacter() const;
     private:
         uint64 m_Character;  // The pressed character
     };

@@ -451,7 +451,7 @@ namespace nkentseu {
 		}
 
 		friend bool operator==(const Vector4d& l, const Vector4d& r) {
-			return maths::EqualF32(l.x, r.x) && maths::EqualF32(l.y, r.y) && maths::EqualF32(l.z, r.z) && maths::EqualF32(l.w, r.w);
+			return maths::EqualF64(l.x, r.x) && maths::EqualF64(l.y, r.y) && maths::EqualF64(l.z, r.z) && maths::EqualF64(l.w, r.w);
 		}
 
 		friend bool operator!=(const Vector4d& l, const Vector4d& r) {
@@ -672,7 +672,7 @@ namespace nkentseu {
 		}
 
 		friend bool operator==(const Vector4i& l, const Vector4i& r) {
-			return maths::EqualF32(l.x, r.x) && maths::EqualF32(l.y, r.y) && maths::EqualF32(l.z, r.z) && maths::EqualF32(l.w, r.w);
+			return l.x == r.x && l.y == r.y && l.z == r.z && l.w == r.w;
 		}
 
 		friend bool operator!=(const Vector4i& l, const Vector4i& r) {
@@ -817,10 +817,6 @@ namespace nkentseu {
 			return v.ToString();
 		}
 
-		Vector4u operator-() const {
-			return Vector4u(-x, -y, -z, -w);
-		}
-
 		inline uint32& operator[] (size_t index) {
 			return this->ptr[index % 4];
 		}
@@ -894,7 +890,7 @@ namespace nkentseu {
 		}
 
 		friend bool operator==(const Vector4u& l, const Vector4u& r) {
-			return maths::EqualF32(l.x, r.x) && maths::EqualF32(l.y, r.y) && maths::EqualF32(l.z, r.z) && maths::EqualF32(l.w, r.w);
+			return l.x == r.x && l.y == r.y && l.z == r.z && l.w == r.w;
 		}
 
 		friend bool operator!=(const Vector4u& l, const Vector4u& r) {

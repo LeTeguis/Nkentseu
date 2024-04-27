@@ -1,24 +1,26 @@
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
 project "Stb"
     kind (libraryType)
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
-    BuildsInfos("%{prj.name}")
+    targetdir ( build .. outputdir .. "/%{prj.name}" )
+    objdir ( build_int .. outputdir .. "/%{prj.name}" )
 
     files {
-        --"./src/**.h",
-        --"./src/**.hpp",
-        --"./src/**.c",
-        --"./src/**.cpp",
-        "./include/**.h",
-        "./include/**.hpp",
-        "./include/**.c",
-        "./include/**.cpp",
+        "./src/**.h",
+        "./src/**.hpp",
+        "./src/**.c",
+        "./src/**.cpp",
+        --"./include/**.h",
+        --"./include/**.hpp",
+        --"./include/**.c",
+        --"./include/**.cpp",
     }
 
     includedirs {
-        "./include"
+        "./src"
     }
 
     defines
@@ -28,11 +30,6 @@ project "Stb"
 
     filter "system:windows"
         systemversion "latest"
-        optimize "off"
-        links {
-        }
-
-        linkoptions { "-lpthread" }
 
     filter "system:macosx"
         xcodebuildsettings
@@ -40,13 +37,6 @@ project "Stb"
             ["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
             ["USeModernBuildSystem"] = "NO"
         }
-
-    filter "system:linux"
-        links {
-        }
-
-        -- Ajout d'options de compilation pour toutes les configurations sous Linux
-        buildoptions { "-fPIC", "-pthread" }
 
     filter "configurations:Debug"
         runtime "Debug"

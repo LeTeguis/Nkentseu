@@ -27,71 +27,57 @@ namespace nkentseu {
             NotDefine = 0,
 
             // Window Events (for describing window-related events)
-            WindowCreated,
-            WindowPainted,
+            WindowStatus,   // Created, Closed
+            WindowRendered,
             WindowBackgroundErased,
-            WindowClosed,
-            WindowResized,
-            WindowFocused,
-            WindowLostFocus,
+            WindowResized,  // Expand, Reduce
+            WindowFocused,    // Focused, LosFocus
             WindowDpiChanged,
             WindowMoved,
+            WindowVisible,
 
             // Application Events (for application-specific events)
             ApplicationTick,
             ApplicationUpdate,
             ApplicationRender,
 
-            // Keyboard Events (for keyboard input events)
-            KeyPressed,
-            KeyReleased,
+            // Keyboard Events (for keyboard input events) (Pressed, Released)
+            KeyboardInput,
             CharEntered,
 
-            // Mouse Events (for mouse input events)
-            MouseButtonPressed,
-            MouseButtonReleased,
-            MouseButtonDoubleClicked,
-            MouseButtonRawInput,
-            MouseMoved,
-            MouseWheelScrolled,
-            MouseEnteredWindow,
-            MouseExitedWindow,
+            // Mouse Events (for mouse input events) 
+            MouseInput,    // Pressed, Released
+            MouseMoved,     // Vertical, Horizontal, value
+            MouseWheel,     // Vertical, Horizontal, value
+            MouseWindow,    // Entered, Exited
 
             // Gamepad Events (for gamepad input events)
-            GamepadConnected,
-            GamepadDisconnected,
-            GamepadButtonPressed,
-            GamepadButtonReleased,
-            GamepadAxisMoved,
-            GamepadStickMoved,
-            GamepadTriggerMoved,
+            GamepadStatus,   // Connected, Disconnected
+            GamepadInput,
+            GamepadAxis,
+            GamepadStick,
+            GamepadTrigger,
 
             // Touchpad Events (for touch input events)
-            TouchReleased,
-            TouchPressed,
-            TouchMoved,
+            TouchButton,    // Pressed, Released
+            TouchMoved,     // moved
             TouchCancelled,
             TouchPinchGesture,
 
             // Drag and Drop Events (for drag and drop interactions)
-            FilesDropped,
-            DragStarted,
-            DropCompleted,
+            FilesEntered,
+            DraggedStatus,  // Dragged, Dropped, DragDropEnd
 
             // Transfer Events (for data and file transfer events)
-            DataTransfer,
-            FileTransfer,
+            Transfer,   // Data, File
 
             // Generic Input Events (for handling various input devices)
-            GenericInputConnected,
-            GenericInputDisconnected,
-            GenericInputPressed,
-            GenericInputReleased,
-            GenericInputAxisMoved,
-            GenericInputHatMoved,
+            GenericStatus, // Connected, Disconnected
+            GenericInput,  // Pressed, Released
+            GenericAxis,
+            GenericHat,
 
-            // Custom Event (for handling application-specific events)
-            CustomEvent
+            MaxType
         };
 
         // Function to convert an event code to a human-readable string

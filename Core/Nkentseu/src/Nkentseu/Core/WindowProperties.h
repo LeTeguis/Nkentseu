@@ -103,7 +103,7 @@ namespace nkentseu {
         bool cursorVisible = true;
 
         // bpp
-        uint32 bitsPerPixel{};
+        uint32 bitsPerPixel = 96;
         static WindowProperties GetDesktopProperties();
         static const std::vector<WindowProperties>& GetFullscreenProperties();
 

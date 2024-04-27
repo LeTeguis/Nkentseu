@@ -15,11 +15,6 @@
 #include "GenericInput.h"
 
 namespace nkentseu {
-    enum class NKENTSEU_API InputDeviceType {
-        Unknow,
-        GameController
-    };
-
     struct NKENTSEU_API GenericInputInfos {
         uintl32 joystickId;
         uintl32 vendorID;
@@ -30,76 +25,79 @@ namespace nkentseu {
         std::string name;
 
         GenericInputInfos(uintl32 vendorID, uintl32 productID, uintl32 versionNumber, uint16 usage, uint16 usagePage, const std::string& name);
-        GenericInputInfos(){}
+        GenericInputInfos();
 
         std::string ToString() const;
     };
 
+    class NKENTSEU_API GenericStatusEvent : public Event {
+    public:
+        EVENT_TYPE_FLAGS(EventType::GenericStatus)
+        EVENT_CATEGORY_FLAGS(EventCategory::GenericHid | EventCategory::Input)
+    public:
+        GenericStatusEvent(uint64 win, StatusState::Code statusState, const GenericInputInfos& genericInputInfos);
+        GenericStatusEvent(const GenericStatusEvent& e);
+        virtual std::string ToString() const override;
+
+        StatusState::Code GetState() const;
+        GenericInputInfos GetInfo() const;
+    protected:
+        GenericInputInfos m_GenericInputInfos;
+        StatusState::Code m_StatusState;
+    };
 
     class NKENTSEU_API GenericInputEvent : public Event {
     public:
-        GenericInputEvent(uint64 win, const GenericInputInfos& genericInputInfos);
-
-        GenericInputInfos GetGenericInputInfos() const;
-        EVENT_CATEGORY_FLAGS(EventCategory::GenericInput | EventCategory::Input)
-    protected:
-        GenericInputInfos m_GenericInputInfos;
-    };
-
-    class NKENTSEU_API GenericInputConnectedEvent : public GenericInputEvent {
+        EVENT_TYPE_FLAGS(EventType::GenericInput)
+            EVENT_CATEGORY_FLAGS(EventCategory::GenericHid | EventCategory::Input)
     public:
-        GenericInputConnectedEvent(uint64 win, const GenericInputInfos& genericInputInfos);
-
+        GenericInputEvent(uint64 win, GenericInput::Button button, ButtonState::Code buttonState, const GenericInputInfos& genericInputInfos);
+        GenericInputEvent(const GenericInputEvent& e);
         virtual std::string ToString() const override;
 
-        EVENT_TYPE_FLAGS(EventType::GenericInputConnected)
-    };
-
-    class NKENTSEU_API GenericInputDisconnectedEvent : public GenericInputEvent {
-    public:
-        GenericInputDisconnectedEvent(uint64 win, const GenericInputInfos& genericInputInfos);
-
-        virtual std::string ToString() const override;
-
-        EVENT_TYPE_FLAGS(EventType::GenericInputDisconnected)
-    };
-
-
-    class NKENTSEU_API GenericInputButtonEvent : public GenericInputEvent {
-    public:
-        GenericInputButtonEvent(uint64 win, const GenericInputInfos& genericInputInfos, GenericInput::Button button);
-
+        ButtonState::Code GetState() const;
         GenericInput::Button GetButton() const;
-    protected:
+        GenericInputInfos GetInfo() const;
+        private:
+        GenericInputInfos m_GenericInputInfos;
+        ButtonState::Code m_ButtonState;
         GenericInput::Button m_Button;
     };
 
-    class NKENTSEU_API GenericInputButtonPressedEvent : public GenericInputButtonEvent {
+    class NKENTSEU_API GenericAxisEvent : public Event {
     public:
-        GenericInputButtonPressedEvent(uint64 win, const GenericInputInfos& genericInputInfos, GenericInput::Button button);
+        EVENT_TYPE_FLAGS(EventType::GenericAxis)
+            EVENT_CATEGORY_FLAGS(EventCategory::GenericHid | EventCategory::Input)
+    public:
+        GenericAxisEvent(uint64 win, GenericInput::Axis axis, float32 value, const GenericInputInfos& genericInputInfos);
+        GenericAxisEvent(const GenericAxisEvent& e);
         virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::GenericInputPressed)
-    };
-
-    class NKENTSEU_API GenericInputButtonReleasedEvent : public GenericInputButtonEvent {
-    public:
-        GenericInputButtonReleasedEvent(uint64 win, const GenericInputInfos& genericInputInfos, GenericInput::Button button);
-        virtual std::string ToString() const override;
-        EVENT_TYPE_FLAGS(EventType::GenericInputReleased)
-    };
-
-    class NKENTSEU_API GenericInputAxisEvent : public GenericInputEvent {
-    public:
-        GenericInputAxisEvent(uint64 win, const GenericInputInfos& genericInputInfos, GenericInput::Axis axis, float32 value);
 
         GenericInput::Axis GetAxis() const;
         float32 GetValue() const;
-
-        EVENT_TYPE_FLAGS(EventType::GenericInputAxisMoved)
-            virtual std::string ToString() const override;
-    protected:
+        GenericInputInfos GetInfo() const;
+        private:
         GenericInput::Axis m_Axis;
         float32 m_Value;
+        GenericInputInfos m_GenericInputInfos;
+    };
+
+    class NKENTSEU_API GenericHatEvent : public Event {
+    public:
+        EVENT_TYPE_FLAGS(EventType::GenericHat)
+            EVENT_CATEGORY_FLAGS(EventCategory::GenericHid | EventCategory::Input)
+    public:
+        GenericHatEvent(uint64 win, GenericInput::Hat hat, float32 value, const GenericInputInfos& genericInputInfos);
+        GenericHatEvent(const GenericHatEvent& e);
+        virtual std::string ToString() const override;
+
+        GenericInput::Hat GetHat() const;
+        float32 GetValue() const;
+        GenericInputInfos GetInfo() const;
+    protected:
+        GenericInput::Hat m_Hate;
+        float32 m_Value;
+        GenericInputInfos m_GenericInputInfos;
     };
 } // namespace nkentseu
 

@@ -47,6 +47,7 @@
 #include <hidpi.h>
 #include <Nkentseu/Event/InputManager.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include <dwmapi.h>
 
 #pragma comment(lib, "hid.lib")
 
@@ -61,17 +62,18 @@ namespace nkentseu {
 	// Global variables
 	//
 
-	enum class GInputState {
-		PrepareToPressed, Pressed, Released
-	};
-
-	GInputState bButtonStates[MAX_BUTTONS];
+	ButtonState::Code bButtonStates[MAX_BUTTONS];
 	LONG lAxisX;
 	LONG lAxisY;
 	LONG lAxisZ;
 	LONG lAxisRz;
 	LONG lHat;
 	INT  g_NumberOfButtons;
+
+	WindowEventInternal& WindowEventInternal::GetInstance() {
+        static WindowEventInternal eventManager;
+        return eventManager;
+    }
 
 	WindowEventInternal::WindowEventInternal() : isInitialized(false) {
 		joysticks = GInput.createJoysticks();
@@ -150,7 +152,7 @@ namespace nkentseu {
 			return 0;
 		}
 
-		return EventInternal->WindowProc(msg, wparam, lparam, nativeWindow);
+		return EventInternal.WindowProc(msg, wparam, lparam, nativeWindow);
 	}
 
 	LRESULT WindowEventInternal::WindowProc(UINT msg, WPARAM wparam, LPARAM lparam, WindowInternal* nativeWindow) {
@@ -188,7 +190,7 @@ namespace nkentseu {
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 		static bool move = false;
 
-		#define CBTN ((HIWORD(msg.wParam) & XBUTTON1) ? Mouse::X1 : Mouse::X2)
+		#define CBTN ((HIWORD(msg.wParam) & XBUTTON1) ? Mouse::Buttons::X1 : Mouse::Buttons::X2)
 
 		switch (message) {
 		case WM_SETCURSOR:
@@ -232,11 +234,11 @@ namespace nkentseu {
 		case WM_MOUSEHWHEEL:
 		case WM_MOUSEWHEEL: { return HandleMouseWheelEvent(msg, window, WM_MOUSEWHEEL == message); break; }
 		case WM_LBUTTONDBLCLK: case WM_LBUTTONDOWN: case WM_LBUTTONUP:
-		{ return HandleMouseButtonEvent(msg, window, Mouse::Left, WM_LBUTTONDOWN == message, WM_LBUTTONDBLCLK == message); break; }
+		{ return HandleMouseButtonEvent(msg, window, Mouse::Buttons::Left, WM_LBUTTONDOWN == message, WM_LBUTTONDBLCLK == message); break; }
 		case WM_MBUTTONDBLCLK: case WM_MBUTTONDOWN: case WM_MBUTTONUP:
-		{ return HandleMouseButtonEvent(msg, window, Mouse::Middle, WM_MBUTTONDOWN == message, WM_MBUTTONDBLCLK == message); break; }
+		{ return HandleMouseButtonEvent(msg, window, Mouse::Buttons::Middle, WM_MBUTTONDOWN == message, WM_MBUTTONDBLCLK == message); break; }
 		case WM_RBUTTONDBLCLK: case WM_RBUTTONDOWN: case WM_RBUTTONUP:
-		{ return HandleMouseButtonEvent(msg, window, Mouse::Right, WM_RBUTTONDOWN == message, WM_RBUTTONDBLCLK == message); break; }
+		{ return HandleMouseButtonEvent(msg, window, Mouse::Buttons::Right, WM_RBUTTONDOWN == message, WM_RBUTTONDBLCLK == message); break; }
 		case WM_XBUTTONDBLCLK: case WM_XBUTTONDOWN: case WM_XBUTTONUP:
 		{ return HandleMouseButtonEvent(msg, window, CBTN, WM_XBUTTONDOWN == message, WM_XBUTTONDBLCLK == message); break; }
 		case WM_MOUSEMOVE: { return HandleMouseMoveEvent(msg, window); break; }
@@ -247,6 +249,7 @@ namespace nkentseu {
 		{ return HandleKeyboardEvent(msg, window, (message == WM_KEYDOWN || message == WM_SYSKEYDOWN)); break; }
 		case WM_SYSCHAR: case WM_UNICHAR: case WM_CHAR: case WM_DEADCHAR: case WM_IME_CHAR:
 		{ return HandleCharEvent(msg, window, message != WM_SYSCHAR); break; }
+
 		case WM_DROPFILES: { return HandleDropFilesEvent(msg, window); break; }
 		case WM_WINDOWPOSCHANGED: return RestricWindowSize(msg, window); break;
 		default:
@@ -323,7 +326,7 @@ namespace nkentseu {
 
 	LRESULT WindowEventInternal::HandleWindowCreateEvent(MSG msg, WindowInternal* window) {
 		// Input;
-		return FinalizePushEvent(new WindowCreateEvent(window->ID()), 0, msg, window);
+		return FinalizePushEvent(new WindowStatusEvent(window->ID(), WindowState::Created, window->GetProperties()), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleWindowPaintEvent(MSG msg, WindowInternal* window) {
@@ -404,23 +407,39 @@ namespace nkentseu {
 
 		// No longer capture the cursor
 		ReleaseCapture();
-		return FinalizePushEvent(new WindowCloseEvent(window->ID()), 0, msg, window);
+		return FinalizePushEvent(new WindowStatusEvent(window->ID(), WindowState::Closed, window->GetProperties()), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleWindowFocusedEvent(MSG msg, WindowInternal* window, bool focused) {
-		return FinalizePushEvent(new WindowFocusEvent(window->ID(), focused), 0, msg, window);
+		return FinalizePushEvent(new WindowFocusedEvent(window->ID(), focused ? FocusState::Focused : FocusState::Unfocused), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleWindowResizeEvent(MSG msg, WindowInternal* window, bool resizing) {
 		LRESULT result = 0;
 
-		Vector2u size;
+		float32 area = window->GetSize().width * window->GetSize().height;
+
+		Rectangle win;
+		win.corner = window->GetProperties().position;
+
 		if (!resizing) {
-			RECT r;
-			GetClientRect(window->GetWindowDisplay()->windowHandle, &r);
-			size.width = r.right - r.left;
-			size.height = r.bottom - r.top;
+			RECT rect, frame, border;
+			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
+            /*DwmGetWindowAttribute(window->m_NativeWindow->windowHandle, DWMWA_EXTENDED_FRAME_BOUNDS, &frame, sizeof(RECT));
+			int32 titlebarHeight = (GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CXPADDEDBORDER));
+
+			border.left = frame.left - rect.left;
+            border.top = frame.top - rect.top;
+            border.right = rect.right - frame.right;
+            border.bottom = rect.bottom - frame.bottom;
+
+			//win.size.width = static_cast<float32>((UINT64)msg.lParam & 0xFFFF);
+			//win.size.height = static_cast<float32>((UINT64)msg.lParam >> 16);
+			//win.size = window->ConvertPixelToDpi(win.size) - Vector2f(border.right + border.left, border.top + border.bottom);*/
+			win.size.width = rect.right - rect.left;
+			win.size.height = rect.bottom - rect.top;
 			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
+			Log_nts.Debug("Resizing {0} ++++ {1}", window->m_Properties.size, win);
 		}
 		else {
 			uint32 STEP = 1;
@@ -431,14 +450,27 @@ namespace nkentseu {
 			GetWindowRect(window->GetWindowDisplay()->windowHandle, &wind);
 			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
 
-			size.width = rect.right - rect.left;
-			size.height = rect.bottom - rect.top;
+			win.size.width = rect.right - rect.left;
+			win.size.height = rect.bottom - rect.top;
 
 			// Redraw window to refresh it while resizing
 			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 			result = WVR_REDRAW;
 		}
-		return FinalizePushEvent(new WindowResizeEvent(window->ID(), size, resizing), result, msg, window);
+
+		float32 newarea = win.size.width * win.size.height;
+		ResizeState::Code state = ResizeState::NotChange;
+
+		if (newarea > area) {
+			state = ResizeState::Expanded;
+		}
+		else if (newarea < area) {
+			state = ResizeState::Reduced;
+		}
+
+		window->m_Properties.size = win.size;
+
+		return FinalizePushEvent(new WindowResizedEvent(window->ID(), state, win), result, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleWindowNCHITTESTEvent(MSG msg, WindowInternal* window) {
@@ -473,7 +505,7 @@ namespace nkentseu {
 				currentWindowRect = *prcNewWindow;
 			}
 		}
-		return FinalizePushEvent(new WindowDpiEvent(window->ID(), fscale), 0, msg, window, currentWindowRect);
+		return FinalizePushEvent(new WindowDpiChangedEvent(window->ID(), fscale), 0, msg, window, currentWindowRect);
 	}
 
 	LRESULT WindowEventInternal::HandleWindowNCCALCSIZEEvent(MSG msg, WindowInternal* window) {
@@ -540,8 +572,9 @@ namespace nkentseu {
 				position = Vector2i(r->left, r->top);
 			}
 		}
+		Vector2i lasPosition = window->m_Properties.position;
 		window->m_Properties.position = position;
-		return FinalizePushEvent(new WindowMovedEvent(window->ID(), position), 0, msg, window, currentWindowRect);
+		return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
 	}
 
 	LRESULT WindowEventInternal::HandleMouseWheelEvent(MSG msg, WindowInternal* window, bool vertical) {
@@ -555,9 +588,9 @@ namespace nkentseu {
 
 		ScreenToClient(window->GetWindowDisplay()->windowHandle, &position);
 
-		Mouse::Button wheel = (vertical) ? Mouse::Vertical : Mouse::Horizontal;
+		Mouse::Wheel wheel = (vertical) ? Mouse::Wheels::Vertical : Mouse::Wheels::Horizontal;
 
-		return FinalizePushEvent(new MouseWheelEvent(window->ID(), wheel, delta, Vector2i(position.x, position.y), ms), 0, msg, window);
+		return FinalizePushEvent(new MouseWheelEvent(window->ID(), wheel, delta, ms, Vector2i(position.x, position.y)), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleMouseButtonEvent(MSG msg, WindowInternal* window, uint8 btn, bool pressed, bool dbclick) {
@@ -582,14 +615,16 @@ namespace nkentseu {
 
 		mousePosition = position;
 		globalMousePosition = positionGlobal;
+		bool doubleClick = false;
+		ButtonState::Code state = ButtonState::Released;
 
 		if (dbclick) {
-			return FinalizePushEvent(new MouseButtonDBCLKEvent(window->ID(), ms, btn, position), 0, msg, window);
+			doubleClick = true;
 		}
 		if (pressed) {
-			return FinalizePushEvent(new MouseButtonPressedEvent(window->ID(), ms, btn, position), 0, msg, window);
+			state = ButtonState::Pressed;
 		}
-		return FinalizePushEvent(new MouseButtonReleasedEvent(window->ID(), ms, btn, position), 0, msg, window);
+		return FinalizePushEvent(new MouseInputEvent(window->ID(), state, ms, btn, doubleClick, position, globalMousePosition), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleMouseButtonRawEvent(MSG msg, WindowInternal* window, RAWINPUT* raw) {
@@ -607,19 +642,25 @@ namespace nkentseu {
 
 		Vector2i delta(static_cast<int>(raw->data.mouse.lLastX), static_cast<int>(raw->data.mouse.lLastY));
 
-#define PPD(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN))
-#define PPU(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_UP))
-#define PP(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN | RI_MOUSE_##v##_UP))
+		#define PPD(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN))
+		#define PPU(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_UP))
+		#define PP(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN | RI_MOUSE_##v##_UP))
 
 		bool pressed = PPD(LEFT_BUTTON) || PPD(RIGHT_BUTTON) || PPD(MIDDLE_BUTTON) || PPD(BUTTON_4) || PPD(BUTTON_5);
-		uint8 btn = Mouse::NotDefine;
-		if (PP(LEFT_BUTTON)) btn = Mouse::Left;
-		if (PP(RIGHT_BUTTON)) btn = Mouse::Right;
-		if (PP(MIDDLE_BUTTON)) btn = MOUSE(Middle);
-		if (PP(BUTTON_4)) btn = Mouse::X1;
-		if (PP(BUTTON_5)) btn = Mouse::X2;
+		uint8 btn = Mouse::Buttons::NotDefine;
+		if (PP(LEFT_BUTTON)) btn = Mouse::Buttons::Left;
+		if (PP(RIGHT_BUTTON)) btn = Mouse::Buttons::Right;
+		if (PP(MIDDLE_BUTTON)) btn = Mouse::Buttons::Middle;
+		if (PP(BUTTON_4)) btn = Mouse::Buttons::X1;
+		if (PP(BUTTON_5)) btn = Mouse::Buttons::X2;
 
-		return FinalizePushEvent(new MouseButtonRawEvent(window->ID(), ms, btn, delta, pressed, mousePosition), 0, msg, window);
+		ButtonState::Code state = ButtonState::Released;
+		if (pressed) {
+			state = ButtonState::Pressed;
+		}
+
+		// FinalizePushEvent(new MouseInputEvent(window->ID(), state, ms, btn, false, delta, globalMousePosition), 0, msg, window);
+		return 0;
 	}
 
 	LRESULT WindowEventInternal::HandleMouseMoveEvent(MSG msg, WindowInternal* window) {
@@ -644,32 +685,38 @@ namespace nkentseu {
 			if (window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = false;
 				SetMouseTracking(false, window);
-				FinalizePushEvent(new MouseExitedEvent(window->ID(), Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
+				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Exited, Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
 			}
 		}
 		else {
 			if (!window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = true;
 				SetMouseTracking(true, window);
-				FinalizePushEvent(new MouseEnteredEvent(window->ID(), Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
+				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Entered, Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
 			}
 		}
 
 		Vector2i position(positionGlobal.x - area.left, positionGlobal.y - area.top);
-		Vector2i move = positionGlobal - previousMousePosition;
-		previousMousePosition = positionGlobal;
+		Vector2i move = position - previousMousePosition;
+		previousMousePosition = mousePosition;
 
 		mousePosition = position;
-		globalMousePosition = positionGlobal;
+		globalMousePosition = window->GetPosition() + position;
 
-		return FinalizePushEvent(new MouseMovedEvent(window->ID(), position, move, positionGlobal), 0, msg, window);
+		static bool isFirst = true;
+		if (isFirst){
+			isFirst = false;
+			return 0;
+		}
+
+		return FinalizePushEvent(new MouseMovedEvent(window->ID(), position, globalMousePosition, move), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleMouseLeaveEvent(MSG msg, WindowInternal* window) {
 		// Avoid this firing a second time in case the cursor is dragged outside
 		if (window->GetWindowDisplay()->isMouseInside) {
 			window->GetWindowDisplay()->isMouseInside = false;
-			return FinalizePushEvent(new MouseExitedEvent(window->ID()), 0, msg, window);
+			return FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Exited), 0, msg, window);
 		}
 		return 0;
 	}
@@ -703,20 +750,19 @@ namespace nkentseu {
 
 		BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;
 
-		// WORD scancode_value = static_cast<WORD>(MapVirtualKey(scancode, MAPVK_VSC_TO_VK));
+		Keyboard::Keycode nts_keycode = WindowEventCode::WinkeyToKeycodeSpecial(keycode, ms.shift);
+		Keyboard::Scancode nts_scancode = WindowEventCode::WinkeyToScancodeSpecial(scancode, ms.shift);
 
-		Keyboard::Keycode nts_keycode = WindowEventCode::WinkeyToKeycodeSpecial(keycode, ms.Shift);
-		Keyboard::Scancode nts_scancode = WindowEventCode::WinkeyToScancodeSpecial(scancode, ms.Shift);
-
+		ButtonState::Code state = ButtonState::Released;
 		if (keydown) {
-			return FinalizePushEvent(new KeyPressedEvent(window->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
+			state = ButtonState::Pressed;
 		}
-		return FinalizePushEvent(new KeyReleasedEvent(window->ID(), nts_keycode, nts_scancode, ms), 0, msg, window);
+		return FinalizePushEvent(new KeyboardEvent(window->ID(), state, nts_keycode, nts_scancode, ms, (uint64)msg.wParam), 0, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleCharEvent(MSG msg, WindowInternal* window, bool interpret) {
 		if (interpret) {
-			return FinalizePushEvent(new CharPressedEvent(window->ID(), (uint64)msg.wParam), 0, msg, window);
+			return FinalizePushEvent(new CharEnteredEvent(window->ID(), (uint64)msg.wParam), 0, msg, window);
 		}
 		return 0;
 	}
@@ -788,18 +834,18 @@ namespace nkentseu {
 
 				for (ULONG usageIndex = 0; usageIndex < usageCount; ++usageIndex) {
 					GenericInput::Button button = usages[usageIndex];
-					bButtonStates[button] = GInputState::PrepareToPressed;
+					bButtonStates[button] = ButtonState::NotDefine;
 				}
 
 				free(usages);
 
 				for (GenericInput::Button j = GenericInput::Buttons::B0; j < GenericInput::Buttons::BMax; j++) {
-					if (bButtonStates[j] == GInputState::PrepareToPressed) {
-						bButtonStates[j] = GInputState::Pressed;
+					if (bButtonStates[j] == ButtonState::NotDefine) {
+						bButtonStates[j] = ButtonState::Pressed;
 						AnalyzeButtonRawInput(msg, window, deviceInfo.hid, name, j, true);
 					}
-					else if (bButtonStates[j] == GInputState::Pressed) {
-						bButtonStates[j] = GInputState::Released;
+					else if (bButtonStates[j] == ButtonState::Pressed) {
+						bButtonStates[j] = ButtonState::Released;
 						AnalyzeButtonRawInput(msg, window, deviceInfo.hid, name, j, false);
 					}
 				}
@@ -820,7 +866,7 @@ namespace nkentseu {
 		}
 		else {
 			GenericInputInfos ginfos(devicecInfoHid.dwVendorId, devicecInfoHid.dwProductId, devicecInfoHid.dwVersionNumber, devicecInfoHid.usUsage, devicecInfoHid.usUsagePage, name);
-			FinalizePushEvent(new GenericInputAxisEvent(window->ID(), ginfos, axis, transmit_value), 0, msg, window);
+			//FinalizePushEvent(new GenericAxisEvent(window->ID(), ginfos, axis, transmit_value), 0, msg, window);
 		}
 	}
 
@@ -833,10 +879,10 @@ namespace nkentseu {
 		else {
 			GenericInputInfos ginfos(devicecInfoHid.dwVendorId, devicecInfoHid.dwProductId, devicecInfoHid.dwVersionNumber, devicecInfoHid.usUsage, devicecInfoHid.usUsagePage, name);
 			if (isPressed) {
-				FinalizePushEvent(new GenericInputButtonPressedEvent(window->ID(), ginfos, button), 0, msg, window);
+				//FinalizePushEvent(new GenericInputButtonPressedEvent(window->ID(), ginfos, button), 0, msg, window);
 			}
 			else {
-				FinalizePushEvent(new GenericInputButtonReleasedEvent(window->ID(), ginfos, button), 0, msg, window);
+				//FinalizePushEvent(new GenericInputButtonReleasedEvent(window->ID(), ginfos, button), 0, msg, window);
 			}
 		}
 	}

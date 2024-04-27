@@ -16,9 +16,11 @@
 extern nkentseu::int32 Main(const nkentseu::ARGV& argv);
 
 int main(int argc, const char** argv) {
-    nkentseu::PlatformState.Init(argc, argv);
-    nkentseu::int32 result = Main(nkentseu::PlatformState.argv);
-    nkentseu::PlatformState.Close();
+    nkentseu::int32 result = nkentseu::PlatformState.Init(argc, argv);
+    if (result == 0){
+        result = Main(nkentseu::PlatformState.argv);
+        nkentseu::PlatformState.Close();
+    }
     return (result);
 }
 

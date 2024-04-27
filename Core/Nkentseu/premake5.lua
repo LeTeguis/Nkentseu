@@ -1,7 +1,6 @@
 project "Nkentseu"
     kind (libraryType)
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
@@ -10,25 +9,32 @@ project "Nkentseu"
     pchsource "src/%{prj.name}Pch/ntspch.cpp"
     
     files {
+        -- Nkentseu
         "src/**.h",
         "src/**.hpp",
         "src/**.inl",
-        "src/**.cpp"
+        "src/**.cpp",
+
+        -- STB
+        "%{Externals.Stb}/src/**.h",
+        "%{Externals.Stb}/src/**.hpp",
+        "%{Externals.Stb}/src/**.c",
+        "%{Externals.Stb}/src/**.cpp"
     }
 
     includedirs {
         "./src",
-        "%{Externals.Stb}/include",
+        "%{Externals.Stb}/src",
         "%{Internals.NSystem}/src",
         "%{Internals.Logger}/src",
         "%{Internals.Ntsm}/src",
     }
 
     links {
-        "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
+        --"Stb",
     }
 
     defines {
@@ -38,9 +44,6 @@ project "Nkentseu"
     defineExport()
     defineApiInfo()
     -- defineGraphicApi()
-
-    links {
-    }
 
     filter "system:windows"
         systemversion "latest"
@@ -66,7 +69,7 @@ project "Nkentseu"
 
     filter "system:linux"
         links {
-            "xcb", "xcb-util", "xcb-icccm"
+            "X11", "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
         }
 
         -- Ajout d'options de compilation pour toutes les configurations sous Linux

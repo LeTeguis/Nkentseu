@@ -13,14 +13,17 @@
 #include <System/Nature/Base.h>
 #include "EventCategory.h"
 #include "EventType.h"
+#include "EventState.h"
+
+#include <functional>
 
 namespace nkentseu {
 
-    // ** Macros for Event Handling **
+// ** Macros for Event Handling **
 
-    // ** EVENT_BIND_HANDLER(method_)**
-    // This macro creates an event handler function using `std::bind`. It binds the provided method_ to the current 
-    // Event object (this) and the first argument passed to the handler function (STDPH(1)).
+// ** EVENT_BIND_HANDLER(method_)**
+// This macro creates an event handler function using `std::bind`. It binds the provided method_ to the current 
+// Event object (this) and the first argument passed to the handler function (STDPH(1)).
 #define EVENT_BIND_HANDLER(method_) std::bind(&method_, this, STDPH(1))
 
 // ** EVENT_STATIC_TYPE(type)**
@@ -99,6 +102,7 @@ namespace nkentseu {
         uint64 m_WindowID = 0; // Window ID associated with the event (protected member)
     };
 
+    using EventObserver = std::function<void(Event&)>;
 } // namespace nkentseu
 
 #endif  // __NKENTSEU_EVENT_H__

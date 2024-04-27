@@ -13,7 +13,8 @@
 #include "Nkentseu/Event/MouseEvent.h"
 #include "Nkentseu/Event/KeyboardEvent.h"
 #include "Nkentseu/Event/GenericInputEvent.h"
-#include "Nkentseu/Event/EventObservable.h"
+
+#include "Nkentseu/Event/EventFilter.h"
 #include "Nkentseu/Event/GenericInputEvent.h"
 
 

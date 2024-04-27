@@ -76,6 +76,18 @@ Internals["Window"]         = "%{wks.location}/Exemples/Window"
 
 -- Startup project configurations
 newoption {
+    trigger         = "linuxwindowapi",
+    value           = "",
+    description     = "ce flag peut prendre les valeurs NKENTSEU_PLATFORM_LINUX_XCB ou NKENTSEU_PLATFORM_LINUX_XLIB",
+    default         = "NKENTSEU_PLATFORM_LINUX_XCB",
+    category        = "WindowApi"
+}
+
+function getLinuxWindowApi()
+	return _OPTIONS["linuxwindowapi"]
+end
+
+newoption {
     trigger         = "startupproject",
     value           = "",
     description     = "ce flag peut prendre comme valeur le nom par defaut d'un projet",
@@ -172,6 +184,9 @@ function defineApiInfo()
 		}
     end
 
+    filter "system:linux"
+            defines { getLinuxWindowApi() }
+
     filter "configurations:Debug"
         defines {  "NKENTSEU_DEBUG"}
 
@@ -225,4 +240,11 @@ function defineExport()
     defines {
 		"NKENTSEU_EXPORTS"
     }
+end
+
+-- Langage informations
+
+function langageInformations()
+    language "C++"
+    cppdialect "C++20"
 end

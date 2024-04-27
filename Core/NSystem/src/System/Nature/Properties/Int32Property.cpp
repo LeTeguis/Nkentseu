@@ -8,7 +8,7 @@
 
 namespace nkentseu {
 
-    Int32Property::Int32Property() : ValueProperty(0.0f) {}
+    Int32Property::Int32Property() : ValueProperty(0) {}
     Int32Property::Int32Property(int32 value) : ValueProperty(value) {}
 
     Int32Property::Int32Property(const Int32Property& other) : ValueProperty(other.m_value) {}
@@ -44,13 +44,13 @@ namespace nkentseu {
     }
 
     Int32Property Int32Property::operator/(const Int32Property& other) const {
-        if (other.GetValue() != 0.0f) {
+        if (other.GetValue() != 0) {
             return Int32Property(GetValue() / other.GetValue());
         }
         else {
             // Handle division by zero as needed (maybe throw an exception)
             // For simplicity, returning 0 in this example
-            return Int32Property(0.0f);
+            return Int32Property(0);
         }
     }
 
@@ -59,7 +59,7 @@ namespace nkentseu {
     }
 
     Int32Property& Int32Property::operator++() {
-        SetValue(GetValue() + 1.0f);
+        SetValue(GetValue() + 1);
         return *this;
     }
 
@@ -70,7 +70,7 @@ namespace nkentseu {
     }
 
     Int32Property& Int32Property::operator--() {
-        SetValue(GetValue() - 1.0f);
+        SetValue(GetValue() - 1);
         return *this;
     }
 
@@ -100,7 +100,7 @@ namespace nkentseu {
     }
 
     Int32Property& Int32Property::operator/=(const Int32Property& other) {
-        if (other.GetValue() != 0.0f) {
+        if (other.GetValue() != 0) {
             SetValue(GetValue() / other.GetValue());
         }
         else {

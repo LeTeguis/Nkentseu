@@ -474,7 +474,7 @@ namespace nkentseu {
 	}
 
 	Matrix4d Matrix4d::Perspective(float64 fov, float64 aspect, float64 n, float64 f) {
-		float64 ymax = n * maths::Tan(fov * maths::Pi() / 360.0f);
+		float64 ymax = n * maths::Tan(fov * maths::Pi() / 360.0);
 		float64 xmax = ymax * aspect;
 		return Frustum(-xmax, xmax, -ymax, ymax, n, f);
 	}

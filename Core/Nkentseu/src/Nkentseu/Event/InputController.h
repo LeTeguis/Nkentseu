@@ -99,7 +99,7 @@ namespace nkentseu {
         std::unordered_map<std::string, std::vector<ActionCommand>> m_Commands;
     };
 
-    using AxisUpdateFromCode = std::function<float(EventCategory::Code, int64)>;
+    using AxisUpdateFromCode = std::function<float(EventType::Code, int64)>;
 
     // Classe pour gérer les axes et leurs observateurs
     class NKENTSEU_API AxisManager {

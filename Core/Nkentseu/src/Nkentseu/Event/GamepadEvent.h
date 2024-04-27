@@ -15,96 +15,71 @@
 #include <string>
 
 namespace nkentseu {
-    class NKENTSEU_API GamepadEvent : public Event {
-    public:
-        GamepadEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type) : Event(win), m_GamepadID(GamepadID), m_Type(type) {}
+    struct NKENTSEU_API GamepadInfos {
+        uintl32 joystickId;
+        uintl32 vendorID;
+        uintl32 productID;
+        uintl32 versionNumber;
+        uint16 usage;
+        uint16 usagePage;
+        std::string name;
 
-        std::string GetID() const { return m_GamepadID; }
-        Gamepad::Type GetType() const { return m_Type; }
-        EVENT_CATEGORY_FLAGS(EventCategory::Gamepad | EventCategory::Input)
+        GamepadInfos(uintl32 vendorID, uintl32 productID, uintl32 versionNumber, uint16 usage, uint16 usagePage, const std::string& name);
+        GamepadInfos();
+
+        std::string ToString() const;
+    };
+
+    class NKENTSEU_API GamepadStatusEvent : public Event {
+    public:
+        EVENT_TYPE_FLAGS(EventType::GamepadStatus)
+            EVENT_CATEGORY_FLAGS(EventCategory::Gamepad | EventCategory::Input)
+    public:
+        GamepadStatusEvent(uint64 win, StatusState::Code statusState, const GamepadInfos& GamepadInfos);
+        GamepadStatusEvent(const GamepadStatusEvent& e);
+        virtual std::string ToString() const override;
+
+        StatusState::Code GetState() const;
+        GamepadInfos GetInfos() const;
     protected:
-        std::string m_GamepadID;
-        Gamepad::Type m_Type;
+        GamepadInfos m_GamepadInfos;
+        StatusState::Code m_StatusState;
     };
 
-    class NKENTSEU_API GamepadConnectedEvent : public GamepadEvent {
+    class NKENTSEU_API GamepadInputEvent : public Event {
     public:
-        GamepadConnectedEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type) : GamepadEvent(win, GamepadID, type) {}
-
-        virtual std::string ToString() const override {
-            std::stringstream ss;
-            ss << "GamepadConnected: [" << Gamepad::TypeNames(m_Type) << "] -> " << m_GamepadID;
-            return ss.str();
-        }
-
-        EVENT_TYPE_FLAGS(EventType::GamepadConnected)
-    };
-
-    class NKENTSEU_API GamepadDisconnectedEvent : public GamepadEvent {
+        EVENT_TYPE_FLAGS(EventType::GamepadInput)
+            EVENT_CATEGORY_FLAGS(EventCategory::Gamepad | EventCategory::Input)
     public:
-        GamepadDisconnectedEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type) : GamepadEvent(win, GamepadID, type) {}
+        GamepadInputEvent(uint64 win, Gamepad::Button button, ButtonState::Code buttonState, const GamepadInfos& gamepadInfos);
+        GamepadInputEvent(const GamepadInputEvent& e);
+        virtual std::string ToString() const override;
 
-        virtual std::string ToString() const override {
-            std::stringstream ss;
-            ss << "GamepadDisconnected: [" << Gamepad::TypeNames(m_Type) << "] -> " << m_GamepadID;
-            return ss.str();
-        }
-
-        EVENT_TYPE_FLAGS(EventType::GamepadDisconnected)
-    };
-
-    class NKENTSEU_API GamepadButtonEvent : public GamepadEvent {
-    public:
-        GamepadButtonEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type, Gamepad::Button button) : GamepadEvent(win, GamepadID, type), m_Button(button) {}
-
-        Gamepad::Button GetButton() const { return m_Button; }
-    protected:
+        Gamepad::Button GetButton() const;
+        ButtonState::Code GetState() const;
+        GamepadInfos GetInfos() const;
+    private:
+        GamepadInfos m_GamepadInfos;
+        ButtonState::Code m_ButtonState;
         Gamepad::Button m_Button;
     };
 
-    class NKENTSEU_API GamepadButtonPressedEvent : public GamepadButtonEvent {
+    class NKENTSEU_API GamepadAxisEvent : public Event {
     public:
-        GamepadButtonPressedEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type, Gamepad::Button button) : GamepadButtonEvent(win, GamepadID, type, button) {}
-        virtual std::string ToString() const override {
-            std::string type = Gamepad::TypeNames(GetType());
-            std::string namecode = Gamepad::GetName(GetButton(), GetType(), Gamepad::Nature::Button);
-            std::stringstream ss;
-            ss << "GamepadButtonPressed [" << type << "]: (" << GetButton() << ", " << namecode << ", " << GetID() << ")";
-            return ss.str();
-        }
-        EVENT_TYPE_FLAGS(EventType::GamepadButtonPressed)
-    };
-
-    class NKENTSEU_API GamepadButtonReleasedEvent : public GamepadButtonEvent {
+        EVENT_TYPE_FLAGS(EventType::GamepadAxis)
+            EVENT_CATEGORY_FLAGS(EventCategory::Gamepad | EventCategory::Input)
     public:
-        GamepadButtonReleasedEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type, Gamepad::Button button) : GamepadButtonEvent(win, GamepadID, type, button) {}
-        virtual std::string ToString() const override {
-            std::string type = Gamepad::TypeNames(GetType());
-            std::string namecode = Gamepad::GetName(GetButton(), GetType(), Gamepad::Nature::Button);
-            std::stringstream ss;
-            ss << "GamepadButtonReleased [" << type << "]: (" << GetButton() << ", " << namecode << ", " << GetID() << ")";
-            return ss.str();
-        }
-        EVENT_TYPE_FLAGS(EventType::GamepadButtonReleased)
-    };
-
-    class NKENTSEU_API GamepadAxisEvent : public GamepadEvent {
-    public:
-        GamepadAxisEvent(uint64 win, const std::string& GamepadID, Gamepad::Type type, Gamepad::Axis axis, float32 value) : GamepadEvent(win, GamepadID, type), m_Axis(axis), m_Value(value) {}
-
-        Gamepad::Axis GetAxis() const { return m_Axis; }
-        float32 GetValue() const { return m_Value; }
-        EVENT_TYPE_FLAGS(EventType::GamepadAxisMoved)
-            virtual std::string ToString() const override {
-            std::string type = Gamepad::TypeNames(GetType());
-            std::string namecode = Gamepad::GetName(GetAxis(), GetType(), Gamepad::Nature::Axis);
-            std::stringstream ss;
-            ss << "GamepadAxis [" << type << "]: (" << GetAxis() << ", " << namecode << ", " << GetID() << ")";
-            return ss.str();
-        }
-    protected:
+        GamepadAxisEvent(uint64 win, Gamepad::Axis axis, float32 value, const GamepadInfos& gamepadInfos);
+        GamepadAxisEvent(const GamepadAxisEvent& e);
+        virtual std::string ToString() const override;
+        
+        Gamepad::Axis GetAxis() const;
+        float32 GetValue() const;
+        GamepadInfos GetInfos() const;
+    private:
         Gamepad::Axis m_Axis;
         float32 m_Value;
+        GamepadInfos m_GamepadInfos;
     };
 } // namespace nkentseu
 

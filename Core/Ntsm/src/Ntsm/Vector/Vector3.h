@@ -412,9 +412,9 @@ namespace nkentseu {
 			return &ptr[0];
 		}
 
-		static Vector3i FromXY(const Vector2i& xy) { return Vector3i(xy.x, xy.y, 0.0f); }
-		static Vector3i FromXZ(const Vector2i& xz) { return Vector3i(xz.x, 0.0f, xz.y); }
-		static Vector3i FromYZ(const Vector2i& yz) { return Vector3i(0.0f, yz.x, yz.y); }
+		static Vector3i FromXY(const Vector2i& xy) { return Vector3i(xy.x, xy.y, 0); }
+		static Vector3i FromXZ(const Vector2i& xz) { return Vector3i(xz.x, 0, xz.y); }
+		static Vector3i FromYZ(const Vector2i& yz) { return Vector3i(0, yz.x, yz.y); }
 
 		static Vector3i FromXYZ(const Vector2i& xy, int32 z) { return Vector3i(xy.x, xy.y, z); }
 		static Vector3i FromXZY(const Vector2i& xz, int32 y) { return Vector3i(xz.x, y, xz.y); }
@@ -622,10 +622,6 @@ namespace nkentseu {
 			return v.ToString();
 		}
 
-		Vector3u operator-() const {
-			return Vector3u(-x, -y, -z);
-		}
-
 		inline uint32& operator[] (size_t index) {
 			return this->ptr[index % 3];
 		}
@@ -706,9 +702,9 @@ namespace nkentseu {
 		static Vector3u Zero() { return Vector3u(); }
 		static Vector3u Exclude(const Vector2u& v2, int32 exclude);
 
-		static Vector3u FromXY(const Vector2u& xy) { return Vector3u(xy.x, xy.y, 0.0f); }
-		static Vector3u FromXZ(const Vector2u& xz) { return Vector3u(xz.x, 0.0f, xz.y); }
-		static Vector3u FromYZ(const Vector2u& yz) { return Vector3u(0.0f, yz.x, yz.y); }
+		static Vector3u FromXY(const Vector2u& xy) { return Vector3u(xy.x, xy.y, 0); }
+		static Vector3u FromXZ(const Vector2u& xz) { return Vector3u(xz.x, 0, xz.y); }
+		static Vector3u FromYZ(const Vector2u& yz) { return Vector3u(0, yz.x, yz.y); }
 
 		static Vector3u FromXYZ(const Vector2u& xy, uint32 z) { return Vector3u(xy.x, xy.y, z); }
 		static Vector3u FromXZY(const Vector2u& xz, uint32 y) { return Vector3u(xz.x, y, xz.y); }

@@ -10,13 +10,14 @@
 
 #include "System/System.h"
 #include <Ntsm/Vector/Vector2.h>
-#include <Nkentseu/Event/ModifierState.h>
+#include "EventState.h"
 
 #include "InputController.h"
 
 #include "MouseEvent.h"
 #include "KeyboardEvent.h"
 #include "GenericInputEvent.h"
+#include "GamepadEvent.h"
 
 #include "System/Epoch/Timer.h"
 #include <Ntsm/Random.h>
@@ -80,7 +81,7 @@ namespace nkentseu {
 
         inline float32 KeyAxis(const std::string& keycode);
 
-        /* Keyboard */
+        /* Generic Hid */
         bool IsGenericInputDown(GenericInput::Button buttoncode);
         bool IsGenericInputDown(const std::string& buttoncode);
 
@@ -98,6 +99,22 @@ namespace nkentseu {
 
         inline uint32 GenericInputHat(GenericInput::Hat hate);
         inline uint32 GenericInputHat(const std::string& hate);
+
+        /* Gamepad */
+        /*bool IsGamepadButtonDown(GenericInput::Button buttoncode);
+        bool IsGamepadButtonDown(const std::string& buttoncode);
+
+        bool IsGamepadButtonUp(GenericInput::Button buttoncode);
+        bool IsGamepadButtonUp(const std::string& buttoncode);
+
+        ButtonState::Code GamepadButton(GenericInput::Button buttoncode);
+        ButtonState::Code GamepadButton(const std::string& buttoncode);
+
+        inline float32 GamepadButtonAxis(GenericInput::Button buttoncode);
+        inline float32 GamepadButtonAxis(const std::string& buttoncode);
+
+        inline float32 GamepadButtonAxis(GenericInput::Axis axis);
+        inline float32 GamepadButtonAxis(const std::string& axis);*/
 
         void CreateAction(const std::string& actionName, const ActionSubscriber& handler);
         void AddCommand(const ActionCommand& command);
@@ -144,23 +161,26 @@ namespace nkentseu {
         std::unordered_map<GenericInput::Button, bool> m_GenericsButtonDown;
         std::unordered_map<GenericInput::Button, bool> m_GenericsButtonUp;
 
+        std::unordered_map<Gamepad::Axis, float32> m_GamepadAxis;
+        std::unordered_map<Gamepad::Button, float32> m_GamepadButtonAxis;
+        std::unordered_map<Gamepad::Button, ButtonState::Code> m_GamepadButton;
+        std::unordered_map<Gamepad::Button, bool> m_GamepadButtonDown;
+        std::unordered_map<Gamepad::Button, bool> m_GamepadButtonUp;
+
 
         static bool s_initialize;
 
         InputManager();
 
         void OnEvent(Event& event);
-        bool OnKeyPressedEvent(KeyPressedEvent& e);
-        bool OnKeyReleasedEvent(KeyReleasedEvent& e);
-        bool OnMouseButtonPressedEvent(MouseButtonPressedEvent& e);
-        bool OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e);
-        bool OnMouseMovedEvent(MouseMovedEvent& e);
-
-        bool OnGenericsButtonPressedEvent(GenericInputButtonPressedEvent& e);
-        bool OnGenericsButtonReleasedEvent(GenericInputButtonReleasedEvent& e);
-        bool OnGenericsAxisEvent(GenericInputAxisEvent& e);
-        //bool OnGenericsHatEvent(GenericInputHatEvent& e);
-
+        bool OnKeyboardEvent(KeyboardEvent& event);
+        bool OnMouseInputEvent(MouseInputEvent& event);
+        bool OnMouseMovedEvent(MouseMovedEvent& event);
+        bool OnGenericInputEvent(GenericInputEvent& event);
+        bool OnGenericAxisEvent(GenericAxisEvent& event);
+        bool OnGenericHatEvent(GenericHatEvent& event);
+        bool OnGamepadInputEvent(GamepadInputEvent& event);
+        bool OnGamepadAxisEvent(GamepadAxisEvent& event);
     };
 
     #define Input       InputManager::Instance()

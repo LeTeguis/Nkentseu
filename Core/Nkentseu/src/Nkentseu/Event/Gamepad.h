@@ -19,8 +19,8 @@ namespace nkentseu {
 				NotDefine, XBox, DualShock
 			};
 
-			enum class Nature {
-				Button, Axis, None
+			enum class DataType {
+				Button, Axis, NoneDefine
 			};
 
 			using Code = uint32;
@@ -131,8 +131,8 @@ namespace nkentseu {
 				static std::string AxisNames(Axis axis);
 			};
 
-			static std::string GetName(Code code, Type type, Nature nature);
-			static std::string TypeNames(Type code);
+			static std::string ToString(Code code, Type type, DataType dataType);
+			static std::string ToString(Type code);
     };
 } // namespace nkentseu
 

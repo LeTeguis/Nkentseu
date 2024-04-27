@@ -28,7 +28,6 @@
 #include <Nkentseu/Event/Event.h>
 #include <Nkentseu/Event/GenericInput.h>
 #include <Ntsm/Vector/Vector2.h>
-#include <Nkentseu/Event/EventObservable.h>
 #include <Nkentseu/Platform/Window/Windows/WindowGenericInput.h>
 
 
@@ -38,10 +37,7 @@ namespace nkentseu {
     public:
         friend class WindowInternal;
 
-        static Memory::Shared<WindowEventInternal> GetInstance() {
-            static Memory::Shared<WindowEventInternal> eventManager = Memory::Alloc<WindowEventInternal>();
-            return eventManager;
-        }
+        static WindowEventInternal& GetInstance();
 
         // Méthodes
 

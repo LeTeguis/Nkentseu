@@ -7,7 +7,7 @@
 #include "InputManager.h"
 #include <Nkentseu/Core/NkentseuLogger.h>
 
-#include "EventObservable.h"
+#include "EventFilter.h"
 #include "EventBroker.h"
 
 namespace nkentseu {
@@ -23,42 +23,42 @@ namespace nkentseu {
     int32 InputManager::MouseY() { return m_MousePosition.y; }
 
     ButtonState::Code InputManager::MouseButton(Mouse::Button button) {
-        if (Mouse::IsButton(button)) return m_Mouse[button];
+        if (Mouse::Buttons::IsButton(button)) return m_Mouse[button];
         return ButtonState::NotDefine;
     }
 
     ButtonState::Code InputManager::MouseButton(const std::string& button) {
-        Mouse::Button b = Mouse::FromString(button);
+        Mouse::Button b = Mouse::Buttons::FromString(button);
         return MouseButton(b);
     }
 
     bool InputManager::IsMouseDown(Mouse::Button button) {
-        if (Mouse::IsButton(button)) return m_MouseDown[button];
+        if (Mouse::Buttons::IsButton(button)) return m_MouseDown[button];
         return false;
     }
 
     bool InputManager::IsMouseDown(const std::string& button) {
-        Mouse::Button b = Mouse::FromString(button);
+        Mouse::Button b = Mouse::Buttons::FromString(button);
         return IsMouseDown(b);
     }
 
     bool InputManager::IsMouseUp(Mouse::Button button) {
-        if (Mouse::IsButton(button)) return m_MouseUp[button];
+        if (Mouse::Buttons::IsButton(button)) return m_MouseUp[button];
         return false;
     }
 
     bool InputManager::IsMouseUp(const std::string& button) {
-        Mouse::Button b = Mouse::FromString(button);
+        Mouse::Button b = Mouse::Buttons::FromString(button);
         return IsMouseUp(b);
     }
 
     float32 InputManager::MouseAxis(Mouse::Button button) {
-        if (Mouse::IsButton(button)) return m_MouseAxis[button];
+        if (Mouse::Buttons::IsButton(button)) return m_MouseAxis[button];
         return 0.0f;
     }
 
     float32 InputManager::MouseAxis(const std::string& button) {
-        Mouse::Button b = Mouse::FromString(button);
+        Mouse::Button b = Mouse::Buttons::FromString(button);
         return MouseAxis(b);
     }
 
@@ -210,10 +210,10 @@ namespace nkentseu {
     }
 
     void InputManager::private__update__axis() {
-        bool ctrl = IsKeyDown(Keyboard::LCtrl) || IsKeyDown(Keyboard::RCtrl);
-        bool alt = IsKeyDown(Keyboard::LAlt) || IsKeyDown(Keyboard::RAlt);
-        bool shift = IsKeyDown(Keyboard::LShift) || IsKeyDown(Keyboard::RShift);
-        bool super = IsKeyDown(Keyboard::LSuper) || IsKeyDown(Keyboard::RSuper);
+        bool ctrl = IsKeyDown(Keyboard::ControlLeft) || IsKeyDown(Keyboard::ControlRight);
+        bool alt = IsKeyDown(Keyboard::AltLeft) || IsKeyDown(Keyboard::AltRight);
+        bool shift = IsKeyDown(Keyboard::ShiftLeft) || IsKeyDown(Keyboard::ShiftRight);
+        bool super = IsKeyDown(Keyboard::MetaLeft) || IsKeyDown(Keyboard::MetaRight);
 
         ModifierState state(ctrl, alt, shift, super);
 
@@ -223,10 +223,11 @@ namespace nkentseu {
         UPDATE_AXIS(m_KeyAxis, m_KeyDown, m_KeyUp, elapse);
         UPDATE_AXIS(m_GenericsButtonAxis, m_GenericsButtonDown, m_GenericsButtonUp, elapse);
 
-        m_AxisManager.UpdateAxis([this](EventCategory::Code category, int64 code) {
-            if (category == EventCategory::Keyboard) return m_KeyAxis[code];
-            if (category == EventCategory::MouseButton) return m_MouseAxis[code];
-            if (category == EventCategory::GenericInput) return m_GenericsButtonAxis[code];
+        m_AxisManager.UpdateAxis([this](EventType::Code type, int64 code) {
+            if (type == EventType::KeyboardInput) return m_KeyAxis[code];
+            if (type == EventType::MouseInput) return m_MouseAxis[code];
+            if (type == EventType::GenericInput) return m_GenericsButtonAxis[code];
+            if (type == EventType::GamepadInput) return m_GamepadAxis[code];
             return 0.0f;
         });
 
@@ -237,7 +238,7 @@ namespace nkentseu {
         if (!s_initialize) {
             s_initialize = true;
             #ifdef NKENTSEU_PLATFORM_WINDOWS
-            EventTrack->AddObserver(REGISTER_CLIENT_EVENT(InputManager::OnEvent));
+            EventTrack.AddObserver(REGISTER_CLIENT_EVENT(InputManager::OnEvent));
             #endif
             m_Clock.Start();
             m_Clock.Reset();
@@ -248,8 +249,8 @@ namespace nkentseu {
                 }
             }
 
-            for (uint64 i = Mouse::FistButton; i <= Mouse::LastButton; i++) {
-                if (Mouse::IsButton(i)) {
+            for (uint64 i = Mouse::Buttons::FirstButton; i <= Mouse::Buttons::LastButton; i++) {
+                if (Mouse::Buttons::IsButton(i)) {
                     m_MouseAxis[i] = 0.0f;
                 }
             }
@@ -259,155 +260,150 @@ namespace nkentseu {
     void InputManager::OnEvent(Event& event) {
         EventBroker broker(event);
 
-        broker.Route<KeyReleasedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnKeyReleasedEvent));
-        broker.Route<KeyPressedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnKeyPressedEvent));
-        broker.Route<MouseButtonPressedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnMouseButtonPressedEvent));
-        broker.Route<MouseButtonReleasedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnMouseButtonReleasedEvent));
+        broker.Route<KeyboardEvent>(REGISTER_CLIENT_EVENT(InputManager::OnKeyboardEvent));
+        broker.Route<MouseInputEvent>(REGISTER_CLIENT_EVENT(InputManager::OnMouseInputEvent));
         broker.Route<MouseMovedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnMouseMovedEvent));
-        broker.Route<GenericInputButtonPressedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericsButtonPressedEvent));
-        broker.Route<GenericInputButtonReleasedEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericsButtonReleasedEvent));
-        broker.Route<GenericInputAxisEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericsAxisEvent));
-        //broker.Route<GenericInputHatEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericsHatEvent));
+        broker.Route<GenericInputEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericInputEvent));
+        broker.Route<GenericAxisEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericAxisEvent));
+        broker.Route<GenericHatEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGenericHatEvent));
+        broker.Route<GamepadInputEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGamepadInputEvent));
+        broker.Route<GamepadAxisEvent>(REGISTER_CLIENT_EVENT(InputManager::OnGamepadAxisEvent));
     }
 
-    bool InputManager::OnKeyPressedEvent(KeyPressedEvent& e) {
-        if (Keyboard::IsKeyCode(e.GetKey())) {
-            if (!m_KeyDown[e.GetKey()]) {
-                m_ActionManager.TriggerAction(ActionCode(EventCategory::Keyboard, e.GetKey(), e.GetState()), ButtonState::Down);
-            }
+    bool InputManager::OnKeyboardEvent(KeyboardEvent& event)
+    {
+        if (!Keyboard::IsKeyCode(event.GetKeycode())) {
+            return true;
+        }
 
-            m_KeyDown[e.GetKey()] = true;
-            m_KeyUp[e.GetKey()] = false;
-            m_Key[e.GetKey()] = ButtonState::Down;
+        if (!m_KeyDown[event.GetKeycode()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::KeyboardInput, event.GetKeycode(), event.GetModifierState()), ButtonState::Pressed);
+        }
+
+        if (!m_KeyUp[event.GetKeycode()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::KeyboardInput, event.GetKeycode(), event.GetModifierState()), ButtonState::Released);
+        }
+
+        m_KeyDown[event.GetKeycode()] = event.GetState() == ButtonState::Pressed;
+        m_KeyUp[event.GetKeycode()] = event.GetState() == ButtonState::Released;
+        m_Key[event.GetKeycode()] = event.GetState();
+
+        if (event.GetState() == ButtonState::Released && m_KeyAxis.find(event.GetKeycode()) == m_KeyAxis.end()) {
+            m_KeyAxis[event.GetKeycode()] = 0.0f;
         }
         return true;
     }
 
-    bool InputManager::OnKeyReleasedEvent(KeyReleasedEvent& e) {
-        if (Keyboard::IsKeyCode(e.GetKey())) {
-            if (!m_KeyUp[e.GetKey()]) {
-                m_ActionManager.TriggerAction(ActionCode(EventCategory::Keyboard, e.GetKey(), e.GetState()), ButtonState::Up);
-            }
+    bool InputManager::OnMouseInputEvent(MouseInputEvent& event)
+    {
+        if (!Mouse::Buttons::IsButton(event.GetButton())) {
+            return true;
+        }
 
-            m_KeyDown[e.GetKey()] = false;
-            m_KeyUp[e.GetKey()] = true;
-            m_Key[e.GetKey()] = ButtonState::Up;
+        if (!m_MouseDown[event.GetButton()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::MouseInput, event.GetButton(), event.GetModifierState()), ButtonState::Pressed);
+        }
 
-            if (m_KeyAxis.find(e.GetKey()) == m_KeyAxis.end()) {
-                m_KeyAxis[e.GetKey()] = 0.0f;
-            }
+        if (!m_MouseUp[event.GetButton()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::MouseInput, event.GetButton(), event.GetModifierState()), ButtonState::Released);
+        }
+
+        m_MouseDown[event.GetButton()] = event.GetState() == ButtonState::Pressed;
+        m_MouseUp[event.GetButton()] = event.GetState() == ButtonState::Released;
+        m_Mouse[event.GetButton()] = event.GetState();
+        m_MousePosition = event.GetPosition();
+
+        if (event.GetState() == ButtonState::Released && m_MouseAxis.find(event.GetButton()) == m_MouseAxis.end()) {
+            m_MouseAxis[event.GetButton()] = 0.0f;
         }
         return true;
     }
 
-    bool InputManager::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e) {
-        if (Mouse::IsButton(e.GetButton())) {
-            if (!m_MouseDown[e.GetButton()]) {
-                m_ActionManager.TriggerAction(ActionCode(EventCategory::MouseButton, e.GetButton(), e.GetState()), ButtonState::Down);
-            }
-
-            m_MouseDown[e.GetButton()] = true;
-            m_MouseUp[e.GetButton()] = false;
-            m_Mouse[e.GetButton()] = ButtonState::Down;
-
-            m_MousePosition = e.GetPosition();
-
-            if (m_MouseAxis.find(e.GetButton()) == m_MouseAxis.end()) {
-                m_MouseAxis[e.GetButton()] = 0.0f;
-            }
-        }
+    bool InputManager::OnMouseMovedEvent(MouseMovedEvent& event)
+    {
         return true;
     }
 
-    bool InputManager::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e) {
-        if (Mouse::IsButton(e.GetButton())) {
-            if (!m_MouseUp[e.GetButton()]) {
-                m_ActionManager.TriggerAction(ActionCode(EventCategory::MouseButton, e.GetButton(), e.GetState()), ButtonState::Up);
-            }
-
-            m_MouseDown[e.GetButton()] = false;
-            m_MouseUp[e.GetButton()] = true;
-            m_Mouse[e.GetButton()] = ButtonState::Up;
-
-            m_MousePosition = e.GetPosition();
+    bool InputManager::OnGenericInputEvent(GenericInputEvent& event)
+    {
+        if (!GenericInput::IsBoutton(event.GetButton())) {
+            return true;
         }
+
+        bool ctrl = IsKeyDown(Keyboard::ControlLeft) || IsKeyDown(Keyboard::ControlRight);
+        bool alt = IsKeyDown(Keyboard::AltLeft) || IsKeyDown(Keyboard::AltRight);
+        bool shift = IsKeyDown(Keyboard::ShiftLeft) || IsKeyDown(Keyboard::ShiftRight);
+        bool super = IsKeyDown(Keyboard::MetaLeft) || IsKeyDown(Keyboard::MetaRight);
+
+        if (!m_GenericsButtonDown[event.GetButton()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::GenericInput, event.GetButton(), ModifierState(ctrl, alt, shift, super)), ButtonState::Pressed);
+        }
+
+        if (!m_GenericsButtonUp[event.GetButton()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::GenericInput, event.GetButton(), ModifierState(ctrl, alt, shift, super)), ButtonState::Released);
+        }
+
+        m_GenericsButtonDown[event.GetButton()] = event.GetState() == ButtonState::Pressed;
+        m_GenericsButtonUp[event.GetButton()] = event.GetState() == ButtonState::Released;
+        m_GenericsButton[event.GetButton()] = event.GetState();
         return true;
     }
 
-    bool InputManager::OnMouseMovedEvent(MouseMovedEvent& e) {
-        m_MousePosition = e.GetPosition();
+    bool InputManager::OnGenericAxisEvent(GenericAxisEvent& event)
+    {
         return true;
     }
 
-    bool InputManager::OnGenericsButtonPressedEvent(GenericInputButtonPressedEvent& e) {
-        if (GenericInput::IsBoutton(e.GetButton())) {
-            bool ctrl = IsKeyDown(Keyboard::LCtrl) || IsKeyDown(Keyboard::RCtrl);
-            bool alt = IsKeyDown(Keyboard::LAlt) || IsKeyDown(Keyboard::RAlt);
-            bool shift = IsKeyDown(Keyboard::LShift) || IsKeyDown(Keyboard::RShift);
-            bool super = IsKeyDown(Keyboard::LSuper) || IsKeyDown(Keyboard::RSuper);
-
-            if (!m_GenericsButtonDown[e.GetButton()]) {
-                m_ActionManager.TriggerAction(ActionCode(EventCategory::GenericInput, e.GetButton(), ModifierState(ctrl, alt, shift, super)), ButtonState::Down);
-            }
-
-            m_GenericsButtonDown[e.GetButton()] = true;
-            m_GenericsButtonUp[e.GetButton()] = false;
-            m_GenericsButton[e.GetButton()] = ButtonState::Up;
-        }
+    bool InputManager::OnGenericHatEvent(GenericHatEvent& event)
+    {
         return true;
     }
 
-    bool InputManager::OnGenericsButtonReleasedEvent(GenericInputButtonReleasedEvent& e) {
-        if (GenericInput::IsBoutton(e.GetButton())) {
-            bool ctrl = IsKeyDown(Keyboard::LCtrl) || IsKeyDown(Keyboard::RCtrl);
-            bool alt = IsKeyDown(Keyboard::LAlt) || IsKeyDown(Keyboard::RAlt);
-            bool shift = IsKeyDown(Keyboard::LShift) || IsKeyDown(Keyboard::RShift);
-            bool super = IsKeyDown(Keyboard::LSuper) || IsKeyDown(Keyboard::RSuper);
+    bool InputManager::OnGamepadInputEvent(GamepadInputEvent& event)
+    {
+        bool ctrl = IsKeyDown(Keyboard::ControlLeft) || IsKeyDown(Keyboard::ControlRight);
+        bool alt = IsKeyDown(Keyboard::AltLeft) || IsKeyDown(Keyboard::AltRight);
+        bool shift = IsKeyDown(Keyboard::ShiftLeft) || IsKeyDown(Keyboard::ShiftRight);
+        bool super = IsKeyDown(Keyboard::MetaLeft) || IsKeyDown(Keyboard::MetaRight);
 
-            if (!m_GenericsButtonUp[e.GetButton()]) {
-                m_ActionManager.TriggerAction(ActionCode(EventCategory::GenericInput, e.GetButton(), ModifierState(ctrl, alt, shift, super)), ButtonState::Up);
-            }
-
-            m_GenericsButtonDown[e.GetButton()] = false;
-            m_GenericsButtonUp[e.GetButton()] = true;
-            m_GenericsButton[e.GetButton()] = ButtonState::Up;
+        if (!m_GamepadButtonDown[event.GetButton()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::GenericInput, event.GetButton(), ModifierState(ctrl, alt, shift, super)), ButtonState::Pressed);
         }
+
+        if (!m_GamepadButtonUp[event.GetButton()]) {
+            m_ActionManager.TriggerAction(ActionCode(EventType::GenericInput, event.GetButton(), ModifierState(ctrl, alt, shift, super)), ButtonState::Released);
+        }
+
+        m_GamepadButtonDown[event.GetButton()] = event.GetState() == ButtonState::Pressed;
+        m_GamepadButtonUp[event.GetButton()] = event.GetState() == ButtonState::Released;
+        m_GamepadButton[event.GetButton()] = event.GetState();
         return true;
     }
 
-    bool InputManager::OnGenericsAxisEvent(GenericInputAxisEvent& e) {
-        if (GenericInput::IsAxis(e.GetAxis())) {
-            m_GenericsAxis[e.GetAxis()] = e.GetValue();
-
-            bool ctrl = IsKeyDown(Keyboard::LCtrl) || IsKeyDown(Keyboard::RCtrl);
-            bool alt = IsKeyDown(Keyboard::LAlt) || IsKeyDown(Keyboard::RAlt);
-            bool shift = IsKeyDown(Keyboard::LShift) || IsKeyDown(Keyboard::RShift);
-            bool super = IsKeyDown(Keyboard::LSuper) || IsKeyDown(Keyboard::RSuper);
-
-            m_ActionManager.TriggerAction(ActionCode(EventCategory::GenericInput, e.GetAxis(), ModifierState(ctrl, alt, shift, super)), ButtonState::Down);
-        }
+    bool InputManager::OnGamepadAxisEvent(GamepadAxisEvent& event)
+    {
         return true;
     }
 
     uint64 InputManager::GetActionNumber() {
-            return m_ActionManager.GetActionNumber();
-        }
+        return m_ActionManager.GetActionNumber();
+    }
 
-        uint64 InputManager::GetAxisNumber() {
-            return m_AxisManager.GetAxisNumber();
-        }
+    uint64 InputManager::GetAxisNumber() {
+        return m_AxisManager.GetAxisNumber();
+    }
 
-        uint64 InputManager::GetCommandNumber(bool action, const std::string& actionName) {
-            if (action) {
-                return m_ActionManager.GetCommandNumber(actionName);
-            }
-            return m_AxisManager.GetCommandNumber(actionName);
+    uint64 InputManager::GetCommandNumber(bool action, const std::string& actionName) {
+        if (action) {
+            return m_ActionManager.GetCommandNumber(actionName);
         }
+        return m_AxisManager.GetCommandNumber(actionName);
+    }
 
-        uint64 InputManager::GetCommandNumber(bool action) {
-            if (action) {
-                return m_ActionManager.GetCommandNumber();
-            }
-            return m_AxisManager.GetCommandNumber();
+    uint64 InputManager::GetCommandNumber(bool action) {
+        if (action) {
+            return m_ActionManager.GetCommandNumber();
         }
+        return m_AxisManager.GetCommandNumber();
+    }
 }    // namespace nkentseu

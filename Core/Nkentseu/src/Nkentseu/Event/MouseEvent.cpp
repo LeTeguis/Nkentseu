@@ -5,225 +5,154 @@
 
 #include "NkentseuPch/ntspch.h"
 #include "MouseEvent.h"
+#include <Logger/Formatter.h>
 
 namespace nkentseu {
+	MouseInputEvent::MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2f& position, const Vector2f& globalPosition) : Event(win), m_Button(button), m_ButtonState(buttonState), m_Position(position), m_GlobalPosition(globalPosition), m_ModifierState(modifierState), m_IsDoubleClicked(isDoubleClicked)
+	{
+	}
+	MouseInputEvent::MouseInputEvent(const MouseInputEvent& e) : Event(e.GetWindow()), m_Button(e.m_Button), m_ButtonState(e.m_ButtonState), m_Position(e.m_Position), m_GlobalPosition(e.m_GlobalPosition), m_ModifierState(e.m_ModifierState), m_IsDoubleClicked(e.m_IsDoubleClicked)
+	{
+	}
+	std::string MouseInputEvent::ToString() const
+	{
+		return FORMATTER.Format("MouseInputEvent {Window ID : {0}, Button : {1}, State : {2}, Position : {3}, GlobalPosition : {4}, ModifierState : {5}, DoubleClicked : {6}}", m_WindowID, Mouse::Buttons::ToString(m_Button), ButtonState::ToString(m_ButtonState), m_Position, m_GlobalPosition, m_ModifierState, STR_BOOL(m_IsDoubleClicked));
+	}
+	Mouse::Button MouseInputEvent::GetButton() const
+	{
+		return this->m_Button;
+	}
+	ButtonState::Code MouseInputEvent::GetState() const
+	{
+		return this->m_ButtonState;
+	}
+	ModifierState MouseInputEvent::GetModifierState() const
+	{
+		return this->m_ModifierState;
+	}
+	bool MouseInputEvent::IsDoubleCliked() const
+	{
+		return this->m_IsDoubleClicked;
+	}
+	Vector2f MouseInputEvent::GetPosition() const
+	{
+		return this->m_Position;
+	}
+	Vector2f MouseInputEvent::GetGlobalPosition() const
+	{
+		return this->m_GlobalPosition;
+	}
 
-    // ---- MouseWheelEvent ----
+	//-----------------------
 
-    // Constructor with window ID, delta value, and modifier state
-    MouseWheelEvent::MouseWheelEvent(uint64 win, Mouse::Button wheel, float32 delta, const Vector2i& position, const ModifierState& state) : Event(win), m_Delta(delta), m_State(state), m_Wheel(wheel), m_Position(position) {}
+	MouseMovedEvent::MouseMovedEvent(uint64 win, const Vector2f& position, const Vector2f& globalPosition, const Vector2f& speed) : Event(win), m_Speed(speed), m_Position(position), m_GlobalPosition(globalPosition)
+	{
+	}
 
-    // Copy constructor
-    MouseWheelEvent::MouseWheelEvent(const MouseWheelEvent& event) : Event(event.GetWindow()), m_Delta(event.m_Delta), m_State(event.m_State) {}
+	MouseMovedEvent::MouseMovedEvent(const MouseMovedEvent& e) : Event(e.GetWindow()), m_Speed(e.m_Speed), m_Position(e.m_Position),
+		m_GlobalPosition(e.m_GlobalPosition)
+	{
+	}
 
-    // Get the delta value of the wheel movement
-    float32 MouseWheelEvent::GetDelta() const { return m_Delta; }
+	std::string MouseMovedEvent::ToString() const
+	{
+		return FORMATTER.Format("MouseMovedEvent {Window ID : {0}, Speed : {1}, Position : {2}, GlobalPosition : {3}}", m_WindowID, m_Speed, m_Position, m_GlobalPosition);
+	}
 
-    Vector2i MouseWheelEvent::GetPosition() const
-    {
-        return m_Position;
-    }
+	AxisState::Code MouseMovedEvent::GetVerticalAxisState() const
+	{
+		if (m_Speed.y == 0) return AxisState::Neutral;
+		if (m_Speed.y > 0) return AxisState::Positive;
+		return AxisState::Negative;
+	}
 
-    Mouse::Button MouseWheelEvent::GetWheel() const
-    {
-        return m_Wheel;
-    }
+	AxisState::Code MouseMovedEvent::GetHorizontalAxisState() const
+	{
+		if (m_Speed.x == 0) return AxisState::Neutral;
+		if (m_Speed.x > 0) return AxisState::Positive;
+		return AxisState::Negative;
+	}
 
-    // Get the modifier state associated with the event
-    ModifierState MouseWheelEvent::GetState() const { return m_State; }
+	AxisDirection::Code MouseMovedEvent::GetAxisDirection() const
+	{
+		if (m_Speed.x == 0) return AxisDirection::Vertical;
+		if (m_Speed.y == 0) return AxisDirection::Horizontal;
+		return AxisDirection::VerticalHorizontal;
+	}
 
-    // Override the ToString method to provide a string representation of the event
-    std::string MouseWheelEvent::ToString() const {
-        std::stringstream ss;
-        ss << "MouseWheel: " << m_Delta << "; " << m_State.ToString();
-        return ss.str();
-    }
+	Vector2f MouseMovedEvent::GetPosition() const
+	{
+		return this->m_Position;
+	}
 
-    // Override the IsEqual method to compare event types
-    bool MouseWheelEvent::IsEqual(Event& e) const {
-        // This should be IsEqual, not isEqual
-        return (e.GetEventType() == GetEventType());
-    }
+	Vector2f MouseMovedEvent::GetGlobalPosition() const
+	{
+		return this->m_GlobalPosition;
+	}
 
-    // ---- MouseButtonEvent ----
+	Vector2f MouseMovedEvent::GetSpeed() const
+	{
+		return this->m_Speed;
+	}
 
-    // methods to access member variables
-    Mouse::Button MouseButtonEvent::GetButton() const { return m_Button; }
-    Vector2i MouseButtonEvent::GetPosition() const { return m_Position; }
-    ModifierState MouseButtonEvent::GetState() const { return m_State; }
+	//-----------------------------------
 
-    // Check if a specific button was pressed/released
-    bool MouseButtonEvent::IsButton(Mouse::Button b) const {
-        return m_Button == b;
-    }
+	MouseWheelEvent::MouseWheelEvent(uint64 win, Mouse::Wheel wheel, float32 delta, ModifierState modifierState, const Vector2i& position) : Event(win), m_Delta(delta), m_Position(position), m_Wheel(wheel), m_ModifierState(modifierState)
+	{
+	}
 
-    // Check for a specific modifier state
-    bool MouseButtonEvent::IsMState(ModifierState ms) const {
-        return m_State == ms;
-    }
+	MouseWheelEvent::MouseWheelEvent(const MouseWheelEvent& e) : Event(e.GetWindow()), m_Delta(e.m_Delta), m_Position(e.m_Position), m_Wheel(e.m_Wheel), m_ModifierState(e.m_ModifierState)
+	{
+	}
 
-    // Override the IsEqual method to compare event types and button
-    bool MouseButtonEvent::IsEqual(Event& e) const {
-        // This should be IsEqual, not IsEqual
-        if (e.GetEventType() != GetEventType())
-            return false;
+	std::string MouseWheelEvent::ToString() const
+	{
+		return FORMATTER.Format("MouseWheelEvent {Window ID : {0}, Wheel : {3}, Delta : {1}, Position : {2}, ModifierState : {4}}", m_WindowID, m_Delta, m_Position, Mouse::Wheels::ToString(m_Wheel), m_ModifierState);
+	}
 
-        MouseButtonEvent& other = dynamic_cast<MouseButtonEvent&>(e);
-        return m_Button == other.m_Button;
-    }
+	ModifierState MouseWheelEvent::GetModifierState() const
+	{
+		return this->m_ModifierState;
+	}
 
-    MouseButtonEvent::MouseButtonEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2& position) : Event(win), m_State(state), m_Button(button), m_Position(position)
-    {
-    }
+	Vector2i MouseWheelEvent::GetPosition() const
+	{
+		return this->m_Position;
+	}
 
-    MouseButtonEvent::MouseButtonEvent(const MouseButtonEvent& event) : Event(event.GetWindow()), m_State(event.m_State), m_Button(event.m_Button), m_Position(event.m_Position)
-    {
-    }
+	float32 MouseWheelEvent::GetDelta() const
+	{
+		return this->m_Delta;
+	}
 
-    // ---- MouseButtonPressedEvent ----
+	Mouse::Wheel MouseWheelEvent::GetWheels() const
+	{
+		return this->m_Wheel;
+	}
 
-    // Constructors with window ID, modifier state, mouse button, and optional position
-    MouseButtonPressedEvent::MouseButtonPressedEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2& position)
-        : MouseButtonEvent(win, state, button, position) {}
+	//-----------------------------------
 
-    MouseButtonPressedEvent::MouseButtonPressedEvent(uint64 win, const ModifierState& state, Mouse::Button button)
-        : MouseButtonEvent(win, state, button) {}
+	MouseWindowEvent::MouseWindowEvent(uint64 win, RegionState::Code regionState, const Vector2i& position) : Event(win), m_Position(position), m_State(regionState)
+	{
+	}
 
-    // Copy constructor
-    MouseButtonPressedEvent::MouseButtonPressedEvent(const MouseButtonPressedEvent& event) : MouseButtonEvent(event.GetWindow(), event.m_State, event.m_Button, event.m_Position) {}
+	MouseWindowEvent::MouseWindowEvent(const MouseWindowEvent& e) : Event(e.GetWindow()), m_Position(e.m_Position), m_State(e.m_State)
+	{
+	}
 
-    // Override the ToString method to provide a string representation of the event
-    std::string MouseButtonPressedEvent::ToString() const {
-        std::stringstream ss;
-        ss << "MouseButtonPressed: " << Mouse::ToString(m_Button) << ", (" << m_Position.x << ", " << m_Position.y << ")";
-        return ss.str();
-    }
+	std::string MouseWindowEvent::ToString() const
+	{
+		return FORMATTER.Format("MouseWindowEvent {Window ID : {0}, RegionState : {1}, Position : {2}}", m_WindowID, RegionState::ToString(m_State), m_Position);
+	}
 
-    // ---- MouseButtonDBCLKEvent ----
+	Vector2i MouseWindowEvent::GetPosition() const
+	{
+		return this->m_Position;
+	}
 
-    // Constructors with window ID, modifier state, mouse button, and optional position
-    MouseButtonDBCLKEvent::MouseButtonDBCLKEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2& position)
-        : MouseButtonEvent(win, state, button, position) {}
+	RegionState::Code MouseWindowEvent::GetRegionState() const
+	{
+		return this->m_State;
+	}
 
-    MouseButtonDBCLKEvent::MouseButtonDBCLKEvent(uint64 win, const ModifierState& state, Mouse::Button button)
-        : MouseButtonEvent(win, state, button) {}
-
-    // Copy constructor
-    MouseButtonDBCLKEvent::MouseButtonDBCLKEvent(const MouseButtonDBCLKEvent& event) : MouseButtonEvent(event.GetWindow(), event.m_State, event.m_Button, event.m_Position) {}
-
-    // Override the ToString method to provide a string representation of the event
-    std::string MouseButtonDBCLKEvent::ToString() const {
-        std::stringstream ss;
-        ss << "MouseButtonDBCLKEvent: " << Mouse::ToString(m_Button) << ", (" << m_Position.x << ", " << m_Position.y << ")";
-        return ss.str();
-    }
-
-    // ---- MouseButtonReleasedEvent ----
-
-    // Constructors with window ID, modifier state, mouse button, and optional position
-    MouseButtonReleasedEvent::MouseButtonReleasedEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2& position)
-        : MouseButtonEvent(win, state, button, position) {}
-
-    MouseButtonReleasedEvent::MouseButtonReleasedEvent(uint64 win, const ModifierState& state, Mouse::Button button)
-        : MouseButtonEvent(win, state, button) {}
-
-    // Copy constructor
-    MouseButtonReleasedEvent::MouseButtonReleasedEvent(const MouseButtonReleasedEvent& event) : MouseButtonEvent(event.GetWindow(), event.m_State, event.m_Button, event.m_Position) {}
-
-    // Override the ToString method to provide a string representation of the event
-    std::string MouseButtonReleasedEvent::ToString() const {
-        std::stringstream ss;
-        ss << "MouseButtonReleased: " << Mouse::ToString(m_Button) << ", (" << m_Position.x << ", " << m_Position.y << ")";
-        return ss.str();
-    }
-
-    // ---- MouseButtonRawEvent ----
-
-    // Constructors with window ID, modifier state, mouse button, delta, pressed state, and position
-    MouseButtonRawEvent::MouseButtonRawEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2i& delta, bool pressed, const Vector2& position)
-        : MouseButtonEvent(win, state, button, position), m_Delta(delta), m_Pressed(pressed) {}
-
-    MouseButtonRawEvent::MouseButtonRawEvent(uint64 win, const ModifierState& state, Mouse::Button button, const Vector2i& delta, bool pressed)
-        : MouseButtonEvent(win, state, button), m_Delta(delta), m_Pressed(pressed) {}
-
-    // Copy constructor
-    MouseButtonRawEvent::MouseButtonRawEvent(const MouseButtonRawEvent& event) : MouseButtonEvent(event.GetWindow(), event.m_State, event.m_Button, event.m_Position), m_Delta(event.m_Delta), m_Pressed(event.m_Pressed) {}
-
-    // Get the delta movement of the mouse
-    Vector2i MouseButtonRawEvent::GetDelta() const { return m_Delta; }
-
-    // Check if the button was pressed or released
-    bool MouseButtonRawEvent::IsPressed() const { return m_Pressed; }
-
-    // Override the ToString method to provide a string representation of the event
-    std::string MouseButtonRawEvent::ToString() const {
-        std::stringstream ss;
-        ss << "MouseButtonRaw: " << Mouse::ToString(m_Button) << ", (" << m_Delta.x << ", " << m_Delta.y << ")" << ", (" << m_Position.x << ", " << m_Position.y << ")";
-        return ss.str();
-    }
-
-    // ---- MouseMovedEvent ----
-
-    // Constructor with window ID, position, movement, and global position
-    MouseMovedEvent::MouseMovedEvent(uint64 win, const Vector2& position, const Vector2& move, const Vector2& positionGlobal)
-        : Event(win), m_Position(position), m_Move(move), m_PositionGlobal(positionGlobal) {}
-
-    // Copy constructor
-    MouseMovedEvent::MouseMovedEvent(const MouseMovedEvent& event) : Event(event.GetWindow()), m_Position(event.m_Position), m_Move(event.m_Move), m_PositionGlobal(event.m_PositionGlobal) {}
-
-    // Get the current position of the mouse cursor
-    Vector2 MouseMovedEvent::GetPosition() const { return m_Position; }
-
-    // Get the movement since the last event
-    Vector2 MouseMovedEvent::GetMove() const { return m_Move; }
-
-    // Get the global position of the mouse cursor
-    Vector2 MouseMovedEvent::GetPositionGlobal() const { return m_PositionGlobal; }
-
-    // Override the ToString method to provide a string representation of the event
-    std::string MouseMovedEvent::ToString() const {
-        std::stringstream ss;
-        ss << "MouseMoved: (" << m_Position.x << ", " << m_Position.y << "); (" << m_Move.x << ", " << m_Move.y << ")";
-        return ss.str();
-    }
-
-    // Override the IsEqual method to compare event types, position, and movement
-    bool MouseMovedEvent::IsEqual(Event& e) const {
-        if (e.GetEventType() != GetEventType())
-            return false;
-
-        MouseMovedEvent& other = dynamic_cast<MouseMovedEvent&>(e);
-        return m_Position == other.m_Position && m_Move == other.m_Move;
-    }
-
-    // ---- MouseEnteredEvent ----
-
-    // Constructor with window ID
-    MouseEnteredEvent::MouseEnteredEvent(uint64 win, const Vector2& position) : Event(win), m_Position(position) {}
-
-    // Copy constructor
-    MouseEnteredEvent::MouseEnteredEvent(const MouseEnteredEvent& event) : Event(event.GetWindow()) {}
-
-    Vector2 MouseEnteredEvent::GetPosition() const { return m_Position; }
-
-    // Override the IsEqual method to compare event types
-    bool MouseEnteredEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType());
-    }
-
-    // ---- MouseExitedEvent ----
-
-    // Constructor with window ID
-    MouseExitedEvent::MouseExitedEvent(uint64 win, const Vector2& position) : Event(win), m_Position(position) {}
-
-    // Copy constructor
-    MouseExitedEvent::MouseExitedEvent(const MouseExitedEvent& event) : Event(event.GetWindow()) {}
-
-    Vector2 MouseExitedEvent::GetPosition() const { return m_Position; }
-
-    // Override the IsEqual method to compare event types
-    bool MouseExitedEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType());
-    }
-    
 }    // namespace nkentseu

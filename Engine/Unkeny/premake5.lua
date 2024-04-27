@@ -1,7 +1,6 @@
 project "Unkeny"
     kind (libraryType)
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
@@ -25,7 +24,7 @@ project "Unkeny"
     }
 
     links {
-        "Stb",
+        -- "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
@@ -67,6 +66,7 @@ project "Unkeny"
 
     filter "system:linux"
         links {
+            "X11", "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
         }
 
         -- Ajout d'options de compilation pour toutes les configurations sous Linux

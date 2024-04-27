@@ -41,7 +41,7 @@ def IsInstalled(app_name):
 def InstallCompilateur():
     platform_name = conf.GetPlatform()
 
-    application_install = ["make", "g++", "nautilus", "gnome-text-editor"]
+    application_install = ["make", "g++", "nautilus", "gnome-text-editor", "libxcb-keysyms1-dev"] # ajouter -y devant nautilus et gnome au cas ou
     lib_install = ["libx11-dev", "xorg-dev", "libxcb1", "libxcb1-dev", "libxcb-util-dev", "libxcb-icccm4-dev"]
     application_snap = ["--classic code"]
 
@@ -49,7 +49,7 @@ def InstallCompilateur():
         # Installe les applications nécessaires via apt-get si elles ne sont pas déjà installées
         for app in application_install:
             if not IsInstalled(app):
-                args_command = ["sudo", "apt", "install", app, "-y"]
+                args_command = ["sudo", "apt", "install", app]
                 result = subprocess.call(args_command)
                 if result != 0:
                     return result
@@ -67,7 +67,7 @@ def InstallCompilateur():
         for lib in lib_install:
             lib_name = lib.split()[0]
             if not IsInstalled(lib_name):
-                args_command = ["sudo", "apt-get", "install", lib, "-y"]
+                args_command = ["sudo", "apt-get", "install", lib]
                 result = subprocess.call(args_command)
                 if result != 0:
                     return result

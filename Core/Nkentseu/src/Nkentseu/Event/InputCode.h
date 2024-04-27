@@ -9,14 +9,17 @@
 #pragma once
 
 #include "System/System.h"
-#include "ModifierState.h"
-#include "EventCategory.h"
+#include "EventType.h"
 
+#include "EventState.h"
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "GenericInput.h"
+#include "Gamepad.h"
 
 namespace nkentseu {
+    #define IsInputType(inputType_, data, type) if (inputType_ == input) data = static_cast<type>(code)
+
     struct NKENTSEU_API ActionCode {
         using Code = int64;
 
@@ -24,37 +27,36 @@ namespace nkentseu {
             Keyboard::Code      keyboard;    // si (category == EventCategory::Keyboard)
             Mouse::Code         mouse;    // si (category == EventCategory::MouseButton)
             GenericInput::Code  genericInput;    // si (category == EventCategory::GenericInput)
+            Gamepad::Code       gamepadInput;
         };
 
-        EventCategory::Code category;
+        EventType::Code inputType;
         ModifierState modifierState;
 
-        ActionCode(EventCategory::Code cat, Code code, ModifierState modifier = {}) : category(cat), modifierState(modifier) {
-            #define IsCategory(category, data, type) if (category == cat) data = static_cast<type::Code>(code);
-
-            IsCategory(EventCategory::Keyboard, keyboard, Keyboard)
-                IsCategory(EventCategory::MouseButton, mouse, Mouse)
-                IsCategory(EventCategory::GenericInput, genericInput, GenericInput)
+        ActionCode(EventType::Code input, Code code, ModifierState modifier = {}) : inputType(input), modifierState(modifier) {
+            IsInputType(EventType::KeyboardInput, keyboard, Keyboard::Code);
+            IsInputType(EventType::MouseInput, mouse, Mouse::Code);
+            IsInputType(EventType::GenericInput, genericInput, GenericInput::Code);
+            IsInputType(EventType::GamepadInput, gamepadInput, Gamepad::Code);
         }
 
         bool IsValideModifierState(const ModifierState& mod) const {
-            if (modifierState.Ctrl && !mod.Ctrl) return false;
-            if (modifierState.Alt && !mod.Alt) return false;
-            if (modifierState.Shift && !mod.Shift) return false;
-            if (modifierState.Super && !mod.Super) return false;
+            if (modifierState.control && !mod.control) return false;
+            if (modifierState.alt && !mod.alt) return false;
+            if (modifierState.shift && !mod.shift) return false;
+            if (modifierState.super && !mod.super) return false;
             return true;
         }
 
-
         // Opérateur d'égalité
         bool operator==(const ActionCode& other) const {
-
             // if (IsValideModifierState(other.modifierState)) {
             if (other.modifierState == modifierState) {
-                if (other.category == category) {
-                    if (category == EventCategory::Keyboard && keyboard == other.keyboard) return true;
-                    if (category == EventCategory::MouseButton && mouse == other.mouse) return true;
-                    if (category == EventCategory::GenericInput && genericInput == other.genericInput) return true;
+                if (other.inputType == inputType) {
+                    if (inputType == EventType::KeyboardInput && keyboard == other.keyboard) return true;
+                    if (inputType == EventType::MouseInput && mouse == other.mouse) return true;
+                    if (inputType == EventType::GenericInput && genericInput == other.genericInput) return true;
+                    if (inputType == EventType::GamepadInput && gamepadInput == other.gamepadInput) return true;
                 }
             }
 
@@ -73,18 +75,22 @@ namespace nkentseu {
             Keyboard::Code      keyboard;    // si (category == EventCategory::Keyboard)
             Mouse::Code         mouse;    // si (category == EventCategory::MouseButton)
             GenericInput::Code  genericInput;    // si (category == EventCategory::GenericInput)
+            Gamepad::Code       gamepadInput;
         };
 
-        EventCategory::Code category;
+        EventType::Code inputType;
         ModifierState modifierState;
 
         // Constructeur avec paramètres
-        AxisCode(EventCategory::Code cat, Code code, ModifierState modifier = {}) : category(cat), modifierState(modifier) {
-            #define IsCategory(category, data, type) if (category == cat) data = static_cast<type::Code>(code);
-
-            IsCategory(EventCategory::Keyboard, keyboard, Keyboard)
-            IsCategory(EventCategory::MouseButton, mouse, Mouse)
-            IsCategory(EventCategory::GenericInput, genericInput, GenericInput)
+        AxisCode(EventType::Code input, Code code, ModifierState modifier = {}) : inputType(input), modifierState(modifier) {
+            IsInputType(EventType::KeyboardInput, keyboard, Keyboard::Code);
+            IsInputType(EventType::MouseInput, mouse, Mouse::Button);
+            IsInputType(EventType::MouseWheel, mouse, Mouse::Wheel);
+            IsInputType(EventType::GenericInput, genericInput, GenericInput::Button);
+            IsInputType(EventType::GenericAxis, genericInput, GenericInput::Axis);
+            IsInputType(EventType::GenericHat, genericInput, GenericInput::Hat);
+            IsInputType(EventType::GamepadInput, gamepadInput, Gamepad::Button);
+            IsInputType(EventType::GamepadAxis, gamepadInput, Gamepad::Axis);
         }
 
 
@@ -92,10 +98,15 @@ namespace nkentseu {
         bool operator==(const AxisCode& other) const {
 
             if (other.modifierState == modifierState) {
-                if (other.category == category) {
-                    if (category == EventCategory::Keyboard && keyboard == other.keyboard) return true;
-                    if (category == EventCategory::MouseButton && mouse == other.mouse) return true;
-                    if (category == EventCategory::GenericInput && genericInput == other.genericInput) return true;
+                if (other.inputType == inputType) {
+                    if (inputType == EventType::KeyboardInput && keyboard == other.keyboard) return true;
+                    if (inputType == EventType::MouseInput && mouse == other.mouse) return true;
+                    if (inputType == EventType::MouseWheel && mouse == other.mouse) return true;
+                    if (inputType == EventType::GenericInput && genericInput == other.genericInput) return true;
+                    if (inputType == EventType::GenericAxis && genericInput == other.genericInput) return true;
+                    if (inputType == EventType::GenericHat && genericInput == other.genericInput) return true;
+                    if (inputType == EventType::GamepadInput && gamepadInput == other.gamepadInput) return true;
+                    if (inputType == EventType::GamepadAxis && gamepadInput == other.gamepadInput) return true;
                 }
             }
 

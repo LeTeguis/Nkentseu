@@ -5,105 +5,128 @@
 
 #include "NkentseuPch/ntspch.h"
 #include "WindowEvent.h"
+#include <Logger/Formatter.h>
 
 namespace nkentseu {
+
+    WindowStatusEvent::WindowStatusEvent(uint64 win, WindowState::Code state, const WindowProperties& properties) : Event(win), m_State(state), m_Properties(properties) {}
+
+    WindowStatusEvent::WindowStatusEvent(const WindowStatusEvent& e) : Event(e), m_State(e.m_State), m_Properties(e.m_Properties) {}
+
+    std::string WindowStatusEvent::ToString() const {
+        return FORMATTER.Format("WindowStatusEvent {Window ID : {0}, State : {1}}", m_WindowID, WindowState::ToString(m_State));
+    }
+
+    WindowState::Code WindowStatusEvent::GetState() const{
+        return m_State;
+    }
+
+    WindowProperties WindowStatusEvent::GetProperties() const{
+        return m_Properties;
+    }
+
+    WindowRenderedEvent::WindowRenderedEvent(uint64 win, Rectangle rectangle, Color color)
+        : Event(win), m_Rectangle(rectangle), m_Color(color) {}
+
+    WindowRenderedEvent::WindowRenderedEvent(const WindowRenderedEvent& e) : Event(e), m_Rectangle(e.m_Rectangle), m_Color(e.m_Color) {}
+
+    std::string WindowRenderedEvent::ToString() const {
+        return FORMATTER.Format("WindowRenderedEvent {Window ID : {0}, Rectangle : {1}, Color: {2}}", m_WindowID, m_Rectangle, m_Color);
+    }
+
+    Rectangle WindowRenderedEvent::GetRenderRec() const{
+        return m_Rectangle;
+    }
+
+    Color WindowRenderedEvent::GetRenderColor() const{
+        return m_Color;
+    }
+
+    WindowBackgroundErasedEvent::WindowBackgroundErasedEvent(uint64 win, Rectangle rectangle, Color color)
+        : Event(win), m_Rectangle(rectangle), m_Color(color) {}
+
+    WindowBackgroundErasedEvent::WindowBackgroundErasedEvent(const WindowBackgroundErasedEvent& e)
+        : Event(e), m_Rectangle(e.m_Rectangle), m_Color(e.m_Color) {}
+
+    std::string WindowBackgroundErasedEvent::ToString() const {
+        return FORMATTER.Format("WindowBackgroundErasedEvent {Window ID : {0}, Rectangle : {1}, Color: {2}}", m_WindowID, m_Rectangle, m_Color);
+    }
+
+    Rectangle WindowBackgroundErasedEvent::GetBackgroundRec() const{
+        return m_Rectangle;
+    }
+
+    Color WindowBackgroundErasedEvent::GetBackgroundColor() const{
+        return m_Color;
+    }
+
+    WindowResizedEvent::WindowResizedEvent(uint64 win, ResizeState::Code state, const Rectangle& rectangle)
+        : Event(win), m_Rectangle(rectangle), m_State(state) {}
+
+    WindowResizedEvent::WindowResizedEvent(const WindowResizedEvent& e) : Event(e), m_Rectangle(e.m_Rectangle), m_State(e.m_State) {}
+
+    std::string WindowResizedEvent::ToString() const {
+        return FORMATTER.Format("WindowResizedEvent {Window ID : {0}, Resize State : {2}, Rectangle: {1}}", m_WindowID, m_Rectangle, ResizeState::ToString(m_State));
+    }
+
+    Rectangle WindowResizedEvent::GetWindowRec() const{
+        return m_Rectangle;
+    }
+
+    ResizeState::Code WindowResizedEvent::GetRisizeState() const{
+        return m_State;
+    }
+
+    WindowFocusedEvent::WindowFocusedEvent(uint64 win, FocusState::Code state) : Event(win), m_State(state) {}
+
+    WindowFocusedEvent::WindowFocusedEvent(const WindowFocusedEvent& e) : Event(e), m_State(e.m_State) {}
     
-    WindowCreateEvent::WindowCreateEvent(uint64 win) : Event(win) {}
-    WindowCreateEvent::WindowCreateEvent(const WindowCreateEvent& e) : Event(e.GetWindow()) {}
-
-    bool WindowCreateEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType() && e.GetCategoryFlags() == GetCategoryFlags());
-    }
-    WindowPaintEvent::WindowPaintEvent(uint64 win, const Rectangle& rect, const Color& color) : Event(win), m_Rect(rect), m_Color(color) {}
-    WindowPaintEvent::WindowPaintEvent(const WindowPaintEvent& e) : Event(e.GetWindow()), m_Rect(e.m_Rect), m_Color(e.m_Color) {}
-
-    Rectangle WindowPaintEvent::GetRect() { return m_Rect; }
-    Color WindowPaintEvent::GetColor() { return m_Color; }
-
-    bool WindowPaintEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType() && e.GetCategoryFlags() == GetCategoryFlags());
+    std::string WindowFocusedEvent::ToString() const {
+        return FORMATTER.Format("WindowFocusedEvent {Window ID : {0}, FocusState : {1}}", m_WindowID, FocusState::ToString(m_State));
     }
 
-    WindowBackgroundEraseEvent::WindowBackgroundEraseEvent(uint64 win, const Rectangle& rect, const Color& color) : Event(win), m_Rect(rect), m_Color(color) {}
-    WindowBackgroundEraseEvent::WindowBackgroundEraseEvent(const WindowBackgroundEraseEvent& e) : Event(e.GetWindow()), m_Rect(e.m_Rect), m_Color(e.m_Color) {}
-
-    Rectangle WindowBackgroundEraseEvent::GetRect() { return m_Rect; }
-    Color WindowBackgroundEraseEvent::GetColor() { return m_Color; }
-
-    bool WindowBackgroundEraseEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType() && e.GetCategoryFlags() == GetCategoryFlags());
+    FocusState::Code WindowFocusedEvent::GetFocusState() const{
+        return m_State;
     }
 
-    WindowCloseEvent::WindowCloseEvent(uint64 win) : Event(win) {}
-    WindowCloseEvent::WindowCloseEvent(const WindowCloseEvent& e) : Event(e.GetWindow()) {}
+    WindowDpiChangedEvent::WindowDpiChangedEvent(uint64 win, float32 dpi) : Event(win), m_Dpi(dpi) {}
 
-    bool WindowCloseEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType() && e.GetCategoryFlags() == GetCategoryFlags());
+    WindowDpiChangedEvent::WindowDpiChangedEvent(const WindowDpiChangedEvent& e) : Event(e), m_Dpi(e.m_Dpi) {}
+
+    std::string WindowDpiChangedEvent::ToString() const {
+        return FORMATTER.Format("WindowDpiChangedEvent {Window ID : {0}, DPI : {1}}", m_WindowID, m_Dpi);
     }
 
-    WindowFocusEvent::WindowFocusEvent(uint64 win, bool focus, const Rectangle& exposure) : Event(win), m_Focus(focus), m_Exposure(exposure) {}
-    WindowFocusEvent::WindowFocusEvent(const WindowFocusEvent& e) : Event(e.GetWindow()), m_Focus(e.m_Focus), m_Exposure(e.m_Exposure) {}
-
-    bool WindowFocusEvent::HasFocus() { return m_Focus; }
-
-    Rectangle WindowFocusEvent::GetExposureRegion(){
-        return m_Exposure;
+    float32 WindowDpiChangedEvent::GetDpi() const{
+        return m_Dpi;
     }
 
-    bool WindowFocusEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType());
+    WindowMovedEvent::WindowMovedEvent(uint64 win, Vector2i position, Vector2i lastPosition) : Event(win), m_Position(position), m_LastPosition(lastPosition) {}
+
+    WindowMovedEvent::WindowMovedEvent(const WindowMovedEvent& e)
+        : Event(e), m_Position(e.m_Position), m_LastPosition(e.m_LastPosition) {}
+
+    std::string WindowMovedEvent::ToString() const{
+        return FORMATTER.Format("WindowMovedEvent {Window ID : {0}, Position : {1}, Last Position : {2}}", m_WindowID, m_Position, m_LastPosition);
     }
 
-    std::string WindowFocusEvent::ToString() const {
-        std::stringstream ss;
-        ss << "WindowFocusEvent: " << ((m_Focus) ? "True" : "False");
-        return ss.str();
+    Vector2i WindowMovedEvent::GetPosition() const{
+        return m_Position;
     }
 
-    WindowResizeEvent::WindowResizeEvent(uint64 win, const Vector2u& size, bool resizing) : Event(win), m_Size(size), m_Resizing(resizing) {}
-    WindowResizeEvent::WindowResizeEvent(const WindowResizeEvent& e) : Event(e.GetWindow()), m_Resizing(e.m_Resizing), m_Size(e.m_Size) {}
-
-    Vector2u WindowResizeEvent::GetSize() { return m_Size; }
-    bool WindowResizeEvent::IsResizing() { return m_Resizing; }
-
-    std::string WindowResizeEvent::ToString() const {
-        std::stringstream ss;
-        ss << "WindowResizeEvent: " << m_Size.width << "x" << m_Size.height << ((m_Resizing) ? "; True" : "; False");
-        return ss.str();
+    Vector2i WindowMovedEvent::GetLastPosition() const{
+        return m_LastPosition;
     }
 
-    bool WindowResizeEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType());
+    WindowVisibleEvent::WindowVisibleEvent(uint64 win, bool visible) : Event(win), m_Visible(visible) {
     }
 
-    WindowDpiEvent::WindowDpiEvent(uint64 win, float32 dpi) : Event(win), m_Dpi(dpi) {}
-    WindowDpiEvent::WindowDpiEvent(const WindowDpiEvent& e) : Event(e.GetWindow()), m_Dpi(e.m_Dpi) {}
-
-    float32 WindowDpiEvent::GetDpi() { return m_Dpi; }
-
-    bool WindowDpiEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType() && e.GetCategoryFlags() == GetCategoryFlags());
+    WindowVisibleEvent::WindowVisibleEvent(const WindowVisibleEvent& e) : Event(e), m_Visible(e.m_Visible){
     }
 
-    std::string WindowDpiEvent::ToString() const {
-        std::stringstream ss;
-        ss << "WindowDpiEvent: " << m_Dpi;
-        return ss.str();
-    }
-
-    WindowMovedEvent::WindowMovedEvent(uint64 win, const Vector2i& position) : Event(win), m_Position(position) {}
-    WindowMovedEvent::WindowMovedEvent(const WindowMovedEvent& e) : Event(e.GetWindow()), m_Position(e.m_Position) {}
-
-    Vector2i WindowMovedEvent::GetPosition() { return m_Position; }
-
-    std::string WindowMovedEvent::ToString() const {
-        std::stringstream ss;
-        ss << "WindowMovedEvent: " << m_Position.x << ", " << m_Position.y;
-        return ss.str();
-    }
-
-    bool WindowMovedEvent::IsEqual(Event& e) const {
-        return (e.GetEventType() == GetEventType());
+    std::string WindowVisibleEvent::ToString() const{
+        return FORMATTER.Format("WindowVisibleEvent {Window ID : {0}, Is Visible : {1}}", m_WindowID, STR_BOOL(m_Visible));
     }
     
+    bool WindowVisibleEvent::IsVisible() const { return m_Visible; }
 }   // namespace nkentseu

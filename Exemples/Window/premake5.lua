@@ -1,8 +1,7 @@
 project "Window"
     kind "ConsoleApp"
 
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
@@ -22,7 +21,7 @@ project "Window"
     }
 
     links {
-        "Stb",
+        -- "Stb",
         "NSystem",
         "Logger",
         "Ntsm",
@@ -40,7 +39,7 @@ project "Window"
         PostBuilds("Logger", "%{prj.name}")
         PostBuilds("Ntsm", "%{prj.name}")
         PostBuilds("NSystem", "%{prj.name}")
-        PostBuilds("Stb", "%{prj.name}")
+        -- PostBuilds("Stb", "%{prj.name}")
     
     filter "system:macosx"
 
@@ -48,6 +47,9 @@ project "Window"
         links {
             "X11",
             "Xcursor", "Xrandr", "Xfixes"
+        }
+        links {
+            "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
         }
 
     filter "configurations:Debug"

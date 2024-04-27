@@ -85,20 +85,20 @@ namespace nkentseu {
 		return "NotDefine";
 	}
 
-	std::string Gamepad::GetName(Code code, Type type, Nature nature) {
+	std::string Gamepad::ToString(Code code, Type type, DataType dataType) {
 		if (type == Type::DualShock) {
-			if (nature == Nature::Button) {
+			if (dataType == DataType::Button) {
 				return DualShock::ButtonNames(code);
 			}
-			else if (nature == Nature::Axis) {
+			else if (dataType == DataType::Axis) {
 				return DualShock::AxisNames(code);
 			}
 		}
 		else if (type == Type::XBox) {
-			if (nature == Nature::Button) {
+			if (dataType == DataType::Button) {
 				return XBox::ButtonNames(code);
 			}
-			else if (nature == Nature::Axis) {
+			else if (dataType == DataType::Axis) {
 				return XBox::AxisNames(code);
 			}
 		}
@@ -106,7 +106,7 @@ namespace nkentseu {
 	}
 
 
-	std::string Gamepad::TypeNames(Type code) {
+	std::string Gamepad::ToString(Type code) {
 		#define CODE_STR_T(code_id) if (code == Type::code_id) return #code_id
 
 		CODE_STR_T(XBox);

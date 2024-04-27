@@ -88,6 +88,8 @@ namespace nkentseu {
         static WindowInternal* GetCurrent(xcb_window_t window);
 
     private:
+        friend class WindowEventInternal;
+        
         Vector2u m_WindowFrameSize = Vector2u(6, 30);
         Memory::Shared<WindowDisplay> m_NativeWindow = nullptr;
         bool m_IsWindowClosed = false;
@@ -99,6 +101,10 @@ namespace nkentseu {
         class Window* m_MainWindow = nullptr;
 
         static uint64 s_WindowIDCounter;
+
+        void SetMinSize(const Vector2u& size);
+        void SetMaxSize(const Vector2u& size);
+        void SetBorder(uint32 border);
     };
 
     static thread_local WindowInternal* currentWindowInternal = nullptr;

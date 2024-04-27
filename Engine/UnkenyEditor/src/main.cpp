@@ -10,7 +10,6 @@ using namespace nkentseu;
 class UnkenyEditor : public nkentseu::Application {
 public:
 	UnkenyEditor() : Application() {
-		Log.Error("Unkeny Editor");
 	}
 };
 

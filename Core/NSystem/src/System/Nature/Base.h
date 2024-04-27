@@ -14,48 +14,61 @@
 #include <vector>
 #include "System/System.h"
 
-namespace nkentseu {
+namespace nkentseu{
     using ARGV = std::vector<std::string>;
 
     #define BIT(x) (1 << x)
     #define STDPH(v) std::placeholders::_##v
 
-    #define STR_BOOL(b) ((b) ? ("True") : ("False"))
+    #define STR_BOOL(b) ((b) ? "True" : "False")
 
     // Unsigned int types.
-    typedef unsigned char uint8;
-    typedef unsigned short uint16;
-    typedef unsigned int uint32;
-    typedef unsigned long uintl32;
-    typedef unsigned long long uint64;
+    typedef unsigned char               uint8;
+    typedef unsigned short              uint16;
+    typedef unsigned int                uint32;
+    typedef unsigned long int           uintl32;
+    typedef uintl32                     nts_size;
+    typedef unsigned long long int      uint64;
 
     // Signed int types.
-    typedef signed char int8;
-    typedef signed short int16;
-    typedef signed int int32;
-    typedef signed long long int64;
+    typedef signed char                 int8;
+    typedef signed short int            int16;
+    typedef signed int                  int32;
+    typedef signed long long int        int64;
 
     // Floating point types
-    typedef float float32;
-    typedef double float64;
+    typedef float                       float32;
+    typedef double                      float64;
+    typedef long double                 float80;
 
     // Boolean types
-    typedef int bool32;
+    typedef int                         bool32;
+    typedef unsigned char               Bool;
 
-    #define INVALID_ID_UINT64 18446744073709551615UL
-    #define INVALID_ID 4294967295U
-    #define INVALID_ID_UINT16 65535U
-    #define INVALID_ID_UINT8 255U
+    #define True                        ((Bool)1)
+    #define False                       ((Bool)0)
+    #define Null                        ((void *)0)
 
-    #define GIBIBYTES(amount) ((amount) * 1024ULL * 1024ULL * 1024ULL)
-    #define MEBIBYTES(amount) ((amount) * 1024ULL * 1024ULL)
-    #define KIBIBYTES(amount) ((amount) * 1024ULL)
+    #define INVALID_ID_UINT64           18446744073709551615UL
+    #define INVALID_ID                  4294967295U
+    #define INVALID_ID_UINT16           65535U
+    #define INVALID_ID_UINT8            255U
 
-    #define GIGABYTES(amount) ((amount) * 1000ULL * 1000ULL * 1000ULL)
-    #define MEGABYTES(amount) ((amount) * 1000ULL * 1000ULL)
-    #define KILOBYTES(amount) ((amount) * 1000ULL)
+    #define GIBIBYTES(amount)           ((amount) * 1024ULL * 1024ULL * 1024ULL)
+    #define MEBIBYTES(amount)           ((amount) * 1024ULL * 1024ULL)
+    #define KIBIBYTES(amount)           ((amount) * 1024ULL)
 
-    #define KCLAMP(value, min, max) ((value <= min) ? min : (value >= max) ? max : value)
+    #define GIGABYTES(amount)           ((amount) * 1000ULL * 1000ULL * 1000ULL)
+    #define MEGABYTES(amount)           ((amount) * 1000ULL * 1000ULL)
+    #define KILOBYTES(amount)           ((amount) * 1000ULL)
+
+    #define KCLAMP(value, min, max)     ((value <= min) ? min : (value >= max) ? max : value)
+
+    #define ARRAY_SIZE(arr)             sizeof (arr) / sizeof (arr[0])
+
+    #ifndef SIZE_MAX
+    #    define SIZE_MAX ((nts_size)1 << (sizeof (nts_size) * 8 - 1))
+    #endif
 
     NKENTSEU_INLINE uint64 NKENTSEU_API GetAligned(uint64 operand, uint64 granularity) {
         return ((operand + (granularity - 1)) & ~(granularity - 1));
