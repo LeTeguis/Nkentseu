@@ -101,7 +101,7 @@ namespace nkentseu {
 
     bool Image::LoadFromMemory(const std::vector<uint8_t>& imageData, bool flipVertical) {
         if (!imageData.empty()) {
-            // Utilisez std::istringstream pour cr�er un flux m�moire
+            // Utilisez std::istringstream pour creer un flux memoire
             std::istringstream stream(std::string(imageData.begin(), imageData.end()));
 
             // Chargez l'image depuis le flux m�moire

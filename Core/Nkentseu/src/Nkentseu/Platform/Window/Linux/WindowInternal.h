@@ -105,6 +105,7 @@ namespace nkentseu {
         void SetMinSize(const Vector2u& size);
         void SetMaxSize(const Vector2u& size);
         void SetBorder(uint32 border);
+        void InitWindowPosition();
     };
 
     static thread_local WindowInternal* currentWindowInternal = nullptr;

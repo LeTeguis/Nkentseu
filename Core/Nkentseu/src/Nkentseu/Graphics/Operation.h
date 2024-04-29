@@ -21,7 +21,7 @@ namespace nkentseu {
 			NotDefine = 0,
 			Add,
 			Multiply,
-			Subtract,
+			Substract,
 			Divide,
 			Modulo,
 			And,

@@ -74,7 +74,7 @@ namespace nkentseu {
             NtsWindowState state = NKENTSEU_WINDOW_STATE_MASK_CLEAR;
             NtsWindowActionPermissions permissions = NKENTSEU_WINDOW_ACTION_PERMISSION_MASK_CLEAR;
 
-            void SetSate(NtsWindowState state);
+            void SetState(NtsWindowState state);
             void SetPermission(NtsWindowActionPermissions permissions);
             
             friend class WindowEventInternal;

@@ -41,6 +41,7 @@ def GetPremakeGenerator():
     vs_version = conf.VS_VERSION_INSTALLER
 
     if platform_name == conf.Platforme.WINDOWS:
+        #return f'gmake2'
         return f'vs{vs_version}'
     elif platform_name == conf.Platforme.LINUX:
         return 'gmake2'

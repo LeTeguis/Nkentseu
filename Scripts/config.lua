@@ -5,7 +5,7 @@
 
 outputdir 		= ""
 build 			= ""
-build_int 		= ""
+build_obj 		= ""
 
 function OutputDir()
     outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -16,12 +16,12 @@ function BuildDir()
 end
 
 function BuildIntDir()
-    build_int = "%{wks.location}/build/int/"
+    build_obj = "%{wks.location}/build/obj/"
 end
 
 function BuildsInfos(projectName)
     targetdir ( build .. outputdir .. "/" .. projectName )
-    objdir ( build_int .. outputdir .. "/" .. projectName )
+    objdir ( build_obj .. outputdir .. "/" .. projectName )
 end
 
 

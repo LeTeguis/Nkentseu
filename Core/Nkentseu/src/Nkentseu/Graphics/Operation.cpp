@@ -15,7 +15,7 @@ namespace nkentseu {
 
         OPERATION_STR(Add);
         OPERATION_STR(Multiply);
-        OPERATION_STR(Subtract);
+        OPERATION_STR(Substract);
         OPERATION_STR(Divide);
         OPERATION_STR(Modulo);
         OPERATION_STR(And);
@@ -29,7 +29,7 @@ namespace nkentseu {
 
         STR_OPERATION(Add);
         STR_OPERATION(Multiply);
-        STR_OPERATION(Subtract);
+        STR_OPERATION(Substract);
         STR_OPERATION(Divide);
         STR_OPERATION(Modulo);
         STR_OPERATION(And);

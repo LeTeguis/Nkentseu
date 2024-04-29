@@ -67,7 +67,7 @@ namespace nkentseu {
             dmScreenSettings.dmSize = sizeof(dmScreenSettings);
             dmScreenSettings.dmPelsWidth = screenSize.width;
             dmScreenSettings.dmPelsHeight = screenSize.height;
-            dmScreenSettings.dmBitsPerPel = 32;
+            dmScreenSettings.dmBitsPerPel = m_Properties.bitsPerPixel;
             dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
             if ((size.width != screenSize.width) && (size.height != screenSize.height)) {
@@ -159,8 +159,8 @@ namespace nkentseu {
             y = ((long)GetSystemMetrics(SM_CYSCREEN) - size.height) / 2;
         }
         else if (positionType == WindowPositionType::RandomPosition) {
-            x = Random.NextUInt32((long)GetSystemMetrics(SM_CXSCREEN) - size.width);
-            y = Random.NextUInt32((long)GetSystemMetrics(SM_CYSCREEN) - size.height);
+            x = Random.NextInt32((long)GetSystemMetrics(SM_CXSCREEN) - size.width);
+            y = Random.NextInt32((long)GetSystemMetrics(SM_CYSCREEN) - size.height);
         }
         else {
             x = windowRect.left;

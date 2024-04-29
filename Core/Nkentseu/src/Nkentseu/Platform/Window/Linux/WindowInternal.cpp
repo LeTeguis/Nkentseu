@@ -11,6 +11,7 @@
 #include "Nkentseu/Core/NkentseuLogger.h"
 
 #include <string.h>
+#include <Ntsm/Random.h>
 
 namespace nkentseu {
     #define NATIVE_WINDOW_IS_VALID(return_value)        xcb_connection_t* connection = PlatformState.connection; \
@@ -57,7 +58,7 @@ namespace nkentseu {
 
         if (!m_NativeWindow->Register(m_Properties.doubleClick)) {
             ErrorMessaging.PushError(NTSErrorCode::Window_RegisterWindowClass);
-            Log_nts.Error("NAtive Window registration failled");
+            Log_nts.Error("Native Window registration failled");
             return;
         }
 
@@ -74,11 +75,11 @@ namespace nkentseu {
                     XCB_EVENT_MASK_LEAVE_WINDOW         | XCB_EVENT_MASK_FOCUS_CHANGE       |
                     XCB_EVENT_MASK_VISIBILITY_CHANGE    | XCB_EVENT_MASK_STRUCTURE_NOTIFY   |
                     XCB_EVENT_MASK_PROPERTY_CHANGE      | XCB_EVENT_MASK_POINTER_MOTION     |
-                    XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY  | XCB_EVENT_MASK_RESIZE_REDIRECT;
+                    XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY;//  | XCB_EVENT_MASK_RESIZE_REDIRECT;
         // Log_nts.Debug();
 
         xcb_create_window(      connection,
-                                m_Properties.bitsPerPixel,
+                                m_Properties.depth,
                                 m_NativeWindow->windowHandle,
                                 screenHandle->root,
                                 position.x, position.y, size.width, size.height,
@@ -89,30 +90,50 @@ namespace nkentseu {
                             );
         /* create new atom to help us detect close window event messages */
         xcb_change_property (
-            connection,                      /* xcb connection */
-            XCB_PROP_MODE_REPLACE,     /* replace the property with new value */
+            connection,                         /* xcb connection */
+            XCB_PROP_MODE_REPLACE,              /* replace the property with new value */
             m_NativeWindow->windowHandle,       /* xcb id of window object */
-            stateTools.WM_PROTOCOLS,     /* change something in protocl */
-            XCB_ATOM_ATOM,             /* change an atom */
-            32,                        /* process data in chunks of 32 bits */
-            1,                         /* length of data */
-            &stateTools.WM_DELETE_WINDOW /* data */
+            stateTools.WM_PROTOCOLS,            /* change something in protocl */
+            XCB_ATOM_ATOM,                      /* change an atom */
+            32,                                 /* process data in chunks of 32 bits */
+            1,                                  /* length of data */
+            &stateTools.WM_DELETE_WINDOW        /* data */
         );
 
         SetTitle(properties.title);
-        Log_nts.Debug("wind id = {0}", m_NativeWindow->windowHandle);
+        Log_nts.Debug("wind id = {0}, size = {1}", m_NativeWindow->windowHandle, size);
 
         xcb_map_window(connection, m_NativeWindow->windowHandle);
         Assert_nts.ATrue(xcb_flush(connection) <= 0);
 
         SetMinSize(m_Properties.minSize);
-        SetMinSize(m_Properties.maxSize);
+        SetMaxSize(m_Properties.maxSize);
+        InitWindowPosition();
         Log_nts.Debug();
         //m_NativeWindow->SetSate(NtsWindowStateMask::);
         //m_NativeWindow->SetPermission(NtsWindowActionPermissionMask::NKENTSEU_WINDOW_ACTION_PERMISSION_MASK_RESIZE);
     }
 
     WindowInternal::~WindowInternal() {
+        Close();
+    }
+
+    void WindowInternal::InitWindowPosition() {
+        NATIVE_WINDOW_IS_VALID();
+        int32 x;
+        int32 y;
+
+        Vector2i position;
+        Vector2u size(screenHandle->width_in_pixels, screenHandle->height_in_pixels);
+        if (m_Properties.positionType == WindowPositionType::CenteredPosition) {
+            position = (size - m_Properties.size) / 2;
+            SetPosition(position.x, position.y);
+        }
+        else if (m_Properties.positionType == WindowPositionType::RandomPosition) {
+            position = size - m_Properties.size;
+            position = Vector2i(Random.NextInt32(position.x), Random.NextInt32(position.y));
+            SetPosition(position.x, position.y);
+        }
     }
 
     std::string WindowInternal::GetTitle() const {

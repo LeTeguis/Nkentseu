@@ -60,7 +60,7 @@ namespace nkentseu {
         return m_IsRegistered;
     }
 
-    void WindowDisplay::SetSate(NtsWindowState state){
+    void WindowDisplay::SetState(NtsWindowState state){
         if (!m_IsRegistered) return;
         xcb_connection_t* connection = PlatformState.connection;
         xcb_screen_t *screenHandle = PlatformState.screen;

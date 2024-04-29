@@ -92,6 +92,8 @@ namespace nkentseu {
         std::string name = std::string("NkentseuLib");
         // Icon Path
         std::string iconPath = "";
+        // Engine name
+        std::string engineName = "Nkentseu";
 
         // Mouse Data
         bool doubleClick = true;
@@ -103,7 +105,8 @@ namespace nkentseu {
         bool cursorVisible = true;
 
         // bpp
-        uint32 bitsPerPixel = 96;
+        uint32 bitsPerPixel = 32;
+        uint32 depth = 0;
         static WindowProperties GetDesktopProperties();
         static const std::vector<WindowProperties>& GetFullscreenProperties();
 
