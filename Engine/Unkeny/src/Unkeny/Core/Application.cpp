@@ -28,7 +28,7 @@ namespace nkentseu {
     bool Application::Initialize()
     {
         WindowProperties windowProperty;
-        windowProperty.title = "Window";
+        windowProperty.title = "Unkeny Engine";
         windowProperty.size.width = 1000;
         windowProperty.size.height = 600;
 
@@ -44,8 +44,6 @@ namespace nkentseu {
             Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", (bool32)error);
             return false;
         }
-
-        Log.Debug("Size = {0}", windowProperty.size);
         
         EventTrack.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
         
@@ -61,18 +59,10 @@ namespace nkentseu {
 
     void Application::Run()
     {
-        Log.Trace("Unkeny Engine in Run methode");
         if (m_Window == nullptr) return;
-        Log.Trace("Unkeny Engine Run {0}", &Input);
 
         while (m_Running) {
-            // Log.Trace();
             EventTrack.Pick();
-            // Log.Trace();
-
-            if (Input.IsKeyDown(Keyboard::Up)) {
-                // Log.Debug("up pressed");
-            }
         }
 
     }
@@ -80,7 +70,6 @@ namespace nkentseu {
     void Application::OnEvent(Event& event)
     {
         EventBroker broker(event);
-        Log.Debug("{0}", event);
 
         broker.Route<WindowStatusEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowStatusEvent));
         broker.Route<KeyboardEvent>(REGISTER_CLIENT_EVENT(Application::OnKeyboardEvent));
@@ -90,7 +79,6 @@ namespace nkentseu {
     {
         if (event.GetState() == WindowState::Closed) {
             m_Running = false;
-            Log.Debug("close");
             return m_Running;
         }
         return true;

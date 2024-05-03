@@ -1,11 +1,13 @@
 /**
  * SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
  */
-#include "NkentseuPch/ntspch.h"
+#include <System/System.h>
+#ifdef NKENTSEU_PLATFORM_WINDOWS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glad/wgl.h>
+#include <Glad/glad/wgl.h>
 
 #ifndef GLAD_IMPL_UTIL_C_
 #define GLAD_IMPL_UTIL_C_
@@ -591,4 +593,6 @@ int gladLoaderLoadWGL(HDC hdc) {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

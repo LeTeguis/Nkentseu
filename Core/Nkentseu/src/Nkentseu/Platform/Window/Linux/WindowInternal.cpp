@@ -100,8 +100,17 @@ namespace nkentseu {
             &stateTools.WM_DELETE_WINDOW        /* data */
         );
 
-        SetTitle(properties.title);
-        Log_nts.Debug("wind id = {0}, size = {1}", m_NativeWindow->windowHandle, size);
+        /* set title */
+        xcb_change_property (
+            connection,   /* xcb connection */
+            XCB_PROP_MODE_REPLACE, /* replace the property with new value */
+            m_NativeWindow->windowHandle,   /* id of object */
+            XCB_ATOM_WM_NAME,      /* property is window name */
+            XCB_ATOM_STRING,       /* atom type is string */
+            8,                     /* process data in chunks of 8 bits */
+            m_Properties.title.size(),  /* length of data */
+            m_Properties.title.c_str()            /* data */
+        );
 
         xcb_map_window(connection, m_NativeWindow->windowHandle);
         Assert_nts.ATrue(xcb_flush(connection) <= 0);

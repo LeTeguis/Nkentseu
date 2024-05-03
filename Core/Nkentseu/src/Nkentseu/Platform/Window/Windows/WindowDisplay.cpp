@@ -10,6 +10,7 @@
 
 #include "WindowEventInternal.h"
 #include <Nkentseu/Core/WindowProperties.h>
+#include <Nkentseu/Core/NkentseuLogger.h>
 
 namespace nkentseu {
     bool WindowDisplay::Register(bool dbclk, const WindowProperties& windowProperties) {
@@ -18,7 +19,7 @@ namespace nkentseu {
         windowClassName = std::wstring(windowProperties.name.begin(), windowProperties.name.end());
 
         windowClass.cbSize = sizeof(WNDCLASSEX);
-        windowClass.style = CS_HREDRAW | CS_VREDRAW | (dbclk ? CS_DBLCLKS : 0) | ((windowProperties.hasShadow) ? CS_DROPSHADOW : 0);
+        windowClass.style = CS_HREDRAW | CS_OWNDC | CS_VREDRAW | (dbclk ? CS_DBLCLKS : 0) | ((windowProperties.hasShadow) ? CS_DROPSHADOW : 0);
         windowClass.lpfnWndProc = WindowEventInternal::WindowProcStatic;
         windowClass.cbClsExtra = 0;
         windowClass.cbWndExtra = WS_EX_NOPARENTNOTIFY;
@@ -35,6 +36,23 @@ namespace nkentseu {
         m_IsRegistered = RegisterClassEx(&windowClass);
 
         return m_IsRegistered;
+    }
+
+    bool WindowDisplay::CreateHDC()
+    {
+        if (deviceContext == nullptr && windowHandle != nullptr) {
+            deviceContext = GetDC(windowHandle);
+            Log_nts.Debug();
+            return true;
+        }
+        return false;
+    }
+
+    void WindowDisplay::Unregister()
+    {
+        if (deviceContext != nullptr) {
+            ReleaseDC(windowHandle, deviceContext);
+        }
     }
 
     const WCHAR* WindowDisplay::GetWindowClassName() {

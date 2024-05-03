@@ -26,6 +26,9 @@
  *
  */
 
+#include <System/System.h>
+#ifdef NKENTSEU_PLATFORM_LINUX
+
 #ifndef GLAD_GLX_H_
 #define GLAD_GLX_H_
 
@@ -39,7 +42,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#include <glad/gl.h>
+#include <Glad/glad/gl.h>
 
 #define GLAD_GLX
 #define GLAD_OPTION_GLX_LOADER
@@ -1175,4 +1178,6 @@ GLAD_API_CALL void gladLoaderUnloadGLX(void);
 #ifdef __cplusplus
 }
 #endif
+#endif
+
 #endif

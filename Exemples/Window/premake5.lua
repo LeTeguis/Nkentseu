@@ -29,6 +29,7 @@ project "Window"
     }
 
     defineApiInfo()
+    linksGraphicApi()
 
     filter "system:windows"
         systemversion "latest"

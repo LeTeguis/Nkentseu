@@ -26,11 +26,14 @@
  *
  */
 
+#include <System/System.h>
+#ifdef NKENTSEU_PLATFORM_WINDOWS
+
 #ifndef GLAD_WGL_H_
 #define GLAD_WGL_H_
 
 #include <windows.h>
-#include <glad/gl.h>
+#include <Glad/glad/gl.h>
 
 #define GLAD_WGL
 #define GLAD_OPTION_WGL_LOADER
@@ -1021,4 +1024,6 @@ GLAD_API_CALL int gladLoaderLoadWGL(HDC hdc);
 #ifdef __cplusplus
 }
 #endif
+#endif
+
 #endif

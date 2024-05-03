@@ -15,11 +15,14 @@ SOLUTION_NAME = "Nkentseu"
 # library type ["STATIC_LIB", "DYNAMIC_LIB"]
 LIB_TYPE = "DYNAMIC_LIB"
 
-# graphics api type ["GAPI_SOFTWARE", "GAPI_OPENGL", "GAPI_VULKAN", "GAPI_DIRECTX11", "GAPI_DIRECTX12", "GAPI_METAL"]
-GRAPHICS_API = "GAPI_SOFTWARE"
+# graphics api type ["NKENTSEU_GRAPHICS_API_SOFTWARE", "NKENTSEU_GRAPHICS_API_OPENGL", "NKENTSEU_GRAPHICS_API_VULKAN", "NKENTSEU_GRAPHICS_API_DIRECTX11", "NKENTSEU_GRAPHICS_API_DIRECTX12", "NKENTSEU_GRAPHICS_API_METAL"]
+GRAPHICS_API = "NKENTSEU_GRAPHICS_API_OPENGL"
 
 # project name
 PROJECTS_NAME = {
+    "." : "",
+    "Stb" : "External/Libs/Stb",
+    "Glad" : "External/Libs/Glad",
     "NSystem" : "Core/NSystem",
     "Logger" : "Core/Logger",
     "Ntsm" : "Core/Ntsm",
@@ -27,7 +30,7 @@ PROJECTS_NAME = {
     "Nkentseu" : "Core/Nkentseu",
     "Unkeny" : "Engine/Unkeny",
     "GlobalTests" : "Tests/GlobalTests",
-    "Window" : "Exemples/Windows",
+    "Window" : "Exemples/Window",
     "UnkenyEditor" : "Engine/UnkenyEditor"
 }
 

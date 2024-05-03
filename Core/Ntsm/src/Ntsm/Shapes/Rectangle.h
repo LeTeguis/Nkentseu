@@ -17,8 +17,8 @@ namespace nkentseu {
 	class NKENTSEU_API Rectangle {
 	public:
 
-		Vector2 corner; // Coin supérieur gauche du rectangle
-		Vector2 size; // Taille du rectangle
+		Vector2 corner{}; // Coin supérieur gauche du rectangle
+		Vector2 size{}; // Taille du rectangle
 
 		// Constructeurs
 		Rectangle();

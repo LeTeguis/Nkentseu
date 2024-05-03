@@ -100,8 +100,8 @@ def AddVariable(chemin_variable):
 
 
 
-VS_PATH="\"C:/Programmes/Microsoft Visual Studio/2022/Professional/Common7/IDE/devenv.exe\""
-VS_BUILD_PATH="C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe"
+VS_PATH="\"C:/Programmes/Microsoft Visual Studio/2022/Community/Common7/IDE/devenv.exe\""
+VS_BUILD_PATH="C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
 VS_VERSION_INSTALLER = "2022"
 
 

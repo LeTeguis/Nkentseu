@@ -37,6 +37,7 @@ project "Unkeny"
 
     defineExport()
     defineApiInfo()
+    linksGraphicApi()
     -- defineGraphicApi()
 
     links {

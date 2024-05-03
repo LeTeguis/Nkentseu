@@ -20,7 +20,8 @@ namespace nkentseu {
         Window_RegisterWindowClass = 0x0002,
         Window_StayInWindowMode = 0x0003,
         Window_Create = 0x0004,
-        Window_ExternalAssign = 0x0005
+        Window_ExternalAssign = 0x0005,
+        Window_Context_Graphics = 0x0006
     };
 
     enum class NKENTSEU_API NTSErrorSeverity : bool32{

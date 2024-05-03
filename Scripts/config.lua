@@ -38,16 +38,17 @@ end
 
 -- External api
 
---VULKAN_SDK = os.getenv("VULKAN_SDK")
+VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 Externals = {}
 
-filter "system:windows"
-Externals["VkInclude"] = "%{wks.location}/External/Libs/Vulkan-Headers-1.3.272"
-Externals["VkLib"] = "C:/VulkanSDK/1.3.224.1"
-filter {}
 Externals["Glad"] = "%{wks.location}/External/Libs/Glad"
 Externals["Stb"] = "%{wks.location}/External/Libs/Stb"
+--Externals["VkInclude"] = "%{wks.location}/External/Libs/Vulkan-Headers-1.3.272/include"
+Externals["VkInclude"] = VULKAN_SDK .. "/Include"
+Externals["VkLib"] = VULKAN_SDK .. "/Lib"
+print(Externals.VkInclude)
+print(Externals.VkLib)
 
 
 -- Internal api
@@ -131,47 +132,22 @@ libraryType = getLibraryType()
 -- Graphics api configuration
 newoption {
     trigger         = "graphicsapi",
-    value           = "GAPI_SOFTWARE",
-    description     = "ce flag peut prendre les valeur {GAPI_SOFTWARE, GAPI_OPENGL, GAPI_VULKAN, GAPI_DIRECTX11, GAPI_DIRECTX12 ou GAPI_METAL}",
-    default         = "GAPI_SOFTWARE",
-    category        = "GAPI",
+    value           = "NKENTSEU_GRAPHICS_API_SOFTWARE",
+    description     = "ce flag peut prendre les valeur {NKENTSEU_GRAPHICS_API_SOFTWARE, NKENTSEU_GRAPHICS_API_OPENGL, NKENTSEU_GRAPHICS_API_VULKAN, NKENTSEU_GRAPHICS_API_DIRECTX11, NKENTSEU_GRAPHICS_API_DIRECTX12 ou NKENTSEU_GRAPHICS_API_METAL}",
+    default         = "NKENTSEU_GRAPHICS_API_SOFTWARE",
+    category        = "GRAPHICS_API",
     allowed         = {
-        {"GAPI_SOFTWARE", "Software graphic api"},
-        {"GAPI_OPENGL", "Opengl graphic api"},
-        {"GAPI_VULKAN", "Vulkan graphic api"},
-        {"GAPI_DIRECTX11", "Directx11 graphic api"},
-        {"GAPI_DIRECTX12", "Directx12 graphic api"},
-        {"GAPI_METAL", "Metal graphic api"}
+        {"NKENTSEU_GRAPHICS_API_SOFTWARE", "Software graphic api"},
+        {"NKENTSEU_GRAPHICS_API_OPENGL", "Opengl graphic api"},
+        {"NKENTSEU_GRAPHICS_API_VULKAN", "Vulkan graphic api"},
+        {"NKENTSEU_GRAPHICS_API_DIRECTX11", "Directx11 graphic api"},
+        {"NKENTSEU_GRAPHICS_API_DIRECTX12", "Directx12 graphic api"},
+        {"NKENTSEU_GRAPHICS_API_METAL", "Metal graphic api"}
     }
 }
 
 function getGraphicApi()
-	libtype = _OPTIONS["graphicsapi"]
-
-    if libtype == "GAPI_SOFTWARE" then
-        return "NKENTSEU_GAPI_SOFTWARE"
-    end
-
-    if libtype == "GAPI_OPENGL" then
-        return "NKENTSEU_GAPI_OPENGL"
-    end
-
-    if libtype == "GAPI_VULKAN" then
-        return "NKENTSEU_GAPI_VULKAN"
-    end
-
-    if libtype == "GAPI_DIRECTX11" then
-        return "NKENTSEU_GAPI_DIRECTX11"
-    end
-
-    if libtype == "GAPI_DIRECTX12" then
-        return "NKENTSEU_GAPI_DIRECTX12"
-    end
-
-    if libtype == "GAPI_METAL" then
-        return "NKENTSEU_GAPI_METAL"
-    end
-    return ""
+	return _OPTIONS["graphicsapi"]
 end
 
 graphicsapi = getGraphicApi()
@@ -203,27 +179,46 @@ function defineGraphicApi()
 			graphicsapi
 		}
 
-        if graphicsapi == "NKENTSEU_GAPI_OPENGL" then
-            files {
-                "%{Externals.Glad}/**.h",
-                "%{Externals.Glad}/**.c",
-                "%{Externals.Glad}/**.cpp"
-            }
-
+        if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
             includedirs {
                 "%{Externals.Glad}/include"
             }
+
+            links {
+                "Glad", "opengl32"
+            }
         end
 
-        if graphicsapi == "NKENTSEU_GAPI_VULKAN" then
+        if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             includedirs {
-                "%{Externals.VkInclude}/include",
+                "%{Externals.VkInclude}/",
             }
 
             libdirs {
-                "%{Externals.VkLib}/Lib/"
+                "%{Externals.VkLib}/"
             }
 
+            filter "system:windows"
+                links { "vulkan-1", "VkLayer_utils" }
+
+            filter "system:macosx"
+                links { "libvulkan.1", "libMoltenVK", "libshaderc_combined" }
+
+            filter "system:linux"
+                links { "libvulkan", "libVkLayer_utils" }
+        end
+	end
+end
+
+function linksGraphicApi()
+    if graphicsapi ~= "" then
+        if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
+            links {
+                "Glad", "opengl32"
+            }
+        end
+
+        if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             filter "system:windows"
                 links { "vulkan-1", "VkLayer_utils" }
 
@@ -247,4 +242,8 @@ end
 function langageInformations()
     language "C++"
     cppdialect "C++20"
+    --toolchain "clang"
+    --toolset ("clang")
+    --toolchainversion "5.0"
+    -- buildoptions{ "Waddress-of-temporary" }
 end

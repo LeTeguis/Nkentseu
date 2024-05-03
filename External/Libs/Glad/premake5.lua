@@ -1,40 +1,28 @@
-project "Nkentseu"
+project "Glad"
     kind (libraryType)
     langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
-
-    pchheader "%{prj.name}Pch/ntspch.h"
-    pchsource "src/%{prj.name}Pch/ntspch.cpp"
     
     files {
-        -- Nkentseu
         "src/**.h",
         "src/**.hpp",
-        "src/**.inl",
+        "src/**.c",
         "src/**.cpp",
-
-        -- STB
-        "%{Externals.Stb}/src/**.h",
-        "%{Externals.Stb}/src/**.hpp",
-        "%{Externals.Stb}/src/**.c",
-        "%{Externals.Stb}/src/**.cpp"
+        "include/**.h",
+        "include/**.hpp",
+        "include/**.c",
+        "include/**.cpp",
     }
 
     includedirs {
-        "./src",
-        "%{Externals.Stb}/src",
+        "./include",
         "%{Internals.NSystem}/src",
-        "%{Internals.Logger}/src",
-        "%{Internals.Ntsm}/src",
     }
 
     links {
-        "NSystem",
-        "Logger",
-        "Ntsm",
-        --"Stb",
+        "NSystem"
     }
 
     defines {
@@ -43,16 +31,11 @@ project "Nkentseu"
 
     defineExport()
     defineApiInfo()
-    defineGraphicApi()
-    -- linkoptions { "-Winvalid-token-paste" }
 
     filter "system:windows"
         systemversion "latest"
 		optimize "off"
-
-        links {
-            "kernel32", "user32", "hid", "Xinput"
-        }
+        
         linkoptions { "-lpthread" }
 
     filter "system:macosx"
@@ -69,10 +52,6 @@ project "Nkentseu"
         buildoptions { "-stdlib=libc++", "-fPIC", "-pthread" }
 
     filter "system:linux"
-        links {
-            "X11", "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
-        }
-
         -- Ajout d'options de compilation pour toutes les configurations sous Linux
         buildoptions { "-fPIC", "-pthread" }
 

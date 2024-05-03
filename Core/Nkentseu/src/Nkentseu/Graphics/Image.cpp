@@ -733,7 +733,7 @@ namespace nkentseu {
                 case Operation::Multiply:
                     image.SetColor(x, y, color1 * color2);
                     break;
-                case Operation::Subtract:
+                case Operation::Substract:
                     image.SetColor(x, y, color1 - color2);
                     break;
                 case Operation::Divide:
@@ -783,7 +783,7 @@ namespace nkentseu {
                 case Operation::Multiply:
                     image.SetColor(x, y, color1 * color2);
                     break;
-                case Operation::Subtract:
+                case Operation::Substract:
                     image.SetColor(x, y, color1 - color2);
                     break;
                 case Operation::Divide:

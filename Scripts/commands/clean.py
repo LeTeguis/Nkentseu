@@ -15,6 +15,7 @@ AddParentModule()
 
 
 import configuration as conf
+import manager as man
 
 
 def help_command():
@@ -27,28 +28,19 @@ def help_command():
 
 
 # Fonction récursive pour supprimer les fichiers et dossiers correspondants
-def clean(path, file_type, folders, depth=0, max_depth=2):
-    # Vérifier la profondeur courante
-    if depth >= max_depth:
-        return
-    
-    # Supprimer les fichiers du type spécifié
-    for f in os.listdir(path):
-        file_path = os.path.join(path, f)
-        for f in file_type:
-            if os.path.isfile(file_path) and file_path.endswith(f):
-                print("Deleted file : {}".format(file_path))
-                os.remove(file_path)
-
-    # Supprimer les dossiers spécifiés
-    for d in os.listdir(path):
-        dir_path = os.path.join(path, d)
-        if os.path.isdir(dir_path) and d in folders:
-            print("Deleted folder : {}".format(dir_path))
-            shutil.rmtree(dir_path)
-        elif os.path.isdir(dir_path):
-            clean(dir_path, file_type, folders, depth=depth+1, max_depth=max_depth)
-
+def clean_projects(file_type, build_folder):
+    for project_name, project_path in man.PROJECTS_NAME.items():
+        path = f"./{project_path}"
+        for current_element in os.listdir(path):
+            element_path = os.path.join(path, current_element)
+            if os.path.isdir(element_path) and current_element in build_folder:
+                print("============= [{}] (Deleted folder) | \"{}\"".format(project_name, element_path))
+                shutil.rmtree(element_path)
+            else:
+                for current_file_type in file_type:
+                    if os.path.isfile(element_path) and element_path.endswith(current_file_type):
+                        print("============= [{}] (Deleted file) | \"{}\"".format(project_name, element_path))
+                        os.remove(element_path)
 
 
 if __name__ == '__main__': 
@@ -60,7 +52,6 @@ if __name__ == '__main__':
 
     folders = [".vs", "build", "build-int"]
 
-    path = Path(".")
-    clean(path, file_type, folders, max_depth=3)
+    clean_projects(file_type, folders)
 
     sys.exit(0)

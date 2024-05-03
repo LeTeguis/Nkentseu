@@ -744,8 +744,8 @@ typedef void (*GLADpostcallback)(void *ret, const char *name, GLADapiproc apipro
 #define EGL_Y_INVERTED_NOK 0x307F
 
 
-#include <KHR/khrplatform.h>
-#include <EGL/eglplatform.h>
+#include <Glad/KHR/khrplatform.h>
+#include <Glad/EGL/eglplatform.h>
 
 
 

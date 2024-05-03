@@ -125,6 +125,11 @@ namespace nkentseu {
 		return eventQueue.front();
 	}
 
+	Event& WindowEventInternal::FrontReference()
+	{
+		return *eventQueue.front();
+	}
+
 	void WindowEventInternal::Pop() {
 		if (eventQueue.empty()) return;
 
@@ -191,6 +196,7 @@ namespace nkentseu {
 		static bool move = false;
 
 		#define CBTN ((HIWORD(msg.wParam) & XBUTTON1) ? Mouse::Buttons::X1 : Mouse::Buttons::X2)
+		//InvalidateRect(window->GetWindowDisplay()->windowHandle, NULL, TRUE);
 
 		switch (message) {
 		case WM_SETCURSOR:
@@ -256,6 +262,8 @@ namespace nkentseu {
 			// Do nothing
 			break;
 		}
+
+		SwapBuffers(window->m_NativeWindow->deviceContext);
 
 		return 0;
 	}
@@ -333,7 +341,7 @@ namespace nkentseu {
 		// Call InvalidateRect. This function forces the window to be repainted. InvalidateRect(m_hwnd, NULL, FALSE);
 
 		LRESULT result = 0;
-
+		Log_nts.Debug();
 		#if defined(NKENTSEU_GAPI_SOFTWARE)
 
 				PAINTSTRUCT ps;
@@ -627,6 +635,10 @@ namespace nkentseu {
 		return FinalizePushEvent(new MouseInputEvent(window->ID(), state, ms, btn, doubleClick, position, globalMousePosition), 0, msg, window);
 	}
 
+	#define MOUSE_BUTTON_IS_PRESSED(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN))
+	#define PPU(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_UP))
+	#define PP(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN | RI_MOUSE_##v##_UP))
+
 	LRESULT WindowEventInternal::HandleMouseButtonRawEvent(MSG msg, WindowInternal* window, RAWINPUT* raw) {
 		short modifiers = LOWORD(msg.wParam);
 		ModifierState ms(modifiers & MK_CONTROL, modifiers & MK_ALT, modifiers & MK_SHIFT, modifiers & 0);
@@ -642,11 +654,7 @@ namespace nkentseu {
 
 		Vector2i delta(static_cast<int>(raw->data.mouse.lLastX), static_cast<int>(raw->data.mouse.lLastY));
 
-		#define PPD(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN))
-		#define PPU(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_UP))
-		#define PP(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN | RI_MOUSE_##v##_UP))
-
-		bool pressed = PPD(LEFT_BUTTON) || PPD(RIGHT_BUTTON) || PPD(MIDDLE_BUTTON) || PPD(BUTTON_4) || PPD(BUTTON_5);
+		bool pressed = MOUSE_BUTTON_IS_PRESSED(LEFT_BUTTON) || MOUSE_BUTTON_IS_PRESSED(RIGHT_BUTTON) || MOUSE_BUTTON_IS_PRESSED(MIDDLE_BUTTON) || MOUSE_BUTTON_IS_PRESSED(BUTTON_4) || MOUSE_BUTTON_IS_PRESSED(BUTTON_5);
 		uint8 btn = Mouse::Buttons::NotDefine;
 		if (PP(LEFT_BUTTON)) btn = Mouse::Buttons::Left;
 		if (PP(RIGHT_BUTTON)) btn = Mouse::Buttons::Right;

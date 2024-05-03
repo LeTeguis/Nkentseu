@@ -36,6 +36,8 @@ project "Ntsm"
     defineExport()
     defineApiInfo()
 
+    linkoptions {"-Wuninitialized"}
+
     filter "system:windows"
         systemversion "latest"
 		optimize "off"

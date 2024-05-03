@@ -87,9 +87,6 @@ namespace nkentseu {
     private:
         friend class WindowEventInternal;
 
-        #define NATIVE_WINDOW_IS_VALID(variable) (m_NativeWindow != nullptr && m_NativeWindow->##variable != nullptr)
-
-
         Vector2u m_WindowFrameSize = Vector2u(6, 30);
         Memory::Shared<WindowDisplay> m_NativeWindow = nullptr;
         WindowProperties m_Properties;
@@ -108,8 +105,7 @@ namespace nkentseu {
 
         // Ajuster la taille de la fenêtre
         RECT UpdateWindowExtension(const Vector2i& position, const Vector2u& size, DWORD style, DWORD styleEx);
-        void InitWindowPosition(RECT windowRect, const Vector2i& position, const Vector2u& size, WindowPositionType positionType, 
-                                Memory::Shared<WindowDisplay> native);
+        void InitWindowPosition(const Vector2i& position, const Vector2u& size, WindowPositionType positionType);
 
         // Méthode pour capturer le curseur
         void GrabWindowCursor(bool grabbed);
@@ -121,4 +117,4 @@ namespace nkentseu {
 
 #endif
 
-#endif    // __NKENTSEU_WINDOWINTERNAL_H__
+#endif    // __NKENTSEU_WINDOW_INTERNAL_H__

@@ -234,13 +234,13 @@ namespace nkentseu {
     void Vector2Test::Test_Normalize(const std::string& name) {
         Vector2f vec(3.0f, 4.0f);
         vec.Normalize();
-        UNITEST_TRUE((abs(vec.Len() - 1.0f) < maths::Epsilon())); // Check if close to unit length
+        UNITEST_TRUE((maths::Abs(vec.Len() - 1.0f) < maths::Epsilon())); // Check if close to unit length
     }
 
     // Test Normalized(const std::string& name)
     void Vector2Test::Test_Normalized(const std::string& name) {
         Vector2f vec(3.0f, 4.0f);
         Vector2f normalizedVec = vec.Normalized();
-        UNITEST_TRUE((abs(normalizedVec.Len() - 1.0f) < maths::Epsilon())); // Check if close to unit length
+        UNITEST_TRUE((maths::Abs(normalizedVec.Len() - 1.0f) < maths::Epsilon())); // Check if close to unit length
     }
 }    // namespace nkentseu

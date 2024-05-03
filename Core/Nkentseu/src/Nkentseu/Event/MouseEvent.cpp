@@ -8,7 +8,7 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
-	MouseInputEvent::MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2f& position, const Vector2f& globalPosition) : Event(win), m_Button(button), m_ButtonState(buttonState), m_Position(position), m_GlobalPosition(globalPosition), m_ModifierState(modifierState), m_IsDoubleClicked(isDoubleClicked)
+	MouseInputEvent::MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2i& position, const Vector2i& globalPosition) : Event(win), m_Button(button), m_ButtonState(buttonState), m_Position(position), m_GlobalPosition(globalPosition), m_ModifierState(modifierState), m_IsDoubleClicked(isDoubleClicked)
 	{
 	}
 	MouseInputEvent::MouseInputEvent(const MouseInputEvent& e) : Event(e.GetWindow()), m_Button(e.m_Button), m_ButtonState(e.m_ButtonState), m_Position(e.m_Position), m_GlobalPosition(e.m_GlobalPosition), m_ModifierState(e.m_ModifierState), m_IsDoubleClicked(e.m_IsDoubleClicked)
@@ -34,18 +34,18 @@ namespace nkentseu {
 	{
 		return this->m_IsDoubleClicked;
 	}
-	Vector2f MouseInputEvent::GetPosition() const
+	Vector2i MouseInputEvent::GetPosition() const
 	{
 		return this->m_Position;
 	}
-	Vector2f MouseInputEvent::GetGlobalPosition() const
+	Vector2i MouseInputEvent::GetGlobalPosition() const
 	{
 		return this->m_GlobalPosition;
 	}
 
 	//-----------------------
 
-	MouseMovedEvent::MouseMovedEvent(uint64 win, const Vector2f& position, const Vector2f& globalPosition, const Vector2f& speed) : Event(win), m_Speed(speed), m_Position(position), m_GlobalPosition(globalPosition)
+	MouseMovedEvent::MouseMovedEvent(uint64 win, const Vector2i& position, const Vector2i& globalPosition, const Vector2i& speed) : Event(win), m_Speed(speed), m_Position(position), m_GlobalPosition(globalPosition)
 	{
 	}
 
@@ -80,17 +80,17 @@ namespace nkentseu {
 		return AxisDirection::VerticalHorizontal;
 	}
 
-	Vector2f MouseMovedEvent::GetPosition() const
+	Vector2i MouseMovedEvent::GetPosition() const
 	{
 		return this->m_Position;
 	}
 
-	Vector2f MouseMovedEvent::GetGlobalPosition() const
+	Vector2i MouseMovedEvent::GetGlobalPosition() const
 	{
 		return this->m_GlobalPosition;
 	}
 
-	Vector2f MouseMovedEvent::GetSpeed() const
+	Vector2i MouseMovedEvent::GetSpeed() const
 	{
 		return this->m_Speed;
 	}

@@ -20,7 +20,7 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::MouseInput)
         EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
     public:
-        MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2f& position, const Vector2f& globalPosition);
+        MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2i& position, const Vector2i& globalPosition);
         MouseInputEvent(const MouseInputEvent& e);
         virtual std::string ToString() const override;
 
@@ -28,15 +28,15 @@ namespace nkentseu {
         ButtonState::Code GetState() const;
         ModifierState GetModifierState() const;
         bool IsDoubleCliked() const;
-        Vector2f GetPosition() const;
-        Vector2f GetGlobalPosition() const;
+        Vector2i GetPosition() const;
+        Vector2i GetGlobalPosition() const;
     private:
         Mouse::Button m_Button;
         ButtonState::Code m_ButtonState;
         ModifierState m_ModifierState;
         bool m_IsDoubleClicked;
-        Vector2f m_Position;
-        Vector2f m_GlobalPosition;
+        Vector2i m_Position;
+        Vector2i m_GlobalPosition;
     };
 
     class NKENTSEU_API MouseMovedEvent : public Event
@@ -45,20 +45,20 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::MouseMoved)
         EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
     public:
-        MouseMovedEvent(uint64 win, const Vector2f& position, const Vector2f& globalPosition, const Vector2f& speed);
+        MouseMovedEvent(uint64 win, const Vector2i& position, const Vector2i& globalPosition, const Vector2i& speed);
         MouseMovedEvent(const MouseMovedEvent& e);
         virtual std::string ToString() const override;
         
         AxisState::Code GetVerticalAxisState() const;
         AxisState::Code GetHorizontalAxisState() const;
         AxisDirection::Code GetAxisDirection() const;
-        Vector2f GetPosition() const;
-        Vector2f GetGlobalPosition() const;
-        Vector2f GetSpeed() const;
+        Vector2i GetPosition() const;
+        Vector2i GetGlobalPosition() const;
+        Vector2i GetSpeed() const;
     private:
-        Vector2f m_Position;
-        Vector2f m_Speed;
-        Vector2f m_GlobalPosition;
+        Vector2i m_Position;
+        Vector2i m_Speed;
+        Vector2i m_GlobalPosition;
     };
 
     class NKENTSEU_API MouseWheelEvent : public Event

@@ -1,11 +1,10 @@
 /**
  * SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
  */
-#include "NkentseuPch/ntspch.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glad/gles1.h>
+#include <Glad/glad/gles1.h>
 
 #ifndef GLAD_IMPL_UTIL_C_
 #define GLAD_IMPL_UTIL_C_
@@ -1125,7 +1124,7 @@ static GLADapiproc glad_dlsym_handle(void* handle, const char *name) {
 
 #endif /* GLAD_LOADER_LIBRARY_C_ */
 
-#include <glad/egl.h>
+#include <Glad/glad/egl.h>
 
 struct _glad_gles1_userptr {
     void *handle;

@@ -36,21 +36,14 @@ namespace nkentseu {
 		if (m_WindowInternalInfo == nullptr) {
 			m_WindowInternalInfo = Memory::Alloc<WindowInternalInfo>();
 			if (m_WindowInternalInfo != nullptr) {
-				m_WindowInternalInfo->InternalInfo = Memory::Alloc<WindowInternal>(this, properties);
-				if (m_WindowInternalInfo->InternalInfo != nullptr) {
-					m_WindowInternalInfo->IsLoad = m_WindowInternalInfo->InternalInfo->IsCreate();
+				m_WindowInternalInfo->internalInfo = Memory::Alloc<WindowInternal>(this, properties);
+				if (m_WindowInternalInfo->internalInfo != nullptr) {
+					m_WindowInternalInfo->isLoad = m_WindowInternalInfo->internalInfo->IsCreate();
 
-					if (!m_WindowInternalInfo->IsLoad) {
-						Memory::Reset(m_WindowInternalInfo->InternalInfo);
-						m_WindowInternalInfo->IsLoad = false;
+					if (!m_WindowInternalInfo->isLoad) {
+						Memory::Reset(m_WindowInternalInfo->internalInfo);
+						m_WindowInternalInfo->isLoad = false;
 						Memory::Reset(m_WindowInternalInfo);
-					}
-					else {
-						/*/m_Context = PtrAlloc(Context, this, properties.ContextInfo);
-
-						if (m_Context == nullptr || !m_Context->Create()) {
-							Close();
-						}*/
 					}
 				}
 			}
@@ -63,92 +56,92 @@ namespace nkentseu {
 	}
 
 	std::string Window::GetTitle() const {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, "", GetTitle);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, "", GetTitle);
 	}
 
 	void Window::SetTitle(std::string title) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetTitle, title);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetTitle, title);
 	}
 
 	Vector2i Window::GetPosition() const {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, Vector2i(), GetPosition);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, Vector2i(), GetPosition);
 	}
 
 	void Window::SetPosition(int32 x, int32 y) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetPosition, x, y);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetPosition, x, y);
 	}
 
 	void Window::SetPosition(const Vector2i& pos) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetPosition, pos);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetPosition, pos);
 	}
 
 	Vector2u Window::GetSize() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, Vector2u(), GetSize);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, Vector2u(), GetSize);
 	}
 
 	void Window::SetSize(uint32 width, uint32 height) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetSize, width, height);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetSize, width, height);
 	}
 
 	void Window::SetSize(const Vector2u& size) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetSize, size);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetSize, size);
 	}
 
 	float32 Window::GetDpiScale() const {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, 0, GetDpiScale);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, 0, GetDpiScale);
 	}
 
 	Vector2 Window::ConvertPixelToDpi(const Vector2& pixel) const {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, Vector2(), ConvertPixelToDpi, pixel);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, Vector2(), ConvertPixelToDpi, pixel);
 	}
 
 	Vector2u Window::CurrentDisplaySize() const {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, Vector2u(), CurrentDisplaySize);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, Vector2u(), CurrentDisplaySize);
 	}
 
 	Vector2i Window::CurrentDisplayPosition() const {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, Vector2i(), CurrentDisplayPosition);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, Vector2i(), CurrentDisplayPosition);
 	}
 
 	void Window::ShowMouse(bool show) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , ShowMouse, show);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , ShowMouse, show);
 	}
 
 	void Window::SetMouseCursorGrabbed(bool grabbed) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetMouseCursorGrabbed, grabbed);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetMouseCursorGrabbed, grabbed);
 	}
 
 	void Window::SetMouseCursor(const WindowCursor& cursor) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetMouseCursor, cursor);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetMouseCursor, cursor);
 	}
 
 	bool Window::IsMouseInside() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, false, IsMouseInside);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, false, IsMouseInside);
 	}
 
 	Color Window::GetBackgroundColor() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, Color(), GetBackgroundColor);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, Color(), GetBackgroundColor);
 	}
 
 	void Window::SetBackgroundColor(const Color& color) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetBackgroundColor, color);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetBackgroundColor, color);
 	}
 
 	void Window::Minimize() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Minimize);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , Minimize);
 	}
 
 	void Window::Maximize() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Maximize);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , Maximize);
 	}
 
 	void Window::Close() {
 		if (m_WindowInternalInfo != nullptr) {
-			if (m_WindowInternalInfo->InternalInfo != nullptr) {
-				ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Close);
-				if (m_WindowInternalInfo->IsLoad) {
-					m_WindowInternalInfo->IsLoad = false;
-					Memory::Reset(m_WindowInternalInfo->InternalInfo);
+			if (m_WindowInternalInfo->internalInfo != nullptr) {
+				ValidateObject(m_WindowInternalInfo, internalInfo, false, , Close);
+				if (m_WindowInternalInfo->isLoad) {
+					m_WindowInternalInfo->isLoad = false;
+					Memory::Reset(m_WindowInternalInfo->internalInfo);
 				}
 			}
 			Memory::Reset(m_WindowInternalInfo);
@@ -156,58 +149,58 @@ namespace nkentseu {
 	}
 
 	bool Window::IsClosed() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, true, IsClosed);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, true, IsClosed);
 	}
 
 	bool Window::IsOpen() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, false, IsOpen);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, false, IsOpen);
 	}
 
 	void Window::Show() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Show);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , Show);
 	}
 
 	void Window::Hide() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Hide);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , Hide);
 	}
 
 	void Window::SetIcon(const Vector2u& size, const uint8* pixels) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetIcon, size, pixels);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetIcon, size, pixels);
 	}
 
-	WindowInternal* Window::GetWindowInternal() {
-		return m_WindowInternalInfo->InternalInfo.get();
+	WindowInternal* Window::GetInternal() {
+		return m_WindowInternalInfo->internalInfo.get();
 	}
 
 	const WindowProperties& Window::GetProperties() {
 		static WindowProperties prop;
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, prop, GetProperties);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, prop, GetProperties);
 		return prop;
 	}
 
 	uint64 Window::ID() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, true, 0, ID);
+		ValidateObject(m_WindowInternalInfo, internalInfo, true, 0, ID);
 	}
 
 	void Window::Clear(const Color& color) {
-		Assert_nts.ATrue(m_WindowInternalInfo == nullptr || m_WindowInternalInfo->InternalInfo == nullptr);
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Clear, color);
+		Assert_nts.ATrue(m_WindowInternalInfo == nullptr || m_WindowInternalInfo->internalInfo == nullptr);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , Clear, color);
 	}
 
 	void Window::Swapbuffer() {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , Swapbuffer);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , Swapbuffer);
 	}
 
 	void Window::SetAlwaysOnTop(bool alwaysOnTop) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetAlwaysOnTop, alwaysOnTop);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetAlwaysOnTop, alwaysOnTop);
 	}
 
 	void Window::AcceptDragAndDrop(bool accept) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , AcceptDragAndDrop, accept);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , AcceptDragAndDrop, accept);
 	}
 
 	void Window::SetOpacity(float32 opacity) {
-		ValidateObject(m_WindowInternalInfo, InternalInfo, false, , SetOpacity, opacity);
+		ValidateObject(m_WindowInternalInfo, internalInfo, false, , SetOpacity, opacity);
 	}
 
 }    // namespace nkentseu

@@ -1,11 +1,10 @@
 /**
  * SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
  */
-#include "NkentseuPch/ntspch.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glad/gles2.h>
+#include <Glad/glad/gles2.h>
 
 #ifndef GLAD_IMPL_UTIL_C_
 #define GLAD_IMPL_UTIL_C_
@@ -3268,10 +3267,10 @@ static GLADapiproc glad_dlsym_handle(void* handle, const char *name) {
 #endif
   extern __eglMustCastToProperFunctionPointerType emscripten_GetProcAddress(const char *name);
 #elif defined(GLAD_GLES2_USE_SYSTEM_EGL)
-  #include <EGL/egl.h>
+  #include <Glad/EGL/egl.h>
   typedef __eglMustCastToProperFunctionPointerType (GLAD_API_PTR *PFNEGLGETPROCADDRESSPROC)(const char *name);
 #else
-  #include <glad/egl.h>
+  #include <Glad/glad/egl.h>
 #endif
 
 

@@ -1,11 +1,14 @@
 /**
  * SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
  */
-#include "NkentseuPch/ntspch.h"
+
+#include <System/System.h>
+#ifdef NKENTSEU_PLATFORM_LINUX
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <glad/glx.h>
+#include <Glad/glad/glx.h>
 
 #ifndef GLAD_IMPL_UTIL_C_
 #define GLAD_IMPL_UTIL_C_
@@ -793,4 +796,6 @@ void gladLoaderUnloadGLX() {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

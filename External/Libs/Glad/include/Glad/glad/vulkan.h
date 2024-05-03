@@ -1150,8 +1150,8 @@ typedef void (*GLADpostcallback)(void *ret, const char *name, GLADapiproc apipro
 #define VK_WHOLE_SIZE (~0ULL)
 
 
-#include "vk_video/vulkan_video_codecs_common.h"
-#include "vk_platform.h"
+#include "Glad/vk_video/vulkan_video_codecs_common.h"
+#include "Glad/vk_platform.h"
 #if defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT) || defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
 #endif
@@ -7770,10 +7770,10 @@ typedef struct VkVideoInlineQueryInfoKHR {
     uint32_t                                 queryCount;
 } VkVideoInlineQueryInfoKHR;
 
-#include "vk_video/vulkan_video_codec_h264std.h"
+#include "Glad/vk_video/vulkan_video_codec_h264std.h"
 
 
-#include "vk_video/vulkan_video_codec_h264std_decode.h"
+#include "Glad/vk_video/vulkan_video_codec_h264std_decode.h"
 
 
 typedef struct VkVideoDecodeH264ProfileInfoKHR {
@@ -7823,13 +7823,13 @@ typedef struct VkVideoDecodeH264DpbSlotInfoKHR {
     const  StdVideoDecodeH264ReferenceInfo *  pStdReferenceInfo;
 } VkVideoDecodeH264DpbSlotInfoKHR;
 
-#include "vk_video/vulkan_video_codec_h265std.h"
+#include "Glad/vk_video/vulkan_video_codec_h265std.h"
 
 
 
 
 
-#include "vk_video/vulkan_video_codec_h265std_decode.h"
+#include "Glad/vk_video/vulkan_video_codec_h265std_decode.h"
 
 
 typedef struct VkVideoDecodeH265ProfileInfoKHR {
@@ -7878,11 +7878,11 @@ typedef struct VkVideoDecodeH265DpbSlotInfoKHR {
     const  StdVideoDecodeH265ReferenceInfo *   pStdReferenceInfo;
 } VkVideoDecodeH265DpbSlotInfoKHR;
 
-#include "vk_video/vulkan_video_codec_av1std.h"
+#include "Glad/vk_video/vulkan_video_codec_av1std.h"
 
 
 
-#include "vk_video/vulkan_video_codec_av1std_decode.h"
+#include "Glad/vk_video/vulkan_video_codec_av1std_decode.h"
 
 
 typedef struct VkVideoDecodeAV1CapabilitiesKHR {
@@ -7948,7 +7948,7 @@ typedef struct VkVideoEncodeRateControlLayerInfoKHR {
     uint32_t                                 frameRateDenominator;
 } VkVideoEncodeRateControlLayerInfoKHR;
 
-#include "vk_video/vulkan_video_codec_h264std_encode.h"
+#include "Glad/vk_video/vulkan_video_codec_h264std_encode.h"
 
 
 
@@ -8000,7 +8000,7 @@ typedef struct VkVideoEncodeH264FrameSizeKHR {
     uint32_t   frameBSize;
 } VkVideoEncodeH264FrameSizeKHR;
 
-#include "vk_video/vulkan_video_codec_h265std_encode.h"
+#include "Glad/vk_video/vulkan_video_codec_h265std_encode.h"
 
 
 

@@ -24,6 +24,7 @@
 #include "Nkentseu/Core/NkentseuLogger.h"
 
 #include <xcb/xcb_keysyms.h>
+#include "WindowEventInternal.h"
 
 namespace nkentseu {
     #define CONNEXION_IS_VALID(return_value)        xcb_connection_t* connection = PlatformState.connection; \
@@ -55,7 +56,7 @@ namespace nkentseu {
         CONNEXION_IS_VALID();
         xcb_flush(connection);
 
-        while (genericEvent = xcb_poll_for_event(connection)){
+        while ((genericEvent = xcb_poll_for_event(connection))){
             PushEvent(genericEvent);
             free(genericEvent);
             genericEvent = nullptr;
@@ -92,34 +93,33 @@ namespace nkentseu {
             return 0;
         }
         uint8 eventCode = xcbEvent->response_type & 0x7f;
-        Log_nts.Debug("Event code = [{0}]", (uint32)xcbEvent->response_type);
         
         switch (eventCode) {
             case XCB_MAP_NOTIFY:{
-        Log_nts.Debug();
+        
                 xcb_map_notify_event_t *event = (xcb_map_notify_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->window);
-                Log_nts.Debug();
+                
 
                 if (window != nullptr && event != nullptr){
-                    Log_nts.Debug();
+                    
                     return FinalizePushEvent(new WindowVisibleEvent(window->ID(), true), 0);
                 }
                 break;
             }
             case XCB_UNMAP_NOTIFY:{
-        Log_nts.Debug();
+        
                 xcb_unmap_notify_event_t *event = (xcb_unmap_notify_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->window);
 
                 if (window != nullptr && event != nullptr){
-                    Log_nts.Debug();
+                    
                     return FinalizePushEvent(new WindowVisibleEvent(window->ID(), false), 0);
                 }
                 break;
             }
             case XCB_FOCUS_IN : {
-        Log_nts.Debug();
+        
                 xcb_focus_in_event_t *event = (xcb_focus_in_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->event);
 
@@ -129,7 +129,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_FOCUS_OUT : {
-        Log_nts.Debug();
+        
                 xcb_focus_out_event_t *event = (xcb_focus_out_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->event);
 
@@ -139,7 +139,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_CONFIGURE_NOTIFY : {
-        Log_nts.Debug();
+        
                 xcb_configure_notify_event_t *event = (xcb_configure_notify_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->event);
 
@@ -195,7 +195,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_EXPOSE : {
-        Log_nts.Debug();
+        
                 xcb_expose_event_t *event = (xcb_expose_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->window);
 
@@ -206,7 +206,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_RESIZE_REQUEST : {
-        Log_nts.Debug();
+        
                 xcb_resize_request_event_t *event = (xcb_resize_request_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->window);
 
@@ -249,7 +249,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_ENTER_NOTIFY : {
-        Log_nts.Debug();
+        
                 xcb_enter_notify_event_t *event = (xcb_enter_notify_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->event);
 
@@ -259,7 +259,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_LEAVE_NOTIFY : {
-        Log_nts.Debug();
+        
                 xcb_leave_notify_event_t *event = (xcb_leave_notify_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->event);
 
@@ -269,7 +269,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_CLIENT_MESSAGE : {
-        Log_nts.Debug();
+        
                 xcb_client_message_event_t *event = (xcb_client_message_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->window);
 
@@ -284,7 +284,7 @@ namespace nkentseu {
                 break;
             }
             case XCB_PROPERTY_NOTIFY : {
-        Log_nts.Debug();
+        
                 xcb_property_notify_event_t *event = (xcb_property_notify_event_t *)xcbEvent;
                 WindowInternal* window = WindowInternal::GetCurrent(event->window);
 
@@ -340,25 +340,25 @@ namespace nkentseu {
                                             new_state & ~NKENTSEU_WINDOW_STATE_MASK_FOCUSED;
                         }
                     }
-
+                    window->GetWindowDisplay()->SetState(new_state);
                     // event not defined
                 }
                 break;
             }
             case XCB_BUTTON_PRESS :
             case XCB_BUTTON_RELEASE : {
-        Log_nts.Debug();
+        
                 HandleMouseButtonEvent(xcbEvent, eventCode == XCB_BUTTON_PRESS);
                 break;
             }
             case XCB_MOTION_NOTIFY : {
-        Log_nts.Debug();
+        
                 HandleMouseMoveEvent(xcbEvent);
                 break;
             }
             case XCB_KEY_PRESS : 
             case XCB_KEY_RELEASE : {
-        Log_nts.Debug();
+        
                 HandleKeyboardEvent(xcbEvent, eventCode == XCB_KEY_PRESS);
                 break;
             }
@@ -612,6 +612,11 @@ namespace nkentseu {
         free(reply);
 
         return length;
+    }
+
+    Event& WindowEventInternal::FrontReference()
+    {
+        return *eventQueue.front();
     }
 }    // namespace nkentseu
 

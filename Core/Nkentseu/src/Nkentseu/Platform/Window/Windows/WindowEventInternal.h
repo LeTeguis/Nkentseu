@@ -47,6 +47,7 @@ namespace nkentseu {
         void Update();
 
         Event* Front();
+        Event& FrontReference();
 
         void Pop();
 

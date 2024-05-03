@@ -32,6 +32,7 @@ project "GlobalTests"
     }
 
     defineApiInfo()
+    linksGraphicApi()
 
     filter "system:windows"
         systemversion "latest"

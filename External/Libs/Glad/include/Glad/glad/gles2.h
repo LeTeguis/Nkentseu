@@ -2616,7 +2616,7 @@ typedef void (*GLADpostcallback)(void *ret, const char *name, GLADapiproc apipro
 #define GL_ZERO_TO_ONE_EXT 0x935F
 
 
-#include <KHR/khrplatform.h>
+#include <Glad/KHR/khrplatform.h>
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
 typedef unsigned int GLbitfield;

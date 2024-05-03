@@ -21,8 +21,8 @@ namespace nkentseu {
     class WindowInternal;
 
     struct WindowInternalInfo {
-        Memory::Shared<WindowInternal> InternalInfo = null_pointer;
-        bool IsLoad;
+        Memory::Shared<WindowInternal> internalInfo = null_pointer;
+        bool isLoad;
     };
 
     class NKENTSEU_API Window {
@@ -82,7 +82,7 @@ namespace nkentseu {
         virtual void AcceptDragAndDrop(bool accept);
         virtual void SetOpacity(float32 opacity);
 
-        virtual WindowInternal* GetWindowInternal();
+        virtual WindowInternal* GetInternal();
 
     private:
         Memory::Shared<WindowInternalInfo> m_WindowInternalInfo = null_pointer;

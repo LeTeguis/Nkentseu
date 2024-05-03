@@ -26,8 +26,11 @@ namespace nkentseu {
         friend class WindowEventInternal;
         HWND windowHandle = nullptr;
         HINSTANCE instanceHandle = nullptr;
-        HDC deviceContext;
-        HDC memoryDeviceContext;
+
+        HDC deviceContext = nullptr;
+        HDC memoryDeviceContext = nullptr;
+        HGLRC graphicsContext = nullptr;
+
         HBITMAP bitmapHandle;
         WNDCLASSEX windowClass = { 0 };
         RECT windowRectangle = { 0 };
@@ -48,6 +51,8 @@ namespace nkentseu {
         WindowDisplay() {}
 
         bool Register(bool dbclk, const class WindowProperties& windowProperties);
+        bool CreateHDC();
+        void Unregister();
         const WCHAR* GetWindowClassName();
 
     private:

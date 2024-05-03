@@ -33,9 +33,9 @@ namespace nkentseu {
         virtual void Run();
 
     private:
-        void OnEvent(class Event& event);
-        bool OnWindowStatusEvent(class WindowStatusEvent& event);
-        bool OnKeyboardEvent(class KeyboardEvent& event);
+        virtual void OnEvent(class Event& event);
+        virtual bool OnWindowStatusEvent(class WindowStatusEvent& event);
+        virtual bool OnKeyboardEvent(class KeyboardEvent& event);
 
         void Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released);
         void Course(const std::string& name, const AxisCode& axisCode, float32 value);

@@ -85,6 +85,54 @@ namespace nkentseu {
         return true;
     }
 
+    /*bool EventFilter::Pick(Event* event) {
+        static bool update_it = true;
+
+        if (update_it) {
+            EventInternal.isQueueLocked = false;
+            EventInternal.Update();
+            update_it = false;
+            m_IsPick = false;
+        }
+
+        if (event == nullptr) {
+            do {
+                EventInternal.Pop();
+            } while (!EventInternal.Empty());
+
+            update_it = true;
+            return false;
+        }
+
+        if (m_IsPick) {
+            EventInternal.Pop();
+            m_IsPick = false;
+        }
+
+        if (EventInternal.Empty()) {
+            update_it = true;
+            return false;
+        }
+
+        if (event != nullptr) {
+            do {
+                event = &EventInternal.FrontReference();
+                if (event == nullptr) {
+                    EventInternal.Pop();
+
+                    if (EventInternal.Empty()) {
+                        update_it = true;
+                        return false;
+                    }
+                }
+            } while (event == nullptr);
+        }
+
+        m_IsPick = true;
+
+        return true;
+    }*/
+
     Event* EventFilter::Picks() {
         static bool update_it = true;
 

@@ -31,6 +31,7 @@ project "UnkenyEditor"
     }
 
     defineApiInfo()
+    linksGraphicApi()
 
     filter "system:windows"
         systemversion "latest"
