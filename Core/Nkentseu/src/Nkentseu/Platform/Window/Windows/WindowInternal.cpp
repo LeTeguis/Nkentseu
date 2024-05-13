@@ -56,8 +56,6 @@ namespace nkentseu {
         Vector2i position = m_Properties.position;
         Vector2u size = m_Properties.size;// +m_WinFrame;
 
-        Log_nts.Debug("{0} <> {1}", position, size);
-
         if (!m_NativeWindow->Register(m_Properties.doubleClick, m_Properties)) {
             /**
                 * Either an OS Error or a window with the same "name" id will cause
@@ -95,8 +93,6 @@ namespace nkentseu {
         DPI_AWARENESS_CONTEXT previousDpiContext = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
         RECT windowRect = UpdateWindowExtension(position, size, dwStyle, dwExStyle);
 
-        Log_nts.Debug("{0} <> {1}", Vector2f(windowRect.left, windowRect.top), Vector2f(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top));
-
         std::wstring title(m_Properties.title.begin(), m_Properties.title.end());
 
         m_NativeWindow->windowHandle = CreateWindowEx(0,
@@ -114,14 +110,16 @@ namespace nkentseu {
             return;
         }
 
+        GetCurrent(m_NativeWindow->windowHandle);
+
         if (!m_Properties.fullscreen) {
-            InitWindowPosition(m_Properties.position, m_Properties.size, m_Properties.positionType);
+            InitWindowPosition(Vector2i(windowRect.left, windowRect.top), Vector2u(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top), m_Properties.positionType);
         }
 
-        if (!m_NativeWindow->CreateHDC()) {
+        /*if (!m_NativeWindow->CreateHDC()) {
             ErrorMessaging.PushError(NTSErrorCode::Window_Context_Graphics);
             return;
-        }
+        }*/
 
         BOOL isNCRenderingEnabled{ TRUE };
         DwmSetWindowAttribute(m_NativeWindow->windowHandle, DWMWA_NCRENDERING_ENABLED, &isNCRenderingEnabled, sizeof(isNCRenderingEnabled));
@@ -159,25 +157,60 @@ namespace nkentseu {
 
     void WindowInternal::InitWindowPosition(const Vector2i& position, const Vector2u& size, WindowPositionType positionType) {
         // Adjust size to match DPI
-        /*int iDpi = GetDpiForWindow(native->windowHandle);
-        Vector2i size_win(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
-        if (iDpi != USER_DEFAULT_SCREEN_DPI) {
-            size_win.width = MulDiv(size_win.width, iDpi, USER_DEFAULT_SCREEN_DPI);
-            size_win.height = MulDiv(size_win.height, iDpi, USER_DEFAULT_SCREEN_DPI);
-        }*/
-        int32 x = position.x;
-        int32 y = position.y;
+        float32 scaleFactor = GetDpiScale();
+        Vector2i size_win((int32)(size.width * scaleFactor), (int32)(size.height * scaleFactor));
+        Vector2i pos_win((int32)(position.x * scaleFactor), (int32)(position.y * scaleFactor));
+
         if (positionType == WindowPositionType::CenteredPosition) {
-            x = ((long)GetSystemMetrics(SM_CXSCREEN) - size.width) / 2;
-            y = ((long)GetSystemMetrics(SM_CYSCREEN) - size.height) / 2;
+            pos_win.x = ((long)GetSystemMetrics(SM_CXSCREEN) - size_win.width) / 2;
+            pos_win.y = ((long)GetSystemMetrics(SM_CYSCREEN) - size_win.height) / 2;
         }
         else if (positionType == WindowPositionType::RandomPosition) {
-            x = Random.NextInt32((long)GetSystemMetrics(SM_CXSCREEN) - size.width);
-            y = Random.NextInt32((long)GetSystemMetrics(SM_CYSCREEN) - size.height);
+            pos_win.x = Random.NextInt32((long)GetSystemMetrics(SM_CXSCREEN) - size_win.width);
+            pos_win.y = Random.NextInt32((long)GetSystemMetrics(SM_CYSCREEN) - size_win.height);
         }
-        m_Properties.position = Vector2i(x, y);
-        SetWindowPos(m_NativeWindow->windowHandle, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+
+        m_Properties.position = pos_win;
+        m_Properties.size = size_win;
+        SetWindowPos(m_NativeWindow->windowHandle, 0, pos_win.x, pos_win.y, size_win.width, size_win.height, 0);
     }
+
+    /*void WindowInternal::InitWindowPosition(const Vector2i& position, const Vector2u& size, WindowPositionType positionType) {
+        // Adjust size to match DPI (avoid division by zero)
+        float32 scaleFactor = GetDpiScale();
+        if (scaleFactor == 0.0f) {
+            // Handle case where DPI cannot be retrieved (use default or log error)
+            scaleFactor = 1.0f;
+        }
+        Vector2i size_win = static_cast<Vector2i>(size * scaleFactor);
+
+        // Don't scale position for non-centered placement
+        Vector2i pos_win = position;
+
+        if (positionType == WindowPositionType::CenteredPosition) {
+            int32 screenWidth = GetSystemMetrics(SM_CXSCREEN);
+            int32 screenHeight = GetSystemMetrics(SM_CYSCREEN);
+            if (screenWidth > 0 && screenHeight > 0) { // Handle potential errors
+                pos_win.x = (screenWidth - size_win.width) / 2;
+                pos_win.y = (screenHeight - size_win.height) / 2;
+            }
+        }
+        else if (positionType == WindowPositionType::RandomPosition) {
+            int32 maxPositionX = GetSystemMetrics(SM_CXSCREEN) - size_win.width;
+            int32 maxPositionY = GetSystemMetrics(SM_CYSCREEN) - size_win.height;
+
+            // Assuming Random provides a function for random integers within a range:
+            pos_win.x = Random.NextInt32(0, maxPositionX);  // Random between 0 (inclusive) and maxPositionX (exclusive)
+            pos_win.y = Random.NextInt32(0, maxPositionY);  // Random between 0 (inclusive) and maxPositionY (exclusive)
+        }
+
+        m_Properties.position = pos_win;
+        m_Properties.size = size_win;
+
+        // Set window position and size using actual pixel values
+        SetWindowPos(m_NativeWindow->windowHandle, 0, pos_win.x, pos_win.y, size_win.width, size_win.height, SWP_NOZORDER | SWP_NOACTIVATE);
+    }*/
+
 
     RECT WindowInternal::UpdateWindowExtension(const Vector2i& position, const Vector2u& size, DWORD style, DWORD styleEx) {
         RECT windowRect;

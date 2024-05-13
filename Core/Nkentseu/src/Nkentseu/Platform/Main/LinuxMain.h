@@ -11,6 +11,8 @@
 #include "System/Nature/Base.h"
 #include "Nkentseu/Platform/PlatformState.h"
 
+#include "Nkentseu/Core/NkentseuLogger.h"
+
 #ifdef NKENTSEU_PLATFORM_LINUX
 
 extern nkentseu::int32 Main(const nkentseu::ARGV& argv);

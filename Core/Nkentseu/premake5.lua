@@ -13,13 +13,7 @@ project "Nkentseu"
         "src/**.h",
         "src/**.hpp",
         "src/**.inl",
-        "src/**.cpp",
-
-        -- STB
-        "%{Externals.Stb}/src/**.h",
-        "%{Externals.Stb}/src/**.hpp",
-        "%{Externals.Stb}/src/**.c",
-        "%{Externals.Stb}/src/**.cpp"
+        "src/**.cpp"
     }
 
     includedirs {
@@ -31,10 +25,10 @@ project "Nkentseu"
     }
 
     links {
-        "NSystem",
-        "Logger",
         "Ntsm",
-        --"Stb",
+        "Logger",
+        "NSystem",
+        "Stb",
     }
 
     defines {
@@ -51,7 +45,10 @@ project "Nkentseu"
 		optimize "off"
 
         links {
-            "kernel32", "user32", "hid", "Xinput"
+            --"kernel32", 
+            --"user32", 
+            --"hid", 
+            "Xinput"
         }
         linkoptions { "-lpthread" }
 
@@ -69,9 +66,7 @@ project "Nkentseu"
         buildoptions { "-stdlib=libc++", "-fPIC", "-pthread" }
 
     filter "system:linux"
-        links {
-            "X11", "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
-        }
+        getLinuxWinApi()
 
         -- Ajout d'options de compilation pour toutes les configurations sous Linux
         buildoptions { "-fPIC", "-pthread" }

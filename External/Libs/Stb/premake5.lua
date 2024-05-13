@@ -1,12 +1,9 @@
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
 project "Stb"
-    kind (libraryType)
+    kind ("StaticLib")
     langageInformations()
     staticruntime "off"
 
-    targetdir ( build .. outputdir .. "/%{prj.name}" )
-    objdir ( build_int .. outputdir .. "/%{prj.name}" )
+    BuildsInfos("%{prj.name}")
 
     files {
         "./src/**.h",
@@ -23,13 +20,15 @@ project "Stb"
         "./src"
     }
 
-    defines
-	{
-		"_CRT_SECURE_NO_WARNINGS"
-	}
+    defines {
+		"_CRT_SECURE_NO_WARNINGS",
+    }
 
     filter "system:windows"
         systemversion "latest"
+		optimize "off"
+        
+        linkoptions { "-lpthread" }
 
     filter "system:macosx"
         xcodebuildsettings
@@ -38,11 +37,24 @@ project "Stb"
             ["USeModernBuildSystem"] = "NO"
         }
 
+        links {
+        }
+
+        -- Ajout d'options de compilation pour toutes les configurations sous macOS
+        buildoptions { "-stdlib=libc++", "-fPIC", "-pthread" }
+
+    filter "system:linux"
+        -- Ajout d'options de compilation pour toutes les configurations sous Linux
+        buildoptions { "-fPIC", "-pthread" }
+
     filter "configurations:Debug"
+        defines { "_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH "}
+        defines {  "NKENTSEU_DEBUG"}
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
+        defines { "NKENTSEU_RELEASE" }
         runtime "Release"
         optimize "on"
 

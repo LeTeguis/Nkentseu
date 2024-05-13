@@ -23,12 +23,12 @@ project "GlobalTests"
     }
 
     links {
-        --"Stb",
-        "NSystem",
-        "Logger",
-        "Ntsm",
+        "Unitest",
         "Nkentseu",
-        "Unitest"
+        "Ntsm",
+        "Logger",
+        "NSystem",
+        "Stb"
     }
 
     defineApiInfo()

@@ -12,17 +12,15 @@
 #include <System/Nature/Base.h>
 #include <System/Definitions/Memory.h>
 
+#include "GraphicsProperties.h"
+
 namespace nkentseu {
     class InternalContext;
     class Window;
 
     struct InternalContextInfo {
         Memory::Shared<InternalContext> internalInfo = null_pointer;
-        bool isLoad;
-    };
-
-    struct NKENTSEU_API ContextProperties {
-
+        bool isLoad = false;
     };
 
     class NKENTSEU_API Context
@@ -32,9 +30,30 @@ namespace nkentseu {
             Context(class Window* window, const ContextProperties& contextProperties);
             ~Context();
 
+            bool SetWindow(class Window* window);
+            bool SetProperties(const ContextProperties& properties);
+
+            bool Initialize();
             bool Initialize(class Window* window, const ContextProperties& contextProperties);
+            bool Deinitialize();
+            bool IsInitialize();
+
+            bool MakeCurrent();
+            bool UnmakeCurrent();
+            bool IsCurrent();
+
+            bool EnableVSync();
+            bool DisableVSync();
+
+            bool Present();
+            bool Swapchaine();
+
+            const GraphicsInfos& GetGraphicsInfo();
+
+            class Window* GetWindow();
 
             virtual InternalContextInfo* GetInternal();
+            const ContextProperties& GetProperties();
         private:
             Memory::Shared<InternalContextInfo> m_InternalContextInfo = null_pointer;
     };

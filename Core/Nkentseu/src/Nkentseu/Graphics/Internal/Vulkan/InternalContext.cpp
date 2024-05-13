@@ -11,17 +11,53 @@
 
 namespace nkentseu {
 
-    InternalContext::InternalContext(){
+    InternalContext::InternalContext() : m_Window(nullptr) {
     }
 
     InternalContext::~InternalContext(){
     }
 
-    bool nkentseu::InternalContext::Initialize(Window* window, const ContextProperties& contextProperties)
+    bool InternalContext::Initialize(Window* window, const ContextProperties& contextProperties)
+    {
+        if (m_Window != nullptr) return false;
+
+        m_Window = window;
+
+        if (m_Window == nullptr) return false;
+
+        return false;
+    }
+
+    bool InternalContext::Deinitialize()
     {
         return false;
     }
 
+    bool InternalContext::MakeCurrent()
+    {
+        return false;
+    }
+
+    bool InternalContext::UnmakeCurrent()
+    {
+        return false;
+    }
+
+    bool InternalContext::IsCurrent()
+    {
+        return false;
+    }
+
+    Window* InternalContext::GetWindow() {
+        return m_Window;
+    }
+
+    const ContextProperties& InternalContext::GetProperties()
+    {
+        // TODO: insérer une instruction return ici
+        if (m_NativeContext == nullptr) return {};
+        return m_NativeContext->GetProperties();
+    }
 }    // namespace nkentseu
 
 #endif

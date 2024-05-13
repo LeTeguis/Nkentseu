@@ -181,9 +181,9 @@ namespace nkentseu {
 	}
 
 	// [Vector4i]
-	Vector4i::Vector4i() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
+	Vector4i::Vector4i() : x(0), y(0), z(0), w(1) {}
 
-	Vector4i::Vector4i(const Vector3i& xyz) : x(xyz.x), y(xyz.y), z(xyz.z), w(1.0f) {}
+	Vector4i::Vector4i(const Vector3i& xyz) : x(xyz.x), y(xyz.y), z(xyz.z), w(1) {}
 
 	Vector4i::Vector4i(const Vector3i& xyz, int32 w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) {}
 
@@ -210,13 +210,13 @@ namespace nkentseu {
 		return v;
 	}
 
-	Vector4i::Vector4i(int32 x, int32 y) : x(x), y(y), z(0.0f), w(1.0f) {}
+	Vector4i::Vector4i(int32 x, int32 y) : x(x), y(y), z(0), w(1) {}
 
-	Vector4i::Vector4i(int32 x, int32 y, int32 z) : x(x), y(y), z(z), w(1.0f) {}
+	Vector4i::Vector4i(int32 x, int32 y, int32 z) : x(x), y(y), z(z), w(1) {}
 
 	Vector4i::Vector4i(int32 x, int32 y, int32 z, int32 w) : x(x), y(y), z(z), w(w) {}
 
-	Vector4i::Vector4i(int32 v) : x(v), y(v), z(v), w(1.0f) {}
+	Vector4i::Vector4i(int32 v) : x(v), y(v), z(v), w(1) {}
 
 	Vector4i::Vector4i(const int32* v) : x(v[0]), y(v[1]), z(v[2]), w(v[3]) {}
 
@@ -268,9 +268,9 @@ namespace nkentseu {
 
 
 	// [Vector4u]
-	Vector4u::Vector4u() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
+	Vector4u::Vector4u() : x(0), y(0), z(0), w(1) {}
 
-	Vector4u::Vector4u(const Vector3u& xyz) : x(xyz.x), y(xyz.y), z(xyz.z), w(1.0f) {}
+	Vector4u::Vector4u(const Vector3u& xyz) : x(xyz.x), y(xyz.y), z(xyz.z), w(1) {}
 
 	Vector4u::Vector4u(const Vector3u& xyz, uint32 w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) {}
 
@@ -297,13 +297,13 @@ namespace nkentseu {
 		return v;
 	}
 
-	Vector4u::Vector4u(uint32 x, uint32 y) : x(x), y(y), z(0.0f), w(1.0f) {}
+	Vector4u::Vector4u(uint32 x, uint32 y) : x(x), y(y), z(0), w(1) {}
 
-	Vector4u::Vector4u(uint32 x, uint32 y, uint32 z) : x(x), y(y), z(z), w(1.0f) {}
+	Vector4u::Vector4u(uint32 x, uint32 y, uint32 z) : x(x), y(y), z(z), w(1) {}
 
 	Vector4u::Vector4u(uint32 x, uint32 y, uint32 z, uint32 w) : x(x), y(y), z(z), w(w) {}
 
-	Vector4u::Vector4u(uint32 v) : x(v), y(v), z(v), w(1.0f) {}
+	Vector4u::Vector4u(uint32 v) : x(v), y(v), z(v), w(1) {}
 
 	Vector4u::Vector4u(const uint32* v) : x(v[0]), y(v[1]), z(v[2]), w(v[3]) {}
 

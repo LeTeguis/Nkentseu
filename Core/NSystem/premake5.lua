@@ -54,8 +54,7 @@ project "NSystem"
         buildoptions { "-stdlib=libc++", "-fPIC", "-pthread" }
 
     filter "system:linux"
-        links {
-        }
+        getLinuxWinApi()
 
         -- Ajout d'options de compilation pour toutes les configurations sous Linux
         buildoptions { "-fPIC", "-pthread" }

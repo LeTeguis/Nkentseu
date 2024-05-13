@@ -23,8 +23,8 @@ namespace nkentseu {
 	public:
 		union {
 			struct {
-				union { float32 x; float32 u; float32 width;  float32 w; }; // cordinate (x, y), texture (u, v), size (width, height)
-				union { float32 y; float32 v; float32 height; float32 h; };
+				union { float32 x; float32 u; float32 width;  float32 w; float32 major; }; // cordinate (x, y), texture (u, v), size (width, height)
+				union { float32 y; float32 v; float32 height; float32 h; float32 minor; };
 			};
 			float32 ptr[2];
 		};
@@ -205,8 +205,8 @@ namespace nkentseu {
 	public:
 		union {
 			struct {
-				union { float64 x; float64 u; float64 width; float64 w; }; // cordinate (x, y), texture (u, v), size (width, height)
-				union { float64 y; float64 v; float64 height; float64 h; };
+				union { float64 x; float64 u; float64 width; float64 w; float64 major; }; // cordinate (x, y), texture (u, v), size (width, height)
+				union { float64 y; float64 v; float64 height; float64 h; float64 minor; };
 			};
 			float64 ptr[2];
 		};
@@ -387,8 +387,8 @@ namespace nkentseu {
 	public:
 		union {
 			struct {
-				union { int32 x; int32 u; int32 width; int32 w; }; // cordinate (x, y), texture (u, v), size (width, height)
-				union { int32 y; int32 v; int32 height; int32 h; };
+				union { int32 x; int32 u; int32 width; int32 w;; int32 major; }; // cordinate (x, y), texture (u, v), size (width, height)
+				union { int32 y; int32 v; int32 height; int32 h; int32 minor; };
 			};
 			int32 ptr[2];
 		};
@@ -546,8 +546,8 @@ namespace nkentseu {
 	public:
 		union {
 			struct {
-				union { uint32 x; uint32 u; uint32 width; uint32 w; }; // cordinate (x, y), texture (u, v), size (width, height)
-				union { uint32 y; uint32 v; uint32 height; uint32 h; };
+				union { uint32 x; uint32 u; uint32 width; uint32 w;; uint32 major; }; // cordinate (x, y), texture (u, v), size (width, height)
+				union { uint32 y; uint32 v; uint32 height; uint32 h; uint32 minor; };
 			};
 			uint32 ptr[2];
 		};
@@ -714,8 +714,8 @@ namespace nkentseu {
 	public:
 		union {
 			struct {
-				union { T x; T u; T width; T w; }; // cordinate (x, y), texture (u, v), size (width, height)
-				union { T y; T v; T height; T h; };
+				union { T x; T u; T width; T w; T major; }; // cordinate (x, y), texture (u, v), size (width, height)
+				union { T y; T v; T height; T h; T minor; };
 			};
 			T ptr[2];
 		};
@@ -843,7 +843,7 @@ namespace nkentseu {
 	};
 
 	using Vector2 = Vector2f;
-	using Vec2 = Vector2f;
+	using Vec2	= Vector2f;
 	using Vec2f = Vector2f;
 	using Vec2i = Vector2i;
 	using Vec2u = Vector2u;

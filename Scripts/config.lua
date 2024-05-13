@@ -47,9 +47,6 @@ Externals["Stb"] = "%{wks.location}/External/Libs/Stb"
 --Externals["VkInclude"] = "%{wks.location}/External/Libs/Vulkan-Headers-1.3.272/include"
 Externals["VkInclude"] = VULKAN_SDK .. "/Include"
 Externals["VkLib"] = VULKAN_SDK .. "/Lib"
-print(Externals.VkInclude)
-print(Externals.VkLib)
-
 
 -- Internal api
 
@@ -75,18 +72,39 @@ Internals["Window"]         = "%{wks.location}/Exemples/Window"
 
 -- Options
 
--- Startup project configurations
+-- Linux window api
+
 newoption {
-    trigger         = "linuxwindowapi",
-    value           = "",
-    description     = "ce flag peut prendre les valeurs NKENTSEU_PLATFORM_LINUX_XCB ou NKENTSEU_PLATFORM_LINUX_XLIB",
-    default         = "NKENTSEU_PLATFORM_LINUX_XCB",
-    category        = "WindowApi"
+    trigger         = "linuxwinapi",
+    value           = "NKENTSEU_LINUX_WIN_API_XLIB",
+    description     = "ce flag peut prendre les valeur {NKENTSEU_LINUX_WIN_API_XLIB, NKENTSEU_LINUX_WIN_API_XCB}",
+    default         = "NKENTSEU_LINUX_WIN_API_XLIB",
+    category        = "GRAPHICS_API",
+    allowed         = {
+        {"NKENTSEU_LINUX_WIN_API_XLIB", "XLIB Window manager for linux"},
+        {"NKENTSEU_LINUX_WIN_API_XCB", "XCB Window manager for linux"}
+    }
 }
 
-function getLinuxWindowApi()
-	return _OPTIONS["linuxwindowapi"]
+function getLinuxWinApi()
+	linux_win_api = _OPTIONS["linuxwinapi"]
+
+    defines {
+        linux_win_api
+    }
+
+    if linux_win_api == "NKENTSEU_LINUX_WIN_API_XCB" then
+        links {
+            "X11", "Xcursor", "Xrandr", "Xfixes", "X11-xcb", "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
+        }
+    else
+        links {
+            "X11", "Xcursor", "Xrandr", "Xfixes"
+        }
+    end
 end
+
+-- Startup project configurations
 
 newoption {
     trigger         = "startupproject",
@@ -158,10 +176,8 @@ function defineApiInfo()
 		{
 			"NKENTSEU_STATIC"
 		}
+        desactivePIC()
     end
-
-    filter "system:linux"
-            defines { getLinuxWindowApi() }
 
     filter "configurations:Debug"
         defines {  "NKENTSEU_DEBUG"}
@@ -180,13 +196,25 @@ function defineGraphicApi()
 		}
 
         if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
+            print("bonjour")
             includedirs {
                 "%{Externals.Glad}/include"
             }
 
             links {
-                "Glad", "opengl32"
+                "Glad"
             }
+            
+            filter "system:windows"
+                links { "opengl32" }
+
+            filter "system:macosx"
+                links { "GL" }
+
+            filter "system:linux"
+                links { "GL" }
+
+            filter {}
         end
 
         if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
@@ -206,6 +234,8 @@ function defineGraphicApi()
 
             filter "system:linux"
                 links { "libvulkan", "libVkLayer_utils" }
+
+            filter {}
         end
 	end
 end
@@ -214,8 +244,18 @@ function linksGraphicApi()
     if graphicsapi ~= "" then
         if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
             links {
-                "Glad", "opengl32"
+                "Glad"
             }
+            filter "system:windows"
+                links { "opengl32" }
+
+            filter "system:macosx"
+                links { "GL" }
+
+            filter "system:linux"
+                links { "GL" }
+
+            filter {}
         end
 
         if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
@@ -241,9 +281,23 @@ end
 
 function langageInformations()
     language "C++"
-    cppdialect "C++20"
-    --toolchain "clang"
-    --toolset ("clang")
-    --toolchainversion "5.0"
-    -- buildoptions{ "Waddress-of-temporary" }
+    cppdialect "C++17"
+
+    filter "system:linux"
+        buildoptions {}
+        --toolchain "clang"
+        toolset ("clang")
+        --toolchainversion "5.0"
+        -- buildoptions{ "Waddress-of-temporary" }
+
+    filter {}
+end
+
+function desactivePIC()
+    filter "system:linux"
+        buildoptions {}
+        --buildoptions {"-lbinaryen -lwasm -last -lasmjs -lsupport -lpasses"}
+        --buildoptions { "-Wl,--allow-shlib-undefined" }
+        --buildoptions { "-fno-PIC" }
+    filter {}
 end

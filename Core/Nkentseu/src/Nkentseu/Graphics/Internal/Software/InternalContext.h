@@ -21,8 +21,34 @@ namespace nkentseu {
             InternalContext();
             ~InternalContext();
 
+            bool SetWindow(class Window* window);
+            bool SetProperties(const ContextProperties& properties);
+
+            bool Initialize();
             bool Initialize(Window* window, const ContextProperties& contextProperties);
+            bool Deinitialize();
+            bool IsInitialize();
+
+            bool MakeCurrent();
+            bool UnmakeCurrent();
+            bool IsCurrent();
+
+            bool EnableVSync();
+            bool DisableVSync();
+
+            bool Present();
+            bool Swapchaine();
+
+            const GraphicsInfos& GetGraphicsInfo();
+
+            Memory::Shared<class NativeContext> GetNativeContext();
+
+            Window* GetWindow();
+            const ContextProperties& GetProperties();
         private:
+            Window* m_Window = nullptr;
+            Memory::Shared<class NativeContext> m_NativeContext;
+
     };
 } // namespace nkentseu
 

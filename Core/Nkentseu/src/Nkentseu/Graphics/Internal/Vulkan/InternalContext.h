@@ -22,6 +22,14 @@ namespace nkentseu {
             ~InternalContext();
 
             bool Initialize(Window* window, const ContextProperties& contextProperties);
+            bool Deinitialize();
+
+            bool MakeCurrent();
+            bool UnmakeCurrent();
+            bool IsCurrent();
+
+            Window* GetWindow();
+            const ContextProperties& GetProperties();
         private:
     };
 } // namespace nkentseu

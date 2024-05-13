@@ -12,7 +12,11 @@
 #elif defined(NKENTSEU_PLATFORM_ANDROID)
 #include "Nkentseu/Platform/Window/Android/WindowEventInternal.h"
 #elif defined(NKENTSEU_PLATFORM_LINUX)
-#include "Nkentseu/Platform/Window/Linux/WindowEventInternal.h"
+    #ifdef NKENTSEU_LINUX_WIN_API_XCB
+    #include "Nkentseu/Platform/Window/Linux/XCB/WindowEventInternal.h"
+    #elif defined(NKENTSEU_LINUX_WIN_API_XLIB)
+    #include "Nkentseu/Platform/Window/Linux/XLIB/WindowEventInternal.h"
+    #endif
 #elif defined(NKENTSEU_PLATFORM_IOS)
 #include "Nkentseu/Platform/Window/iOS/WindowEventInternal.h"
 #elif defined(NKENTSEU_PLATFORM_MACOS)

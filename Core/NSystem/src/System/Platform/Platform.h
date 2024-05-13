@@ -27,6 +27,13 @@
 	#elif defined(__linux__)
 		#define NKENTSEU_PLATFORM_LINUX
 		#define STR_PLATFORM "Linux"
+
+		#if defined(NKENTSEU_LINUX_WIN_API_XLIB)
+		#define NKENTSEU_PLATFORM_LINUX_XLIB
+		#elif defined(NKENTSEU_LINUX_WIN_API_XCB)
+		#define NKENTSEU_PLATFORM_LINUX_XCB
+		#endif
+
 	#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 		#define NKENTSEU_PLATFORM_FREEBSD
 		#define STR_PLATFORM "FreeBsd"

@@ -79,7 +79,7 @@ namespace nkentseu {
 
     const uint32 UnitestEntry::GetUnitestInfoCount() const
     {
-        return m_UnitestInfos.size();
+        return (uint32)m_UnitestInfos.size();
     }
     uint32 UnitestEntry::GetPassedCount() const {
         return m_Passeds; // Returns the number of passed tests

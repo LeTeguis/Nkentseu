@@ -87,6 +87,7 @@ def GenerateProject():
     argv_param.append(f"--libtype={man.LIB_TYPE}")
     argv_param.append(f"--startupproject={man.DEFAULT_PROJECT}")
     argv_param.append(f"--graphicsapi={man.GRAPHICS_API}")
+    argv_param.append(f"--linuxwinapi={man.LINUX_WIN_API}")
 
     # Ajoutez d'autres arguments à argv_param si nécessaire
 

@@ -8,7 +8,7 @@
 
 #include "Nkentseu/Core/NkentseuLogger.h"
 
-#ifdef NKENTSEU_PLATFORM_LINUX
+#ifdef NKENTSEU_PLATFORM_LINUX_XCB
 /* atom names */
 #define WM_PROTOCOLS_ATOM_NAME     "WM_PROTOCOLS"
 #define WM_DELETE_WINDOW_ATOM_NAME "WM_DELETE_WINDOW"
@@ -96,52 +96,141 @@ namespace nkentseu {
     }
 
 #elif defined(NKENTSEU_PLATFORM_LINUX)
-    int32 PlatformState_::Init(int argc, const char** argv) {
-        if (argc == 0 || argv == 0) {
+
+    #ifdef NKENTSEU_PLATFORM_LINUX_XCB
+        int32 PlatformState_::Init(int argc, const char** argv) {
+            if (argc == 0 || argv == 0) {
+                return 0;
+            }
+            else {
+                int32 index = 0;
+                for (index = 0; index < argc; index++) {
+                    this->argv.push_back(argv[index]);
+                }
+            }
+            if (display != nullptr) {
+                Log_nts.Error("Display is created");
+                return 0;
+            }
+
+            display = XOpenDisplay(0);
+            if (!display) {
+                Log_nts.Error("Can't open display");
+                return 1;
+            }
+
+            defaultScreen = ((_XPrivDisplay)display)->default_screen;
+
+            if (connection != nullptr) {
+                Log_nts.Error("Connexction is created");
+                return 0;
+            }
+
+            // connection = xcb_connect(nullptr, &screenNumber);
+            connection = XGetXCBConnection(display);
+
+            if (!connection/*xcb_connection_has_error(connection) > 0*/)
+            {
+                Log_nts.Error("Connection au serveur echouer");
+                return 1;
+            }
+
+            /* Acquire event queue ownership */
+            XSetEventQueueOwner(display, XCBOwnsEventQueue);
+
+            /* Get the screen whose number is screenNumber */
+
+            const xcb_setup_t* setup = xcb_get_setup(connection);
+            xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
+
+            // we want the screen at index screenNumber of the iterator
+            /*for (int i = 0; i < screenNumber; ++i)
+            {
+                xcb_screen_next(&iter);
+            }*/
+
+            for (int screenNum = defaultScreen; iter.rem && screenNum > 0; --screenNum){
+                xcb_screen_next(&iter);
+            }
+
+            screen = iter.data;
+
+            if (screen == nullptr){
+                Log_nts.Error("Sceen is null");
+                return 1;
+            }
+
+            int32 result = stateTools.Initialize();
+
+            return result;
+        }
+
+        int32 PlatformState_::Close() {
+            if (connection != nullptr){
+                xcb_disconnect(connection);
+                XCloseDisplay(display);
+                connection = nullptr;
+                Log_nts.Trace("Connexion terminer avec le serveur X");
+            }
             return 0;
         }
-        else {
-            int32 index = 0;
-            for (index = 0; index < argc; index++) {
-                this->argv.push_back(argv[index]);
+    #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
+        int32 PlatformState_::Init(int argc, const char** argv){
+            if (argc == 0 || argv == 0) {
+                return 0;
             }
+            else {
+                int32 index = 0;
+                for (index = 0; index < argc; index++) {
+                    this->argv.push_back(argv[index]);
+                }
+            }
+            
+            if (display != nullptr) {
+                Log_nts.Error("Display is created");
+                return 0;
+            }
+
+            display = XOpenDisplay(0);
+            if (!display) {
+                Log_nts.Error("Can't open display");
+                return 1;
+            }
+
+            screen = DefaultScreen(display);
+            rootWindow = RootWindow(display, screen);
+            visual = DefaultVisual(display, screen);
+            colormap = XCreateColormap(display, rootWindow, visual, AllocNone);
+
+            SetProtocol();
+
+            return 0;
         }
-        if (connection != nullptr) return 0;
 
-        connection = xcb_connect(nullptr, &screenNumber);
-
-        if (xcb_connection_has_error(connection) > 0)
-        {
-            Log_nts.Error("Connection au serveur echouer");
-            return 1;
+        int32 PlatformState_::Close(){
+            if (!display){
+                return 1;
+            }
+            XFreeColormap(display, colormap);
+            XCloseDisplay(display);
+            return 0;
         }
 
-        /* Get the screen whose number is screenNumber */
+        void PlatformState_::SetProtocol(){
+            ::Display *display = PlatformState.display;
+            int32 screen = PlatformState.screen;
+            ::Window rootWindow = PlatformState.rootWindow;
+            ::Visual *visual = PlatformState.visual;
+            ::Colormap colormap = PlatformState.colormap;
 
-        const xcb_setup_t* setup = xcb_get_setup(connection);
-        xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
+            if (display == nullptr || rootWindow == 0 || visual == nullptr || colormap == 0) {
+                Log_nts.Error("Failed to get screen iterator and connexion");
+                return;
+            }
 
-        // we want the screen at index screenNumber of the iterator
-        for (int i = 0; i < screenNumber; ++i)
-        {
-            xcb_screen_next(&iter);
+            protocolAtom.deleteWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);
         }
-
-        screen = iter.data;
-
-        int32 result = stateTools.Initialize();
-
-        return result;
-    }
-
-    int32 PlatformState_::Close() {
-        if (connection != nullptr){
-            xcb_disconnect(connection);
-            connection = nullptr;
-            Log_nts.Trace("Connexion terminer avec le serveur X");
-        }
-        return 0;
-    }
+    #endif
 
 #elif defined(NKENTSEU_PLATFORM_ANDROID)
 
@@ -172,7 +261,7 @@ namespace nkentseu {
 
     PlatformState_::PlatformState_() {}
 
-#ifdef NKENTSEU_PLATFORM_LINUX
+#ifdef NKENTSEU_PLATFORM_LINUX_XCB
 
     int32 XCBStateTools::Initialize(){
         if (PlatformState.connection == nullptr){

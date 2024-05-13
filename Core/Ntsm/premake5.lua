@@ -22,8 +22,8 @@ project "Ntsm"
     }
 
     links {
+        "Logger",
         "NSystem",
-        "Logger"
     }
 
     defines {

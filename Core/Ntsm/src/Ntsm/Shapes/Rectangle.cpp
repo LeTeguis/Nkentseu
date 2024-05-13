@@ -37,21 +37,21 @@ namespace nkentseu {
 	}
 
 	Vector2 Rectangle::Corner(int nr) {
-		Vector2 corner = corner;
+		Vector2 corner_i = corner;
 		switch (nr % 4) {
 		case 0:
-			corner.x += size.x;
+			corner_i.x += size.x;
 			break;
 		case 1:
-			corner = (corner + size);
+			corner_i = (corner + size);
 			break;
 		case 2:
-			corner.y += size.y;
+			corner_i.y += size.y;
 		break; default:
 			/* corner = r.corner */
 			break;
 		}
-		return corner;
+		return corner_i;
 	}
 
 	bool Rectangle::SeparatingAxis(const Segment& axis) {

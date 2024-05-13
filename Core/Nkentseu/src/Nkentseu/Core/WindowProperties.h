@@ -20,12 +20,7 @@ namespace nkentseu {
     class NKENTSEU_API WindowProperties
     {
     public:
-        static const WindowProperties& GetInValid() {
-            static WindowProperties prop;
-            prop.size = Vector2u();
-            prop.maxSize = Vector2u();
-            return prop;
-        }
+        static const WindowProperties& GetInValid();
 
         WindowProperties();
         // Transform

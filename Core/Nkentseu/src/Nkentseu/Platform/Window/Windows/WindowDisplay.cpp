@@ -38,21 +38,20 @@ namespace nkentseu {
         return m_IsRegistered;
     }
 
-    bool WindowDisplay::CreateHDC()
+    /*bool WindowDisplay::CreateHDC()
     {
         if (deviceContext == nullptr && windowHandle != nullptr) {
             deviceContext = GetDC(windowHandle);
-            Log_nts.Debug();
             return true;
         }
         return false;
-    }
+    }*/
 
     void WindowDisplay::Unregister()
     {
-        if (deviceContext != nullptr) {
+        /*if (deviceContext != nullptr) {
             ReleaseDC(windowHandle, deviceContext);
-        }
+        }*/
     }
 
     const WCHAR* WindowDisplay::GetWindowClassName() {

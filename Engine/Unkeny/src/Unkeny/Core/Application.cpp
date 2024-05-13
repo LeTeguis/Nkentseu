@@ -13,6 +13,8 @@
 
 #include <Nkentseu/Core/Events.h>
 #include <Nkentseu/Graphics/Color.h>
+#include <Nkentseu/Graphics/Context.h>
+#include <Nkentseu/Graphics/Renderer.h>
 #include <Nkentseu/Event/EventBroker.h>
 
 #include <Nkentseu/Event/InputManager.h>
@@ -32,10 +34,7 @@ namespace nkentseu {
         windowProperty.size.width = 1000;
         windowProperty.size.height = 600;
 
-        Log.Debug("Size = {0}", windowProperty.size);
-
         m_Window = Memory::Alloc<Window>(windowProperty);
-        nkentseu::Log.Debug("Unkeny Engine");
         NTSErrorCode error = ErrorMessaging.PopError();
 
         if (m_Window == nullptr || (error != NTSErrorCode::NoError && error != NTSErrorCode::Window_StayInWindowMode)) {
@@ -43,6 +42,18 @@ namespace nkentseu {
             // Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", ErrorMessaging.GetErrorInfos(error));
             Assert.ATrue(true, "Erreur lord de la creation de la fenetre : Error ({0})", (bool32)error);
             return false;
+        }
+
+        m_Context = Memory::Alloc<Context>();
+        m_Renderer = Memory::Alloc<Renderer>();
+        ContextProperties propertie;
+
+        if (m_Context != nullptr) {
+            if (m_Context->Initialize(m_Window.get(), propertie)) {
+                if (m_Renderer != nullptr) {
+                    m_Renderer->Initialize(m_Context.get());
+                }
+            }
         }
         
         EventTrack.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
@@ -59,12 +70,30 @@ namespace nkentseu {
 
     void Application::Run()
     {
-        if (m_Window == nullptr) return;
-
-        while (m_Running) {
-            EventTrack.Pick();
+        if (m_Window == nullptr) {
+            return;
         }
 
+        if (m_Renderer == nullptr || m_Context == nullptr){
+            if (m_Context != nullptr) m_Context->Deinitialize();
+            if (m_Renderer != nullptr) m_Renderer->Deinitialize();
+            m_Window->Close();
+            return;
+        }
+
+        while (m_Running) {
+            //Log.Debug();
+
+            EventTrack.Pick();
+
+            if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
+
+            m_Renderer->Clear(Color::RandomRGB());
+            m_Renderer->Present();
+        }
+        m_Renderer->Deinitialize();
+        m_Context->Deinitialize();
+        m_Window->Close();
     }
 
     void Application::OnEvent(Event& event)
@@ -73,6 +102,9 @@ namespace nkentseu {
 
         broker.Route<WindowStatusEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowStatusEvent));
         broker.Route<KeyboardEvent>(REGISTER_CLIENT_EVENT(Application::OnKeyboardEvent));
+        broker.Route<WindowResizedEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowResizedEvent));
+        broker.Route<WindowMovedEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowMovedEvent));
+        broker.Route<MouseInputEvent>(REGISTER_CLIENT_EVENT(Application::OnMouseInputEvent));
     }
 
     bool Application::OnWindowStatusEvent(WindowStatusEvent& event)
@@ -86,11 +118,30 @@ namespace nkentseu {
 
     bool Application::OnKeyboardEvent(KeyboardEvent& event)
     {
-        //Log.Debug("{0}", e);
         if (event.GetKeycode() == Keyboard::Escape){
             m_Running = false;
         }
-        //Log.Debug("Keycode = {0}, Scancode = {1}", Keyboard::GetKeycode(e.GetKey()), Keyboard::GetScancode(e.GetScan()));
+        return false;
+    }
+
+    bool Application::OnWindowResizedEvent(WindowResizedEvent& event)
+    {
+        if (m_Renderer != nullptr) {
+            m_Renderer->Resize(event.GetWindowRec().size);
+            Log.Debug("{0}", event);
+        }
+        return false;
+    }
+
+    bool Application::OnWindowMovedEvent(WindowMovedEvent& event)
+    {
+        //Log.Debug("{0}", event);
+        return false;
+    }
+
+    bool Application::OnMouseInputEvent(MouseInputEvent& event)
+    {
+        Log.Debug("{0}", event);
         return false;
     }
 

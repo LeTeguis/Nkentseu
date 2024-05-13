@@ -15,23 +15,51 @@
 
 #include "Nkentseu/Core/Window.h"
 
+#ifdef  NKENTSEU_PLATFORM_WINDOWS
+#include <Windows.h>
+#elif defined NKENTSEU_PLATFORM_LINUX
+
+#else
+
+#endif //  NKENTSEU_PLATFORM_WINDOWS
+
 namespace nkentseu {
+    class NativeContext;
+
+
     class NKENTSEU_API InternalContext
     {
         public:
             InternalContext();
             ~InternalContext();
 
+            bool SetWindow(class Window* window);
+            bool SetProperties(const ContextProperties& properties);
+
+            bool Initialize();
             bool Initialize(Window* window, const ContextProperties& contextProperties);
+            bool Deinitialize();
+            bool IsInitialize();
+
+            bool MakeCurrent();
+            bool UnmakeCurrent();
+            bool IsCurrent();
+
+            bool EnableVSync();
+            bool DisableVSync();
+
+            bool Present();
+            bool Swapchaine();
+
+            const GraphicsInfos& GetGraphicsInfo();
+
+            Memory::Shared<class NativeContext> GetNativeContext();
+
+            Window* GetWindow();
+            const ContextProperties& GetProperties();
         private:
-
-#ifdef  NKENTSEU_PLATFORM_WINDOWS
-
-#elif defined NKENTSEU_PLATFORM_LINUX
-
-#else
-
-#endif //  NKENTSEU_PLATFORM_WINDOWS
+            Window* m_Window = nullptr;
+            Memory::Shared<class NativeContext> m_NativeContext;
 
     };
 } // namespace nkentseu

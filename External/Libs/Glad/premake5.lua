@@ -1,36 +1,43 @@
 project "Glad"
-    kind (libraryType)
+    kind ("StaticLib")
     langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
     
     files {
-        "src/**.h",
-        "src/**.hpp",
         "src/**.c",
-        "src/**.cpp",
         "include/**.h",
-        "include/**.hpp",
-        "include/**.c",
-        "include/**.cpp",
     }
 
     includedirs {
         "./include",
-        "%{Internals.NSystem}/src",
+        --"%{Internals.NSystem}/src",
     }
 
-    links {
-        "NSystem"
-    }
+    filter "system:windows"
+        removefiles {
+            "src/glx.c",
+            "include/glad/glx.h",
+        }
+
+    filter "system:macosx"
+        removefiles {
+            "src/wgl.c",
+            "include/glad/wgl.h",
+        }
+
+    filter "system:linux"
+        removefiles {
+            "src/wgl.c",
+            "include/glad/wgl.h",
+        }
+
+    filter {}
 
     defines {
-		"_CRT_SECURE_NO_WARNINGS", "GLFW_INCLUDE_NONE"
+		"_CRT_SECURE_NO_WARNINGS",
     }
-
-    defineExport()
-    defineApiInfo()
 
     filter "system:windows"
         systemversion "latest"
@@ -57,10 +64,12 @@ project "Glad"
 
     filter "configurations:Debug"
         defines { "_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH "}
+        defines {  "NKENTSEU_DEBUG"}
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
+        defines { "NKENTSEU_RELEASE" }
         runtime "Release"
         optimize "on"
 

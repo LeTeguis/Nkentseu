@@ -1,7 +1,6 @@
 project "Unitest"
     kind (libraryType)
-    language "C++"
-    cppdialect "C++17"
+    langageInformations()
     staticruntime "off"
 
     BuildsInfos("%{prj.name}")
@@ -23,8 +22,8 @@ project "Unitest"
     }
 
     links {
+        "Logger",
         "NSystem",
-        "Logger"
     }
 
     defines {

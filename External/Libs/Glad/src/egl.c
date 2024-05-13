@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Glad/glad/egl.h>
+#include <glad/egl.h>
 
 #ifndef GLAD_IMPL_UTIL_C_
 #define GLAD_IMPL_UTIL_C_
@@ -195,164 +195,1439 @@ int GLAD_EGL_WL_bind_wayland_display = 0;
 int GLAD_EGL_WL_create_wayland_buffer_from_image = 0;
 
 
+static void _pre_call_egl_callback_default(const char *name, GLADapiproc apiproc, int len_args, ...) {
+    GLAD_UNUSED(name);
+    GLAD_UNUSED(apiproc);
+    GLAD_UNUSED(len_args);
+}
+static void _post_call_egl_callback_default(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
+    GLAD_UNUSED(ret);
+    GLAD_UNUSED(name);
+    GLAD_UNUSED(apiproc);
+    GLAD_UNUSED(len_args);
+}
+
+static GLADprecallback _pre_call_egl_callback = _pre_call_egl_callback_default;
+void gladSetEGLPreCallback(GLADprecallback cb) {
+    _pre_call_egl_callback = cb;
+}
+static GLADpostcallback _post_call_egl_callback = _post_call_egl_callback_default;
+void gladSetEGLPostCallback(GLADpostcallback cb) {
+    _post_call_egl_callback = cb;
+}
 
 PFNEGLBINDAPIPROC glad_eglBindAPI = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglBindAPI(EGLenum api) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglBindAPI", (GLADapiproc) glad_eglBindAPI, 1, api);
+    ret = glad_eglBindAPI(api);
+    _post_call_egl_callback((void*) &ret, "eglBindAPI", (GLADapiproc) glad_eglBindAPI, 1, api);
+    return ret;
+}
+PFNEGLBINDAPIPROC glad_debug_eglBindAPI = glad_debug_impl_eglBindAPI;
 PFNEGLBINDTEXIMAGEPROC glad_eglBindTexImage = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglBindTexImage", (GLADapiproc) glad_eglBindTexImage, 3, dpy, surface, buffer);
+    ret = glad_eglBindTexImage(dpy, surface, buffer);
+    _post_call_egl_callback((void*) &ret, "eglBindTexImage", (GLADapiproc) glad_eglBindTexImage, 3, dpy, surface, buffer);
+    return ret;
+}
+PFNEGLBINDTEXIMAGEPROC glad_debug_eglBindTexImage = glad_debug_impl_eglBindTexImage;
 PFNEGLBINDWAYLANDDISPLAYWLPROC glad_eglBindWaylandDisplayWL = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglBindWaylandDisplayWL(EGLDisplay dpy, struct wl_display * display) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglBindWaylandDisplayWL", (GLADapiproc) glad_eglBindWaylandDisplayWL, 2, dpy, display);
+    ret = glad_eglBindWaylandDisplayWL(dpy, display);
+    _post_call_egl_callback((void*) &ret, "eglBindWaylandDisplayWL", (GLADapiproc) glad_eglBindWaylandDisplayWL, 2, dpy, display);
+    return ret;
+}
+PFNEGLBINDWAYLANDDISPLAYWLPROC glad_debug_eglBindWaylandDisplayWL = glad_debug_impl_eglBindWaylandDisplayWL;
 PFNEGLCHOOSECONFIGPROC glad_eglChooseConfig = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglChooseConfig(EGLDisplay dpy, const EGLint * attrib_list, EGLConfig * configs, EGLint config_size, EGLint * num_config) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglChooseConfig", (GLADapiproc) glad_eglChooseConfig, 5, dpy, attrib_list, configs, config_size, num_config);
+    ret = glad_eglChooseConfig(dpy, attrib_list, configs, config_size, num_config);
+    _post_call_egl_callback((void*) &ret, "eglChooseConfig", (GLADapiproc) glad_eglChooseConfig, 5, dpy, attrib_list, configs, config_size, num_config);
+    return ret;
+}
+PFNEGLCHOOSECONFIGPROC glad_debug_eglChooseConfig = glad_debug_impl_eglChooseConfig;
 PFNEGLCLIENTSIGNALSYNCEXTPROC glad_eglClientSignalSyncEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglClientSignalSyncEXT(EGLDisplay dpy, EGLSync sync, const EGLAttrib * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglClientSignalSyncEXT", (GLADapiproc) glad_eglClientSignalSyncEXT, 3, dpy, sync, attrib_list);
+    ret = glad_eglClientSignalSyncEXT(dpy, sync, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglClientSignalSyncEXT", (GLADapiproc) glad_eglClientSignalSyncEXT, 3, dpy, sync, attrib_list);
+    return ret;
+}
+PFNEGLCLIENTSIGNALSYNCEXTPROC glad_debug_eglClientSignalSyncEXT = glad_debug_impl_eglClientSignalSyncEXT;
 PFNEGLCLIENTWAITSYNCPROC glad_eglClientWaitSync = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglClientWaitSync(EGLDisplay dpy, EGLSync sync, EGLint flags, EGLTime timeout) {
+    EGLint ret;
+    _pre_call_egl_callback("eglClientWaitSync", (GLADapiproc) glad_eglClientWaitSync, 4, dpy, sync, flags, timeout);
+    ret = glad_eglClientWaitSync(dpy, sync, flags, timeout);
+    _post_call_egl_callback((void*) &ret, "eglClientWaitSync", (GLADapiproc) glad_eglClientWaitSync, 4, dpy, sync, flags, timeout);
+    return ret;
+}
+PFNEGLCLIENTWAITSYNCPROC glad_debug_eglClientWaitSync = glad_debug_impl_eglClientWaitSync;
 PFNEGLCLIENTWAITSYNCKHRPROC glad_eglClientWaitSyncKHR = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout) {
+    EGLint ret;
+    _pre_call_egl_callback("eglClientWaitSyncKHR", (GLADapiproc) glad_eglClientWaitSyncKHR, 4, dpy, sync, flags, timeout);
+    ret = glad_eglClientWaitSyncKHR(dpy, sync, flags, timeout);
+    _post_call_egl_callback((void*) &ret, "eglClientWaitSyncKHR", (GLADapiproc) glad_eglClientWaitSyncKHR, 4, dpy, sync, flags, timeout);
+    return ret;
+}
+PFNEGLCLIENTWAITSYNCKHRPROC glad_debug_eglClientWaitSyncKHR = glad_debug_impl_eglClientWaitSyncKHR;
 PFNEGLCLIENTWAITSYNCNVPROC glad_eglClientWaitSyncNV = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglClientWaitSyncNV(EGLSyncNV sync, EGLint flags, EGLTimeNV timeout) {
+    EGLint ret;
+    _pre_call_egl_callback("eglClientWaitSyncNV", (GLADapiproc) glad_eglClientWaitSyncNV, 3, sync, flags, timeout);
+    ret = glad_eglClientWaitSyncNV(sync, flags, timeout);
+    _post_call_egl_callback((void*) &ret, "eglClientWaitSyncNV", (GLADapiproc) glad_eglClientWaitSyncNV, 3, sync, flags, timeout);
+    return ret;
+}
+PFNEGLCLIENTWAITSYNCNVPROC glad_debug_eglClientWaitSyncNV = glad_debug_impl_eglClientWaitSyncNV;
 PFNEGLCOMPOSITORBINDTEXWINDOWEXTPROC glad_eglCompositorBindTexWindowEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorBindTexWindowEXT(EGLint external_win_id) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorBindTexWindowEXT", (GLADapiproc) glad_eglCompositorBindTexWindowEXT, 1, external_win_id);
+    ret = glad_eglCompositorBindTexWindowEXT(external_win_id);
+    _post_call_egl_callback((void*) &ret, "eglCompositorBindTexWindowEXT", (GLADapiproc) glad_eglCompositorBindTexWindowEXT, 1, external_win_id);
+    return ret;
+}
+PFNEGLCOMPOSITORBINDTEXWINDOWEXTPROC glad_debug_eglCompositorBindTexWindowEXT = glad_debug_impl_eglCompositorBindTexWindowEXT;
 PFNEGLCOMPOSITORSETCONTEXTATTRIBUTESEXTPROC glad_eglCompositorSetContextAttributesEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorSetContextAttributesEXT(EGLint external_ref_id, const EGLint * context_attributes, EGLint num_entries) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorSetContextAttributesEXT", (GLADapiproc) glad_eglCompositorSetContextAttributesEXT, 3, external_ref_id, context_attributes, num_entries);
+    ret = glad_eglCompositorSetContextAttributesEXT(external_ref_id, context_attributes, num_entries);
+    _post_call_egl_callback((void*) &ret, "eglCompositorSetContextAttributesEXT", (GLADapiproc) glad_eglCompositorSetContextAttributesEXT, 3, external_ref_id, context_attributes, num_entries);
+    return ret;
+}
+PFNEGLCOMPOSITORSETCONTEXTATTRIBUTESEXTPROC glad_debug_eglCompositorSetContextAttributesEXT = glad_debug_impl_eglCompositorSetContextAttributesEXT;
 PFNEGLCOMPOSITORSETCONTEXTLISTEXTPROC glad_eglCompositorSetContextListEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorSetContextListEXT(const EGLint * external_ref_ids, EGLint num_entries) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorSetContextListEXT", (GLADapiproc) glad_eglCompositorSetContextListEXT, 2, external_ref_ids, num_entries);
+    ret = glad_eglCompositorSetContextListEXT(external_ref_ids, num_entries);
+    _post_call_egl_callback((void*) &ret, "eglCompositorSetContextListEXT", (GLADapiproc) glad_eglCompositorSetContextListEXT, 2, external_ref_ids, num_entries);
+    return ret;
+}
+PFNEGLCOMPOSITORSETCONTEXTLISTEXTPROC glad_debug_eglCompositorSetContextListEXT = glad_debug_impl_eglCompositorSetContextListEXT;
 PFNEGLCOMPOSITORSETSIZEEXTPROC glad_eglCompositorSetSizeEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorSetSizeEXT(EGLint external_win_id, EGLint width, EGLint height) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorSetSizeEXT", (GLADapiproc) glad_eglCompositorSetSizeEXT, 3, external_win_id, width, height);
+    ret = glad_eglCompositorSetSizeEXT(external_win_id, width, height);
+    _post_call_egl_callback((void*) &ret, "eglCompositorSetSizeEXT", (GLADapiproc) glad_eglCompositorSetSizeEXT, 3, external_win_id, width, height);
+    return ret;
+}
+PFNEGLCOMPOSITORSETSIZEEXTPROC glad_debug_eglCompositorSetSizeEXT = glad_debug_impl_eglCompositorSetSizeEXT;
 PFNEGLCOMPOSITORSETWINDOWATTRIBUTESEXTPROC glad_eglCompositorSetWindowAttributesEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorSetWindowAttributesEXT(EGLint external_win_id, const EGLint * window_attributes, EGLint num_entries) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorSetWindowAttributesEXT", (GLADapiproc) glad_eglCompositorSetWindowAttributesEXT, 3, external_win_id, window_attributes, num_entries);
+    ret = glad_eglCompositorSetWindowAttributesEXT(external_win_id, window_attributes, num_entries);
+    _post_call_egl_callback((void*) &ret, "eglCompositorSetWindowAttributesEXT", (GLADapiproc) glad_eglCompositorSetWindowAttributesEXT, 3, external_win_id, window_attributes, num_entries);
+    return ret;
+}
+PFNEGLCOMPOSITORSETWINDOWATTRIBUTESEXTPROC glad_debug_eglCompositorSetWindowAttributesEXT = glad_debug_impl_eglCompositorSetWindowAttributesEXT;
 PFNEGLCOMPOSITORSETWINDOWLISTEXTPROC glad_eglCompositorSetWindowListEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorSetWindowListEXT(EGLint external_ref_id, const EGLint * external_win_ids, EGLint num_entries) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorSetWindowListEXT", (GLADapiproc) glad_eglCompositorSetWindowListEXT, 3, external_ref_id, external_win_ids, num_entries);
+    ret = glad_eglCompositorSetWindowListEXT(external_ref_id, external_win_ids, num_entries);
+    _post_call_egl_callback((void*) &ret, "eglCompositorSetWindowListEXT", (GLADapiproc) glad_eglCompositorSetWindowListEXT, 3, external_ref_id, external_win_ids, num_entries);
+    return ret;
+}
+PFNEGLCOMPOSITORSETWINDOWLISTEXTPROC glad_debug_eglCompositorSetWindowListEXT = glad_debug_impl_eglCompositorSetWindowListEXT;
 PFNEGLCOMPOSITORSWAPPOLICYEXTPROC glad_eglCompositorSwapPolicyEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCompositorSwapPolicyEXT(EGLint external_win_id, EGLint policy) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCompositorSwapPolicyEXT", (GLADapiproc) glad_eglCompositorSwapPolicyEXT, 2, external_win_id, policy);
+    ret = glad_eglCompositorSwapPolicyEXT(external_win_id, policy);
+    _post_call_egl_callback((void*) &ret, "eglCompositorSwapPolicyEXT", (GLADapiproc) glad_eglCompositorSwapPolicyEXT, 2, external_win_id, policy);
+    return ret;
+}
+PFNEGLCOMPOSITORSWAPPOLICYEXTPROC glad_debug_eglCompositorSwapPolicyEXT = glad_debug_impl_eglCompositorSwapPolicyEXT;
 PFNEGLCOPYBUFFERSPROC glad_eglCopyBuffers = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglCopyBuffers", (GLADapiproc) glad_eglCopyBuffers, 3, dpy, surface, target);
+    ret = glad_eglCopyBuffers(dpy, surface, target);
+    _post_call_egl_callback((void*) &ret, "eglCopyBuffers", (GLADapiproc) glad_eglCopyBuffers, 3, dpy, surface, target);
+    return ret;
+}
+PFNEGLCOPYBUFFERSPROC glad_debug_eglCopyBuffers = glad_debug_impl_eglCopyBuffers;
 PFNEGLCREATECONTEXTPROC glad_eglCreateContext = NULL;
+static EGLContext GLAD_API_PTR glad_debug_impl_eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint * attrib_list) {
+    EGLContext ret;
+    _pre_call_egl_callback("eglCreateContext", (GLADapiproc) glad_eglCreateContext, 4, dpy, config, share_context, attrib_list);
+    ret = glad_eglCreateContext(dpy, config, share_context, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateContext", (GLADapiproc) glad_eglCreateContext, 4, dpy, config, share_context, attrib_list);
+    return ret;
+}
+PFNEGLCREATECONTEXTPROC glad_debug_eglCreateContext = glad_debug_impl_eglCreateContext;
 PFNEGLCREATEDRMIMAGEMESAPROC glad_eglCreateDRMImageMESA = NULL;
+static EGLImageKHR GLAD_API_PTR glad_debug_impl_eglCreateDRMImageMESA(EGLDisplay dpy, const EGLint * attrib_list) {
+    EGLImageKHR ret;
+    _pre_call_egl_callback("eglCreateDRMImageMESA", (GLADapiproc) glad_eglCreateDRMImageMESA, 2, dpy, attrib_list);
+    ret = glad_eglCreateDRMImageMESA(dpy, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateDRMImageMESA", (GLADapiproc) glad_eglCreateDRMImageMESA, 2, dpy, attrib_list);
+    return ret;
+}
+PFNEGLCREATEDRMIMAGEMESAPROC glad_debug_eglCreateDRMImageMESA = glad_debug_impl_eglCreateDRMImageMESA;
 PFNEGLCREATEFENCESYNCNVPROC glad_eglCreateFenceSyncNV = NULL;
+static EGLSyncNV GLAD_API_PTR glad_debug_impl_eglCreateFenceSyncNV(EGLDisplay dpy, EGLenum condition, const EGLint * attrib_list) {
+    EGLSyncNV ret;
+    _pre_call_egl_callback("eglCreateFenceSyncNV", (GLADapiproc) glad_eglCreateFenceSyncNV, 3, dpy, condition, attrib_list);
+    ret = glad_eglCreateFenceSyncNV(dpy, condition, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateFenceSyncNV", (GLADapiproc) glad_eglCreateFenceSyncNV, 3, dpy, condition, attrib_list);
+    return ret;
+}
+PFNEGLCREATEFENCESYNCNVPROC glad_debug_eglCreateFenceSyncNV = glad_debug_impl_eglCreateFenceSyncNV;
 PFNEGLCREATEIMAGEPROC glad_eglCreateImage = NULL;
+static EGLImage GLAD_API_PTR glad_debug_impl_eglCreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLAttrib * attrib_list) {
+    EGLImage ret;
+    _pre_call_egl_callback("eglCreateImage", (GLADapiproc) glad_eglCreateImage, 5, dpy, ctx, target, buffer, attrib_list);
+    ret = glad_eglCreateImage(dpy, ctx, target, buffer, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateImage", (GLADapiproc) glad_eglCreateImage, 5, dpy, ctx, target, buffer, attrib_list);
+    return ret;
+}
+PFNEGLCREATEIMAGEPROC glad_debug_eglCreateImage = glad_debug_impl_eglCreateImage;
 PFNEGLCREATEIMAGEKHRPROC glad_eglCreateImageKHR = NULL;
+static EGLImageKHR GLAD_API_PTR glad_debug_impl_eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint * attrib_list) {
+    EGLImageKHR ret;
+    _pre_call_egl_callback("eglCreateImageKHR", (GLADapiproc) glad_eglCreateImageKHR, 5, dpy, ctx, target, buffer, attrib_list);
+    ret = glad_eglCreateImageKHR(dpy, ctx, target, buffer, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateImageKHR", (GLADapiproc) glad_eglCreateImageKHR, 5, dpy, ctx, target, buffer, attrib_list);
+    return ret;
+}
+PFNEGLCREATEIMAGEKHRPROC glad_debug_eglCreateImageKHR = glad_debug_impl_eglCreateImageKHR;
 PFNEGLCREATENATIVECLIENTBUFFERANDROIDPROC glad_eglCreateNativeClientBufferANDROID = NULL;
+static EGLClientBuffer GLAD_API_PTR glad_debug_impl_eglCreateNativeClientBufferANDROID(const EGLint * attrib_list) {
+    EGLClientBuffer ret;
+    _pre_call_egl_callback("eglCreateNativeClientBufferANDROID", (GLADapiproc) glad_eglCreateNativeClientBufferANDROID, 1, attrib_list);
+    ret = glad_eglCreateNativeClientBufferANDROID(attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateNativeClientBufferANDROID", (GLADapiproc) glad_eglCreateNativeClientBufferANDROID, 1, attrib_list);
+    return ret;
+}
+PFNEGLCREATENATIVECLIENTBUFFERANDROIDPROC glad_debug_eglCreateNativeClientBufferANDROID = glad_debug_impl_eglCreateNativeClientBufferANDROID;
 PFNEGLCREATEPBUFFERFROMCLIENTBUFFERPROC glad_eglCreatePbufferFromClientBuffer = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePbufferFromClientBuffer", (GLADapiproc) glad_eglCreatePbufferFromClientBuffer, 5, dpy, buftype, buffer, config, attrib_list);
+    ret = glad_eglCreatePbufferFromClientBuffer(dpy, buftype, buffer, config, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePbufferFromClientBuffer", (GLADapiproc) glad_eglCreatePbufferFromClientBuffer, 5, dpy, buftype, buffer, config, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPBUFFERFROMCLIENTBUFFERPROC glad_debug_eglCreatePbufferFromClientBuffer = glad_debug_impl_eglCreatePbufferFromClientBuffer;
 PFNEGLCREATEPBUFFERSURFACEPROC glad_eglCreatePbufferSurface = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePbufferSurface", (GLADapiproc) glad_eglCreatePbufferSurface, 3, dpy, config, attrib_list);
+    ret = glad_eglCreatePbufferSurface(dpy, config, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePbufferSurface", (GLADapiproc) glad_eglCreatePbufferSurface, 3, dpy, config, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPBUFFERSURFACEPROC glad_debug_eglCreatePbufferSurface = glad_debug_impl_eglCreatePbufferSurface;
 PFNEGLCREATEPIXMAPSURFACEPROC glad_eglCreatePixmapSurface = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePixmapSurface", (GLADapiproc) glad_eglCreatePixmapSurface, 4, dpy, config, pixmap, attrib_list);
+    ret = glad_eglCreatePixmapSurface(dpy, config, pixmap, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePixmapSurface", (GLADapiproc) glad_eglCreatePixmapSurface, 4, dpy, config, pixmap, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPIXMAPSURFACEPROC glad_debug_eglCreatePixmapSurface = glad_debug_impl_eglCreatePixmapSurface;
 PFNEGLCREATEPIXMAPSURFACEHIPROC glad_eglCreatePixmapSurfaceHI = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePixmapSurfaceHI(EGLDisplay dpy, EGLConfig config, struct EGLClientPixmapHI * pixmap) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePixmapSurfaceHI", (GLADapiproc) glad_eglCreatePixmapSurfaceHI, 3, dpy, config, pixmap);
+    ret = glad_eglCreatePixmapSurfaceHI(dpy, config, pixmap);
+    _post_call_egl_callback((void*) &ret, "eglCreatePixmapSurfaceHI", (GLADapiproc) glad_eglCreatePixmapSurfaceHI, 3, dpy, config, pixmap);
+    return ret;
+}
+PFNEGLCREATEPIXMAPSURFACEHIPROC glad_debug_eglCreatePixmapSurfaceHI = glad_debug_impl_eglCreatePixmapSurfaceHI;
 PFNEGLCREATEPLATFORMPIXMAPSURFACEPROC glad_eglCreatePlatformPixmapSurface = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePlatformPixmapSurface(EGLDisplay dpy, EGLConfig config, void * native_pixmap, const EGLAttrib * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePlatformPixmapSurface", (GLADapiproc) glad_eglCreatePlatformPixmapSurface, 4, dpy, config, native_pixmap, attrib_list);
+    ret = glad_eglCreatePlatformPixmapSurface(dpy, config, native_pixmap, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePlatformPixmapSurface", (GLADapiproc) glad_eglCreatePlatformPixmapSurface, 4, dpy, config, native_pixmap, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPLATFORMPIXMAPSURFACEPROC glad_debug_eglCreatePlatformPixmapSurface = glad_debug_impl_eglCreatePlatformPixmapSurface;
 PFNEGLCREATEPLATFORMPIXMAPSURFACEEXTPROC glad_eglCreatePlatformPixmapSurfaceEXT = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void * native_pixmap, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePlatformPixmapSurfaceEXT", (GLADapiproc) glad_eglCreatePlatformPixmapSurfaceEXT, 4, dpy, config, native_pixmap, attrib_list);
+    ret = glad_eglCreatePlatformPixmapSurfaceEXT(dpy, config, native_pixmap, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePlatformPixmapSurfaceEXT", (GLADapiproc) glad_eglCreatePlatformPixmapSurfaceEXT, 4, dpy, config, native_pixmap, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPLATFORMPIXMAPSURFACEEXTPROC glad_debug_eglCreatePlatformPixmapSurfaceEXT = glad_debug_impl_eglCreatePlatformPixmapSurfaceEXT;
 PFNEGLCREATEPLATFORMWINDOWSURFACEPROC glad_eglCreatePlatformWindowSurface = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig config, void * native_window, const EGLAttrib * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePlatformWindowSurface", (GLADapiproc) glad_eglCreatePlatformWindowSurface, 4, dpy, config, native_window, attrib_list);
+    ret = glad_eglCreatePlatformWindowSurface(dpy, config, native_window, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePlatformWindowSurface", (GLADapiproc) glad_eglCreatePlatformWindowSurface, 4, dpy, config, native_window, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPLATFORMWINDOWSURFACEPROC glad_debug_eglCreatePlatformWindowSurface = glad_debug_impl_eglCreatePlatformWindowSurface;
 PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC glad_eglCreatePlatformWindowSurfaceEXT = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void * native_window, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreatePlatformWindowSurfaceEXT", (GLADapiproc) glad_eglCreatePlatformWindowSurfaceEXT, 4, dpy, config, native_window, attrib_list);
+    ret = glad_eglCreatePlatformWindowSurfaceEXT(dpy, config, native_window, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreatePlatformWindowSurfaceEXT", (GLADapiproc) glad_eglCreatePlatformWindowSurfaceEXT, 4, dpy, config, native_window, attrib_list);
+    return ret;
+}
+PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC glad_debug_eglCreatePlatformWindowSurfaceEXT = glad_debug_impl_eglCreatePlatformWindowSurfaceEXT;
 PFNEGLCREATESTREAMATTRIBKHRPROC glad_eglCreateStreamAttribKHR = NULL;
+static EGLStreamKHR GLAD_API_PTR glad_debug_impl_eglCreateStreamAttribKHR(EGLDisplay dpy, const EGLAttrib * attrib_list) {
+    EGLStreamKHR ret;
+    _pre_call_egl_callback("eglCreateStreamAttribKHR", (GLADapiproc) glad_eglCreateStreamAttribKHR, 2, dpy, attrib_list);
+    ret = glad_eglCreateStreamAttribKHR(dpy, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateStreamAttribKHR", (GLADapiproc) glad_eglCreateStreamAttribKHR, 2, dpy, attrib_list);
+    return ret;
+}
+PFNEGLCREATESTREAMATTRIBKHRPROC glad_debug_eglCreateStreamAttribKHR = glad_debug_impl_eglCreateStreamAttribKHR;
 PFNEGLCREATESTREAMFROMFILEDESCRIPTORKHRPROC glad_eglCreateStreamFromFileDescriptorKHR = NULL;
+static EGLStreamKHR GLAD_API_PTR glad_debug_impl_eglCreateStreamFromFileDescriptorKHR(EGLDisplay dpy, EGLNativeFileDescriptorKHR file_descriptor) {
+    EGLStreamKHR ret;
+    _pre_call_egl_callback("eglCreateStreamFromFileDescriptorKHR", (GLADapiproc) glad_eglCreateStreamFromFileDescriptorKHR, 2, dpy, file_descriptor);
+    ret = glad_eglCreateStreamFromFileDescriptorKHR(dpy, file_descriptor);
+    _post_call_egl_callback((void*) &ret, "eglCreateStreamFromFileDescriptorKHR", (GLADapiproc) glad_eglCreateStreamFromFileDescriptorKHR, 2, dpy, file_descriptor);
+    return ret;
+}
+PFNEGLCREATESTREAMFROMFILEDESCRIPTORKHRPROC glad_debug_eglCreateStreamFromFileDescriptorKHR = glad_debug_impl_eglCreateStreamFromFileDescriptorKHR;
 PFNEGLCREATESTREAMKHRPROC glad_eglCreateStreamKHR = NULL;
+static EGLStreamKHR GLAD_API_PTR glad_debug_impl_eglCreateStreamKHR(EGLDisplay dpy, const EGLint * attrib_list) {
+    EGLStreamKHR ret;
+    _pre_call_egl_callback("eglCreateStreamKHR", (GLADapiproc) glad_eglCreateStreamKHR, 2, dpy, attrib_list);
+    ret = glad_eglCreateStreamKHR(dpy, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateStreamKHR", (GLADapiproc) glad_eglCreateStreamKHR, 2, dpy, attrib_list);
+    return ret;
+}
+PFNEGLCREATESTREAMKHRPROC glad_debug_eglCreateStreamKHR = glad_debug_impl_eglCreateStreamKHR;
 PFNEGLCREATESTREAMPRODUCERSURFACEKHRPROC glad_eglCreateStreamProducerSurfaceKHR = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreateStreamProducerSurfaceKHR(EGLDisplay dpy, EGLConfig config, EGLStreamKHR stream, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreateStreamProducerSurfaceKHR", (GLADapiproc) glad_eglCreateStreamProducerSurfaceKHR, 4, dpy, config, stream, attrib_list);
+    ret = glad_eglCreateStreamProducerSurfaceKHR(dpy, config, stream, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateStreamProducerSurfaceKHR", (GLADapiproc) glad_eglCreateStreamProducerSurfaceKHR, 4, dpy, config, stream, attrib_list);
+    return ret;
+}
+PFNEGLCREATESTREAMPRODUCERSURFACEKHRPROC glad_debug_eglCreateStreamProducerSurfaceKHR = glad_debug_impl_eglCreateStreamProducerSurfaceKHR;
 PFNEGLCREATESTREAMSYNCNVPROC glad_eglCreateStreamSyncNV = NULL;
+static EGLSyncKHR GLAD_API_PTR glad_debug_impl_eglCreateStreamSyncNV(EGLDisplay dpy, EGLStreamKHR stream, EGLenum type, const EGLint * attrib_list) {
+    EGLSyncKHR ret;
+    _pre_call_egl_callback("eglCreateStreamSyncNV", (GLADapiproc) glad_eglCreateStreamSyncNV, 4, dpy, stream, type, attrib_list);
+    ret = glad_eglCreateStreamSyncNV(dpy, stream, type, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateStreamSyncNV", (GLADapiproc) glad_eglCreateStreamSyncNV, 4, dpy, stream, type, attrib_list);
+    return ret;
+}
+PFNEGLCREATESTREAMSYNCNVPROC glad_debug_eglCreateStreamSyncNV = glad_debug_impl_eglCreateStreamSyncNV;
 PFNEGLCREATESYNCPROC glad_eglCreateSync = NULL;
+static EGLSync GLAD_API_PTR glad_debug_impl_eglCreateSync(EGLDisplay dpy, EGLenum type, const EGLAttrib * attrib_list) {
+    EGLSync ret;
+    _pre_call_egl_callback("eglCreateSync", (GLADapiproc) glad_eglCreateSync, 3, dpy, type, attrib_list);
+    ret = glad_eglCreateSync(dpy, type, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateSync", (GLADapiproc) glad_eglCreateSync, 3, dpy, type, attrib_list);
+    return ret;
+}
+PFNEGLCREATESYNCPROC glad_debug_eglCreateSync = glad_debug_impl_eglCreateSync;
 PFNEGLCREATESYNC64KHRPROC glad_eglCreateSync64KHR = NULL;
+static EGLSyncKHR GLAD_API_PTR glad_debug_impl_eglCreateSync64KHR(EGLDisplay dpy, EGLenum type, const EGLAttribKHR * attrib_list) {
+    EGLSyncKHR ret;
+    _pre_call_egl_callback("eglCreateSync64KHR", (GLADapiproc) glad_eglCreateSync64KHR, 3, dpy, type, attrib_list);
+    ret = glad_eglCreateSync64KHR(dpy, type, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateSync64KHR", (GLADapiproc) glad_eglCreateSync64KHR, 3, dpy, type, attrib_list);
+    return ret;
+}
+PFNEGLCREATESYNC64KHRPROC glad_debug_eglCreateSync64KHR = glad_debug_impl_eglCreateSync64KHR;
 PFNEGLCREATESYNCKHRPROC glad_eglCreateSyncKHR = NULL;
+static EGLSyncKHR GLAD_API_PTR glad_debug_impl_eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint * attrib_list) {
+    EGLSyncKHR ret;
+    _pre_call_egl_callback("eglCreateSyncKHR", (GLADapiproc) glad_eglCreateSyncKHR, 3, dpy, type, attrib_list);
+    ret = glad_eglCreateSyncKHR(dpy, type, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateSyncKHR", (GLADapiproc) glad_eglCreateSyncKHR, 3, dpy, type, attrib_list);
+    return ret;
+}
+PFNEGLCREATESYNCKHRPROC glad_debug_eglCreateSyncKHR = glad_debug_impl_eglCreateSyncKHR;
 PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWLPROC glad_eglCreateWaylandBufferFromImageWL = NULL;
+static struct wl_buffer * GLAD_API_PTR glad_debug_impl_eglCreateWaylandBufferFromImageWL(EGLDisplay dpy, EGLImageKHR image) {
+    struct wl_buffer * ret;
+    _pre_call_egl_callback("eglCreateWaylandBufferFromImageWL", (GLADapiproc) glad_eglCreateWaylandBufferFromImageWL, 2, dpy, image);
+    ret = glad_eglCreateWaylandBufferFromImageWL(dpy, image);
+    _post_call_egl_callback((void*) &ret, "eglCreateWaylandBufferFromImageWL", (GLADapiproc) glad_eglCreateWaylandBufferFromImageWL, 2, dpy, image);
+    return ret;
+}
+PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWLPROC glad_debug_eglCreateWaylandBufferFromImageWL = glad_debug_impl_eglCreateWaylandBufferFromImageWL;
 PFNEGLCREATEWINDOWSURFACEPROC glad_eglCreateWindowSurface = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint * attrib_list) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglCreateWindowSurface", (GLADapiproc) glad_eglCreateWindowSurface, 4, dpy, config, win, attrib_list);
+    ret = glad_eglCreateWindowSurface(dpy, config, win, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglCreateWindowSurface", (GLADapiproc) glad_eglCreateWindowSurface, 4, dpy, config, win, attrib_list);
+    return ret;
+}
+PFNEGLCREATEWINDOWSURFACEPROC glad_debug_eglCreateWindowSurface = glad_debug_impl_eglCreateWindowSurface;
 PFNEGLDEBUGMESSAGECONTROLKHRPROC glad_eglDebugMessageControlKHR = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglDebugMessageControlKHR(EGLDEBUGPROCKHR callback, const EGLAttrib * attrib_list) {
+    EGLint ret;
+    _pre_call_egl_callback("eglDebugMessageControlKHR", (GLADapiproc) glad_eglDebugMessageControlKHR, 2, callback, attrib_list);
+    ret = glad_eglDebugMessageControlKHR(callback, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglDebugMessageControlKHR", (GLADapiproc) glad_eglDebugMessageControlKHR, 2, callback, attrib_list);
+    return ret;
+}
+PFNEGLDEBUGMESSAGECONTROLKHRPROC glad_debug_eglDebugMessageControlKHR = glad_debug_impl_eglDebugMessageControlKHR;
 PFNEGLDESTROYCONTEXTPROC glad_eglDestroyContext = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroyContext(EGLDisplay dpy, EGLContext ctx) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroyContext", (GLADapiproc) glad_eglDestroyContext, 2, dpy, ctx);
+    ret = glad_eglDestroyContext(dpy, ctx);
+    _post_call_egl_callback((void*) &ret, "eglDestroyContext", (GLADapiproc) glad_eglDestroyContext, 2, dpy, ctx);
+    return ret;
+}
+PFNEGLDESTROYCONTEXTPROC glad_debug_eglDestroyContext = glad_debug_impl_eglDestroyContext;
 PFNEGLDESTROYIMAGEPROC glad_eglDestroyImage = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroyImage(EGLDisplay dpy, EGLImage image) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroyImage", (GLADapiproc) glad_eglDestroyImage, 2, dpy, image);
+    ret = glad_eglDestroyImage(dpy, image);
+    _post_call_egl_callback((void*) &ret, "eglDestroyImage", (GLADapiproc) glad_eglDestroyImage, 2, dpy, image);
+    return ret;
+}
+PFNEGLDESTROYIMAGEPROC glad_debug_eglDestroyImage = glad_debug_impl_eglDestroyImage;
 PFNEGLDESTROYIMAGEKHRPROC glad_eglDestroyImageKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroyImageKHR", (GLADapiproc) glad_eglDestroyImageKHR, 2, dpy, image);
+    ret = glad_eglDestroyImageKHR(dpy, image);
+    _post_call_egl_callback((void*) &ret, "eglDestroyImageKHR", (GLADapiproc) glad_eglDestroyImageKHR, 2, dpy, image);
+    return ret;
+}
+PFNEGLDESTROYIMAGEKHRPROC glad_debug_eglDestroyImageKHR = glad_debug_impl_eglDestroyImageKHR;
 PFNEGLDESTROYSTREAMKHRPROC glad_eglDestroyStreamKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroyStreamKHR(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroyStreamKHR", (GLADapiproc) glad_eglDestroyStreamKHR, 2, dpy, stream);
+    ret = glad_eglDestroyStreamKHR(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglDestroyStreamKHR", (GLADapiproc) glad_eglDestroyStreamKHR, 2, dpy, stream);
+    return ret;
+}
+PFNEGLDESTROYSTREAMKHRPROC glad_debug_eglDestroyStreamKHR = glad_debug_impl_eglDestroyStreamKHR;
 PFNEGLDESTROYSURFACEPROC glad_eglDestroySurface = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroySurface(EGLDisplay dpy, EGLSurface surface) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroySurface", (GLADapiproc) glad_eglDestroySurface, 2, dpy, surface);
+    ret = glad_eglDestroySurface(dpy, surface);
+    _post_call_egl_callback((void*) &ret, "eglDestroySurface", (GLADapiproc) glad_eglDestroySurface, 2, dpy, surface);
+    return ret;
+}
+PFNEGLDESTROYSURFACEPROC glad_debug_eglDestroySurface = glad_debug_impl_eglDestroySurface;
 PFNEGLDESTROYSYNCPROC glad_eglDestroySync = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroySync(EGLDisplay dpy, EGLSync sync) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroySync", (GLADapiproc) glad_eglDestroySync, 2, dpy, sync);
+    ret = glad_eglDestroySync(dpy, sync);
+    _post_call_egl_callback((void*) &ret, "eglDestroySync", (GLADapiproc) glad_eglDestroySync, 2, dpy, sync);
+    return ret;
+}
+PFNEGLDESTROYSYNCPROC glad_debug_eglDestroySync = glad_debug_impl_eglDestroySync;
 PFNEGLDESTROYSYNCKHRPROC glad_eglDestroySyncKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroySyncKHR", (GLADapiproc) glad_eglDestroySyncKHR, 2, dpy, sync);
+    ret = glad_eglDestroySyncKHR(dpy, sync);
+    _post_call_egl_callback((void*) &ret, "eglDestroySyncKHR", (GLADapiproc) glad_eglDestroySyncKHR, 2, dpy, sync);
+    return ret;
+}
+PFNEGLDESTROYSYNCKHRPROC glad_debug_eglDestroySyncKHR = glad_debug_impl_eglDestroySyncKHR;
 PFNEGLDESTROYSYNCNVPROC glad_eglDestroySyncNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglDestroySyncNV(EGLSyncNV sync) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglDestroySyncNV", (GLADapiproc) glad_eglDestroySyncNV, 1, sync);
+    ret = glad_eglDestroySyncNV(sync);
+    _post_call_egl_callback((void*) &ret, "eglDestroySyncNV", (GLADapiproc) glad_eglDestroySyncNV, 1, sync);
+    return ret;
+}
+PFNEGLDESTROYSYNCNVPROC glad_debug_eglDestroySyncNV = glad_debug_impl_eglDestroySyncNV;
 PFNEGLDUPNATIVEFENCEFDANDROIDPROC glad_eglDupNativeFenceFDANDROID = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglDupNativeFenceFDANDROID(EGLDisplay dpy, EGLSyncKHR sync) {
+    EGLint ret;
+    _pre_call_egl_callback("eglDupNativeFenceFDANDROID", (GLADapiproc) glad_eglDupNativeFenceFDANDROID, 2, dpy, sync);
+    ret = glad_eglDupNativeFenceFDANDROID(dpy, sync);
+    _post_call_egl_callback((void*) &ret, "eglDupNativeFenceFDANDROID", (GLADapiproc) glad_eglDupNativeFenceFDANDROID, 2, dpy, sync);
+    return ret;
+}
+PFNEGLDUPNATIVEFENCEFDANDROIDPROC glad_debug_eglDupNativeFenceFDANDROID = glad_debug_impl_eglDupNativeFenceFDANDROID;
 PFNEGLEXPORTDMABUFIMAGEMESAPROC glad_eglExportDMABUFImageMESA = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglExportDMABUFImageMESA(EGLDisplay dpy, EGLImageKHR image, int * fds, EGLint * strides, EGLint * offsets) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglExportDMABUFImageMESA", (GLADapiproc) glad_eglExportDMABUFImageMESA, 5, dpy, image, fds, strides, offsets);
+    ret = glad_eglExportDMABUFImageMESA(dpy, image, fds, strides, offsets);
+    _post_call_egl_callback((void*) &ret, "eglExportDMABUFImageMESA", (GLADapiproc) glad_eglExportDMABUFImageMESA, 5, dpy, image, fds, strides, offsets);
+    return ret;
+}
+PFNEGLEXPORTDMABUFIMAGEMESAPROC glad_debug_eglExportDMABUFImageMESA = glad_debug_impl_eglExportDMABUFImageMESA;
 PFNEGLEXPORTDMABUFIMAGEQUERYMESAPROC glad_eglExportDMABUFImageQueryMESA = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglExportDMABUFImageQueryMESA(EGLDisplay dpy, EGLImageKHR image, int * fourcc, int * num_planes, EGLuint64KHR * modifiers) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglExportDMABUFImageQueryMESA", (GLADapiproc) glad_eglExportDMABUFImageQueryMESA, 5, dpy, image, fourcc, num_planes, modifiers);
+    ret = glad_eglExportDMABUFImageQueryMESA(dpy, image, fourcc, num_planes, modifiers);
+    _post_call_egl_callback((void*) &ret, "eglExportDMABUFImageQueryMESA", (GLADapiproc) glad_eglExportDMABUFImageQueryMESA, 5, dpy, image, fourcc, num_planes, modifiers);
+    return ret;
+}
+PFNEGLEXPORTDMABUFIMAGEQUERYMESAPROC glad_debug_eglExportDMABUFImageQueryMESA = glad_debug_impl_eglExportDMABUFImageQueryMESA;
 PFNEGLEXPORTDRMIMAGEMESAPROC glad_eglExportDRMImageMESA = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglExportDRMImageMESA(EGLDisplay dpy, EGLImageKHR image, EGLint * name, EGLint * handle, EGLint * stride) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglExportDRMImageMESA", (GLADapiproc) glad_eglExportDRMImageMESA, 5, dpy, image, name, handle, stride);
+    ret = glad_eglExportDRMImageMESA(dpy, image, name, handle, stride);
+    _post_call_egl_callback((void*) &ret, "eglExportDRMImageMESA", (GLADapiproc) glad_eglExportDRMImageMESA, 5, dpy, image, name, handle, stride);
+    return ret;
+}
+PFNEGLEXPORTDRMIMAGEMESAPROC glad_debug_eglExportDRMImageMESA = glad_debug_impl_eglExportDRMImageMESA;
 PFNEGLFENCENVPROC glad_eglFenceNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglFenceNV(EGLSyncNV sync) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglFenceNV", (GLADapiproc) glad_eglFenceNV, 1, sync);
+    ret = glad_eglFenceNV(sync);
+    _post_call_egl_callback((void*) &ret, "eglFenceNV", (GLADapiproc) glad_eglFenceNV, 1, sync);
+    return ret;
+}
+PFNEGLFENCENVPROC glad_debug_eglFenceNV = glad_debug_impl_eglFenceNV;
 PFNEGLGETCOMPOSITORTIMINGANDROIDPROC glad_eglGetCompositorTimingANDROID = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetCompositorTimingANDROID(EGLDisplay dpy, EGLSurface surface, EGLint numTimestamps, const EGLint * names, EGLnsecsANDROID * values) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetCompositorTimingANDROID", (GLADapiproc) glad_eglGetCompositorTimingANDROID, 5, dpy, surface, numTimestamps, names, values);
+    ret = glad_eglGetCompositorTimingANDROID(dpy, surface, numTimestamps, names, values);
+    _post_call_egl_callback((void*) &ret, "eglGetCompositorTimingANDROID", (GLADapiproc) glad_eglGetCompositorTimingANDROID, 5, dpy, surface, numTimestamps, names, values);
+    return ret;
+}
+PFNEGLGETCOMPOSITORTIMINGANDROIDPROC glad_debug_eglGetCompositorTimingANDROID = glad_debug_impl_eglGetCompositorTimingANDROID;
 PFNEGLGETCOMPOSITORTIMINGSUPPORTEDANDROIDPROC glad_eglGetCompositorTimingSupportedANDROID = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetCompositorTimingSupportedANDROID(EGLDisplay dpy, EGLSurface surface, EGLint name) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetCompositorTimingSupportedANDROID", (GLADapiproc) glad_eglGetCompositorTimingSupportedANDROID, 3, dpy, surface, name);
+    ret = glad_eglGetCompositorTimingSupportedANDROID(dpy, surface, name);
+    _post_call_egl_callback((void*) &ret, "eglGetCompositorTimingSupportedANDROID", (GLADapiproc) glad_eglGetCompositorTimingSupportedANDROID, 3, dpy, surface, name);
+    return ret;
+}
+PFNEGLGETCOMPOSITORTIMINGSUPPORTEDANDROIDPROC glad_debug_eglGetCompositorTimingSupportedANDROID = glad_debug_impl_eglGetCompositorTimingSupportedANDROID;
 PFNEGLGETCONFIGATTRIBPROC glad_eglGetConfigAttrib = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetConfigAttrib", (GLADapiproc) glad_eglGetConfigAttrib, 4, dpy, config, attribute, value);
+    ret = glad_eglGetConfigAttrib(dpy, config, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglGetConfigAttrib", (GLADapiproc) glad_eglGetConfigAttrib, 4, dpy, config, attribute, value);
+    return ret;
+}
+PFNEGLGETCONFIGATTRIBPROC glad_debug_eglGetConfigAttrib = glad_debug_impl_eglGetConfigAttrib;
 PFNEGLGETCONFIGSPROC glad_eglGetConfigs = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetConfigs(EGLDisplay dpy, EGLConfig * configs, EGLint config_size, EGLint * num_config) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetConfigs", (GLADapiproc) glad_eglGetConfigs, 4, dpy, configs, config_size, num_config);
+    ret = glad_eglGetConfigs(dpy, configs, config_size, num_config);
+    _post_call_egl_callback((void*) &ret, "eglGetConfigs", (GLADapiproc) glad_eglGetConfigs, 4, dpy, configs, config_size, num_config);
+    return ret;
+}
+PFNEGLGETCONFIGSPROC glad_debug_eglGetConfigs = glad_debug_impl_eglGetConfigs;
 PFNEGLGETCURRENTCONTEXTPROC glad_eglGetCurrentContext = NULL;
+static EGLContext GLAD_API_PTR glad_debug_impl_eglGetCurrentContext(void) {
+    EGLContext ret;
+    _pre_call_egl_callback("eglGetCurrentContext", (GLADapiproc) glad_eglGetCurrentContext, 0);
+    ret = glad_eglGetCurrentContext();
+    _post_call_egl_callback((void*) &ret, "eglGetCurrentContext", (GLADapiproc) glad_eglGetCurrentContext, 0);
+    return ret;
+}
+PFNEGLGETCURRENTCONTEXTPROC glad_debug_eglGetCurrentContext = glad_debug_impl_eglGetCurrentContext;
 PFNEGLGETCURRENTDISPLAYPROC glad_eglGetCurrentDisplay = NULL;
+static EGLDisplay GLAD_API_PTR glad_debug_impl_eglGetCurrentDisplay(void) {
+    EGLDisplay ret;
+    _pre_call_egl_callback("eglGetCurrentDisplay", (GLADapiproc) glad_eglGetCurrentDisplay, 0);
+    ret = glad_eglGetCurrentDisplay();
+    _post_call_egl_callback((void*) &ret, "eglGetCurrentDisplay", (GLADapiproc) glad_eglGetCurrentDisplay, 0);
+    return ret;
+}
+PFNEGLGETCURRENTDISPLAYPROC glad_debug_eglGetCurrentDisplay = glad_debug_impl_eglGetCurrentDisplay;
 PFNEGLGETCURRENTSURFACEPROC glad_eglGetCurrentSurface = NULL;
+static EGLSurface GLAD_API_PTR glad_debug_impl_eglGetCurrentSurface(EGLint readdraw) {
+    EGLSurface ret;
+    _pre_call_egl_callback("eglGetCurrentSurface", (GLADapiproc) glad_eglGetCurrentSurface, 1, readdraw);
+    ret = glad_eglGetCurrentSurface(readdraw);
+    _post_call_egl_callback((void*) &ret, "eglGetCurrentSurface", (GLADapiproc) glad_eglGetCurrentSurface, 1, readdraw);
+    return ret;
+}
+PFNEGLGETCURRENTSURFACEPROC glad_debug_eglGetCurrentSurface = glad_debug_impl_eglGetCurrentSurface;
 PFNEGLGETDISPLAYPROC glad_eglGetDisplay = NULL;
+static EGLDisplay GLAD_API_PTR glad_debug_impl_eglGetDisplay(EGLNativeDisplayType display_id) {
+    EGLDisplay ret;
+    _pre_call_egl_callback("eglGetDisplay", (GLADapiproc) glad_eglGetDisplay, 1, display_id);
+    ret = glad_eglGetDisplay(display_id);
+    _post_call_egl_callback((void*) &ret, "eglGetDisplay", (GLADapiproc) glad_eglGetDisplay, 1, display_id);
+    return ret;
+}
+PFNEGLGETDISPLAYPROC glad_debug_eglGetDisplay = glad_debug_impl_eglGetDisplay;
 PFNEGLGETDISPLAYDRIVERCONFIGPROC glad_eglGetDisplayDriverConfig = NULL;
+static char * GLAD_API_PTR glad_debug_impl_eglGetDisplayDriverConfig(EGLDisplay dpy) {
+    char * ret;
+    _pre_call_egl_callback("eglGetDisplayDriverConfig", (GLADapiproc) glad_eglGetDisplayDriverConfig, 1, dpy);
+    ret = glad_eglGetDisplayDriverConfig(dpy);
+    _post_call_egl_callback((void*) &ret, "eglGetDisplayDriverConfig", (GLADapiproc) glad_eglGetDisplayDriverConfig, 1, dpy);
+    return ret;
+}
+PFNEGLGETDISPLAYDRIVERCONFIGPROC glad_debug_eglGetDisplayDriverConfig = glad_debug_impl_eglGetDisplayDriverConfig;
 PFNEGLGETDISPLAYDRIVERNAMEPROC glad_eglGetDisplayDriverName = NULL;
+static const char * GLAD_API_PTR glad_debug_impl_eglGetDisplayDriverName(EGLDisplay dpy) {
+    const char * ret;
+    _pre_call_egl_callback("eglGetDisplayDriverName", (GLADapiproc) glad_eglGetDisplayDriverName, 1, dpy);
+    ret = glad_eglGetDisplayDriverName(dpy);
+    _post_call_egl_callback((void*) &ret, "eglGetDisplayDriverName", (GLADapiproc) glad_eglGetDisplayDriverName, 1, dpy);
+    return ret;
+}
+PFNEGLGETDISPLAYDRIVERNAMEPROC glad_debug_eglGetDisplayDriverName = glad_debug_impl_eglGetDisplayDriverName;
 PFNEGLGETERRORPROC glad_eglGetError = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglGetError(void) {
+    EGLint ret;
+    _pre_call_egl_callback("eglGetError", (GLADapiproc) glad_eglGetError, 0);
+    ret = glad_eglGetError();
+    _post_call_egl_callback((void*) &ret, "eglGetError", (GLADapiproc) glad_eglGetError, 0);
+    return ret;
+}
+PFNEGLGETERRORPROC glad_debug_eglGetError = glad_debug_impl_eglGetError;
 PFNEGLGETFRAMETIMESTAMPSUPPORTEDANDROIDPROC glad_eglGetFrameTimestampSupportedANDROID = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetFrameTimestampSupportedANDROID(EGLDisplay dpy, EGLSurface surface, EGLint timestamp) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetFrameTimestampSupportedANDROID", (GLADapiproc) glad_eglGetFrameTimestampSupportedANDROID, 3, dpy, surface, timestamp);
+    ret = glad_eglGetFrameTimestampSupportedANDROID(dpy, surface, timestamp);
+    _post_call_egl_callback((void*) &ret, "eglGetFrameTimestampSupportedANDROID", (GLADapiproc) glad_eglGetFrameTimestampSupportedANDROID, 3, dpy, surface, timestamp);
+    return ret;
+}
+PFNEGLGETFRAMETIMESTAMPSUPPORTEDANDROIDPROC glad_debug_eglGetFrameTimestampSupportedANDROID = glad_debug_impl_eglGetFrameTimestampSupportedANDROID;
 PFNEGLGETFRAMETIMESTAMPSANDROIDPROC glad_eglGetFrameTimestampsANDROID = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetFrameTimestampsANDROID(EGLDisplay dpy, EGLSurface surface, EGLuint64KHR frameId, EGLint numTimestamps, const EGLint * timestamps, EGLnsecsANDROID * values) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetFrameTimestampsANDROID", (GLADapiproc) glad_eglGetFrameTimestampsANDROID, 6, dpy, surface, frameId, numTimestamps, timestamps, values);
+    ret = glad_eglGetFrameTimestampsANDROID(dpy, surface, frameId, numTimestamps, timestamps, values);
+    _post_call_egl_callback((void*) &ret, "eglGetFrameTimestampsANDROID", (GLADapiproc) glad_eglGetFrameTimestampsANDROID, 6, dpy, surface, frameId, numTimestamps, timestamps, values);
+    return ret;
+}
+PFNEGLGETFRAMETIMESTAMPSANDROIDPROC glad_debug_eglGetFrameTimestampsANDROID = glad_debug_impl_eglGetFrameTimestampsANDROID;
 PFNEGLGETMSCRATEANGLEPROC glad_eglGetMscRateANGLE = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetMscRateANGLE(EGLDisplay dpy, EGLSurface surface, EGLint * numerator, EGLint * denominator) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetMscRateANGLE", (GLADapiproc) glad_eglGetMscRateANGLE, 4, dpy, surface, numerator, denominator);
+    ret = glad_eglGetMscRateANGLE(dpy, surface, numerator, denominator);
+    _post_call_egl_callback((void*) &ret, "eglGetMscRateANGLE", (GLADapiproc) glad_eglGetMscRateANGLE, 4, dpy, surface, numerator, denominator);
+    return ret;
+}
+PFNEGLGETMSCRATEANGLEPROC glad_debug_eglGetMscRateANGLE = glad_debug_impl_eglGetMscRateANGLE;
 PFNEGLGETNATIVECLIENTBUFFERANDROIDPROC glad_eglGetNativeClientBufferANDROID = NULL;
+static EGLClientBuffer GLAD_API_PTR glad_debug_impl_eglGetNativeClientBufferANDROID(const struct AHardwareBuffer * buffer) {
+    EGLClientBuffer ret;
+    _pre_call_egl_callback("eglGetNativeClientBufferANDROID", (GLADapiproc) glad_eglGetNativeClientBufferANDROID, 1, buffer);
+    ret = glad_eglGetNativeClientBufferANDROID(buffer);
+    _post_call_egl_callback((void*) &ret, "eglGetNativeClientBufferANDROID", (GLADapiproc) glad_eglGetNativeClientBufferANDROID, 1, buffer);
+    return ret;
+}
+PFNEGLGETNATIVECLIENTBUFFERANDROIDPROC glad_debug_eglGetNativeClientBufferANDROID = glad_debug_impl_eglGetNativeClientBufferANDROID;
 PFNEGLGETNEXTFRAMEIDANDROIDPROC glad_eglGetNextFrameIdANDROID = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetNextFrameIdANDROID(EGLDisplay dpy, EGLSurface surface, EGLuint64KHR * frameId) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetNextFrameIdANDROID", (GLADapiproc) glad_eglGetNextFrameIdANDROID, 3, dpy, surface, frameId);
+    ret = glad_eglGetNextFrameIdANDROID(dpy, surface, frameId);
+    _post_call_egl_callback((void*) &ret, "eglGetNextFrameIdANDROID", (GLADapiproc) glad_eglGetNextFrameIdANDROID, 3, dpy, surface, frameId);
+    return ret;
+}
+PFNEGLGETNEXTFRAMEIDANDROIDPROC glad_debug_eglGetNextFrameIdANDROID = glad_debug_impl_eglGetNextFrameIdANDROID;
 PFNEGLGETOUTPUTLAYERSEXTPROC glad_eglGetOutputLayersEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetOutputLayersEXT(EGLDisplay dpy, const EGLAttrib * attrib_list, EGLOutputLayerEXT * layers, EGLint max_layers, EGLint * num_layers) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetOutputLayersEXT", (GLADapiproc) glad_eglGetOutputLayersEXT, 5, dpy, attrib_list, layers, max_layers, num_layers);
+    ret = glad_eglGetOutputLayersEXT(dpy, attrib_list, layers, max_layers, num_layers);
+    _post_call_egl_callback((void*) &ret, "eglGetOutputLayersEXT", (GLADapiproc) glad_eglGetOutputLayersEXT, 5, dpy, attrib_list, layers, max_layers, num_layers);
+    return ret;
+}
+PFNEGLGETOUTPUTLAYERSEXTPROC glad_debug_eglGetOutputLayersEXT = glad_debug_impl_eglGetOutputLayersEXT;
 PFNEGLGETOUTPUTPORTSEXTPROC glad_eglGetOutputPortsEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetOutputPortsEXT(EGLDisplay dpy, const EGLAttrib * attrib_list, EGLOutputPortEXT * ports, EGLint max_ports, EGLint * num_ports) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetOutputPortsEXT", (GLADapiproc) glad_eglGetOutputPortsEXT, 5, dpy, attrib_list, ports, max_ports, num_ports);
+    ret = glad_eglGetOutputPortsEXT(dpy, attrib_list, ports, max_ports, num_ports);
+    _post_call_egl_callback((void*) &ret, "eglGetOutputPortsEXT", (GLADapiproc) glad_eglGetOutputPortsEXT, 5, dpy, attrib_list, ports, max_ports, num_ports);
+    return ret;
+}
+PFNEGLGETOUTPUTPORTSEXTPROC glad_debug_eglGetOutputPortsEXT = glad_debug_impl_eglGetOutputPortsEXT;
 PFNEGLGETPLATFORMDISPLAYPROC glad_eglGetPlatformDisplay = NULL;
+static EGLDisplay GLAD_API_PTR glad_debug_impl_eglGetPlatformDisplay(EGLenum platform, void * native_display, const EGLAttrib * attrib_list) {
+    EGLDisplay ret;
+    _pre_call_egl_callback("eglGetPlatformDisplay", (GLADapiproc) glad_eglGetPlatformDisplay, 3, platform, native_display, attrib_list);
+    ret = glad_eglGetPlatformDisplay(platform, native_display, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglGetPlatformDisplay", (GLADapiproc) glad_eglGetPlatformDisplay, 3, platform, native_display, attrib_list);
+    return ret;
+}
+PFNEGLGETPLATFORMDISPLAYPROC glad_debug_eglGetPlatformDisplay = glad_debug_impl_eglGetPlatformDisplay;
 PFNEGLGETPLATFORMDISPLAYEXTPROC glad_eglGetPlatformDisplayEXT = NULL;
+static EGLDisplay GLAD_API_PTR glad_debug_impl_eglGetPlatformDisplayEXT(EGLenum platform, void * native_display, const EGLint * attrib_list) {
+    EGLDisplay ret;
+    _pre_call_egl_callback("eglGetPlatformDisplayEXT", (GLADapiproc) glad_eglGetPlatformDisplayEXT, 3, platform, native_display, attrib_list);
+    ret = glad_eglGetPlatformDisplayEXT(platform, native_display, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglGetPlatformDisplayEXT", (GLADapiproc) glad_eglGetPlatformDisplayEXT, 3, platform, native_display, attrib_list);
+    return ret;
+}
+PFNEGLGETPLATFORMDISPLAYEXTPROC glad_debug_eglGetPlatformDisplayEXT = glad_debug_impl_eglGetPlatformDisplayEXT;
 PFNEGLGETPROCADDRESSPROC glad_eglGetProcAddress = NULL;
+static __eglMustCastToProperFunctionPointerType GLAD_API_PTR glad_debug_impl_eglGetProcAddress(const char * procname) {
+    __eglMustCastToProperFunctionPointerType ret;
+    _pre_call_egl_callback("eglGetProcAddress", (GLADapiproc) glad_eglGetProcAddress, 1, procname);
+    ret = glad_eglGetProcAddress(procname);
+    _post_call_egl_callback((void*) &ret, "eglGetProcAddress", (GLADapiproc) glad_eglGetProcAddress, 1, procname);
+    return ret;
+}
+PFNEGLGETPROCADDRESSPROC glad_debug_eglGetProcAddress = glad_debug_impl_eglGetProcAddress;
 PFNEGLGETSTREAMFILEDESCRIPTORKHRPROC glad_eglGetStreamFileDescriptorKHR = NULL;
+static EGLNativeFileDescriptorKHR GLAD_API_PTR glad_debug_impl_eglGetStreamFileDescriptorKHR(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLNativeFileDescriptorKHR ret;
+    _pre_call_egl_callback("eglGetStreamFileDescriptorKHR", (GLADapiproc) glad_eglGetStreamFileDescriptorKHR, 2, dpy, stream);
+    ret = glad_eglGetStreamFileDescriptorKHR(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglGetStreamFileDescriptorKHR", (GLADapiproc) glad_eglGetStreamFileDescriptorKHR, 2, dpy, stream);
+    return ret;
+}
+PFNEGLGETSTREAMFILEDESCRIPTORKHRPROC glad_debug_eglGetStreamFileDescriptorKHR = glad_debug_impl_eglGetStreamFileDescriptorKHR;
 PFNEGLGETSYNCATTRIBPROC glad_eglGetSyncAttrib = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetSyncAttrib(EGLDisplay dpy, EGLSync sync, EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetSyncAttrib", (GLADapiproc) glad_eglGetSyncAttrib, 4, dpy, sync, attribute, value);
+    ret = glad_eglGetSyncAttrib(dpy, sync, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglGetSyncAttrib", (GLADapiproc) glad_eglGetSyncAttrib, 4, dpy, sync, attribute, value);
+    return ret;
+}
+PFNEGLGETSYNCATTRIBPROC glad_debug_eglGetSyncAttrib = glad_debug_impl_eglGetSyncAttrib;
 PFNEGLGETSYNCATTRIBKHRPROC glad_eglGetSyncAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetSyncAttribKHR", (GLADapiproc) glad_eglGetSyncAttribKHR, 4, dpy, sync, attribute, value);
+    ret = glad_eglGetSyncAttribKHR(dpy, sync, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglGetSyncAttribKHR", (GLADapiproc) glad_eglGetSyncAttribKHR, 4, dpy, sync, attribute, value);
+    return ret;
+}
+PFNEGLGETSYNCATTRIBKHRPROC glad_debug_eglGetSyncAttribKHR = glad_debug_impl_eglGetSyncAttribKHR;
 PFNEGLGETSYNCATTRIBNVPROC glad_eglGetSyncAttribNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglGetSyncAttribNV(EGLSyncNV sync, EGLint attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglGetSyncAttribNV", (GLADapiproc) glad_eglGetSyncAttribNV, 3, sync, attribute, value);
+    ret = glad_eglGetSyncAttribNV(sync, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglGetSyncAttribNV", (GLADapiproc) glad_eglGetSyncAttribNV, 3, sync, attribute, value);
+    return ret;
+}
+PFNEGLGETSYNCATTRIBNVPROC glad_debug_eglGetSyncAttribNV = glad_debug_impl_eglGetSyncAttribNV;
 PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC glad_eglGetSystemTimeFrequencyNV = NULL;
+static EGLuint64NV GLAD_API_PTR glad_debug_impl_eglGetSystemTimeFrequencyNV(void) {
+    EGLuint64NV ret;
+    _pre_call_egl_callback("eglGetSystemTimeFrequencyNV", (GLADapiproc) glad_eglGetSystemTimeFrequencyNV, 0);
+    ret = glad_eglGetSystemTimeFrequencyNV();
+    _post_call_egl_callback((void*) &ret, "eglGetSystemTimeFrequencyNV", (GLADapiproc) glad_eglGetSystemTimeFrequencyNV, 0);
+    return ret;
+}
+PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC glad_debug_eglGetSystemTimeFrequencyNV = glad_debug_impl_eglGetSystemTimeFrequencyNV;
 PFNEGLGETSYSTEMTIMENVPROC glad_eglGetSystemTimeNV = NULL;
+static EGLuint64NV GLAD_API_PTR glad_debug_impl_eglGetSystemTimeNV(void) {
+    EGLuint64NV ret;
+    _pre_call_egl_callback("eglGetSystemTimeNV", (GLADapiproc) glad_eglGetSystemTimeNV, 0);
+    ret = glad_eglGetSystemTimeNV();
+    _post_call_egl_callback((void*) &ret, "eglGetSystemTimeNV", (GLADapiproc) glad_eglGetSystemTimeNV, 0);
+    return ret;
+}
+PFNEGLGETSYSTEMTIMENVPROC glad_debug_eglGetSystemTimeNV = glad_debug_impl_eglGetSystemTimeNV;
 PFNEGLINITIALIZEPROC glad_eglInitialize = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglInitialize(EGLDisplay dpy, EGLint * major, EGLint * minor) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglInitialize", (GLADapiproc) glad_eglInitialize, 3, dpy, major, minor);
+    ret = glad_eglInitialize(dpy, major, minor);
+    _post_call_egl_callback((void*) &ret, "eglInitialize", (GLADapiproc) glad_eglInitialize, 3, dpy, major, minor);
+    return ret;
+}
+PFNEGLINITIALIZEPROC glad_debug_eglInitialize = glad_debug_impl_eglInitialize;
 PFNEGLLABELOBJECTKHRPROC glad_eglLabelObjectKHR = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglLabelObjectKHR(EGLDisplay display, EGLenum objectType, EGLObjectKHR object, EGLLabelKHR label) {
+    EGLint ret;
+    _pre_call_egl_callback("eglLabelObjectKHR", (GLADapiproc) glad_eglLabelObjectKHR, 4, display, objectType, object, label);
+    ret = glad_eglLabelObjectKHR(display, objectType, object, label);
+    _post_call_egl_callback((void*) &ret, "eglLabelObjectKHR", (GLADapiproc) glad_eglLabelObjectKHR, 4, display, objectType, object, label);
+    return ret;
+}
+PFNEGLLABELOBJECTKHRPROC glad_debug_eglLabelObjectKHR = glad_debug_impl_eglLabelObjectKHR;
 PFNEGLLOCKSURFACEKHRPROC glad_eglLockSurfaceKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglLockSurfaceKHR(EGLDisplay dpy, EGLSurface surface, const EGLint * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglLockSurfaceKHR", (GLADapiproc) glad_eglLockSurfaceKHR, 3, dpy, surface, attrib_list);
+    ret = glad_eglLockSurfaceKHR(dpy, surface, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglLockSurfaceKHR", (GLADapiproc) glad_eglLockSurfaceKHR, 3, dpy, surface, attrib_list);
+    return ret;
+}
+PFNEGLLOCKSURFACEKHRPROC glad_debug_eglLockSurfaceKHR = glad_debug_impl_eglLockSurfaceKHR;
 PFNEGLMAKECURRENTPROC glad_eglMakeCurrent = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglMakeCurrent", (GLADapiproc) glad_eglMakeCurrent, 4, dpy, draw, read, ctx);
+    ret = glad_eglMakeCurrent(dpy, draw, read, ctx);
+    _post_call_egl_callback((void*) &ret, "eglMakeCurrent", (GLADapiproc) glad_eglMakeCurrent, 4, dpy, draw, read, ctx);
+    return ret;
+}
+PFNEGLMAKECURRENTPROC glad_debug_eglMakeCurrent = glad_debug_impl_eglMakeCurrent;
 PFNEGLOUTPUTLAYERATTRIBEXTPROC glad_eglOutputLayerAttribEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglOutputLayerAttribEXT(EGLDisplay dpy, EGLOutputLayerEXT layer, EGLint attribute, EGLAttrib value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglOutputLayerAttribEXT", (GLADapiproc) glad_eglOutputLayerAttribEXT, 4, dpy, layer, attribute, value);
+    ret = glad_eglOutputLayerAttribEXT(dpy, layer, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglOutputLayerAttribEXT", (GLADapiproc) glad_eglOutputLayerAttribEXT, 4, dpy, layer, attribute, value);
+    return ret;
+}
+PFNEGLOUTPUTLAYERATTRIBEXTPROC glad_debug_eglOutputLayerAttribEXT = glad_debug_impl_eglOutputLayerAttribEXT;
 PFNEGLOUTPUTPORTATTRIBEXTPROC glad_eglOutputPortAttribEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglOutputPortAttribEXT(EGLDisplay dpy, EGLOutputPortEXT port, EGLint attribute, EGLAttrib value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglOutputPortAttribEXT", (GLADapiproc) glad_eglOutputPortAttribEXT, 4, dpy, port, attribute, value);
+    ret = glad_eglOutputPortAttribEXT(dpy, port, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglOutputPortAttribEXT", (GLADapiproc) glad_eglOutputPortAttribEXT, 4, dpy, port, attribute, value);
+    return ret;
+}
+PFNEGLOUTPUTPORTATTRIBEXTPROC glad_debug_eglOutputPortAttribEXT = glad_debug_impl_eglOutputPortAttribEXT;
 PFNEGLPOSTSUBBUFFERNVPROC glad_eglPostSubBufferNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglPostSubBufferNV(EGLDisplay dpy, EGLSurface surface, EGLint x, EGLint y, EGLint width, EGLint height) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglPostSubBufferNV", (GLADapiproc) glad_eglPostSubBufferNV, 6, dpy, surface, x, y, width, height);
+    ret = glad_eglPostSubBufferNV(dpy, surface, x, y, width, height);
+    _post_call_egl_callback((void*) &ret, "eglPostSubBufferNV", (GLADapiproc) glad_eglPostSubBufferNV, 6, dpy, surface, x, y, width, height);
+    return ret;
+}
+PFNEGLPOSTSUBBUFFERNVPROC glad_debug_eglPostSubBufferNV = glad_debug_impl_eglPostSubBufferNV;
 PFNEGLPRESENTATIONTIMEANDROIDPROC glad_eglPresentationTimeANDROID = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglPresentationTimeANDROID(EGLDisplay dpy, EGLSurface surface, EGLnsecsANDROID time) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglPresentationTimeANDROID", (GLADapiproc) glad_eglPresentationTimeANDROID, 3, dpy, surface, time);
+    ret = glad_eglPresentationTimeANDROID(dpy, surface, time);
+    _post_call_egl_callback((void*) &ret, "eglPresentationTimeANDROID", (GLADapiproc) glad_eglPresentationTimeANDROID, 3, dpy, surface, time);
+    return ret;
+}
+PFNEGLPRESENTATIONTIMEANDROIDPROC glad_debug_eglPresentationTimeANDROID = glad_debug_impl_eglPresentationTimeANDROID;
 PFNEGLQUERYAPIPROC glad_eglQueryAPI = NULL;
+static EGLenum GLAD_API_PTR glad_debug_impl_eglQueryAPI(void) {
+    EGLenum ret;
+    _pre_call_egl_callback("eglQueryAPI", (GLADapiproc) glad_eglQueryAPI, 0);
+    ret = glad_eglQueryAPI();
+    _post_call_egl_callback((void*) &ret, "eglQueryAPI", (GLADapiproc) glad_eglQueryAPI, 0);
+    return ret;
+}
+PFNEGLQUERYAPIPROC glad_debug_eglQueryAPI = glad_debug_impl_eglQueryAPI;
 PFNEGLQUERYCONTEXTPROC glad_eglQueryContext = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryContext", (GLADapiproc) glad_eglQueryContext, 4, dpy, ctx, attribute, value);
+    ret = glad_eglQueryContext(dpy, ctx, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryContext", (GLADapiproc) glad_eglQueryContext, 4, dpy, ctx, attribute, value);
+    return ret;
+}
+PFNEGLQUERYCONTEXTPROC glad_debug_eglQueryContext = glad_debug_impl_eglQueryContext;
 PFNEGLQUERYDEBUGKHRPROC glad_eglQueryDebugKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDebugKHR(EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDebugKHR", (GLADapiproc) glad_eglQueryDebugKHR, 2, attribute, value);
+    ret = glad_eglQueryDebugKHR(attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryDebugKHR", (GLADapiproc) glad_eglQueryDebugKHR, 2, attribute, value);
+    return ret;
+}
+PFNEGLQUERYDEBUGKHRPROC glad_debug_eglQueryDebugKHR = glad_debug_impl_eglQueryDebugKHR;
 PFNEGLQUERYDEVICEATTRIBEXTPROC glad_eglQueryDeviceAttribEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDeviceAttribEXT(EGLDeviceEXT device, EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDeviceAttribEXT", (GLADapiproc) glad_eglQueryDeviceAttribEXT, 3, device, attribute, value);
+    ret = glad_eglQueryDeviceAttribEXT(device, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryDeviceAttribEXT", (GLADapiproc) glad_eglQueryDeviceAttribEXT, 3, device, attribute, value);
+    return ret;
+}
+PFNEGLQUERYDEVICEATTRIBEXTPROC glad_debug_eglQueryDeviceAttribEXT = glad_debug_impl_eglQueryDeviceAttribEXT;
 PFNEGLQUERYDEVICEBINARYEXTPROC glad_eglQueryDeviceBinaryEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDeviceBinaryEXT(EGLDeviceEXT device, EGLint name, EGLint max_size, void * value, EGLint * size) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDeviceBinaryEXT", (GLADapiproc) glad_eglQueryDeviceBinaryEXT, 5, device, name, max_size, value, size);
+    ret = glad_eglQueryDeviceBinaryEXT(device, name, max_size, value, size);
+    _post_call_egl_callback((void*) &ret, "eglQueryDeviceBinaryEXT", (GLADapiproc) glad_eglQueryDeviceBinaryEXT, 5, device, name, max_size, value, size);
+    return ret;
+}
+PFNEGLQUERYDEVICEBINARYEXTPROC glad_debug_eglQueryDeviceBinaryEXT = glad_debug_impl_eglQueryDeviceBinaryEXT;
 PFNEGLQUERYDEVICESTRINGEXTPROC glad_eglQueryDeviceStringEXT = NULL;
+static const char * GLAD_API_PTR glad_debug_impl_eglQueryDeviceStringEXT(EGLDeviceEXT device, EGLint name) {
+    const char * ret;
+    _pre_call_egl_callback("eglQueryDeviceStringEXT", (GLADapiproc) glad_eglQueryDeviceStringEXT, 2, device, name);
+    ret = glad_eglQueryDeviceStringEXT(device, name);
+    _post_call_egl_callback((void*) &ret, "eglQueryDeviceStringEXT", (GLADapiproc) glad_eglQueryDeviceStringEXT, 2, device, name);
+    return ret;
+}
+PFNEGLQUERYDEVICESTRINGEXTPROC glad_debug_eglQueryDeviceStringEXT = glad_debug_impl_eglQueryDeviceStringEXT;
 PFNEGLQUERYDEVICESEXTPROC glad_eglQueryDevicesEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDevicesEXT(EGLint max_devices, EGLDeviceEXT * devices, EGLint * num_devices) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDevicesEXT", (GLADapiproc) glad_eglQueryDevicesEXT, 3, max_devices, devices, num_devices);
+    ret = glad_eglQueryDevicesEXT(max_devices, devices, num_devices);
+    _post_call_egl_callback((void*) &ret, "eglQueryDevicesEXT", (GLADapiproc) glad_eglQueryDevicesEXT, 3, max_devices, devices, num_devices);
+    return ret;
+}
+PFNEGLQUERYDEVICESEXTPROC glad_debug_eglQueryDevicesEXT = glad_debug_impl_eglQueryDevicesEXT;
 PFNEGLQUERYDISPLAYATTRIBEXTPROC glad_eglQueryDisplayAttribEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDisplayAttribEXT(EGLDisplay dpy, EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDisplayAttribEXT", (GLADapiproc) glad_eglQueryDisplayAttribEXT, 3, dpy, attribute, value);
+    ret = glad_eglQueryDisplayAttribEXT(dpy, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryDisplayAttribEXT", (GLADapiproc) glad_eglQueryDisplayAttribEXT, 3, dpy, attribute, value);
+    return ret;
+}
+PFNEGLQUERYDISPLAYATTRIBEXTPROC glad_debug_eglQueryDisplayAttribEXT = glad_debug_impl_eglQueryDisplayAttribEXT;
 PFNEGLQUERYDISPLAYATTRIBKHRPROC glad_eglQueryDisplayAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDisplayAttribKHR(EGLDisplay dpy, EGLint name, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDisplayAttribKHR", (GLADapiproc) glad_eglQueryDisplayAttribKHR, 3, dpy, name, value);
+    ret = glad_eglQueryDisplayAttribKHR(dpy, name, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryDisplayAttribKHR", (GLADapiproc) glad_eglQueryDisplayAttribKHR, 3, dpy, name, value);
+    return ret;
+}
+PFNEGLQUERYDISPLAYATTRIBKHRPROC glad_debug_eglQueryDisplayAttribKHR = glad_debug_impl_eglQueryDisplayAttribKHR;
 PFNEGLQUERYDISPLAYATTRIBNVPROC glad_eglQueryDisplayAttribNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDisplayAttribNV(EGLDisplay dpy, EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDisplayAttribNV", (GLADapiproc) glad_eglQueryDisplayAttribNV, 3, dpy, attribute, value);
+    ret = glad_eglQueryDisplayAttribNV(dpy, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryDisplayAttribNV", (GLADapiproc) glad_eglQueryDisplayAttribNV, 3, dpy, attribute, value);
+    return ret;
+}
+PFNEGLQUERYDISPLAYATTRIBNVPROC glad_debug_eglQueryDisplayAttribNV = glad_debug_impl_eglQueryDisplayAttribNV;
 PFNEGLQUERYDMABUFFORMATSEXTPROC glad_eglQueryDmaBufFormatsEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDmaBufFormatsEXT(EGLDisplay dpy, EGLint max_formats, EGLint * formats, EGLint * num_formats) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDmaBufFormatsEXT", (GLADapiproc) glad_eglQueryDmaBufFormatsEXT, 4, dpy, max_formats, formats, num_formats);
+    ret = glad_eglQueryDmaBufFormatsEXT(dpy, max_formats, formats, num_formats);
+    _post_call_egl_callback((void*) &ret, "eglQueryDmaBufFormatsEXT", (GLADapiproc) glad_eglQueryDmaBufFormatsEXT, 4, dpy, max_formats, formats, num_formats);
+    return ret;
+}
+PFNEGLQUERYDMABUFFORMATSEXTPROC glad_debug_eglQueryDmaBufFormatsEXT = glad_debug_impl_eglQueryDmaBufFormatsEXT;
 PFNEGLQUERYDMABUFMODIFIERSEXTPROC glad_eglQueryDmaBufModifiersEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryDmaBufModifiersEXT(EGLDisplay dpy, EGLint format, EGLint max_modifiers, EGLuint64KHR * modifiers, EGLBoolean * external_only, EGLint * num_modifiers) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryDmaBufModifiersEXT", (GLADapiproc) glad_eglQueryDmaBufModifiersEXT, 6, dpy, format, max_modifiers, modifiers, external_only, num_modifiers);
+    ret = glad_eglQueryDmaBufModifiersEXT(dpy, format, max_modifiers, modifiers, external_only, num_modifiers);
+    _post_call_egl_callback((void*) &ret, "eglQueryDmaBufModifiersEXT", (GLADapiproc) glad_eglQueryDmaBufModifiersEXT, 6, dpy, format, max_modifiers, modifiers, external_only, num_modifiers);
+    return ret;
+}
+PFNEGLQUERYDMABUFMODIFIERSEXTPROC glad_debug_eglQueryDmaBufModifiersEXT = glad_debug_impl_eglQueryDmaBufModifiersEXT;
 PFNEGLQUERYNATIVEDISPLAYNVPROC glad_eglQueryNativeDisplayNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryNativeDisplayNV(EGLDisplay dpy, EGLNativeDisplayType * display_id) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryNativeDisplayNV", (GLADapiproc) glad_eglQueryNativeDisplayNV, 2, dpy, display_id);
+    ret = glad_eglQueryNativeDisplayNV(dpy, display_id);
+    _post_call_egl_callback((void*) &ret, "eglQueryNativeDisplayNV", (GLADapiproc) glad_eglQueryNativeDisplayNV, 2, dpy, display_id);
+    return ret;
+}
+PFNEGLQUERYNATIVEDISPLAYNVPROC glad_debug_eglQueryNativeDisplayNV = glad_debug_impl_eglQueryNativeDisplayNV;
 PFNEGLQUERYNATIVEPIXMAPNVPROC glad_eglQueryNativePixmapNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryNativePixmapNV(EGLDisplay dpy, EGLSurface surf, EGLNativePixmapType * pixmap) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryNativePixmapNV", (GLADapiproc) glad_eglQueryNativePixmapNV, 3, dpy, surf, pixmap);
+    ret = glad_eglQueryNativePixmapNV(dpy, surf, pixmap);
+    _post_call_egl_callback((void*) &ret, "eglQueryNativePixmapNV", (GLADapiproc) glad_eglQueryNativePixmapNV, 3, dpy, surf, pixmap);
+    return ret;
+}
+PFNEGLQUERYNATIVEPIXMAPNVPROC glad_debug_eglQueryNativePixmapNV = glad_debug_impl_eglQueryNativePixmapNV;
 PFNEGLQUERYNATIVEWINDOWNVPROC glad_eglQueryNativeWindowNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryNativeWindowNV(EGLDisplay dpy, EGLSurface surf, EGLNativeWindowType * window) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryNativeWindowNV", (GLADapiproc) glad_eglQueryNativeWindowNV, 3, dpy, surf, window);
+    ret = glad_eglQueryNativeWindowNV(dpy, surf, window);
+    _post_call_egl_callback((void*) &ret, "eglQueryNativeWindowNV", (GLADapiproc) glad_eglQueryNativeWindowNV, 3, dpy, surf, window);
+    return ret;
+}
+PFNEGLQUERYNATIVEWINDOWNVPROC glad_debug_eglQueryNativeWindowNV = glad_debug_impl_eglQueryNativeWindowNV;
 PFNEGLQUERYOUTPUTLAYERATTRIBEXTPROC glad_eglQueryOutputLayerAttribEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryOutputLayerAttribEXT(EGLDisplay dpy, EGLOutputLayerEXT layer, EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryOutputLayerAttribEXT", (GLADapiproc) glad_eglQueryOutputLayerAttribEXT, 4, dpy, layer, attribute, value);
+    ret = glad_eglQueryOutputLayerAttribEXT(dpy, layer, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryOutputLayerAttribEXT", (GLADapiproc) glad_eglQueryOutputLayerAttribEXT, 4, dpy, layer, attribute, value);
+    return ret;
+}
+PFNEGLQUERYOUTPUTLAYERATTRIBEXTPROC glad_debug_eglQueryOutputLayerAttribEXT = glad_debug_impl_eglQueryOutputLayerAttribEXT;
 PFNEGLQUERYOUTPUTLAYERSTRINGEXTPROC glad_eglQueryOutputLayerStringEXT = NULL;
+static const char * GLAD_API_PTR glad_debug_impl_eglQueryOutputLayerStringEXT(EGLDisplay dpy, EGLOutputLayerEXT layer, EGLint name) {
+    const char * ret;
+    _pre_call_egl_callback("eglQueryOutputLayerStringEXT", (GLADapiproc) glad_eglQueryOutputLayerStringEXT, 3, dpy, layer, name);
+    ret = glad_eglQueryOutputLayerStringEXT(dpy, layer, name);
+    _post_call_egl_callback((void*) &ret, "eglQueryOutputLayerStringEXT", (GLADapiproc) glad_eglQueryOutputLayerStringEXT, 3, dpy, layer, name);
+    return ret;
+}
+PFNEGLQUERYOUTPUTLAYERSTRINGEXTPROC glad_debug_eglQueryOutputLayerStringEXT = glad_debug_impl_eglQueryOutputLayerStringEXT;
 PFNEGLQUERYOUTPUTPORTATTRIBEXTPROC glad_eglQueryOutputPortAttribEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryOutputPortAttribEXT(EGLDisplay dpy, EGLOutputPortEXT port, EGLint attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryOutputPortAttribEXT", (GLADapiproc) glad_eglQueryOutputPortAttribEXT, 4, dpy, port, attribute, value);
+    ret = glad_eglQueryOutputPortAttribEXT(dpy, port, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryOutputPortAttribEXT", (GLADapiproc) glad_eglQueryOutputPortAttribEXT, 4, dpy, port, attribute, value);
+    return ret;
+}
+PFNEGLQUERYOUTPUTPORTATTRIBEXTPROC glad_debug_eglQueryOutputPortAttribEXT = glad_debug_impl_eglQueryOutputPortAttribEXT;
 PFNEGLQUERYOUTPUTPORTSTRINGEXTPROC glad_eglQueryOutputPortStringEXT = NULL;
+static const char * GLAD_API_PTR glad_debug_impl_eglQueryOutputPortStringEXT(EGLDisplay dpy, EGLOutputPortEXT port, EGLint name) {
+    const char * ret;
+    _pre_call_egl_callback("eglQueryOutputPortStringEXT", (GLADapiproc) glad_eglQueryOutputPortStringEXT, 3, dpy, port, name);
+    ret = glad_eglQueryOutputPortStringEXT(dpy, port, name);
+    _post_call_egl_callback((void*) &ret, "eglQueryOutputPortStringEXT", (GLADapiproc) glad_eglQueryOutputPortStringEXT, 3, dpy, port, name);
+    return ret;
+}
+PFNEGLQUERYOUTPUTPORTSTRINGEXTPROC glad_debug_eglQueryOutputPortStringEXT = glad_debug_impl_eglQueryOutputPortStringEXT;
 PFNEGLQUERYSTREAMATTRIBKHRPROC glad_eglQueryStreamAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryStreamAttribKHR(EGLDisplay dpy, EGLStreamKHR stream, EGLenum attribute, EGLAttrib * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryStreamAttribKHR", (GLADapiproc) glad_eglQueryStreamAttribKHR, 4, dpy, stream, attribute, value);
+    ret = glad_eglQueryStreamAttribKHR(dpy, stream, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryStreamAttribKHR", (GLADapiproc) glad_eglQueryStreamAttribKHR, 4, dpy, stream, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSTREAMATTRIBKHRPROC glad_debug_eglQueryStreamAttribKHR = glad_debug_impl_eglQueryStreamAttribKHR;
 PFNEGLQUERYSTREAMCONSUMEREVENTNVPROC glad_eglQueryStreamConsumerEventNV = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglQueryStreamConsumerEventNV(EGLDisplay dpy, EGLStreamKHR stream, EGLTime timeout, EGLenum * event, EGLAttrib * aux) {
+    EGLint ret;
+    _pre_call_egl_callback("eglQueryStreamConsumerEventNV", (GLADapiproc) glad_eglQueryStreamConsumerEventNV, 5, dpy, stream, timeout, event, aux);
+    ret = glad_eglQueryStreamConsumerEventNV(dpy, stream, timeout, event, aux);
+    _post_call_egl_callback((void*) &ret, "eglQueryStreamConsumerEventNV", (GLADapiproc) glad_eglQueryStreamConsumerEventNV, 5, dpy, stream, timeout, event, aux);
+    return ret;
+}
+PFNEGLQUERYSTREAMCONSUMEREVENTNVPROC glad_debug_eglQueryStreamConsumerEventNV = glad_debug_impl_eglQueryStreamConsumerEventNV;
 PFNEGLQUERYSTREAMKHRPROC glad_eglQueryStreamKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryStreamKHR(EGLDisplay dpy, EGLStreamKHR stream, EGLenum attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryStreamKHR", (GLADapiproc) glad_eglQueryStreamKHR, 4, dpy, stream, attribute, value);
+    ret = glad_eglQueryStreamKHR(dpy, stream, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryStreamKHR", (GLADapiproc) glad_eglQueryStreamKHR, 4, dpy, stream, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSTREAMKHRPROC glad_debug_eglQueryStreamKHR = glad_debug_impl_eglQueryStreamKHR;
 PFNEGLQUERYSTREAMMETADATANVPROC glad_eglQueryStreamMetadataNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryStreamMetadataNV(EGLDisplay dpy, EGLStreamKHR stream, EGLenum name, EGLint n, EGLint offset, EGLint size, void * data) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryStreamMetadataNV", (GLADapiproc) glad_eglQueryStreamMetadataNV, 7, dpy, stream, name, n, offset, size, data);
+    ret = glad_eglQueryStreamMetadataNV(dpy, stream, name, n, offset, size, data);
+    _post_call_egl_callback((void*) &ret, "eglQueryStreamMetadataNV", (GLADapiproc) glad_eglQueryStreamMetadataNV, 7, dpy, stream, name, n, offset, size, data);
+    return ret;
+}
+PFNEGLQUERYSTREAMMETADATANVPROC glad_debug_eglQueryStreamMetadataNV = glad_debug_impl_eglQueryStreamMetadataNV;
 PFNEGLQUERYSTREAMTIMEKHRPROC glad_eglQueryStreamTimeKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryStreamTimeKHR(EGLDisplay dpy, EGLStreamKHR stream, EGLenum attribute, EGLTimeKHR * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryStreamTimeKHR", (GLADapiproc) glad_eglQueryStreamTimeKHR, 4, dpy, stream, attribute, value);
+    ret = glad_eglQueryStreamTimeKHR(dpy, stream, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryStreamTimeKHR", (GLADapiproc) glad_eglQueryStreamTimeKHR, 4, dpy, stream, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSTREAMTIMEKHRPROC glad_debug_eglQueryStreamTimeKHR = glad_debug_impl_eglQueryStreamTimeKHR;
 PFNEGLQUERYSTREAMU64KHRPROC glad_eglQueryStreamu64KHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryStreamu64KHR(EGLDisplay dpy, EGLStreamKHR stream, EGLenum attribute, EGLuint64KHR * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryStreamu64KHR", (GLADapiproc) glad_eglQueryStreamu64KHR, 4, dpy, stream, attribute, value);
+    ret = glad_eglQueryStreamu64KHR(dpy, stream, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryStreamu64KHR", (GLADapiproc) glad_eglQueryStreamu64KHR, 4, dpy, stream, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSTREAMU64KHRPROC glad_debug_eglQueryStreamu64KHR = glad_debug_impl_eglQueryStreamu64KHR;
 PFNEGLQUERYSTRINGPROC glad_eglQueryString = NULL;
+static const char * GLAD_API_PTR glad_debug_impl_eglQueryString(EGLDisplay dpy, EGLint name) {
+    const char * ret;
+    _pre_call_egl_callback("eglQueryString", (GLADapiproc) glad_eglQueryString, 2, dpy, name);
+    ret = glad_eglQueryString(dpy, name);
+    _post_call_egl_callback((void*) &ret, "eglQueryString", (GLADapiproc) glad_eglQueryString, 2, dpy, name);
+    return ret;
+}
+PFNEGLQUERYSTRINGPROC glad_debug_eglQueryString = glad_debug_impl_eglQueryString;
 PFNEGLQUERYSUPPORTEDCOMPRESSIONRATESEXTPROC glad_eglQuerySupportedCompressionRatesEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQuerySupportedCompressionRatesEXT(EGLDisplay dpy, EGLConfig config, const EGLAttrib * attrib_list, EGLint * rates, EGLint rate_size, EGLint * num_rates) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQuerySupportedCompressionRatesEXT", (GLADapiproc) glad_eglQuerySupportedCompressionRatesEXT, 6, dpy, config, attrib_list, rates, rate_size, num_rates);
+    ret = glad_eglQuerySupportedCompressionRatesEXT(dpy, config, attrib_list, rates, rate_size, num_rates);
+    _post_call_egl_callback((void*) &ret, "eglQuerySupportedCompressionRatesEXT", (GLADapiproc) glad_eglQuerySupportedCompressionRatesEXT, 6, dpy, config, attrib_list, rates, rate_size, num_rates);
+    return ret;
+}
+PFNEGLQUERYSUPPORTEDCOMPRESSIONRATESEXTPROC glad_debug_eglQuerySupportedCompressionRatesEXT = glad_debug_impl_eglQuerySupportedCompressionRatesEXT;
 PFNEGLQUERYSURFACEPROC glad_eglQuerySurface = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQuerySurface", (GLADapiproc) glad_eglQuerySurface, 4, dpy, surface, attribute, value);
+    ret = glad_eglQuerySurface(dpy, surface, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQuerySurface", (GLADapiproc) glad_eglQuerySurface, 4, dpy, surface, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSURFACEPROC glad_debug_eglQuerySurface = glad_debug_impl_eglQuerySurface;
 PFNEGLQUERYSURFACE64KHRPROC glad_eglQuerySurface64KHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQuerySurface64KHR(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLAttribKHR * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQuerySurface64KHR", (GLADapiproc) glad_eglQuerySurface64KHR, 4, dpy, surface, attribute, value);
+    ret = glad_eglQuerySurface64KHR(dpy, surface, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQuerySurface64KHR", (GLADapiproc) glad_eglQuerySurface64KHR, 4, dpy, surface, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSURFACE64KHRPROC glad_debug_eglQuerySurface64KHR = glad_debug_impl_eglQuerySurface64KHR;
 PFNEGLQUERYSURFACEPOINTERANGLEPROC glad_eglQuerySurfacePointerANGLE = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQuerySurfacePointerANGLE(EGLDisplay dpy, EGLSurface surface, EGLint attribute, void ** value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQuerySurfacePointerANGLE", (GLADapiproc) glad_eglQuerySurfacePointerANGLE, 4, dpy, surface, attribute, value);
+    ret = glad_eglQuerySurfacePointerANGLE(dpy, surface, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQuerySurfacePointerANGLE", (GLADapiproc) glad_eglQuerySurfacePointerANGLE, 4, dpy, surface, attribute, value);
+    return ret;
+}
+PFNEGLQUERYSURFACEPOINTERANGLEPROC glad_debug_eglQuerySurfacePointerANGLE = glad_debug_impl_eglQuerySurfacePointerANGLE;
 PFNEGLQUERYWAYLANDBUFFERWLPROC glad_eglQueryWaylandBufferWL = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglQueryWaylandBufferWL(EGLDisplay dpy, struct wl_resource * buffer, EGLint attribute, EGLint * value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglQueryWaylandBufferWL", (GLADapiproc) glad_eglQueryWaylandBufferWL, 4, dpy, buffer, attribute, value);
+    ret = glad_eglQueryWaylandBufferWL(dpy, buffer, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglQueryWaylandBufferWL", (GLADapiproc) glad_eglQueryWaylandBufferWL, 4, dpy, buffer, attribute, value);
+    return ret;
+}
+PFNEGLQUERYWAYLANDBUFFERWLPROC glad_debug_eglQueryWaylandBufferWL = glad_debug_impl_eglQueryWaylandBufferWL;
 PFNEGLRELEASETEXIMAGEPROC glad_eglReleaseTexImage = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglReleaseTexImage", (GLADapiproc) glad_eglReleaseTexImage, 3, dpy, surface, buffer);
+    ret = glad_eglReleaseTexImage(dpy, surface, buffer);
+    _post_call_egl_callback((void*) &ret, "eglReleaseTexImage", (GLADapiproc) glad_eglReleaseTexImage, 3, dpy, surface, buffer);
+    return ret;
+}
+PFNEGLRELEASETEXIMAGEPROC glad_debug_eglReleaseTexImage = glad_debug_impl_eglReleaseTexImage;
 PFNEGLRELEASETHREADPROC glad_eglReleaseThread = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglReleaseThread(void) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglReleaseThread", (GLADapiproc) glad_eglReleaseThread, 0);
+    ret = glad_eglReleaseThread();
+    _post_call_egl_callback((void*) &ret, "eglReleaseThread", (GLADapiproc) glad_eglReleaseThread, 0);
+    return ret;
+}
+PFNEGLRELEASETHREADPROC glad_debug_eglReleaseThread = glad_debug_impl_eglReleaseThread;
 PFNEGLRESETSTREAMNVPROC glad_eglResetStreamNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglResetStreamNV(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglResetStreamNV", (GLADapiproc) glad_eglResetStreamNV, 2, dpy, stream);
+    ret = glad_eglResetStreamNV(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglResetStreamNV", (GLADapiproc) glad_eglResetStreamNV, 2, dpy, stream);
+    return ret;
+}
+PFNEGLRESETSTREAMNVPROC glad_debug_eglResetStreamNV = glad_debug_impl_eglResetStreamNV;
 PFNEGLSETBLOBCACHEFUNCSANDROIDPROC glad_eglSetBlobCacheFuncsANDROID = NULL;
+static void GLAD_API_PTR glad_debug_impl_eglSetBlobCacheFuncsANDROID(EGLDisplay dpy, EGLSetBlobFuncANDROID set, EGLGetBlobFuncANDROID get) {
+    _pre_call_egl_callback("eglSetBlobCacheFuncsANDROID", (GLADapiproc) glad_eglSetBlobCacheFuncsANDROID, 3, dpy, set, get);
+    glad_eglSetBlobCacheFuncsANDROID(dpy, set, get);
+    _post_call_egl_callback(NULL, "eglSetBlobCacheFuncsANDROID", (GLADapiproc) glad_eglSetBlobCacheFuncsANDROID, 3, dpy, set, get);
+    
+}
+PFNEGLSETBLOBCACHEFUNCSANDROIDPROC glad_debug_eglSetBlobCacheFuncsANDROID = glad_debug_impl_eglSetBlobCacheFuncsANDROID;
 PFNEGLSETDAMAGEREGIONKHRPROC glad_eglSetDamageRegionKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSetDamageRegionKHR(EGLDisplay dpy, EGLSurface surface, EGLint * rects, EGLint n_rects) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSetDamageRegionKHR", (GLADapiproc) glad_eglSetDamageRegionKHR, 4, dpy, surface, rects, n_rects);
+    ret = glad_eglSetDamageRegionKHR(dpy, surface, rects, n_rects);
+    _post_call_egl_callback((void*) &ret, "eglSetDamageRegionKHR", (GLADapiproc) glad_eglSetDamageRegionKHR, 4, dpy, surface, rects, n_rects);
+    return ret;
+}
+PFNEGLSETDAMAGEREGIONKHRPROC glad_debug_eglSetDamageRegionKHR = glad_debug_impl_eglSetDamageRegionKHR;
 PFNEGLSETSTREAMATTRIBKHRPROC glad_eglSetStreamAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSetStreamAttribKHR(EGLDisplay dpy, EGLStreamKHR stream, EGLenum attribute, EGLAttrib value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSetStreamAttribKHR", (GLADapiproc) glad_eglSetStreamAttribKHR, 4, dpy, stream, attribute, value);
+    ret = glad_eglSetStreamAttribKHR(dpy, stream, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglSetStreamAttribKHR", (GLADapiproc) glad_eglSetStreamAttribKHR, 4, dpy, stream, attribute, value);
+    return ret;
+}
+PFNEGLSETSTREAMATTRIBKHRPROC glad_debug_eglSetStreamAttribKHR = glad_debug_impl_eglSetStreamAttribKHR;
 PFNEGLSETSTREAMMETADATANVPROC glad_eglSetStreamMetadataNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSetStreamMetadataNV(EGLDisplay dpy, EGLStreamKHR stream, EGLint n, EGLint offset, EGLint size, const void * data) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSetStreamMetadataNV", (GLADapiproc) glad_eglSetStreamMetadataNV, 6, dpy, stream, n, offset, size, data);
+    ret = glad_eglSetStreamMetadataNV(dpy, stream, n, offset, size, data);
+    _post_call_egl_callback((void*) &ret, "eglSetStreamMetadataNV", (GLADapiproc) glad_eglSetStreamMetadataNV, 6, dpy, stream, n, offset, size, data);
+    return ret;
+}
+PFNEGLSETSTREAMMETADATANVPROC glad_debug_eglSetStreamMetadataNV = glad_debug_impl_eglSetStreamMetadataNV;
 PFNEGLSIGNALSYNCKHRPROC glad_eglSignalSyncKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSignalSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLenum mode) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSignalSyncKHR", (GLADapiproc) glad_eglSignalSyncKHR, 3, dpy, sync, mode);
+    ret = glad_eglSignalSyncKHR(dpy, sync, mode);
+    _post_call_egl_callback((void*) &ret, "eglSignalSyncKHR", (GLADapiproc) glad_eglSignalSyncKHR, 3, dpy, sync, mode);
+    return ret;
+}
+PFNEGLSIGNALSYNCKHRPROC glad_debug_eglSignalSyncKHR = glad_debug_impl_eglSignalSyncKHR;
 PFNEGLSIGNALSYNCNVPROC glad_eglSignalSyncNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSignalSyncNV(EGLSyncNV sync, EGLenum mode) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSignalSyncNV", (GLADapiproc) glad_eglSignalSyncNV, 2, sync, mode);
+    ret = glad_eglSignalSyncNV(sync, mode);
+    _post_call_egl_callback((void*) &ret, "eglSignalSyncNV", (GLADapiproc) glad_eglSignalSyncNV, 2, sync, mode);
+    return ret;
+}
+PFNEGLSIGNALSYNCNVPROC glad_debug_eglSignalSyncNV = glad_debug_impl_eglSignalSyncNV;
 PFNEGLSTREAMACQUIREIMAGENVPROC glad_eglStreamAcquireImageNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamAcquireImageNV(EGLDisplay dpy, EGLStreamKHR stream, EGLImage * pImage, EGLSync sync) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamAcquireImageNV", (GLADapiproc) glad_eglStreamAcquireImageNV, 4, dpy, stream, pImage, sync);
+    ret = glad_eglStreamAcquireImageNV(dpy, stream, pImage, sync);
+    _post_call_egl_callback((void*) &ret, "eglStreamAcquireImageNV", (GLADapiproc) glad_eglStreamAcquireImageNV, 4, dpy, stream, pImage, sync);
+    return ret;
+}
+PFNEGLSTREAMACQUIREIMAGENVPROC glad_debug_eglStreamAcquireImageNV = glad_debug_impl_eglStreamAcquireImageNV;
 PFNEGLSTREAMATTRIBKHRPROC glad_eglStreamAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamAttribKHR(EGLDisplay dpy, EGLStreamKHR stream, EGLenum attribute, EGLint value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamAttribKHR", (GLADapiproc) glad_eglStreamAttribKHR, 4, dpy, stream, attribute, value);
+    ret = glad_eglStreamAttribKHR(dpy, stream, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglStreamAttribKHR", (GLADapiproc) glad_eglStreamAttribKHR, 4, dpy, stream, attribute, value);
+    return ret;
+}
+PFNEGLSTREAMATTRIBKHRPROC glad_debug_eglStreamAttribKHR = glad_debug_impl_eglStreamAttribKHR;
 PFNEGLSTREAMCONSUMERACQUIREATTRIBKHRPROC glad_eglStreamConsumerAcquireAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerAcquireAttribKHR(EGLDisplay dpy, EGLStreamKHR stream, const EGLAttrib * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerAcquireAttribKHR", (GLADapiproc) glad_eglStreamConsumerAcquireAttribKHR, 3, dpy, stream, attrib_list);
+    ret = glad_eglStreamConsumerAcquireAttribKHR(dpy, stream, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerAcquireAttribKHR", (GLADapiproc) glad_eglStreamConsumerAcquireAttribKHR, 3, dpy, stream, attrib_list);
+    return ret;
+}
+PFNEGLSTREAMCONSUMERACQUIREATTRIBKHRPROC glad_debug_eglStreamConsumerAcquireAttribKHR = glad_debug_impl_eglStreamConsumerAcquireAttribKHR;
 PFNEGLSTREAMCONSUMERACQUIREKHRPROC glad_eglStreamConsumerAcquireKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerAcquireKHR(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerAcquireKHR", (GLADapiproc) glad_eglStreamConsumerAcquireKHR, 2, dpy, stream);
+    ret = glad_eglStreamConsumerAcquireKHR(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerAcquireKHR", (GLADapiproc) glad_eglStreamConsumerAcquireKHR, 2, dpy, stream);
+    return ret;
+}
+PFNEGLSTREAMCONSUMERACQUIREKHRPROC glad_debug_eglStreamConsumerAcquireKHR = glad_debug_impl_eglStreamConsumerAcquireKHR;
 PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALATTRIBSNVPROC glad_eglStreamConsumerGLTextureExternalAttribsNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerGLTextureExternalAttribsNV(EGLDisplay dpy, EGLStreamKHR stream, const EGLAttrib * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerGLTextureExternalAttribsNV", (GLADapiproc) glad_eglStreamConsumerGLTextureExternalAttribsNV, 3, dpy, stream, attrib_list);
+    ret = glad_eglStreamConsumerGLTextureExternalAttribsNV(dpy, stream, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerGLTextureExternalAttribsNV", (GLADapiproc) glad_eglStreamConsumerGLTextureExternalAttribsNV, 3, dpy, stream, attrib_list);
+    return ret;
+}
+PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALATTRIBSNVPROC glad_debug_eglStreamConsumerGLTextureExternalAttribsNV = glad_debug_impl_eglStreamConsumerGLTextureExternalAttribsNV;
 PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALKHRPROC glad_eglStreamConsumerGLTextureExternalKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerGLTextureExternalKHR(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerGLTextureExternalKHR", (GLADapiproc) glad_eglStreamConsumerGLTextureExternalKHR, 2, dpy, stream);
+    ret = glad_eglStreamConsumerGLTextureExternalKHR(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerGLTextureExternalKHR", (GLADapiproc) glad_eglStreamConsumerGLTextureExternalKHR, 2, dpy, stream);
+    return ret;
+}
+PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALKHRPROC glad_debug_eglStreamConsumerGLTextureExternalKHR = glad_debug_impl_eglStreamConsumerGLTextureExternalKHR;
 PFNEGLSTREAMCONSUMEROUTPUTEXTPROC glad_eglStreamConsumerOutputEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerOutputEXT(EGLDisplay dpy, EGLStreamKHR stream, EGLOutputLayerEXT layer) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerOutputEXT", (GLADapiproc) glad_eglStreamConsumerOutputEXT, 3, dpy, stream, layer);
+    ret = glad_eglStreamConsumerOutputEXT(dpy, stream, layer);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerOutputEXT", (GLADapiproc) glad_eglStreamConsumerOutputEXT, 3, dpy, stream, layer);
+    return ret;
+}
+PFNEGLSTREAMCONSUMEROUTPUTEXTPROC glad_debug_eglStreamConsumerOutputEXT = glad_debug_impl_eglStreamConsumerOutputEXT;
 PFNEGLSTREAMCONSUMERRELEASEATTRIBKHRPROC glad_eglStreamConsumerReleaseAttribKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerReleaseAttribKHR(EGLDisplay dpy, EGLStreamKHR stream, const EGLAttrib * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerReleaseAttribKHR", (GLADapiproc) glad_eglStreamConsumerReleaseAttribKHR, 3, dpy, stream, attrib_list);
+    ret = glad_eglStreamConsumerReleaseAttribKHR(dpy, stream, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerReleaseAttribKHR", (GLADapiproc) glad_eglStreamConsumerReleaseAttribKHR, 3, dpy, stream, attrib_list);
+    return ret;
+}
+PFNEGLSTREAMCONSUMERRELEASEATTRIBKHRPROC glad_debug_eglStreamConsumerReleaseAttribKHR = glad_debug_impl_eglStreamConsumerReleaseAttribKHR;
 PFNEGLSTREAMCONSUMERRELEASEKHRPROC glad_eglStreamConsumerReleaseKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamConsumerReleaseKHR(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamConsumerReleaseKHR", (GLADapiproc) glad_eglStreamConsumerReleaseKHR, 2, dpy, stream);
+    ret = glad_eglStreamConsumerReleaseKHR(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglStreamConsumerReleaseKHR", (GLADapiproc) glad_eglStreamConsumerReleaseKHR, 2, dpy, stream);
+    return ret;
+}
+PFNEGLSTREAMCONSUMERRELEASEKHRPROC glad_debug_eglStreamConsumerReleaseKHR = glad_debug_impl_eglStreamConsumerReleaseKHR;
 PFNEGLSTREAMFLUSHNVPROC glad_eglStreamFlushNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamFlushNV(EGLDisplay dpy, EGLStreamKHR stream) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamFlushNV", (GLADapiproc) glad_eglStreamFlushNV, 2, dpy, stream);
+    ret = glad_eglStreamFlushNV(dpy, stream);
+    _post_call_egl_callback((void*) &ret, "eglStreamFlushNV", (GLADapiproc) glad_eglStreamFlushNV, 2, dpy, stream);
+    return ret;
+}
+PFNEGLSTREAMFLUSHNVPROC glad_debug_eglStreamFlushNV = glad_debug_impl_eglStreamFlushNV;
 PFNEGLSTREAMIMAGECONSUMERCONNECTNVPROC glad_eglStreamImageConsumerConnectNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamImageConsumerConnectNV(EGLDisplay dpy, EGLStreamKHR stream, EGLint num_modifiers, const EGLuint64KHR * modifiers, const EGLAttrib * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamImageConsumerConnectNV", (GLADapiproc) glad_eglStreamImageConsumerConnectNV, 5, dpy, stream, num_modifiers, modifiers, attrib_list);
+    ret = glad_eglStreamImageConsumerConnectNV(dpy, stream, num_modifiers, modifiers, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglStreamImageConsumerConnectNV", (GLADapiproc) glad_eglStreamImageConsumerConnectNV, 5, dpy, stream, num_modifiers, modifiers, attrib_list);
+    return ret;
+}
+PFNEGLSTREAMIMAGECONSUMERCONNECTNVPROC glad_debug_eglStreamImageConsumerConnectNV = glad_debug_impl_eglStreamImageConsumerConnectNV;
 PFNEGLSTREAMRELEASEIMAGENVPROC glad_eglStreamReleaseImageNV = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglStreamReleaseImageNV(EGLDisplay dpy, EGLStreamKHR stream, EGLImage image, EGLSync sync) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglStreamReleaseImageNV", (GLADapiproc) glad_eglStreamReleaseImageNV, 4, dpy, stream, image, sync);
+    ret = glad_eglStreamReleaseImageNV(dpy, stream, image, sync);
+    _post_call_egl_callback((void*) &ret, "eglStreamReleaseImageNV", (GLADapiproc) glad_eglStreamReleaseImageNV, 4, dpy, stream, image, sync);
+    return ret;
+}
+PFNEGLSTREAMRELEASEIMAGENVPROC glad_debug_eglStreamReleaseImageNV = glad_debug_impl_eglStreamReleaseImageNV;
 PFNEGLSURFACEATTRIBPROC glad_eglSurfaceAttrib = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSurfaceAttrib", (GLADapiproc) glad_eglSurfaceAttrib, 4, dpy, surface, attribute, value);
+    ret = glad_eglSurfaceAttrib(dpy, surface, attribute, value);
+    _post_call_egl_callback((void*) &ret, "eglSurfaceAttrib", (GLADapiproc) glad_eglSurfaceAttrib, 4, dpy, surface, attribute, value);
+    return ret;
+}
+PFNEGLSURFACEATTRIBPROC glad_debug_eglSurfaceAttrib = glad_debug_impl_eglSurfaceAttrib;
 PFNEGLSWAPBUFFERSPROC glad_eglSwapBuffers = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSwapBuffers(EGLDisplay dpy, EGLSurface surface) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSwapBuffers", (GLADapiproc) glad_eglSwapBuffers, 2, dpy, surface);
+    ret = glad_eglSwapBuffers(dpy, surface);
+    _post_call_egl_callback((void*) &ret, "eglSwapBuffers", (GLADapiproc) glad_eglSwapBuffers, 2, dpy, surface);
+    return ret;
+}
+PFNEGLSWAPBUFFERSPROC glad_debug_eglSwapBuffers = glad_debug_impl_eglSwapBuffers;
 PFNEGLSWAPBUFFERSREGION2NOKPROC glad_eglSwapBuffersRegion2NOK = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSwapBuffersRegion2NOK(EGLDisplay dpy, EGLSurface surface, EGLint numRects, const EGLint * rects) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSwapBuffersRegion2NOK", (GLADapiproc) glad_eglSwapBuffersRegion2NOK, 4, dpy, surface, numRects, rects);
+    ret = glad_eglSwapBuffersRegion2NOK(dpy, surface, numRects, rects);
+    _post_call_egl_callback((void*) &ret, "eglSwapBuffersRegion2NOK", (GLADapiproc) glad_eglSwapBuffersRegion2NOK, 4, dpy, surface, numRects, rects);
+    return ret;
+}
+PFNEGLSWAPBUFFERSREGION2NOKPROC glad_debug_eglSwapBuffersRegion2NOK = glad_debug_impl_eglSwapBuffersRegion2NOK;
 PFNEGLSWAPBUFFERSREGIONNOKPROC glad_eglSwapBuffersRegionNOK = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSwapBuffersRegionNOK(EGLDisplay dpy, EGLSurface surface, EGLint numRects, const EGLint * rects) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSwapBuffersRegionNOK", (GLADapiproc) glad_eglSwapBuffersRegionNOK, 4, dpy, surface, numRects, rects);
+    ret = glad_eglSwapBuffersRegionNOK(dpy, surface, numRects, rects);
+    _post_call_egl_callback((void*) &ret, "eglSwapBuffersRegionNOK", (GLADapiproc) glad_eglSwapBuffersRegionNOK, 4, dpy, surface, numRects, rects);
+    return ret;
+}
+PFNEGLSWAPBUFFERSREGIONNOKPROC glad_debug_eglSwapBuffersRegionNOK = glad_debug_impl_eglSwapBuffersRegionNOK;
 PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC glad_eglSwapBuffersWithDamageEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSwapBuffersWithDamageEXT(EGLDisplay dpy, EGLSurface surface, const EGLint * rects, EGLint n_rects) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSwapBuffersWithDamageEXT", (GLADapiproc) glad_eglSwapBuffersWithDamageEXT, 4, dpy, surface, rects, n_rects);
+    ret = glad_eglSwapBuffersWithDamageEXT(dpy, surface, rects, n_rects);
+    _post_call_egl_callback((void*) &ret, "eglSwapBuffersWithDamageEXT", (GLADapiproc) glad_eglSwapBuffersWithDamageEXT, 4, dpy, surface, rects, n_rects);
+    return ret;
+}
+PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC glad_debug_eglSwapBuffersWithDamageEXT = glad_debug_impl_eglSwapBuffersWithDamageEXT;
 PFNEGLSWAPBUFFERSWITHDAMAGEKHRPROC glad_eglSwapBuffersWithDamageKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSwapBuffersWithDamageKHR(EGLDisplay dpy, EGLSurface surface, const EGLint * rects, EGLint n_rects) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSwapBuffersWithDamageKHR", (GLADapiproc) glad_eglSwapBuffersWithDamageKHR, 4, dpy, surface, rects, n_rects);
+    ret = glad_eglSwapBuffersWithDamageKHR(dpy, surface, rects, n_rects);
+    _post_call_egl_callback((void*) &ret, "eglSwapBuffersWithDamageKHR", (GLADapiproc) glad_eglSwapBuffersWithDamageKHR, 4, dpy, surface, rects, n_rects);
+    return ret;
+}
+PFNEGLSWAPBUFFERSWITHDAMAGEKHRPROC glad_debug_eglSwapBuffersWithDamageKHR = glad_debug_impl_eglSwapBuffersWithDamageKHR;
 PFNEGLSWAPINTERVALPROC glad_eglSwapInterval = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglSwapInterval(EGLDisplay dpy, EGLint interval) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglSwapInterval", (GLADapiproc) glad_eglSwapInterval, 2, dpy, interval);
+    ret = glad_eglSwapInterval(dpy, interval);
+    _post_call_egl_callback((void*) &ret, "eglSwapInterval", (GLADapiproc) glad_eglSwapInterval, 2, dpy, interval);
+    return ret;
+}
+PFNEGLSWAPINTERVALPROC glad_debug_eglSwapInterval = glad_debug_impl_eglSwapInterval;
 PFNEGLTERMINATEPROC glad_eglTerminate = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglTerminate(EGLDisplay dpy) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglTerminate", (GLADapiproc) glad_eglTerminate, 1, dpy);
+    ret = glad_eglTerminate(dpy);
+    _post_call_egl_callback((void*) &ret, "eglTerminate", (GLADapiproc) glad_eglTerminate, 1, dpy);
+    return ret;
+}
+PFNEGLTERMINATEPROC glad_debug_eglTerminate = glad_debug_impl_eglTerminate;
 PFNEGLUNBINDWAYLANDDISPLAYWLPROC glad_eglUnbindWaylandDisplayWL = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglUnbindWaylandDisplayWL(EGLDisplay dpy, struct wl_display * display) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglUnbindWaylandDisplayWL", (GLADapiproc) glad_eglUnbindWaylandDisplayWL, 2, dpy, display);
+    ret = glad_eglUnbindWaylandDisplayWL(dpy, display);
+    _post_call_egl_callback((void*) &ret, "eglUnbindWaylandDisplayWL", (GLADapiproc) glad_eglUnbindWaylandDisplayWL, 2, dpy, display);
+    return ret;
+}
+PFNEGLUNBINDWAYLANDDISPLAYWLPROC glad_debug_eglUnbindWaylandDisplayWL = glad_debug_impl_eglUnbindWaylandDisplayWL;
 PFNEGLUNLOCKSURFACEKHRPROC glad_eglUnlockSurfaceKHR = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglUnlockSurfaceKHR(EGLDisplay dpy, EGLSurface surface) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglUnlockSurfaceKHR", (GLADapiproc) glad_eglUnlockSurfaceKHR, 2, dpy, surface);
+    ret = glad_eglUnlockSurfaceKHR(dpy, surface);
+    _post_call_egl_callback((void*) &ret, "eglUnlockSurfaceKHR", (GLADapiproc) glad_eglUnlockSurfaceKHR, 2, dpy, surface);
+    return ret;
+}
+PFNEGLUNLOCKSURFACEKHRPROC glad_debug_eglUnlockSurfaceKHR = glad_debug_impl_eglUnlockSurfaceKHR;
 PFNEGLUNSIGNALSYNCEXTPROC glad_eglUnsignalSyncEXT = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglUnsignalSyncEXT(EGLDisplay dpy, EGLSync sync, const EGLAttrib * attrib_list) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglUnsignalSyncEXT", (GLADapiproc) glad_eglUnsignalSyncEXT, 3, dpy, sync, attrib_list);
+    ret = glad_eglUnsignalSyncEXT(dpy, sync, attrib_list);
+    _post_call_egl_callback((void*) &ret, "eglUnsignalSyncEXT", (GLADapiproc) glad_eglUnsignalSyncEXT, 3, dpy, sync, attrib_list);
+    return ret;
+}
+PFNEGLUNSIGNALSYNCEXTPROC glad_debug_eglUnsignalSyncEXT = glad_debug_impl_eglUnsignalSyncEXT;
 PFNEGLWAITCLIENTPROC glad_eglWaitClient = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglWaitClient(void) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglWaitClient", (GLADapiproc) glad_eglWaitClient, 0);
+    ret = glad_eglWaitClient();
+    _post_call_egl_callback((void*) &ret, "eglWaitClient", (GLADapiproc) glad_eglWaitClient, 0);
+    return ret;
+}
+PFNEGLWAITCLIENTPROC glad_debug_eglWaitClient = glad_debug_impl_eglWaitClient;
 PFNEGLWAITGLPROC glad_eglWaitGL = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglWaitGL(void) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglWaitGL", (GLADapiproc) glad_eglWaitGL, 0);
+    ret = glad_eglWaitGL();
+    _post_call_egl_callback((void*) &ret, "eglWaitGL", (GLADapiproc) glad_eglWaitGL, 0);
+    return ret;
+}
+PFNEGLWAITGLPROC glad_debug_eglWaitGL = glad_debug_impl_eglWaitGL;
 PFNEGLWAITNATIVEPROC glad_eglWaitNative = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglWaitNative(EGLint engine) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglWaitNative", (GLADapiproc) glad_eglWaitNative, 1, engine);
+    ret = glad_eglWaitNative(engine);
+    _post_call_egl_callback((void*) &ret, "eglWaitNative", (GLADapiproc) glad_eglWaitNative, 1, engine);
+    return ret;
+}
+PFNEGLWAITNATIVEPROC glad_debug_eglWaitNative = glad_debug_impl_eglWaitNative;
 PFNEGLWAITSYNCPROC glad_eglWaitSync = NULL;
+static EGLBoolean GLAD_API_PTR glad_debug_impl_eglWaitSync(EGLDisplay dpy, EGLSync sync, EGLint flags) {
+    EGLBoolean ret;
+    _pre_call_egl_callback("eglWaitSync", (GLADapiproc) glad_eglWaitSync, 3, dpy, sync, flags);
+    ret = glad_eglWaitSync(dpy, sync, flags);
+    _post_call_egl_callback((void*) &ret, "eglWaitSync", (GLADapiproc) glad_eglWaitSync, 3, dpy, sync, flags);
+    return ret;
+}
+PFNEGLWAITSYNCPROC glad_debug_eglWaitSync = glad_debug_impl_eglWaitSync;
 PFNEGLWAITSYNCKHRPROC glad_eglWaitSyncKHR = NULL;
+static EGLint GLAD_API_PTR glad_debug_impl_eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags) {
+    EGLint ret;
+    _pre_call_egl_callback("eglWaitSyncKHR", (GLADapiproc) glad_eglWaitSyncKHR, 3, dpy, sync, flags);
+    ret = glad_eglWaitSyncKHR(dpy, sync, flags);
+    _post_call_egl_callback((void*) &ret, "eglWaitSyncKHR", (GLADapiproc) glad_eglWaitSyncKHR, 3, dpy, sync, flags);
+    return ret;
+}
+PFNEGLWAITSYNCKHRPROC glad_debug_eglWaitSyncKHR = glad_debug_impl_eglWaitSyncKHR;
 
 
 static void glad_egl_load_EGL_VERSION_1_0( GLADuserptrloadfunc load, void* userptr) {
@@ -1040,6 +2315,325 @@ int gladLoadEGL(EGLDisplay display, GLADloadfunc load) {
 }
 
  
+void gladInstallEGLDebug() {
+    glad_debug_eglBindAPI = glad_debug_impl_eglBindAPI;
+    glad_debug_eglBindTexImage = glad_debug_impl_eglBindTexImage;
+    glad_debug_eglBindWaylandDisplayWL = glad_debug_impl_eglBindWaylandDisplayWL;
+    glad_debug_eglChooseConfig = glad_debug_impl_eglChooseConfig;
+    glad_debug_eglClientSignalSyncEXT = glad_debug_impl_eglClientSignalSyncEXT;
+    glad_debug_eglClientWaitSync = glad_debug_impl_eglClientWaitSync;
+    glad_debug_eglClientWaitSyncKHR = glad_debug_impl_eglClientWaitSyncKHR;
+    glad_debug_eglClientWaitSyncNV = glad_debug_impl_eglClientWaitSyncNV;
+    glad_debug_eglCompositorBindTexWindowEXT = glad_debug_impl_eglCompositorBindTexWindowEXT;
+    glad_debug_eglCompositorSetContextAttributesEXT = glad_debug_impl_eglCompositorSetContextAttributesEXT;
+    glad_debug_eglCompositorSetContextListEXT = glad_debug_impl_eglCompositorSetContextListEXT;
+    glad_debug_eglCompositorSetSizeEXT = glad_debug_impl_eglCompositorSetSizeEXT;
+    glad_debug_eglCompositorSetWindowAttributesEXT = glad_debug_impl_eglCompositorSetWindowAttributesEXT;
+    glad_debug_eglCompositorSetWindowListEXT = glad_debug_impl_eglCompositorSetWindowListEXT;
+    glad_debug_eglCompositorSwapPolicyEXT = glad_debug_impl_eglCompositorSwapPolicyEXT;
+    glad_debug_eglCopyBuffers = glad_debug_impl_eglCopyBuffers;
+    glad_debug_eglCreateContext = glad_debug_impl_eglCreateContext;
+    glad_debug_eglCreateDRMImageMESA = glad_debug_impl_eglCreateDRMImageMESA;
+    glad_debug_eglCreateFenceSyncNV = glad_debug_impl_eglCreateFenceSyncNV;
+    glad_debug_eglCreateImage = glad_debug_impl_eglCreateImage;
+    glad_debug_eglCreateImageKHR = glad_debug_impl_eglCreateImageKHR;
+    glad_debug_eglCreateNativeClientBufferANDROID = glad_debug_impl_eglCreateNativeClientBufferANDROID;
+    glad_debug_eglCreatePbufferFromClientBuffer = glad_debug_impl_eglCreatePbufferFromClientBuffer;
+    glad_debug_eglCreatePbufferSurface = glad_debug_impl_eglCreatePbufferSurface;
+    glad_debug_eglCreatePixmapSurface = glad_debug_impl_eglCreatePixmapSurface;
+    glad_debug_eglCreatePixmapSurfaceHI = glad_debug_impl_eglCreatePixmapSurfaceHI;
+    glad_debug_eglCreatePlatformPixmapSurface = glad_debug_impl_eglCreatePlatformPixmapSurface;
+    glad_debug_eglCreatePlatformPixmapSurfaceEXT = glad_debug_impl_eglCreatePlatformPixmapSurfaceEXT;
+    glad_debug_eglCreatePlatformWindowSurface = glad_debug_impl_eglCreatePlatformWindowSurface;
+    glad_debug_eglCreatePlatformWindowSurfaceEXT = glad_debug_impl_eglCreatePlatformWindowSurfaceEXT;
+    glad_debug_eglCreateStreamAttribKHR = glad_debug_impl_eglCreateStreamAttribKHR;
+    glad_debug_eglCreateStreamFromFileDescriptorKHR = glad_debug_impl_eglCreateStreamFromFileDescriptorKHR;
+    glad_debug_eglCreateStreamKHR = glad_debug_impl_eglCreateStreamKHR;
+    glad_debug_eglCreateStreamProducerSurfaceKHR = glad_debug_impl_eglCreateStreamProducerSurfaceKHR;
+    glad_debug_eglCreateStreamSyncNV = glad_debug_impl_eglCreateStreamSyncNV;
+    glad_debug_eglCreateSync = glad_debug_impl_eglCreateSync;
+    glad_debug_eglCreateSync64KHR = glad_debug_impl_eglCreateSync64KHR;
+    glad_debug_eglCreateSyncKHR = glad_debug_impl_eglCreateSyncKHR;
+    glad_debug_eglCreateWaylandBufferFromImageWL = glad_debug_impl_eglCreateWaylandBufferFromImageWL;
+    glad_debug_eglCreateWindowSurface = glad_debug_impl_eglCreateWindowSurface;
+    glad_debug_eglDebugMessageControlKHR = glad_debug_impl_eglDebugMessageControlKHR;
+    glad_debug_eglDestroyContext = glad_debug_impl_eglDestroyContext;
+    glad_debug_eglDestroyImage = glad_debug_impl_eglDestroyImage;
+    glad_debug_eglDestroyImageKHR = glad_debug_impl_eglDestroyImageKHR;
+    glad_debug_eglDestroyStreamKHR = glad_debug_impl_eglDestroyStreamKHR;
+    glad_debug_eglDestroySurface = glad_debug_impl_eglDestroySurface;
+    glad_debug_eglDestroySync = glad_debug_impl_eglDestroySync;
+    glad_debug_eglDestroySyncKHR = glad_debug_impl_eglDestroySyncKHR;
+    glad_debug_eglDestroySyncNV = glad_debug_impl_eglDestroySyncNV;
+    glad_debug_eglDupNativeFenceFDANDROID = glad_debug_impl_eglDupNativeFenceFDANDROID;
+    glad_debug_eglExportDMABUFImageMESA = glad_debug_impl_eglExportDMABUFImageMESA;
+    glad_debug_eglExportDMABUFImageQueryMESA = glad_debug_impl_eglExportDMABUFImageQueryMESA;
+    glad_debug_eglExportDRMImageMESA = glad_debug_impl_eglExportDRMImageMESA;
+    glad_debug_eglFenceNV = glad_debug_impl_eglFenceNV;
+    glad_debug_eglGetCompositorTimingANDROID = glad_debug_impl_eglGetCompositorTimingANDROID;
+    glad_debug_eglGetCompositorTimingSupportedANDROID = glad_debug_impl_eglGetCompositorTimingSupportedANDROID;
+    glad_debug_eglGetConfigAttrib = glad_debug_impl_eglGetConfigAttrib;
+    glad_debug_eglGetConfigs = glad_debug_impl_eglGetConfigs;
+    glad_debug_eglGetCurrentContext = glad_debug_impl_eglGetCurrentContext;
+    glad_debug_eglGetCurrentDisplay = glad_debug_impl_eglGetCurrentDisplay;
+    glad_debug_eglGetCurrentSurface = glad_debug_impl_eglGetCurrentSurface;
+    glad_debug_eglGetDisplay = glad_debug_impl_eglGetDisplay;
+    glad_debug_eglGetDisplayDriverConfig = glad_debug_impl_eglGetDisplayDriverConfig;
+    glad_debug_eglGetDisplayDriverName = glad_debug_impl_eglGetDisplayDriverName;
+    glad_debug_eglGetError = glad_debug_impl_eglGetError;
+    glad_debug_eglGetFrameTimestampSupportedANDROID = glad_debug_impl_eglGetFrameTimestampSupportedANDROID;
+    glad_debug_eglGetFrameTimestampsANDROID = glad_debug_impl_eglGetFrameTimestampsANDROID;
+    glad_debug_eglGetMscRateANGLE = glad_debug_impl_eglGetMscRateANGLE;
+    glad_debug_eglGetNativeClientBufferANDROID = glad_debug_impl_eglGetNativeClientBufferANDROID;
+    glad_debug_eglGetNextFrameIdANDROID = glad_debug_impl_eglGetNextFrameIdANDROID;
+    glad_debug_eglGetOutputLayersEXT = glad_debug_impl_eglGetOutputLayersEXT;
+    glad_debug_eglGetOutputPortsEXT = glad_debug_impl_eglGetOutputPortsEXT;
+    glad_debug_eglGetPlatformDisplay = glad_debug_impl_eglGetPlatformDisplay;
+    glad_debug_eglGetPlatformDisplayEXT = glad_debug_impl_eglGetPlatformDisplayEXT;
+    glad_debug_eglGetProcAddress = glad_debug_impl_eglGetProcAddress;
+    glad_debug_eglGetStreamFileDescriptorKHR = glad_debug_impl_eglGetStreamFileDescriptorKHR;
+    glad_debug_eglGetSyncAttrib = glad_debug_impl_eglGetSyncAttrib;
+    glad_debug_eglGetSyncAttribKHR = glad_debug_impl_eglGetSyncAttribKHR;
+    glad_debug_eglGetSyncAttribNV = glad_debug_impl_eglGetSyncAttribNV;
+    glad_debug_eglGetSystemTimeFrequencyNV = glad_debug_impl_eglGetSystemTimeFrequencyNV;
+    glad_debug_eglGetSystemTimeNV = glad_debug_impl_eglGetSystemTimeNV;
+    glad_debug_eglInitialize = glad_debug_impl_eglInitialize;
+    glad_debug_eglLabelObjectKHR = glad_debug_impl_eglLabelObjectKHR;
+    glad_debug_eglLockSurfaceKHR = glad_debug_impl_eglLockSurfaceKHR;
+    glad_debug_eglMakeCurrent = glad_debug_impl_eglMakeCurrent;
+    glad_debug_eglOutputLayerAttribEXT = glad_debug_impl_eglOutputLayerAttribEXT;
+    glad_debug_eglOutputPortAttribEXT = glad_debug_impl_eglOutputPortAttribEXT;
+    glad_debug_eglPostSubBufferNV = glad_debug_impl_eglPostSubBufferNV;
+    glad_debug_eglPresentationTimeANDROID = glad_debug_impl_eglPresentationTimeANDROID;
+    glad_debug_eglQueryAPI = glad_debug_impl_eglQueryAPI;
+    glad_debug_eglQueryContext = glad_debug_impl_eglQueryContext;
+    glad_debug_eglQueryDebugKHR = glad_debug_impl_eglQueryDebugKHR;
+    glad_debug_eglQueryDeviceAttribEXT = glad_debug_impl_eglQueryDeviceAttribEXT;
+    glad_debug_eglQueryDeviceBinaryEXT = glad_debug_impl_eglQueryDeviceBinaryEXT;
+    glad_debug_eglQueryDeviceStringEXT = glad_debug_impl_eglQueryDeviceStringEXT;
+    glad_debug_eglQueryDevicesEXT = glad_debug_impl_eglQueryDevicesEXT;
+    glad_debug_eglQueryDisplayAttribEXT = glad_debug_impl_eglQueryDisplayAttribEXT;
+    glad_debug_eglQueryDisplayAttribKHR = glad_debug_impl_eglQueryDisplayAttribKHR;
+    glad_debug_eglQueryDisplayAttribNV = glad_debug_impl_eglQueryDisplayAttribNV;
+    glad_debug_eglQueryDmaBufFormatsEXT = glad_debug_impl_eglQueryDmaBufFormatsEXT;
+    glad_debug_eglQueryDmaBufModifiersEXT = glad_debug_impl_eglQueryDmaBufModifiersEXT;
+    glad_debug_eglQueryNativeDisplayNV = glad_debug_impl_eglQueryNativeDisplayNV;
+    glad_debug_eglQueryNativePixmapNV = glad_debug_impl_eglQueryNativePixmapNV;
+    glad_debug_eglQueryNativeWindowNV = glad_debug_impl_eglQueryNativeWindowNV;
+    glad_debug_eglQueryOutputLayerAttribEXT = glad_debug_impl_eglQueryOutputLayerAttribEXT;
+    glad_debug_eglQueryOutputLayerStringEXT = glad_debug_impl_eglQueryOutputLayerStringEXT;
+    glad_debug_eglQueryOutputPortAttribEXT = glad_debug_impl_eglQueryOutputPortAttribEXT;
+    glad_debug_eglQueryOutputPortStringEXT = glad_debug_impl_eglQueryOutputPortStringEXT;
+    glad_debug_eglQueryStreamAttribKHR = glad_debug_impl_eglQueryStreamAttribKHR;
+    glad_debug_eglQueryStreamConsumerEventNV = glad_debug_impl_eglQueryStreamConsumerEventNV;
+    glad_debug_eglQueryStreamKHR = glad_debug_impl_eglQueryStreamKHR;
+    glad_debug_eglQueryStreamMetadataNV = glad_debug_impl_eglQueryStreamMetadataNV;
+    glad_debug_eglQueryStreamTimeKHR = glad_debug_impl_eglQueryStreamTimeKHR;
+    glad_debug_eglQueryStreamu64KHR = glad_debug_impl_eglQueryStreamu64KHR;
+    glad_debug_eglQueryString = glad_debug_impl_eglQueryString;
+    glad_debug_eglQuerySupportedCompressionRatesEXT = glad_debug_impl_eglQuerySupportedCompressionRatesEXT;
+    glad_debug_eglQuerySurface = glad_debug_impl_eglQuerySurface;
+    glad_debug_eglQuerySurface64KHR = glad_debug_impl_eglQuerySurface64KHR;
+    glad_debug_eglQuerySurfacePointerANGLE = glad_debug_impl_eglQuerySurfacePointerANGLE;
+    glad_debug_eglQueryWaylandBufferWL = glad_debug_impl_eglQueryWaylandBufferWL;
+    glad_debug_eglReleaseTexImage = glad_debug_impl_eglReleaseTexImage;
+    glad_debug_eglReleaseThread = glad_debug_impl_eglReleaseThread;
+    glad_debug_eglResetStreamNV = glad_debug_impl_eglResetStreamNV;
+    glad_debug_eglSetBlobCacheFuncsANDROID = glad_debug_impl_eglSetBlobCacheFuncsANDROID;
+    glad_debug_eglSetDamageRegionKHR = glad_debug_impl_eglSetDamageRegionKHR;
+    glad_debug_eglSetStreamAttribKHR = glad_debug_impl_eglSetStreamAttribKHR;
+    glad_debug_eglSetStreamMetadataNV = glad_debug_impl_eglSetStreamMetadataNV;
+    glad_debug_eglSignalSyncKHR = glad_debug_impl_eglSignalSyncKHR;
+    glad_debug_eglSignalSyncNV = glad_debug_impl_eglSignalSyncNV;
+    glad_debug_eglStreamAcquireImageNV = glad_debug_impl_eglStreamAcquireImageNV;
+    glad_debug_eglStreamAttribKHR = glad_debug_impl_eglStreamAttribKHR;
+    glad_debug_eglStreamConsumerAcquireAttribKHR = glad_debug_impl_eglStreamConsumerAcquireAttribKHR;
+    glad_debug_eglStreamConsumerAcquireKHR = glad_debug_impl_eglStreamConsumerAcquireKHR;
+    glad_debug_eglStreamConsumerGLTextureExternalAttribsNV = glad_debug_impl_eglStreamConsumerGLTextureExternalAttribsNV;
+    glad_debug_eglStreamConsumerGLTextureExternalKHR = glad_debug_impl_eglStreamConsumerGLTextureExternalKHR;
+    glad_debug_eglStreamConsumerOutputEXT = glad_debug_impl_eglStreamConsumerOutputEXT;
+    glad_debug_eglStreamConsumerReleaseAttribKHR = glad_debug_impl_eglStreamConsumerReleaseAttribKHR;
+    glad_debug_eglStreamConsumerReleaseKHR = glad_debug_impl_eglStreamConsumerReleaseKHR;
+    glad_debug_eglStreamFlushNV = glad_debug_impl_eglStreamFlushNV;
+    glad_debug_eglStreamImageConsumerConnectNV = glad_debug_impl_eglStreamImageConsumerConnectNV;
+    glad_debug_eglStreamReleaseImageNV = glad_debug_impl_eglStreamReleaseImageNV;
+    glad_debug_eglSurfaceAttrib = glad_debug_impl_eglSurfaceAttrib;
+    glad_debug_eglSwapBuffers = glad_debug_impl_eglSwapBuffers;
+    glad_debug_eglSwapBuffersRegion2NOK = glad_debug_impl_eglSwapBuffersRegion2NOK;
+    glad_debug_eglSwapBuffersRegionNOK = glad_debug_impl_eglSwapBuffersRegionNOK;
+    glad_debug_eglSwapBuffersWithDamageEXT = glad_debug_impl_eglSwapBuffersWithDamageEXT;
+    glad_debug_eglSwapBuffersWithDamageKHR = glad_debug_impl_eglSwapBuffersWithDamageKHR;
+    glad_debug_eglSwapInterval = glad_debug_impl_eglSwapInterval;
+    glad_debug_eglTerminate = glad_debug_impl_eglTerminate;
+    glad_debug_eglUnbindWaylandDisplayWL = glad_debug_impl_eglUnbindWaylandDisplayWL;
+    glad_debug_eglUnlockSurfaceKHR = glad_debug_impl_eglUnlockSurfaceKHR;
+    glad_debug_eglUnsignalSyncEXT = glad_debug_impl_eglUnsignalSyncEXT;
+    glad_debug_eglWaitClient = glad_debug_impl_eglWaitClient;
+    glad_debug_eglWaitGL = glad_debug_impl_eglWaitGL;
+    glad_debug_eglWaitNative = glad_debug_impl_eglWaitNative;
+    glad_debug_eglWaitSync = glad_debug_impl_eglWaitSync;
+    glad_debug_eglWaitSyncKHR = glad_debug_impl_eglWaitSyncKHR;
+}
+
+void gladUninstallEGLDebug() {
+    glad_debug_eglBindAPI = glad_eglBindAPI;
+    glad_debug_eglBindTexImage = glad_eglBindTexImage;
+    glad_debug_eglBindWaylandDisplayWL = glad_eglBindWaylandDisplayWL;
+    glad_debug_eglChooseConfig = glad_eglChooseConfig;
+    glad_debug_eglClientSignalSyncEXT = glad_eglClientSignalSyncEXT;
+    glad_debug_eglClientWaitSync = glad_eglClientWaitSync;
+    glad_debug_eglClientWaitSyncKHR = glad_eglClientWaitSyncKHR;
+    glad_debug_eglClientWaitSyncNV = glad_eglClientWaitSyncNV;
+    glad_debug_eglCompositorBindTexWindowEXT = glad_eglCompositorBindTexWindowEXT;
+    glad_debug_eglCompositorSetContextAttributesEXT = glad_eglCompositorSetContextAttributesEXT;
+    glad_debug_eglCompositorSetContextListEXT = glad_eglCompositorSetContextListEXT;
+    glad_debug_eglCompositorSetSizeEXT = glad_eglCompositorSetSizeEXT;
+    glad_debug_eglCompositorSetWindowAttributesEXT = glad_eglCompositorSetWindowAttributesEXT;
+    glad_debug_eglCompositorSetWindowListEXT = glad_eglCompositorSetWindowListEXT;
+    glad_debug_eglCompositorSwapPolicyEXT = glad_eglCompositorSwapPolicyEXT;
+    glad_debug_eglCopyBuffers = glad_eglCopyBuffers;
+    glad_debug_eglCreateContext = glad_eglCreateContext;
+    glad_debug_eglCreateDRMImageMESA = glad_eglCreateDRMImageMESA;
+    glad_debug_eglCreateFenceSyncNV = glad_eglCreateFenceSyncNV;
+    glad_debug_eglCreateImage = glad_eglCreateImage;
+    glad_debug_eglCreateImageKHR = glad_eglCreateImageKHR;
+    glad_debug_eglCreateNativeClientBufferANDROID = glad_eglCreateNativeClientBufferANDROID;
+    glad_debug_eglCreatePbufferFromClientBuffer = glad_eglCreatePbufferFromClientBuffer;
+    glad_debug_eglCreatePbufferSurface = glad_eglCreatePbufferSurface;
+    glad_debug_eglCreatePixmapSurface = glad_eglCreatePixmapSurface;
+    glad_debug_eglCreatePixmapSurfaceHI = glad_eglCreatePixmapSurfaceHI;
+    glad_debug_eglCreatePlatformPixmapSurface = glad_eglCreatePlatformPixmapSurface;
+    glad_debug_eglCreatePlatformPixmapSurfaceEXT = glad_eglCreatePlatformPixmapSurfaceEXT;
+    glad_debug_eglCreatePlatformWindowSurface = glad_eglCreatePlatformWindowSurface;
+    glad_debug_eglCreatePlatformWindowSurfaceEXT = glad_eglCreatePlatformWindowSurfaceEXT;
+    glad_debug_eglCreateStreamAttribKHR = glad_eglCreateStreamAttribKHR;
+    glad_debug_eglCreateStreamFromFileDescriptorKHR = glad_eglCreateStreamFromFileDescriptorKHR;
+    glad_debug_eglCreateStreamKHR = glad_eglCreateStreamKHR;
+    glad_debug_eglCreateStreamProducerSurfaceKHR = glad_eglCreateStreamProducerSurfaceKHR;
+    glad_debug_eglCreateStreamSyncNV = glad_eglCreateStreamSyncNV;
+    glad_debug_eglCreateSync = glad_eglCreateSync;
+    glad_debug_eglCreateSync64KHR = glad_eglCreateSync64KHR;
+    glad_debug_eglCreateSyncKHR = glad_eglCreateSyncKHR;
+    glad_debug_eglCreateWaylandBufferFromImageWL = glad_eglCreateWaylandBufferFromImageWL;
+    glad_debug_eglCreateWindowSurface = glad_eglCreateWindowSurface;
+    glad_debug_eglDebugMessageControlKHR = glad_eglDebugMessageControlKHR;
+    glad_debug_eglDestroyContext = glad_eglDestroyContext;
+    glad_debug_eglDestroyImage = glad_eglDestroyImage;
+    glad_debug_eglDestroyImageKHR = glad_eglDestroyImageKHR;
+    glad_debug_eglDestroyStreamKHR = glad_eglDestroyStreamKHR;
+    glad_debug_eglDestroySurface = glad_eglDestroySurface;
+    glad_debug_eglDestroySync = glad_eglDestroySync;
+    glad_debug_eglDestroySyncKHR = glad_eglDestroySyncKHR;
+    glad_debug_eglDestroySyncNV = glad_eglDestroySyncNV;
+    glad_debug_eglDupNativeFenceFDANDROID = glad_eglDupNativeFenceFDANDROID;
+    glad_debug_eglExportDMABUFImageMESA = glad_eglExportDMABUFImageMESA;
+    glad_debug_eglExportDMABUFImageQueryMESA = glad_eglExportDMABUFImageQueryMESA;
+    glad_debug_eglExportDRMImageMESA = glad_eglExportDRMImageMESA;
+    glad_debug_eglFenceNV = glad_eglFenceNV;
+    glad_debug_eglGetCompositorTimingANDROID = glad_eglGetCompositorTimingANDROID;
+    glad_debug_eglGetCompositorTimingSupportedANDROID = glad_eglGetCompositorTimingSupportedANDROID;
+    glad_debug_eglGetConfigAttrib = glad_eglGetConfigAttrib;
+    glad_debug_eglGetConfigs = glad_eglGetConfigs;
+    glad_debug_eglGetCurrentContext = glad_eglGetCurrentContext;
+    glad_debug_eglGetCurrentDisplay = glad_eglGetCurrentDisplay;
+    glad_debug_eglGetCurrentSurface = glad_eglGetCurrentSurface;
+    glad_debug_eglGetDisplay = glad_eglGetDisplay;
+    glad_debug_eglGetDisplayDriverConfig = glad_eglGetDisplayDriverConfig;
+    glad_debug_eglGetDisplayDriverName = glad_eglGetDisplayDriverName;
+    glad_debug_eglGetError = glad_eglGetError;
+    glad_debug_eglGetFrameTimestampSupportedANDROID = glad_eglGetFrameTimestampSupportedANDROID;
+    glad_debug_eglGetFrameTimestampsANDROID = glad_eglGetFrameTimestampsANDROID;
+    glad_debug_eglGetMscRateANGLE = glad_eglGetMscRateANGLE;
+    glad_debug_eglGetNativeClientBufferANDROID = glad_eglGetNativeClientBufferANDROID;
+    glad_debug_eglGetNextFrameIdANDROID = glad_eglGetNextFrameIdANDROID;
+    glad_debug_eglGetOutputLayersEXT = glad_eglGetOutputLayersEXT;
+    glad_debug_eglGetOutputPortsEXT = glad_eglGetOutputPortsEXT;
+    glad_debug_eglGetPlatformDisplay = glad_eglGetPlatformDisplay;
+    glad_debug_eglGetPlatformDisplayEXT = glad_eglGetPlatformDisplayEXT;
+    glad_debug_eglGetProcAddress = glad_eglGetProcAddress;
+    glad_debug_eglGetStreamFileDescriptorKHR = glad_eglGetStreamFileDescriptorKHR;
+    glad_debug_eglGetSyncAttrib = glad_eglGetSyncAttrib;
+    glad_debug_eglGetSyncAttribKHR = glad_eglGetSyncAttribKHR;
+    glad_debug_eglGetSyncAttribNV = glad_eglGetSyncAttribNV;
+    glad_debug_eglGetSystemTimeFrequencyNV = glad_eglGetSystemTimeFrequencyNV;
+    glad_debug_eglGetSystemTimeNV = glad_eglGetSystemTimeNV;
+    glad_debug_eglInitialize = glad_eglInitialize;
+    glad_debug_eglLabelObjectKHR = glad_eglLabelObjectKHR;
+    glad_debug_eglLockSurfaceKHR = glad_eglLockSurfaceKHR;
+    glad_debug_eglMakeCurrent = glad_eglMakeCurrent;
+    glad_debug_eglOutputLayerAttribEXT = glad_eglOutputLayerAttribEXT;
+    glad_debug_eglOutputPortAttribEXT = glad_eglOutputPortAttribEXT;
+    glad_debug_eglPostSubBufferNV = glad_eglPostSubBufferNV;
+    glad_debug_eglPresentationTimeANDROID = glad_eglPresentationTimeANDROID;
+    glad_debug_eglQueryAPI = glad_eglQueryAPI;
+    glad_debug_eglQueryContext = glad_eglQueryContext;
+    glad_debug_eglQueryDebugKHR = glad_eglQueryDebugKHR;
+    glad_debug_eglQueryDeviceAttribEXT = glad_eglQueryDeviceAttribEXT;
+    glad_debug_eglQueryDeviceBinaryEXT = glad_eglQueryDeviceBinaryEXT;
+    glad_debug_eglQueryDeviceStringEXT = glad_eglQueryDeviceStringEXT;
+    glad_debug_eglQueryDevicesEXT = glad_eglQueryDevicesEXT;
+    glad_debug_eglQueryDisplayAttribEXT = glad_eglQueryDisplayAttribEXT;
+    glad_debug_eglQueryDisplayAttribKHR = glad_eglQueryDisplayAttribKHR;
+    glad_debug_eglQueryDisplayAttribNV = glad_eglQueryDisplayAttribNV;
+    glad_debug_eglQueryDmaBufFormatsEXT = glad_eglQueryDmaBufFormatsEXT;
+    glad_debug_eglQueryDmaBufModifiersEXT = glad_eglQueryDmaBufModifiersEXT;
+    glad_debug_eglQueryNativeDisplayNV = glad_eglQueryNativeDisplayNV;
+    glad_debug_eglQueryNativePixmapNV = glad_eglQueryNativePixmapNV;
+    glad_debug_eglQueryNativeWindowNV = glad_eglQueryNativeWindowNV;
+    glad_debug_eglQueryOutputLayerAttribEXT = glad_eglQueryOutputLayerAttribEXT;
+    glad_debug_eglQueryOutputLayerStringEXT = glad_eglQueryOutputLayerStringEXT;
+    glad_debug_eglQueryOutputPortAttribEXT = glad_eglQueryOutputPortAttribEXT;
+    glad_debug_eglQueryOutputPortStringEXT = glad_eglQueryOutputPortStringEXT;
+    glad_debug_eglQueryStreamAttribKHR = glad_eglQueryStreamAttribKHR;
+    glad_debug_eglQueryStreamConsumerEventNV = glad_eglQueryStreamConsumerEventNV;
+    glad_debug_eglQueryStreamKHR = glad_eglQueryStreamKHR;
+    glad_debug_eglQueryStreamMetadataNV = glad_eglQueryStreamMetadataNV;
+    glad_debug_eglQueryStreamTimeKHR = glad_eglQueryStreamTimeKHR;
+    glad_debug_eglQueryStreamu64KHR = glad_eglQueryStreamu64KHR;
+    glad_debug_eglQueryString = glad_eglQueryString;
+    glad_debug_eglQuerySupportedCompressionRatesEXT = glad_eglQuerySupportedCompressionRatesEXT;
+    glad_debug_eglQuerySurface = glad_eglQuerySurface;
+    glad_debug_eglQuerySurface64KHR = glad_eglQuerySurface64KHR;
+    glad_debug_eglQuerySurfacePointerANGLE = glad_eglQuerySurfacePointerANGLE;
+    glad_debug_eglQueryWaylandBufferWL = glad_eglQueryWaylandBufferWL;
+    glad_debug_eglReleaseTexImage = glad_eglReleaseTexImage;
+    glad_debug_eglReleaseThread = glad_eglReleaseThread;
+    glad_debug_eglResetStreamNV = glad_eglResetStreamNV;
+    glad_debug_eglSetBlobCacheFuncsANDROID = glad_eglSetBlobCacheFuncsANDROID;
+    glad_debug_eglSetDamageRegionKHR = glad_eglSetDamageRegionKHR;
+    glad_debug_eglSetStreamAttribKHR = glad_eglSetStreamAttribKHR;
+    glad_debug_eglSetStreamMetadataNV = glad_eglSetStreamMetadataNV;
+    glad_debug_eglSignalSyncKHR = glad_eglSignalSyncKHR;
+    glad_debug_eglSignalSyncNV = glad_eglSignalSyncNV;
+    glad_debug_eglStreamAcquireImageNV = glad_eglStreamAcquireImageNV;
+    glad_debug_eglStreamAttribKHR = glad_eglStreamAttribKHR;
+    glad_debug_eglStreamConsumerAcquireAttribKHR = glad_eglStreamConsumerAcquireAttribKHR;
+    glad_debug_eglStreamConsumerAcquireKHR = glad_eglStreamConsumerAcquireKHR;
+    glad_debug_eglStreamConsumerGLTextureExternalAttribsNV = glad_eglStreamConsumerGLTextureExternalAttribsNV;
+    glad_debug_eglStreamConsumerGLTextureExternalKHR = glad_eglStreamConsumerGLTextureExternalKHR;
+    glad_debug_eglStreamConsumerOutputEXT = glad_eglStreamConsumerOutputEXT;
+    glad_debug_eglStreamConsumerReleaseAttribKHR = glad_eglStreamConsumerReleaseAttribKHR;
+    glad_debug_eglStreamConsumerReleaseKHR = glad_eglStreamConsumerReleaseKHR;
+    glad_debug_eglStreamFlushNV = glad_eglStreamFlushNV;
+    glad_debug_eglStreamImageConsumerConnectNV = glad_eglStreamImageConsumerConnectNV;
+    glad_debug_eglStreamReleaseImageNV = glad_eglStreamReleaseImageNV;
+    glad_debug_eglSurfaceAttrib = glad_eglSurfaceAttrib;
+    glad_debug_eglSwapBuffers = glad_eglSwapBuffers;
+    glad_debug_eglSwapBuffersRegion2NOK = glad_eglSwapBuffersRegion2NOK;
+    glad_debug_eglSwapBuffersRegionNOK = glad_eglSwapBuffersRegionNOK;
+    glad_debug_eglSwapBuffersWithDamageEXT = glad_eglSwapBuffersWithDamageEXT;
+    glad_debug_eglSwapBuffersWithDamageKHR = glad_eglSwapBuffersWithDamageKHR;
+    glad_debug_eglSwapInterval = glad_eglSwapInterval;
+    glad_debug_eglTerminate = glad_eglTerminate;
+    glad_debug_eglUnbindWaylandDisplayWL = glad_eglUnbindWaylandDisplayWL;
+    glad_debug_eglUnlockSurfaceKHR = glad_eglUnlockSurfaceKHR;
+    glad_debug_eglUnsignalSyncEXT = glad_eglUnsignalSyncEXT;
+    glad_debug_eglWaitClient = glad_eglWaitClient;
+    glad_debug_eglWaitGL = glad_eglWaitGL;
+    glad_debug_eglWaitNative = glad_eglWaitNative;
+    glad_debug_eglWaitSync = glad_eglWaitSync;
+    glad_debug_eglWaitSyncKHR = glad_eglWaitSyncKHR;
+}
 
 #ifdef GLAD_EGL
 

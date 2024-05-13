@@ -24,11 +24,11 @@ project "Unkeny"
     }
 
     links {
-        -- "Stb",
-        "NSystem",
-        "Logger",
+        "Nkentseu",
         "Ntsm",
-        "Nkentseu"
+        "Logger",
+        "NSystem",
+        "Stb"
     }
 
     defines {
@@ -66,9 +66,7 @@ project "Unkeny"
         buildoptions { "-stdlib=libc++", "-fPIC", "-pthread" }
 
     filter "system:linux"
-        links {
-            "X11", "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
-        }
+        getLinuxWinApi()
 
         -- Ajout d'options de compilation pour toutes les configurations sous Linux
         buildoptions { "-fPIC", "-pthread" }

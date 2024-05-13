@@ -51,7 +51,7 @@
 
 #pragma comment(lib, "hid.lib")
 
-#define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
+//#define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #define WC_MAINFRAME	TEXT("MainFrame")
 #define MAX_BUTTONS		128
 #define CHECK(exp)		{ if(!(exp)) goto Error; }
@@ -263,7 +263,7 @@ namespace nkentseu {
 			break;
 		}
 
-		SwapBuffers(window->m_NativeWindow->deviceContext);
+		// SwapBuffers(window->m_NativeWindow->deviceContext);
 
 		return 0;
 	}
@@ -341,8 +341,8 @@ namespace nkentseu {
 		// Call InvalidateRect. This function forces the window to be repainted. InvalidateRect(m_hwnd, NULL, FALSE);
 
 		LRESULT result = 0;
-		Log_nts.Debug();
-		#if defined(NKENTSEU_GAPI_SOFTWARE)
+		
+		#if defined(NKENTSEU_GRAPHICS_API_SOFTWARE)
 
 				PAINTSTRUCT ps;
 				HDC         hDC;
@@ -360,13 +360,13 @@ namespace nkentseu {
 					GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
 					rectangle = Rectangle(rect.left, rect.bottom, rect.right - rect.left, rect.bottom - rect.top);
 
-					bg = window->Properties__.BackgroundColor;
+					bg = window->GetBackgroundColor();
 					hBr = CreateSolidBrush(RGB(bg.R(), bg.G(), bg.B()));
 					hOldBrush = (HBRUSH)SelectObject(hDC, hBr);
 				}
 				FillRect(ps.hdc, &rect, hBr);
 
-				result = FinalizePushEvent(new WindowPaintEvent(window->Window__->ID(), rectangle, bg), 0, msg, window);
+				result = FinalizePushEvent(new WindowRenderedEvent(window->ID(), rectangle, bg), 0, msg, window);
 
 				{
 					SelectObject(hDC, hOldBrush);
@@ -383,18 +383,18 @@ namespace nkentseu {
 	LRESULT WindowEventInternal::HandleWindowBackgroundEraseEvent(MSG msg, WindowInternal* window) {
 		LRESULT result = 0;
 
-#if defined(NKENTSEU_GAPI_SOFTWARE)
+#if defined(NKENTSEU_GRAPHICS_API_SOFTWARE)
 
 		PAINTSTRUCT ps;
 		BeginPaint(window->GetWindowDisplay()->windowHandle, &ps);
 		RECT rect;
 		GetWindowRect(window->GetWindowDisplay()->windowHandle, &rect);
 		Rectangle r(rect.left, rect.bottom, rect.right - rect.left, rect.bottom - rect.top);
-		Color bg = window->Properties__.BackgroundColor;
+		Color bg = window->GetBackgroundColor();
 		HBRUSH BorderBrush = CreateSolidBrush(RGB(bg.R(), bg.G(), bg.B()));
 		FillRect(ps.hdc, &rect, BorderBrush);
 
-		result = FinalizePushEvent(new WindowPaintEvent(window->ID(), r, bg), 0, msg, window);
+		result = FinalizePushEvent(new WindowRenderedEvent(window->ID(), r, bg), 0, msg, window);
 
 		EndPaint(window->GetWindowDisplay()->windowHandle, &ps);
 
@@ -425,29 +425,17 @@ namespace nkentseu {
 	LRESULT WindowEventInternal::HandleWindowResizeEvent(MSG msg, WindowInternal* window, bool resizing) {
 		LRESULT result = 0;
 
-		float32 area = window->GetSize().width * window->GetSize().height;
+		float32 area = (float32)(window->GetSize().width * window->GetSize().height);
 
 		Rectangle win;
 		win.corner = window->GetProperties().position;
 
 		if (!resizing) {
-			RECT rect, frame, border;
+			RECT rect;//, frame, border;
 			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
-            /*DwmGetWindowAttribute(window->m_NativeWindow->windowHandle, DWMWA_EXTENDED_FRAME_BOUNDS, &frame, sizeof(RECT));
-			int32 titlebarHeight = (GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CXPADDEDBORDER));
-
-			border.left = frame.left - rect.left;
-            border.top = frame.top - rect.top;
-            border.right = rect.right - frame.right;
-            border.bottom = rect.bottom - frame.bottom;
-
-			//win.size.width = static_cast<float32>((UINT64)msg.lParam & 0xFFFF);
-			//win.size.height = static_cast<float32>((UINT64)msg.lParam >> 16);
-			//win.size = window->ConvertPixelToDpi(win.size) - Vector2f(border.right + border.left, border.top + border.bottom);*/
-			win.size.width = rect.right - rect.left;
-			win.size.height = rect.bottom - rect.top;
+			win.size.width = (float32)(rect.right - rect.left);
+			win.size.height = (float32)(rect.bottom - rect.top);
 			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
-			Log_nts.Debug("Resizing {0} ++++ {1}", window->m_Properties.size, win);
 		}
 		else {
 			uint32 STEP = 1;
@@ -458,13 +446,17 @@ namespace nkentseu {
 			GetWindowRect(window->GetWindowDisplay()->windowHandle, &wind);
 			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
 
-			win.size.width = rect.right - rect.left;
-			win.size.height = rect.bottom - rect.top;
+			win.size.width = (float32)(rect.right - rect.left);
+			win.size.height = (float32)(rect.bottom - rect.top);
 
 			// Redraw window to refresh it while resizing
 			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 			result = WVR_REDRAW;
 		}
+
+		float32 scaleFactor = window->GetDpiScale();
+		win.size.width /= scaleFactor;
+		win.size.height /= scaleFactor;
 
 		float32 newarea = win.size.width * win.size.height;
 		ResizeState::Code state = ResizeState::NotChange;
@@ -557,32 +549,43 @@ namespace nkentseu {
 
 	LRESULT WindowEventInternal::HandleWindowMoveEvent(MSG msg, WindowInternal* window, uint8 t) {
 		if (!window->GetProperties().movable) {
-			window->SetPosition(window->GetProperties().position);
+			window->SetPosition(window->GetPosition());
 			return 0;
 		}
-		Vector2i position = window->GetProperties().position;
+		Vector2i lasPosition = window->GetPosition();
+		Vector2i position = lasPosition;
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 
-		if (t % 3 == 0) {
-			//position = { (LOWORD)msg.lParam, (HIWORD)msg.lParam };
+		float32 scaleFactor = window->GetDpiScale();
+
+		if (scaleFactor == 0) {
+			scaleFactor = 1.0;
 		}
-		else if (t % 3 == 1) {
+
+		if (t == 0) {
+			position = Vector2i(LOWORD(msg.lParam) / scaleFactor, HIWORD(msg.lParam) / scaleFactor);
+			window->m_Properties.position = position;
+			return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
+		}
+		else if (t == 1) {
 			RECT* const r = (LPRECT)msg.lParam;
 			if (r) {
 				currentWindowRect = *r;
-				position = Vector2i(r->left, r->top);
+				position = Vector2i(r->left / scaleFactor, r->top / scaleFactor);
+				window->m_Properties.position = position;
+				return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
 			}
 		}
-		else {
+		else if (t == 2) {
 			RECT* const r = (LPRECT)msg.lParam;
 			if (r) {
 				currentWindowRect = *r;
-				position = Vector2i(r->left, r->top);
+				position = Vector2i(r->left / scaleFactor, r->top / scaleFactor);
+				window->m_Properties.position = position;
+				return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
 			}
 		}
-		Vector2i lasPosition = window->m_Properties.position;
-		window->m_Properties.position = position;
-		return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
+		return 0;
 	}
 
 	LRESULT WindowEventInternal::HandleMouseWheelEvent(MSG msg, WindowInternal* window, bool vertical) {
@@ -609,17 +612,20 @@ namespace nkentseu {
 			ReleaseCapture();
 		}
 
+		previousMousePosition = window->GetPosition();
+
+		float32 scaleFactor = window->GetDpiScale();
+
 		short modifiers = LOWORD(msg.wParam);
 		ModifierState ms(modifiers & MK_CONTROL, modifiers & MK_ALT, modifiers & MK_SHIFT, modifiers & 0);
 
-		Vector2i positionGlobal(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		Vector2i positionGlobal(GET_X_LPARAM(msg.lParam) / scaleFactor, GET_Y_LPARAM(msg.lParam) / scaleFactor);
 
 		RECT area;
 		GetClientRect(window->GetWindowDisplay()->windowHandle, &area);
 
-		Vector2i position(positionGlobal.x - area.left, positionGlobal.y - area.top);
-		Vector2i move = positionGlobal - previousMousePosition;
-		previousMousePosition = positionGlobal;
+		Vector2i position(positionGlobal.x - (area.left / scaleFactor), positionGlobal.y - (area.top / scaleFactor));
+		// previousMousePosition = positionGlobal;
 
 		mousePosition = position;
 		globalMousePosition = positionGlobal;
@@ -635,7 +641,7 @@ namespace nkentseu {
 		return FinalizePushEvent(new MouseInputEvent(window->ID(), state, ms, btn, doubleClick, position, globalMousePosition), 0, msg, window);
 	}
 
-	#define MOUSE_BUTTON_IS_PRESSED(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN))
+	#define MOUSE_BUTTON_IS_PRESSED(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN))
 	#define PPU(v, d) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_UP))
 	#define PP(v) (raw->data.mouse.ulButtons & (RI_MOUSE_##v##_DOWN | RI_MOUSE_##v##_UP))
 
@@ -673,8 +679,10 @@ namespace nkentseu {
 
 	LRESULT WindowEventInternal::HandleMouseMoveEvent(MSG msg, WindowInternal* window) {
 		LRESULT result = 0;
+
+		float32 scaleFactor = window->GetDpiScale();
 		//Vector2i positionGlobal(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		Vector2i positionGlobal(static_cast<std::int16_t>(LOWORD(msg.lParam)), static_cast<std::int16_t>(HIWORD(msg.lParam)));
+		Vector2i positionGlobal(static_cast<std::int16_t>(LOWORD(msg.lParam)) / scaleFactor, static_cast<std::int16_t>(HIWORD(msg.lParam)) / scaleFactor);
 
 		RECT area;
 		GetClientRect(window->GetWindowDisplay()->windowHandle, &area);
@@ -693,18 +701,18 @@ namespace nkentseu {
 			if (window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = false;
 				SetMouseTracking(false, window);
-				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Exited, Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
+				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Exited, Vector2i(positionGlobal.x - area.left / scaleFactor, positionGlobal.y - area.top / scaleFactor)), 0, msg, window);
 			}
 		}
 		else {
 			if (!window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = true;
 				SetMouseTracking(true, window);
-				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Entered, Vector2i(positionGlobal.x - area.left, positionGlobal.y - area.top)), 0, msg, window);
+				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Entered, Vector2i(positionGlobal.x - area.left / scaleFactor, positionGlobal.y - area.top / scaleFactor)), 0, msg, window);
 			}
 		}
 
-		Vector2i position(positionGlobal.x - area.left, positionGlobal.y - area.top);
+		Vector2i position(positionGlobal.x - area.left / scaleFactor, positionGlobal.y - area.top / scaleFactor);
 		Vector2i move = position - previousMousePosition;
 		previousMousePosition = mousePosition;
 
@@ -825,7 +833,7 @@ namespace nkentseu {
 				ULONG value;
 				HidP_GetUsageValue(HidP_Input, valueCaps[i].UsagePage, 0, valueCaps[i].Range.UsageMin, &value, data, (PCHAR)input->data.hid.bRawData, input->data.hid.dwSizeHid);
 
-				float32 value_concret = ((value - 127.0) / 127.0f);
+				float32 value_concret = (float32)((value - 127.0) / 127.0f);
 				if (value_concret < -1) value_concret = -1.0f;
 				if (value_concret > 1) value_concret = 1.0f;
 

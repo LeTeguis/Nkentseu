@@ -24,7 +24,7 @@ BuildDir()
 BuildIntDir()
 
 group "External"
-	-- include "External/Libs/Stb"
+	include "External/Libs/Stb"
 	include "External/Libs/Glad"
 group ""
 

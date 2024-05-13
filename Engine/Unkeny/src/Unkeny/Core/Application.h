@@ -36,11 +36,16 @@ namespace nkentseu {
         virtual void OnEvent(class Event& event);
         virtual bool OnWindowStatusEvent(class WindowStatusEvent& event);
         virtual bool OnKeyboardEvent(class KeyboardEvent& event);
+        virtual bool OnWindowResizedEvent(class WindowResizedEvent& event);
+        virtual bool OnWindowMovedEvent(class WindowMovedEvent& event);
+        virtual bool OnMouseInputEvent(class MouseInputEvent& event);
 
         void Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released);
         void Course(const std::string& name, const AxisCode& axisCode, float32 value);
     private:
         Memory::Shared<class Window> m_Window;
+        Memory::Shared<class Context> m_Context;
+        Memory::Shared<class Renderer> m_Renderer;
         bool m_Running;
     };
 

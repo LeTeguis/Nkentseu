@@ -12,6 +12,13 @@ namespace nkentseu {
     {
     }
 
+    const WindowProperties& WindowProperties::GetInValid() {
+        static WindowProperties prop;
+        prop.size = Vector2u();
+        prop.maxSize = Vector2u();
+        return prop;
+    }
+
 #ifdef NKENTSEU_PLATFORM_WINDOWS
     #include <Windows.h>
 
@@ -51,7 +58,7 @@ namespace nkentseu {
         return modes;
     }
 #elif defined(NKENTSEU_PLATFORM_LINUX)
-
+    #if defined(NKENTSEU_PLATFORM_LINUX_XCB)
     WindowProperties WindowProperties::GetDesktopProperties() {
         WindowProperties wprop;
         int screen_number = PlatformState.screenNumber;
@@ -104,5 +111,20 @@ namespace nkentseu {
 
         return modes;
     }
+    #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
+    WindowProperties WindowProperties::GetDesktopProperties() {
+        WindowProperties wprop;
+        return wprop;
+    }
+
+    const std::vector<WindowProperties>& WindowProperties::GetFullscreenProperties() {
+        static const auto modes = [] {
+            std::vector<WindowProperties> modes;
+            return modes;
+        }();
+
+        return modes;
+    }
+    #endif
 #endif
 }    // namespace nkentseu

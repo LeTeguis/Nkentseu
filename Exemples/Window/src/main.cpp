@@ -44,6 +44,10 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
 
         }
     }
+
+    if (window != nullptr) {
+        window->Close();
+    }
     Log_nts.Debug("finish");
     // Memory::Reset(window);
     return 0;

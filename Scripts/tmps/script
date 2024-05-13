@@ -19,6 +19,11 @@ alias krdir="winp; cd krypton2"
 alias sldir="winp; cd scrollerlite"
 alias ntsdir="winp; cd Nkentsuu"
 
+export VULKAN_SDK=~/vulkan/1.3.280.0/x86_64
+export PATH=$VULKAN_SDK/bin:$PATH
+export LD_LIBRARY_PATH=$VULKAN_SDK/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+export VK_LAYER_PATH=$VULKAN_SDK/share/vulkan/explicit_layer.d
+
 alias lua="lua5.3"
 
 alias wincmd="wincmd.sh"
@@ -32,8 +37,19 @@ echo "export DISPLAY=localhost:0.0" >> ~/.bashrc
 
 // update ubuntu : 
 1- sudo apt update
+2- wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+3- sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+4- sudo apt install libvulkan1-dbgsym vulkan-tools-dbgsym
+5- apt source vulkan-loader vulkan-tools
+6- download and install  vulkansdk-linux-x86_64-1.3.280.0.tar.xz if you wont to use Vulkan and extract it in ~/vulkan
+
 // install:
 1- Install Gnome Text Editor (sudo apt install gnome-text-editor -y) launch (gnome-text-editor file_you_wont_to_open)
 2- Install Nautilus (sudo apt install nautilus -y) launch (nautilus)
 3- Install Libx11-dev (sudo apt-get install libx11-dev) and (sudo apt-get install xorg-dev)
 4- Install VsCode for linux (sudo snap install --classic code) launch (code)
+5- Install xz-utils (sudo apt install xz-utils)
+6- Install vulkan-sdk (sudo apt install vulkan-sdk)
+
+// install macos in wsl2
+1- learn and execute ./kvm_macos_wsl2.pdf

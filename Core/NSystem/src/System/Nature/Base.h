@@ -23,6 +23,7 @@ namespace nkentseu{
     #define STR_BOOL(b) ((b) ? "True" : "False")
 
     // Unsigned int types.
+    typedef unsigned long               uint_word;
     typedef unsigned char               uint8;
     typedef unsigned short              uint16;
     typedef unsigned int                uint32;
@@ -43,11 +44,19 @@ namespace nkentseu{
 
     // Boolean types
     typedef int                         bool32;
-    typedef unsigned char               Bool;
+    typedef unsigned char               Boolean;
 
-    #define True                        ((Bool)1)
-    #define False                       ((Bool)0)
-    #define Null                        ((void *)0)
+    #ifndef True
+        #define True                        ((Boolean)1)
+    #endif
+
+    #ifndef False
+        #define False                       ((Boolean)0)
+    #endif
+
+    #ifndef Null
+        #define Null                        ((void *)0)
+    #endif
 
     #define INVALID_ID_UINT64           18446744073709551615UL
     #define INVALID_ID                  4294967295U

@@ -11,7 +11,11 @@
 #elif defined(NKENTSEU_PLATFORM_ANDROID)
 #include "Nkentseu/Platform/Window/Android/WindowInternal.h"
 #elif defined(NKENTSEU_PLATFORM_LINUX)
-#include "Nkentseu/Platform/Window/Linux/WindowInternal.h"
+	#ifdef NKENTSEU_LINUX_WIN_API_XCB
+    #include "Nkentseu/Platform/Window/Linux/XCB/WindowInternal.h"
+    #elif defined(NKENTSEU_LINUX_WIN_API_XLIB)
+    #include "Nkentseu/Platform/Window/Linux/XLIB/WindowInternal.h"
+    #endif
 #elif defined(NKENTSEU_PLATFORM_IOS)
 #include "Nkentseu/Platform/Window/iOS/WindowInternal.h"
 #elif defined(NKENTSEU_PLATFORM_MACOS)
@@ -52,7 +56,7 @@ namespace nkentseu {
 	}
 
 	Window::~Window() {
-		Close();
+		//Close();
 	}
 
 	std::string Window::GetTitle() const {

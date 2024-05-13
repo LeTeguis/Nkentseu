@@ -24,10 +24,6 @@ project "Logger"
         "NSystem"
     }
 
-    libdirs {
-        --"NSystem"
-    }
-
     defines {
 		"_CRT_SECURE_NO_WARNINGS"
     }

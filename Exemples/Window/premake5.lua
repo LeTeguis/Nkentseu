@@ -21,11 +21,11 @@ project "Window"
     }
 
     links {
-        -- "Stb",
-        "NSystem",
-        "Logger",
+        "Nkentseu",
         "Ntsm",
-        "Nkentseu"
+        "Logger",
+        "NSystem",
+        "Stb"
     }
 
     defineApiInfo()
@@ -45,13 +45,7 @@ project "Window"
     filter "system:macosx"
 
     filter "system:linux"
-        links {
-            "X11",
-            "Xcursor", "Xrandr", "Xfixes"
-        }
-        links {
-            "xcb", "xcb-util", "xcb-icccm", "xcb-keysyms"
-        }
+        getLinuxWinApi()
 
     filter "configurations:Debug"
         defines { "_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH" }
