@@ -43,7 +43,17 @@ La configuration actuelle du projet est gérée par des scripts `nken`.
 
 ### Configuration Linux
 - Si vous utilisez WSL sous Windows, vous devez :
-    - Ouvrir un terminal et saisir `nano ~/.bashrc`, puis ajouter le code `export DISPLAY=localhost:0.0`, et enfin saisir `source ~/.bashrc` après avoir quitté nano.
+- Ouvrir un terminal et saisir `nano ~/.bashrc`, puis ajouter les lignes suivantes au code :
+    ```markdown
+    export DISPLAY=localhost:0.0\
+    export LIBGL_ALWAYS_INDIRECT=0\
+    export MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA  # Remplacer "NVIDIA" par le nom de votre GPU\
+    ```
+    * Ensuite, quitter nano en sauvegardant les modifications et saisir la commande `source ~/.bashrc` pour appliquer les changements.
+    * Assurez-vous de remplacer `"NVIDIA"` dans la variable `MESA_D3D12_DEFAULT_ADAPTER_NAME` par le nom correct de votre GPU. Vous pouvez trouver le nom de votre GPU dans les paramètres de votre système d'exploitation ou en utilisant l'outil `glxinfo`.
+    * La version d'`OpenGL` prise en charge par WSL2 est actuellement `4.2`, mais sur Ubuntu et Windows, vous pouvez atteindre la version `4.6`, en fonction de votre carte graphique.
+
+    
 - Comme toutes les commandes sont exécutées sous Linux à partir de [`./nken.sh`](./nken.sh), si vous souhaitez utiliser uniquement `nken`, vous devez saisir `nano ~/.bash_aliases`, ajouter l'alias `alias nken="./nken.sh"` (en remplaçant `./nken.sh` par le chemin complet si nécessaire, bien que cela soit déconseillé), puis saisir `source ~/.bash_aliases` après avoir quitté nano depuis un terminal.
 
 ## Utilisation du code

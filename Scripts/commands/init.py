@@ -41,7 +41,7 @@ def IsInstalled(app_name):
 def InstallCompilateur():
     platform_name = conf.GetPlatform()
 
-    application_install = ["make", "g++", "nautilus", "gnome-text-editor", "libxcb-keysyms1-dev", "clang", "xz-utils", "vulkan-sdk"] # ajouter -y devant nautilus et gnome au cas ou
+    application_install = ["make", "g++", "nautilus", "gnome-text-editor", "libxcb-keysyms1-dev", "clang", "xz-utils", "vulkan-sdk", "mesa-utils"] # ajouter -y devant nautilus et gnome au cas ou
     lib_install = ["libx11-dev", "xorg-dev", "libxcb1", "libxcb1-dev", "libxcb-util-dev", "libxcb-icccm4-dev", "libxcb-xkb-dev", "x11-xkb-utils", "libx11-xcb-dev", "libxkbcommon-x11-dev"]
     application_snap = ["--classic code"]
 

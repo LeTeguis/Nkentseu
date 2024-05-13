@@ -154,8 +154,10 @@ namespace nkentseu {
         }
 
         PrintGLXDirectStatus();
-
+        
+        Log_nts.Debug();
         if (!SetGLXMakeCurrent()) {
+            Log_nts.Debug();
             return false;
         }
 
