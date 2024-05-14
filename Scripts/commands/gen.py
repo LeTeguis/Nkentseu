@@ -88,6 +88,7 @@ def GenerateProject():
     argv_param.append(f"--startupproject={man.DEFAULT_PROJECT}")
     argv_param.append(f"--graphicsapi={man.GRAPHICS_API}")
     argv_param.append(f"--linuxwinapi={man.LINUX_WIN_API}")
+    argv_param.append(f"--linuxusewsl={conf.SubSystemSymbole()}")
 
     # Ajoutez d'autres arguments à argv_param si nécessaire
 

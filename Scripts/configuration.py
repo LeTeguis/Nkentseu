@@ -14,6 +14,20 @@ class Platforme(Enum):
     UNKNOW = ""
 
 USE_WSL = False
+LINUX_WSL = 'NKENTSEU_LINUX_UNUSE_WSL'
+
+
+def IsSubSystem():
+    for x in uname():
+        if "microsoft" in x.lower() or "windows" in x.lower():
+            return True
+    return False
+
+
+def SubSystemSymbole():
+    if IsSubSystem():
+        return 'NKENTSEU_LINUX_USE_WSL'
+    return 'NKENTSEU_LINUX_UNUSE_WSL'
 
 
 def GetPlatform():
@@ -23,12 +37,6 @@ def GetPlatform():
     Retourne :
         Platforme : L'identifiant de la plateforme (Platforme.WINDOWS, Platforme.LINUX, Platforme.MACOS, ou Platforme.UNKNOW si non supportée).
     """
-
-    sub_platform = sys.platform
-    for x in uname():
-        if "microsoft" in x.lower() or "windows" in x.lower():
-            USE_WSL = True
-            break
 
     platform_name = system().lower()
     if platform_name == "windows":

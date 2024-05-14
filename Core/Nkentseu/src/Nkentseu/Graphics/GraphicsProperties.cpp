@@ -49,7 +49,7 @@ namespace nkentseu {
 #if NKENTSEU_GRAPHICS_API_OPENGL
         version.major = 4;
         #ifdef NKENTSEU_PLATFORM_LINUX_USE_SUBSYSTEM
-            version.minor = 2; // 6 sur les platforme autre que wsl
+            version.minor = 2; // 2 sur les platforme  wsl
         #else
             version.minor = 6; // 6 sur les platforme autre que wsl
         #endif
