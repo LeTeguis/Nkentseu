@@ -89,7 +89,8 @@ namespace nkentseu {
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
-            m_Renderer->Clear(Color::RandomRGB());
+            //m_Renderer->Clear(color::RandomRGB());
+            m_Renderer->Clear(Color::DefaultBackground);
             m_Renderer->Present();
         }
         m_Renderer->Deinitialize();

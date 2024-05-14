@@ -236,7 +236,7 @@ namespace nkentseu {
         return _this;
     }
 
-    bool WindowInternal::IsValidPlatform(){
+    bool WindowInternal::IsValidPlatform() const {
         PLATFORM_DECLARATION();
         if (display == nullptr || rootWindow == 0 || visual == nullptr || colormap == 0) {
             Log_nts.Error("Failed to get screen iterator and connexion");
@@ -245,7 +245,7 @@ namespace nkentseu {
         return true;
     }
 
-    bool WindowInternal::IsValidDisplay(){
+    bool WindowInternal::IsValidDisplay() const {
         return IsValidPlatform() && m_NativeWindow != nullptr && m_NativeWindow->windowHandle != 0;
     }
 }    // namespace nkentseu

@@ -107,8 +107,8 @@ namespace nkentseu {
         void SetBorder(uint32 border);
         void InitWindowPosition();
 
-        bool IsValidPlatform();
-        bool IsValidDisplay();
+        bool IsValidPlatform() const;
+        bool IsValidDisplay() const;
     };
 
     static thread_local WindowInternal* currentWindowInternal = nullptr;

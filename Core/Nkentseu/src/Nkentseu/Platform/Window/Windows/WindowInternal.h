@@ -109,6 +109,7 @@ namespace nkentseu {
 
         // Méthode pour capturer le curseur
         void GrabWindowCursor(bool grabbed);
+        bool IsValidDisplay() const;
     };
 
     static thread_local WindowInternal* currentWindowInternal = nullptr;

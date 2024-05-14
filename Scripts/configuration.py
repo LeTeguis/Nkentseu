@@ -73,17 +73,6 @@ def IsLinux():
     return GetPlatform() == Platforme.LINUX
 
 
-def IsUseWSL():
-    """
-    Vérifie si le système actuel utilise WSL.
-
-    Retourne :
-        bool : True si WSL, False sinon.
-    """
-
-    return USE_WSL
-
-
 def IsMacos():
     """
     Vérifie si le système actuel est macOS.

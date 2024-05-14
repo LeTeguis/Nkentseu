@@ -21,8 +21,6 @@
 
 namespace nkentseu {
 
-    #define NATIVE_WIN32_WINDOW_IS_VALID(variable) (m_NativeWindow != nullptr && m_NativeWindow->##variable != nullptr)
-
     uint64 WindowInternal::s_WindowIDCounter = 0;
     const GUID guidDevinterfaceHid = { 0x4d1e55b2, 0xf16f, 0x11cf, {0x88, 0xcb, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30} };
 
@@ -150,7 +148,7 @@ namespace nkentseu {
     }
 
     WindowInternal::~WindowInternal() {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             Close();
         }
     }
@@ -299,7 +297,7 @@ namespace nkentseu {
     }
 
     std::string WindowInternal::GetTitle() const {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             char str[1024];
             memset(str, 0, sizeof(char) * 1024);
             GetWindowTextA(m_NativeWindow->windowHandle, str, 1024);
@@ -310,7 +308,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::SetTitle(std::string title) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             m_Properties.title = title;
             std::wstring wtitle(title.begin(), title.end());
             SetWindowText(m_NativeWindow->windowHandle, wtitle.c_str());
@@ -318,14 +316,14 @@ namespace nkentseu {
     }
 
     Vector2i WindowInternal::GetPosition() const {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             return m_Properties.position;
         }
         return {};
     }
 
     void WindowInternal::SetPosition(int32 x, int32 y) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             SetWindowPos(m_NativeWindow->windowHandle, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
             m_Properties.position = Vector2i(x, y);
         }
@@ -334,14 +332,14 @@ namespace nkentseu {
     void WindowInternal::SetPosition(const Vector2i& pos) { SetPosition(pos.x, pos.y); }
 
     Vector2u WindowInternal::GetSize() {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             return m_Properties.size;
         }
         return Vector2u();
     }
 
     void WindowInternal::SetSize(uint32 width, uint32 height) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             RECT rect, frame, border;
             GetWindowRect(m_NativeWindow->windowHandle, &rect);
             DwmGetWindowAttribute(m_NativeWindow->windowHandle, DWMWA_EXTENDED_FRAME_BOUNDS, &frame, sizeof(RECT));
@@ -365,7 +363,7 @@ namespace nkentseu {
     void WindowInternal::SetSize(const Vector2u& size) { SetSize(size.width, size.height); }
 
     float32 WindowInternal::GetDpiScale() const {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             float32 currentDpi = static_cast<float32>(GetDpiForWindow(m_NativeWindow->windowHandle));
             float32 defaultDpi = USER_DEFAULT_SCREEN_DPI;
 
@@ -380,7 +378,7 @@ namespace nkentseu {
     }
 
     Vector2u WindowInternal::CurrentDisplaySize() const {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             int screenWidth = GetSystemMetrics(SM_CXSCREEN);
             int screenHeight = GetSystemMetrics(SM_CYSCREEN);
             return Vector2u(static_cast<uint32>(screenWidth), static_cast<uint32>(screenHeight));
@@ -389,7 +387,7 @@ namespace nkentseu {
     }
 
     Vector2i WindowInternal::CurrentDisplayPosition() const {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             WINDOWPLACEMENT lpwndpl = { 0 };
             GetWindowPlacement(m_NativeWindow->windowHandle, &lpwndpl);
             return Vector2i(lpwndpl.ptMinPosition.x, lpwndpl.ptMinPosition.y);
@@ -398,7 +396,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::ShowMouse(bool show) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             // ShowCursor(show ? TRUE : FALSE);
             m_NativeWindow->isCursorVisible = show;
             SetCursor(m_NativeWindow->isCursorVisible ? m_NativeWindow->lastCursor : nullptr);
@@ -406,14 +404,14 @@ namespace nkentseu {
     }
 
     void WindowInternal::SetMouseCursorGrabbed(bool grabbed) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             m_NativeWindow->isCursorGrabbed = grabbed;
             GrabWindowCursor(m_NativeWindow->isCursorGrabbed);
         }
     }
 
     void WindowInternal::SetMouseCursor(const WindowCursor& cursor) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             m_NativeWindow->lastCursor = static_cast<HCURSOR>(cursor.GetCursor());
             SetCursor(m_NativeWindow->isCursorVisible ? m_NativeWindow->lastCursor : nullptr);
         }
@@ -437,13 +435,13 @@ namespace nkentseu {
     }
 
     void WindowInternal::Minimize() {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             ShowWindow(m_NativeWindow->windowHandle, SW_MINIMIZE);
         }
     }
 
     void WindowInternal::Maximize() {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             if (!IsZoomed(m_NativeWindow->windowHandle)) {
                 ShowWindow(m_NativeWindow->windowHandle, SW_MAXIMIZE);
             }
@@ -454,7 +452,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::Close() {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             if (m_NativeWindow->icon)
                 DestroyIcon(m_NativeWindow->icon);
 
@@ -482,7 +480,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::Show() {
-        if (m_NativeWindow == nullptr || m_Properties.visible) {
+        if (!IsValidDisplay() || m_Properties.visible) {
             return;
         }
 
@@ -494,7 +492,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::Hide() {
-        if (m_NativeWindow == nullptr || !m_Properties.visible) {
+        if (!IsValidDisplay() || !m_Properties.visible) {
             return;
         }
 
@@ -506,7 +504,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::SetIcon(const Vector2u& size, const uint8* pixels) {
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (IsValidDisplay()) {
             // First destroy the previous one
             if (m_NativeWindow->icon)
                 DestroyIcon(m_NativeWindow->icon);
@@ -578,7 +576,7 @@ namespace nkentseu {
         if (m_NativeWindow == nullptr) {
             return;
         }
-        if (NATIVE_WIN32_WINDOW_IS_VALID(windowHandle) && NATIVE_WIN32_WINDOW_IS_VALID(taskbarList)) {
+        if (IsValidDisplay() && m_NativeWindow->taskbarList != nullptr) {
             unsigned max = 10000;
             unsigned cur = (unsigned)(progress * (float32)max);
             m_NativeWindow->taskbarList->SetProgressValue(m_NativeWindow->windowHandle, cur, max);
@@ -601,7 +599,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::SetAlwaysOnTop(bool alwaysOnTop) {
-        if (!NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (!IsValidDisplay()) {
             return;
         }
         if (alwaysOnTop) {
@@ -613,14 +611,14 @@ namespace nkentseu {
     }
 
     void WindowInternal::AcceptDragAndDrop(bool accept) {
-        if (!NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (!IsValidDisplay()) {
             return;
         }
         DragAcceptFiles(m_NativeWindow->windowHandle, accept ? TRUE : FALSE);
     }
 
     void WindowInternal::SetOpacity(float32 opacity) {
-        if (!NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (!IsValidDisplay()) {
             return;
         }
         const HWND hwnd = m_NativeWindow->windowHandle;
@@ -655,7 +653,7 @@ namespace nkentseu {
     }
 
     void WindowInternal::GrabWindowCursor(bool grabbed) {
-        if (!NATIVE_WIN32_WINDOW_IS_VALID(windowHandle)) {
+        if (!IsValidDisplay()) {
             return;
         }
 
@@ -668,6 +666,10 @@ namespace nkentseu {
         else {
             ClipCursor(nullptr);
         }
+    }
+
+    bool WindowInternal::IsValidDisplay() const {
+        return m_NativeWindow != nullptr && m_NativeWindow->windowHandle != 0;
     }
 
 }    // namespace nkentseu
