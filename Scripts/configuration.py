@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from platform import system
+from platform import system, uname
 import os, sys
 from enum import Enum
 
@@ -13,6 +13,8 @@ class Platforme(Enum):
     MACOS = "macos"
     UNKNOW = ""
 
+USE_WSL = False
+
 
 def GetPlatform():
     """
@@ -22,8 +24,15 @@ def GetPlatform():
         Platforme : L'identifiant de la plateforme (Platforme.WINDOWS, Platforme.LINUX, Platforme.MACOS, ou Platforme.UNKNOW si non supportée).
     """
 
+    sub_platform = sys.platform
+    for x in uname():
+        if "microsoft" in x.lower() or "windows" in x.lower():
+            USE_WSL = True
+            break
+
     platform_name = system().lower()
     if platform_name == "windows":
+        USE_WSL = False
         return Platforme.WINDOWS
     elif platform_name == "linux":
         return Platforme.LINUX
@@ -54,6 +63,17 @@ def IsLinux():
     """
 
     return GetPlatform() == Platforme.LINUX
+
+
+def IsUseWSL():
+    """
+    Vérifie si le système actuel utilise WSL.
+
+    Retourne :
+        bool : True si WSL, False sinon.
+    """
+
+    return USE_WSL
 
 
 def IsMacos():

@@ -72,6 +72,28 @@ Internals["Window"]         = "%{wks.location}/Exemples/Window"
 
 -- Options
 
+-- Linux use WSL
+
+newoption {
+    trigger         = "linuxusewsl",
+    value           = "NKENTSEU_LINUX_USE_WSL",
+    description     = "ce flag peut prendre les valeur {NKENTSEU_LINUX_USE_WSL, NKENTSEU_LINUX_UNUSE_WSL}",
+    default         = "NKENTSEU_LINUX_USE_WSL",
+    category        = "Platform",
+    allowed         = {
+        {"NKENTSEU_LINUX_USE_WSL", "use WSL"},
+        {"NKENTSEU_LINUX_UNUSE_WSL", "unuse WSL"}
+    }
+}
+
+function getWSLPlatform()
+	linux_use_wsl = _OPTIONS["linuxusewsl"]
+
+    defines {
+        linux_use_wsl
+    }
+end
+
 -- Linux window api
 
 newoption {
@@ -92,6 +114,7 @@ function getLinuxWinApi()
     defines {
         linux_win_api
     }
+    
 
     if linux_win_api == "NKENTSEU_LINUX_WIN_API_XCB" then
         links {
@@ -102,6 +125,8 @@ function getLinuxWinApi()
             "X11", "Xcursor", "Xrandr", "Xfixes"
         }
     end
+
+    getWSLPlatform()
 end
 
 -- Startup project configurations

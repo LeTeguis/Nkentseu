@@ -48,7 +48,11 @@ namespace nkentseu {
 
 #if NKENTSEU_GRAPHICS_API_OPENGL
         version.major = 4;
-        version.minor = 2; // 6 sur les platforme autre que wsl
+        #ifdef NKENTSEU_PLATFORM_LINUX_USE_SUBSYSTEM
+            version.minor = 2; // 6 sur les platforme autre que wsl
+        #else
+            version.minor = 6; // 6 sur les platforme autre que wsl
+        #endif
 #elif NKENTSEU_GRAPHICS_API_VULKAN
         version.major = 1;
         version.minor = 3;

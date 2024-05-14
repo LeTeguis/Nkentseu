@@ -50,6 +50,7 @@ namespace nkentseu {
 
         if (m_Context != nullptr) {
             if (m_Context->Initialize(m_Window.get(), propertie)) {
+                Log.Debug("OpenGL version {0}.{1}", m_Context->GetProperties().version.major, m_Context->GetProperties().version.minor);
                 if (m_Renderer != nullptr) {
                     m_Renderer->Initialize(m_Context.get());
                 }
