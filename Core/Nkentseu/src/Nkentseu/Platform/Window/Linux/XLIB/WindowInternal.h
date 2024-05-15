@@ -85,7 +85,7 @@ namespace nkentseu {
         virtual bool IsCreate();
         void SetProgress(float32 progress);
 
-        static WindowInternal* GetCurrent(::Window window);
+        static WindowInternal* GetCurrent(unsigned long window);
 
     private:
         friend class WindowEventInternal;
@@ -105,14 +105,15 @@ namespace nkentseu {
         void SetMinSize(const Vector2u& size);
         void SetMaxSize(const Vector2u& size);
         void SetBorder(uint32 border);
-        void InitWindowPosition();
+        Vector2i InitWindowPosition(const Vector2i& position, const Vector2u& size, WindowPositionType positionType);
 
         bool IsValidPlatform() const;
         bool IsValidDisplay() const;
+        void SendWindowCreatedEvent();
     };
 
     static thread_local WindowInternal* currentWindowInternal = nullptr;
-    static thread_local std::unordered_map<::Window, WindowInternal*> windowHandleMap = {};
+    static thread_local std::unordered_map<unsigned long, WindowInternal*> windowHandleMap = {};
 } // namespace nkentseu
 
 #endif

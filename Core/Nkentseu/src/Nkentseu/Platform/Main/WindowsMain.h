@@ -21,7 +21,6 @@
 extern nkentseu::int32 Main(const nkentseu::ARGV& argv);
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw) {
-
     #ifdef NKENTSEU_DEBUG
     AllocConsole();
     FILE* pCout;

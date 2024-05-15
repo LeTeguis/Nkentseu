@@ -26,12 +26,12 @@ namespace nkentseu {
             static uint64 KeycodeToWinkey(Keyboard::Code code);
             static Keyboard::Code WinkeyToKeycode(uint64 winkeycode);
 
-            static Keyboard::Code WinkeyToKeycodeSpecial(uint64 winkeycode, bool shifDown);
+            //static Keyboard::Code WinkeyToKeycodeSpecial(uint64 winkeycode, bool shifDown);
 
             static uint64 ScancodeToWinkey(Keyboard::Code code);
             static Keyboard::Code WinkeyToScancode(uint64 winkeycode);
 
-            static Keyboard::Code WinkeyToScancodeSpecial(uint64 winkeycode, bool shifDown);
+            //static Keyboard::Code WinkeyToScancodeSpecial(uint64 winkeycode, bool shifDown);
 
             static ModifierState ModifierStateToWinkey();
         private:

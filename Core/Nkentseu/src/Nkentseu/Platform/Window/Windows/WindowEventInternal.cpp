@@ -8,6 +8,7 @@
 
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 
+#include <System/Nature/Base.h>
 #include "Nkentseu/Event/Event.h"
 #include "Nkentseu/Event/WindowEvent.h"
 #include "Nkentseu/Event/KeyboardEvent.h"
@@ -778,7 +779,8 @@ namespace nkentseu {
 
 	LRESULT WindowEventInternal::HandleCharEvent(MSG msg, WindowInternal* window, bool interpret) {
 		if (interpret) {
-			return FinalizePushEvent(new CharEnteredEvent(window->ID(), (uint64)msg.wParam), 0, msg, window);
+			uint64 code = (uint64)msg.wParam;
+			return FinalizePushEvent(new CharEnteredEvent(window->ID(), code, UnicodeToUTF8(code)), 0, msg, window);
 		}
 		return 0;
 	}

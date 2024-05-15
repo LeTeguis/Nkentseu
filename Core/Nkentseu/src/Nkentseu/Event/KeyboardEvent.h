@@ -47,13 +47,15 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::CharEntered)
         EVENT_CATEGORY_FLAGS(EventCategory::Keyboard | EventCategory::Input)
     public:
-        CharEnteredEvent(uint64 win, uint64 character);
+        CharEnteredEvent(uint64 win, uint64 character, const std::string& text);
         CharEnteredEvent(const CharEnteredEvent& e);
         virtual std::string ToString() const override;
 
         uint64 GetCharacter() const;
+        std::string GetText() const;
     private:
         uint64 m_Character;  // The pressed character
+        std::string m_Text;
     };
 } // namespace nkentseu
 

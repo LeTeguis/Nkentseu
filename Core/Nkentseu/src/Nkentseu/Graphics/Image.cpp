@@ -719,7 +719,7 @@ namespace nkentseu {
             for (int32 x = 0; x < m_Size.x; x++) {
                 // Obtenez les couleurs des pixels
                 Color color1 = GetColor(x, y);
-                Color color2 = Color::Transparent;
+                Color color2 = Color::Transparent();
 
                 if (x < other.m_Size.x && y < other.m_Size.y) {
                     color2 = other.GetColor(x, y);
@@ -769,7 +769,7 @@ namespace nkentseu {
             for (int32 x = 0; x < m_Size.x; x++) {
                 // Obtenez les couleurs des pixels
                 Color color1 = GetColor(x, y);
-                Color color2 = Color::Transparent;
+                Color color2 = Color::Transparent();
 
                 if (x < other.m_Size.x && y < other.m_Size.y && x >= otherPosition.x && y >= otherPosition.y) {
                     color2 = other.GetColor(x, y);

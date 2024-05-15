@@ -308,12 +308,12 @@ function langageInformations()
     language "C++"
     cppdialect "C++17"
 
-    toolset ("clang")
+    -- toolset ("clang")
 
     filter "system:linux"
         buildoptions {}
         --toolchain "clang"
-        --toolset ("clang")
+        toolset ("clang")
         --toolchainversion "5.0"
         -- buildoptions{ "Waddress-of-temporary" }
 

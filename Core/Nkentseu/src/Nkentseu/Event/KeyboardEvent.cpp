@@ -57,16 +57,21 @@ namespace nkentseu {
 
     //----------------------------------
 
-    CharEnteredEvent::CharEnteredEvent(uint64 win, uint64 character) : Event(win), m_Character(character) {}
+    CharEnteredEvent::CharEnteredEvent(uint64 win, uint64 character, const std::string& text) : Event(win), m_Character(character), m_Text(text){}
 
     CharEnteredEvent::CharEnteredEvent(const CharEnteredEvent& e) : Event(e), m_Character(e.m_Character) {}
 
     std::string CharEnteredEvent::ToString() const {
-        return FORMATTER.Format("CharEnteredEvent {Window ID : {0}, Character : {1}}", m_WindowID, m_Character);
+        return FORMATTER.Format("CharEnteredEvent {Window ID : {0}, Unicode : {1}, Character : {2}}", m_WindowID, m_Character, m_Text);
     }
 
     uint64 CharEnteredEvent::GetCharacter() const {
         return m_Character;
+    }
+
+    std::string CharEnteredEvent::GetText() const
+    {
+        return m_Text;
     }
 
 } // namespace nkentseu

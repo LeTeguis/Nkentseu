@@ -229,6 +229,14 @@ namespace nkentseu {
             }
 
             protocolAtom.deleteWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);
+            protocolAtom.fullScreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False);
+            protocolAtom.windowCreatedAtom = XInternAtom(display, "WINDOW_STATE_CREATED", False);
+            protocolAtom.wmMotifHints = XInternAtom(display,"_MOTIF_WM_HINTS",0);
+            protocolAtom.wmChangeState = XInternAtom(display, "_NET_WM_STATE", False);
+            protocolAtom.wmMinimize = XInternAtom(display, "_NET_WM_STATE_MINIMIZED", False);
+            protocolAtom.wmMaximizeHorz = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+            protocolAtom.wmMaximizeVert = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+
         }
     #endif
 

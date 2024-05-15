@@ -17,6 +17,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xrandr.h>
 
 #include <System/Definitions/Memory.h>
 
@@ -55,9 +56,24 @@ namespace nkentseu {
         Vector2i mousePosition;
         Vector2i globalMousePosition;
         Vector2i previousMousePosition;
+        float64 dpi = 0.0;
 
         uint64 PushEvent(XEvent xev);
         uint64 FinalizePushEvent(Event* event, uint64 info);
+
+        uint64 HandleKeyboard(XKeyEvent event, bool isPressed);
+        uint64 HandleMouseButton(XButtonEvent event, bool isPressed);
+        uint64 HandleMotionNotify(XMotionEvent event);
+        uint64 HandleEnterLeaveEvent(XCrossingEvent event, bool isEnter);
+        uint64 HandleClientMessage(XClientMessageEvent event);
+        uint64 HandleFocusEvent(XFocusChangeEvent event, bool isFocusIn);
+        uint64 HandleExposeEvent(XExposeEvent event);
+        uint64 HandleGraphicsExposeEvent(XGraphicsExposeEvent event);
+        uint64 HandleConfigureEvent(XConfigureEvent event) ;
+        uint64 HandleVisibilityEvent(XVisibilityEvent event);
+
+        float64 CalculateDPI(int32 width_pixels, int32 height_pixels, float64 width_inches, float64 height_inches);
+        float64 GetCurrentDpi(Display* display);
 
         void TriggerEvent(Event* event);
     };

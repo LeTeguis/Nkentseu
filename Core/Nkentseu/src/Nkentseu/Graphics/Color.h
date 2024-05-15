@@ -172,7 +172,7 @@ namespace nkentseu {
 			return Color(m_Red ^ other.m_Red, m_Green ^ other.m_Green, m_Blue ^ other.m_Blue, m_Alpha ^ other.m_Alpha);
 		}
 
-		static const Color& Transparent;
+		/*static const Color& Transparent;
 		static const Color& Blue;
 		static const Color& Green;
 		static const Color& Red;
@@ -242,7 +242,151 @@ namespace nkentseu {
 		static const Color& CharcoalBlack;
 		static const Color& SlateGray;
 		static const Color& SkyBlueRef;
-		static const Color& DuckBlue;
+		static const Color& DuckBlue;*/
+
+		/*#define Transparent RGBAf(0.0f, 0.0f, 0.0f, 1.0f)
+		#define Blue RGBf(0.0f, 0.0f, 1.0f)
+		#define Green RGBf(0.0f, 1.0f, 0.0f)
+		#define Red RGBf(1.0f, 0.0f, 0.0f)
+		#define Black RGBf(0.0f, 0.0f, 0.0f)
+		#define White RGBf(1.0f, 1.0f, 1.0f)
+		#define Yellow RGBf(1.0f, 1.0f, 0.0f)
+		#define Purple RGBf(0.5f, 0.0f, 0.5f)
+		#define Cyan RGBf(0.0f, 1.0f, 1.0f)
+		#define Magenta RGBf(1.0f, 0.0f, 1.0f)
+		#define Orange RGBf(1.0f, 0.5f, 0.0f)
+		#define Pink RGBf(1.0f, 0.75f, 0.8f)
+		#define Gray RGBf(0.5f, 0.5f, 0.5f)
+		#define DarkGray RGBf(0.1f, 0.1f, 0.1f)
+		#define Lime RGBf(0.75f, 1.0f, 0.0f)
+		#define Teal RGBf(0.0f, 0.5f, 0.5f)
+		#define Brown RGBf(0.65f, 0.16f, 0.16f)
+		#define Olive RGBf(0.5f, 0.5f, 0.0f)
+		#define Maroon RGBf(0.5f, 0.0f, 0.0f)
+		#define Navy RGBf(0.0f, 0.0f, 0.5f)
+		#define Indigo RGBf(0.29f, 0.0f, 0.51f)
+		#define Turquoise RGBf(0.25f, 0.88f, 0.82f)
+		#define Silver RGBf(0.75f, 0.75f, 0.75f)
+		#define Gold RGBf(1.0f, 0.84f, 0.0f)
+		#define SkyBlue RGBf(0.53f, 0.81f, 0.98f)
+		#define ForestGreen RGBf(0.13f, 0.55f, 0.13f)
+		#define SteelBlue RGBf(0.27f, 0.51f, 0.71f)
+		#define DarkSlateGray RGBf(0.18f, 0.31f, 0.31f)
+		#define Chocolate RGBf(0.82f, 0.41f, 0.12f)
+		#define HotPink RGBf(1.0f, 0.41f, 0.71f)
+		#define SlateBlue RGBf(0.42f, 0.35f, 0.8f)
+		#define RoyalBlue RGBf(0.25f, 0.41f, 0.88f)
+		#define Tomato RGBf(1.0f, 0.39f, 0.28f)
+		#define MediumSeaGreen RGBf(0.24f, 0.7f, 0.44f)
+		#define DarkOrange RGBf(1.0f, 0.55f, 0.0f)
+		#define MediumPurple RGBf(0.58f, 0.44f, 0.86f)
+		#define CornflowerBlue RGBf(0.39f, 0.58f, 0.93f)
+		#define DarkGoldenrod RGBf(0.72f, 0.53f, 0.04f)
+		#define DodgerBlue RGBf(0.12f, 0.56f, 1.0f)
+		#define MediumVioletRed RGBf(0.78f, 0.08f, 0.52f)
+		#define Peru RGBf(0.8f, 0.52f, 0.25f)
+		#define MediumAquamarine RGBf(0.4f, 0.8f, 0.67f)
+		#define DarkTurquoise RGBf(0.0f, 0.81f, 0.82f)
+		#define MediumSlateBlue RGBf(0.48f, 0.41f, 0.93f)
+		#define SaddleBrown RGBf(0.55f, 0.27f, 0.07f)
+		#define YellowGreen RGBf(0.6f, 0.8f, 0.2f)
+		#define LightCoral RGBf(0.94f, 0.5f, 0.5f)
+		#define DarkSlateBlue RGBf(0.28f, 0.24f, 0.55f)
+		#define DarkOliveGreen RGBf(0.33f, 0.42f, 0.18f)
+		#define Firebrick RGBf(0.7f, 0.13f, 0.13f)
+		#define MediumOrchid RGBf(0.73f, 0.33f, 0.83f)
+		#define RosyBrown RGBf(0.74f, 0.56f, 0.56f)
+		#define DarkCyan RGBf(0.0f, 0.55f, 0.55f)
+		#define CadetBlue RGBf(0.37f, 0.62f, 0.63f)
+		#define PaleVioletRed RGBf(0.86f, 0.44f, 0.58f)
+		#define DeepPink RGBf(1.0f, 0.08f, 0.58f)
+		#define LawnGreen RGBf(0.49f, 0.99f, 0.0f)
+		#define MediumSpringGreen RGBf(0.0f, 0.98f, 0.6f)
+		#define MediumTurquoise RGBf(0.28f, 0.82f, 0.8f)
+		#define PaleGreen RGBf(0.6f, 0.98f, 0.6f)
+		#define DarkKhaki RGBf(0.74f, 0.72f, 0.42f)
+		#define MediumBlue RGBf(0.0f, 0.0f, 0.8f)
+		#define NavajoWhite RGBf(1.0f, 0.87f, 0.68f)
+		#define DarkSalmon RGBf(0.91f, 0.59f, 0.48f)
+		#define MediumCoral RGBf(0.81f, 0.36f, 0.36f)
+		#define DefaultBackground RGBf(0.0f, 162.0f / 255.0f, 232.0f / 255.0f)
+		#define MidnightBlue RGBf(25.0f / 255.0f, 25.0f / 255.0f, 112.0f / 255.0f)
+		#define CharcoalBlack RGBf(31.0f / 255.0f, 31.0f / 255.0f, 31.0f / 255.0f)
+		#define SlateGray RGBf(46.0f / 255.0f, 46.0f / 255.0f, 46.0f / 255.0f)
+		#define SkyBlueRef RGBf(50.0f / 255.0f, 130.0f / 255.0f, 246.0f / 255.0f)
+		#define DuckBlue RGBf(0.0f / 255.0f, 162.0f / 255.0f, 232.0f / 255.0f)*/
+
+		static const Color& Transparent();
+		static const Color& Blue();
+		static const Color& Green();
+		static const Color& Red();
+		static const Color& Black();
+		static const Color& White();
+		static const Color& Yellow();
+		static const Color& Purple();
+		static const Color& Cyan();
+		static const Color& Magenta();
+		static const Color& Orange();
+		static const Color& Pink();
+		static const Color& Gray();
+		static const Color& DarkGray();
+		static const Color& Lime();
+		static const Color& Teal();
+		static const Color& Brown();
+		static const Color& SaddleBrown();
+		static const Color& Olive();
+		static const Color& Maroon();
+		static const Color& Navy();
+		static const Color& Indigo();
+		static const Color& Turquoise();
+		static const Color& Silver();
+		static const Color& Gold();
+		static const Color& SkyBlue();
+		static const Color& ForestGreen();
+		static const Color& SteelBlue();
+		static const Color& DarkSlateGray();
+		static const Color& Chocolate();
+		static const Color& HotPink();
+		static const Color& SlateBlue();
+		static const Color& RoyalBlue();
+		static const Color& Tomato();
+		static const Color& MediumSeaGreen();
+		static const Color& DarkOrange();
+		static const Color& MediumPurple();
+		static const Color& CornflowerBlue();
+		static const Color& DarkGoldenrod();
+		static const Color& DodgerBlue();
+		static const Color& MediumVioletRed();
+		static const Color& Peru();
+		static const Color& MediumAquamarine();
+		static const Color& DarkTurquoise();
+		static const Color& MediumSlateBlue();
+		static const Color& YellowGreen();
+		static const Color& LightCoral();
+		static const Color& DarkSlateBlue();
+		static const Color& DarkOliveGreen();
+		static const Color& Firebrick();
+		static const Color& MediumOrchid();
+		static const Color& RosyBrown();
+		static const Color& DarkCyan();
+		static const Color& CadetBlue();
+		static const Color& PaleVioletRed();
+		static const Color& DeepPink();
+		static const Color& LawnGreen();
+		static const Color& MediumSpringGreen();
+		static const Color& MediumTurquoise();
+		static const Color& PaleGreen();
+		static const Color& DarkKhaki();
+		static const Color& MediumBlue();
+		static const Color& MidnightBlue();
+		static const Color& NavajoWhite();
+		static const Color& DarkSalmon();
+		static const Color& MediumCoral();
+		static const Color& DefaultBackground();
+		static const Color& CharcoalBlack();
+		static const Color& SlateGray();
+		static const Color& SkyBlueRef();
+		static const Color& DuckBlue();
 
 		static const Color& FromName(const std::string& name);
 	};

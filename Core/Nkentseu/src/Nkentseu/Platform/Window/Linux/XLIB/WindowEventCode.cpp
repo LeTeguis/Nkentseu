@@ -320,6 +320,7 @@ namespace nkentseu {
 	Keyboard::Code WindowEventCode::WinkeyToKeycode(uint64 winkeycode)
 	{
         #define CODE_CONVERT_WK_KC(value, code_id) if (winkeycode == value) return code_id
+        Log_nts.Debug();
         
         CODE_CONVERT_WK_KC(XK_F1, Keyboard::F1);
         CODE_CONVERT_WK_KC(XK_F2, Keyboard::F2);
@@ -616,16 +617,490 @@ namespace nkentseu {
     {
         #define CODE_CONVERT_SC_WK(code_id, value) if (code == Keyboard::code_id) return value;
 
-        
+        //CODE_CONVERT_SC_WK()
+
         return 0;
     }
 
     Keyboard::Code WindowEventCode::WinkeyToScancode(uint64 winkeycode)
-    {
-        #define CODE_CONVERT_WK_SC(code_id, value) if (winkeycode == value) return Keyboard::code_id
+{
+    #define CODE_CONVERT_WK_SC(code_id, value) if (winkeycode == value) return Keyboard::code_id
 
-        return Keyboard::NotDefine;
-    }
+    // Misc keys
+    CODE_CONVERT_WK_SC(Escape, 9);
+    CODE_CONVERT_WK_SC(Tab, 23);
+    CODE_CONVERT_WK_SC(Backtab, 22);
+    CODE_CONVERT_WK_SC(Backspace, 8);
+    CODE_CONVERT_WK_SC(Return, 36);
+    CODE_CONVERT_WK_SC(Enter, 36);
+    CODE_CONVERT_WK_SC(Insert, 118);
+    CODE_CONVERT_WK_SC(Delete, 119);
+    CODE_CONVERT_WK_SC(Pause, 127);
+    CODE_CONVERT_WK_SC(Print, 107);
+    CODE_CONVERT_WK_SC(SysReq, 107);
+    CODE_CONVERT_WK_SC(Clear, 12);
+
+    // Cursor movement
+    CODE_CONVERT_WK_SC(Home, 110);
+    CODE_CONVERT_WK_SC(End, 115);
+    CODE_CONVERT_WK_SC(Left, 113);
+    CODE_CONVERT_WK_SC(Up, 111);
+    CODE_CONVERT_WK_SC(Right, 114);
+    CODE_CONVERT_WK_SC(Down, 116);
+    CODE_CONVERT_WK_SC(PageUp, 112);
+    CODE_CONVERT_WK_SC(PageDown, 117);
+
+    // Modifiers
+    CODE_CONVERT_WK_SC(ShiftLock, 122);
+    CODE_CONVERT_WK_SC(Shift, 50);
+    CODE_CONVERT_WK_SC(ShiftLeft, 50);
+    CODE_CONVERT_WK_SC(ShiftRight, 62);
+    CODE_CONVERT_WK_SC(Control, 37);
+    CODE_CONVERT_WK_SC(ControlLeft, 37);
+    CODE_CONVERT_WK_SC(ControlRight, 105);
+    CODE_CONVERT_WK_SC(Meta, 133);
+    CODE_CONVERT_WK_SC(MetaLeft, 133);
+    CODE_CONVERT_WK_SC(MetaRight, 134);
+    CODE_CONVERT_WK_SC(Alt, 64);
+    CODE_CONVERT_WK_SC(AltLeft, 64);
+    CODE_CONVERT_WK_SC(AltRight, 108);
+    CODE_CONVERT_WK_SC(CapsLock, 66);
+    CODE_CONVERT_WK_SC(NumLock, 77);
+    CODE_CONVERT_WK_SC(ScrollLock, 78);
+
+    // Function keys
+    CODE_CONVERT_WK_SC(F1, 67);
+    CODE_CONVERT_WK_SC(F2, 68);
+    CODE_CONVERT_WK_SC(F3, 69);
+    CODE_CONVERT_WK_SC(F4, 70);
+    CODE_CONVERT_WK_SC(F5, 71);
+    CODE_CONVERT_WK_SC(F6, 72);
+    CODE_CONVERT_WK_SC(F7, 73);
+    CODE_CONVERT_WK_SC(F8, 74);
+    CODE_CONVERT_WK_SC(F9, 75);
+    CODE_CONVERT_WK_SC(F10, 76);
+    CODE_CONVERT_WK_SC(F11, 95);
+    CODE_CONVERT_WK_SC(F12, 96);
+    CODE_CONVERT_WK_SC(F13, 120);
+    CODE_CONVERT_WK_SC(F14, 121);
+    CODE_CONVERT_WK_SC(F15, 122);
+    CODE_CONVERT_WK_SC(F16, 123);
+    CODE_CONVERT_WK_SC(F17, 124);
+    CODE_CONVERT_WK_SC(F18, 125);
+    CODE_CONVERT_WK_SC(F19, 126);
+    CODE_CONVERT_WK_SC(F20, 127);
+    CODE_CONVERT_WK_SC(F21, 128);
+    CODE_CONVERT_WK_SC(F22, 129);
+    CODE_CONVERT_WK_SC(F23, 130);
+    CODE_CONVERT_WK_SC(F24, 131);
+    CODE_CONVERT_WK_SC(F25, 132);
+    CODE_CONVERT_WK_SC(F26, 133);
+    CODE_CONVERT_WK_SC(F27, 134);
+    CODE_CONVERT_WK_SC(F28, 135);
+    CODE_CONVERT_WK_SC(F29, 136);
+    CODE_CONVERT_WK_SC(F30, 137);
+    CODE_CONVERT_WK_SC(F31, 138);
+    CODE_CONVERT_WK_SC(F32, 139);
+    CODE_CONVERT_WK_SC(F33, 140);
+    CODE_CONVERT_WK_SC(F34, 141);
+    CODE_CONVERT_WK_SC(F35, 142);
+
+    // Other keys
+    CODE_CONVERT_WK_SC(SuperLeft, 133);
+    CODE_CONVERT_WK_SC(SuperRight, 134);
+    CODE_CONVERT_WK_SC(Undo, 119);
+    CODE_CONVERT_WK_SC(Redo, 121);
+    CODE_CONVERT_WK_SC(Menu, 135);
+    CODE_CONVERT_WK_SC(Find, 136);
+    CODE_CONVERT_WK_SC(HyperLeft, 120);
+    CODE_CONVERT_WK_SC(HyperRight, 122);
+    CODE_CONVERT_WK_SC(Help, 138);
+    CODE_CONVERT_WK_SC(DirectionLeft, 113);
+    CODE_CONVERT_WK_SC(DirectionRight, 114);
+    CODE_CONVERT_WK_SC(Space, 65);
+    CODE_CONVERT_WK_SC(Any, 65);
+    CODE_CONVERT_WK_SC(Exclam, 10);
+    CODE_CONVERT_WK_SC(QuoteDbl, 11);
+    CODE_CONVERT_WK_SC(NumberSign, 12);
+    CODE_CONVERT_WK_SC(Dollar, 13);
+    CODE_CONVERT_WK_SC(Percent, 14);
+    CODE_CONVERT_WK_SC(Ampersand, 15);
+    CODE_CONVERT_WK_SC(Apostrophe, 16);
+    CODE_CONVERT_WK_SC(ParenLeft, 17);
+    CODE_CONVERT_WK_SC(ParenRight, 18);
+    CODE_CONVERT_WK_SC(Asterisk, 19);
+    CODE_CONVERT_WK_SC(Plus, 20);
+    CODE_CONVERT_WK_SC(Comma, 51);
+    CODE_CONVERT_WK_SC(Minus, 35);
+    CODE_CONVERT_WK_SC(Period, 52);
+    CODE_CONVERT_WK_SC(Decimal, 52);
+    CODE_CONVERT_WK_SC(Slash, 53);
+    CODE_CONVERT_WK_SC(Divide, 53);
+
+    // Add more conversions here for other keys...
+    // Misc keys (suite)
+    CODE_CONVERT_WK_SC(Nobreakspace, 65);
+    CODE_CONVERT_WK_SC(Exclamdown, 10);
+    CODE_CONVERT_WK_SC(Cent, 11);
+    CODE_CONVERT_WK_SC(Sterling, 12);
+    CODE_CONVERT_WK_SC(Currency, 13);
+    CODE_CONVERT_WK_SC(Yen, 14);
+    CODE_CONVERT_WK_SC(Brokenbar, 15);
+    CODE_CONVERT_WK_SC(Section, 16);
+    CODE_CONVERT_WK_SC(Diaeresis, 17);
+    CODE_CONVERT_WK_SC(Copyright, 18);
+    CODE_CONVERT_WK_SC(Ordfeminine, 19);
+    CODE_CONVERT_WK_SC(Guillemotleft, 20);
+    CODE_CONVERT_WK_SC(Notsign, 21);
+    CODE_CONVERT_WK_SC(Hyphen, 35);
+    CODE_CONVERT_WK_SC(Registered, 36);
+    CODE_CONVERT_WK_SC(Macron, 54);
+    CODE_CONVERT_WK_SC(Degree, 55);
+    CODE_CONVERT_WK_SC(Plusminus, 56);
+    CODE_CONVERT_WK_SC(Twosuperior, 57);
+    CODE_CONVERT_WK_SC(Threesuperior, 58);
+    CODE_CONVERT_WK_SC(Acute, 59);
+    CODE_CONVERT_WK_SC(Mu, 60);
+    CODE_CONVERT_WK_SC(Paragraph, 61);
+    CODE_CONVERT_WK_SC(Periodcentered, 62);
+    CODE_CONVERT_WK_SC(Cedilla, 63);
+    CODE_CONVERT_WK_SC(Onesuperior, 64);
+    CODE_CONVERT_WK_SC(Masculine, 65);
+    CODE_CONVERT_WK_SC(Guillemotright, 66);
+    CODE_CONVERT_WK_SC(Onequarter, 67);
+    CODE_CONVERT_WK_SC(Onehalf, 68);
+    CODE_CONVERT_WK_SC(Threequarters, 69);
+    CODE_CONVERT_WK_SC(Questiondown, 70);
+    CODE_CONVERT_WK_SC(Agrave, 96);
+    CODE_CONVERT_WK_SC(Aacute, 97);
+    CODE_CONVERT_WK_SC(Acircumflex, 98);
+    CODE_CONVERT_WK_SC(Atilde, 99);
+    CODE_CONVERT_WK_SC(Adiaeresis, 100);
+    CODE_CONVERT_WK_SC(Aring, 101);
+    CODE_CONVERT_WK_SC(AE, 102);
+    CODE_CONVERT_WK_SC(Ccedilla, 103);
+    CODE_CONVERT_WK_SC(Egrave, 104);
+    CODE_CONVERT_WK_SC(Eacute, 105);
+    CODE_CONVERT_WK_SC(Ecircumflex, 106);
+    CODE_CONVERT_WK_SC(Ediaeresis, 107);
+    CODE_CONVERT_WK_SC(Igrave, 108);
+    CODE_CONVERT_WK_SC(Iacute, 109);
+    CODE_CONVERT_WK_SC(Icircumflex, 110);
+    CODE_CONVERT_WK_SC(Idiaeresis, 111);
+    CODE_CONVERT_WK_SC(ETH, 112);
+    CODE_CONVERT_WK_SC(Ntilde, 113);
+    CODE_CONVERT_WK_SC(Ograve, 114);
+    CODE_CONVERT_WK_SC(Oacute, 115);
+    CODE_CONVERT_WK_SC(Ocircumflex, 116);
+    CODE_CONVERT_WK_SC(Otilde, 117);
+    CODE_CONVERT_WK_SC(Odiaeresis, 118);
+    CODE_CONVERT_WK_SC(Multiply, 85);
+    CODE_CONVERT_WK_SC(Ooblique, 51);
+    CODE_CONVERT_WK_SC(Ugrave, 120);
+    CODE_CONVERT_WK_SC(Uacute, 121);
+    CODE_CONVERT_WK_SC(Ucircumflex, 122);
+    CODE_CONVERT_WK_SC(Udiaeresis, 123);
+    CODE_CONVERT_WK_SC(Yacute, 124);
+    CODE_CONVERT_WK_SC(THORN, 125);
+    CODE_CONVERT_WK_SC(Ssharp, 126);
+    CODE_CONVERT_WK_SC(Division, 84);
+    CODE_CONVERT_WK_SC(Ydiaeresis, 128);
+
+    // Autres touches (suite)
+    CODE_CONVERT_WK_SC(AltGr, 108);
+    CODE_CONVERT_WK_SC(MultiKey, 122);
+    CODE_CONVERT_WK_SC(Codeinput, 128);
+    CODE_CONVERT_WK_SC(SingleCandidate, 129);
+    CODE_CONVERT_WK_SC(MultipleCandidate, 130);
+    CODE_CONVERT_WK_SC(PreviousCandidate, 131);
+    CODE_CONVERT_WK_SC(ModeSwitch, 203);
+    CODE_CONVERT_WK_SC(ScriptSwitch, 204);
+    CODE_CONVERT_WK_SC(Kanji, 213);
+    CODE_CONVERT_WK_SC(Muhenkan, 214);
+    CODE_CONVERT_WK_SC(HenkanMode, 215);
+    CODE_CONVERT_WK_SC(Henkan, 216);
+    CODE_CONVERT_WK_SC(Romaji, 217);
+    CODE_CONVERT_WK_SC(Hiragana, 218);
+    CODE_CONVERT_WK_SC(Katakana, 219);
+    CODE_CONVERT_WK_SC(HiraganaKatakana, 220);
+    CODE_CONVERT_WK_SC(Zenkaku, 221);
+    CODE_CONVERT_WK_SC(Hankaku, 222);
+    CODE_CONVERT_WK_SC(ZenkakuHankaku, 223);
+    CODE_CONVERT_WK_SC(Touroku, 224);
+    CODE_CONVERT_WK_SC(Massyo, 225);
+    CODE_CONVERT_WK_SC(KanaLock, 226);
+    CODE_CONVERT_WK_SC(KanaShift, 227);
+    CODE_CONVERT_WK_SC(EisuShift, 228);
+    CODE_CONVERT_WK_SC(EisuToggle, 229);
+    CODE_CONVERT_WK_SC(KanjiBangou, 230);
+    CODE_CONVERT_WK_SC(ZenKoho, 231);
+    CODE_CONVERT_WK_SC(MaeKoho, 232);
+    CODE_CONVERT_WK_SC(Hangul, 240);
+    CODE_CONVERT_WK_SC(HangulStart, 241);
+    CODE_CONVERT_WK_SC(HangulEnd, 242);
+    CODE_CONVERT_WK_SC(HangulHanja, 243);
+    CODE_CONVERT_WK_SC(HangulJamo, 244);
+    CODE_CONVERT_WK_SC(HangulRomaja, 245);
+    CODE_CONVERT_WK_SC(HangulCodeinput, 246);
+    CODE_CONVERT_WK_SC(HangulJeonja, 247);
+    CODE_CONVERT_WK_SC(HangulBanja, 248);
+    CODE_CONVERT_WK_SC(HangulPreHanja, 249);
+    CODE_CONVERT_WK_SC(HangulPostHanja, 250);
+    CODE_CONVERT_WK_SC(HangulSingleCandidate, 251);
+    CODE_CONVERT_WK_SC(HangulMultipleCandidate, 252);
+    CODE_CONVERT_WK_SC(HangulPreviousCandidate, 253);
+    CODE_CONVERT_WK_SC(HangulSpecial, 254);
+    CODE_CONVERT_WK_SC(Hangulswitch, 255);
+    
+    // Dead keys
+    CODE_CONVERT_WK_SC(DeadGrave, 68);
+    CODE_CONVERT_WK_SC(DeadAcute, 70);
+    CODE_CONVERT_WK_SC(DeadCircumflex, 72);
+    CODE_CONVERT_WK_SC(DeadTilde, 74);
+    CODE_CONVERT_WK_SC(DeadMacron, 76);
+    CODE_CONVERT_WK_SC(DeadBreve, 78);
+    CODE_CONVERT_WK_SC(DeadAbovedot, 80);
+    CODE_CONVERT_WK_SC(DeadDiaeresis, 82);
+    CODE_CONVERT_WK_SC(DeadAbovering, 84);
+    CODE_CONVERT_WK_SC(DeadDoubleacute, 86);
+    CODE_CONVERT_WK_SC(DeadCaron, 88);
+    CODE_CONVERT_WK_SC(DeadCedilla, 90);
+    CODE_CONVERT_WK_SC(DeadOgonek, 92);
+    CODE_CONVERT_WK_SC(DeadIota, 94);
+    CODE_CONVERT_WK_SC(DeadVoicedSound, 96);
+    CODE_CONVERT_WK_SC(DeadSemivoicedSound, 98);
+    CODE_CONVERT_WK_SC(DeadBelowdot, 100);
+    CODE_CONVERT_WK_SC(DeadHook, 102);
+    CODE_CONVERT_WK_SC(DeadHorn, 104);
+
+    // Touches multimédia
+    CODE_CONVERT_WK_SC(Back, 166);
+    CODE_CONVERT_WK_SC(Forward, 167);
+    CODE_CONVERT_WK_SC(Stop, 168);
+    CODE_CONVERT_WK_SC(Refresh, 169);
+    CODE_CONVERT_WK_SC(VolumeDown, 174);
+    CODE_CONVERT_WK_SC(VolumeMute, 173);
+    CODE_CONVERT_WK_SC(VolumeUp, 176);
+    CODE_CONVERT_WK_SC(BassBoost, 190);
+    CODE_CONVERT_WK_SC(BassUp, 188);
+    CODE_CONVERT_WK_SC(BassDown, 189);
+    CODE_CONVERT_WK_SC(TrebleUp, 191);
+    CODE_CONVERT_WK_SC(TrebleDown, 192);
+    CODE_CONVERT_WK_SC(MediaPlay, 207);
+    CODE_CONVERT_WK_SC(MediaStop, 208);
+    CODE_CONVERT_WK_SC(MediaPrevious, 209);
+    CODE_CONVERT_WK_SC(MediaNext, 210);
+    CODE_CONVERT_WK_SC(MediaRecord, 211);
+    CODE_CONVERT_WK_SC(MediaPause, 212);
+    CODE_CONVERT_WK_SC(MediaTogglePlayPause, 176);
+    CODE_CONVERT_WK_SC(HomePage, 172);
+    CODE_CONVERT_WK_SC(Favorites, 166);
+    CODE_CONVERT_WK_SC(Search, 65);
+    CODE_CONVERT_WK_SC(Standby, 223);
+    CODE_CONVERT_WK_SC(OpenUrl, 65);
+    
+    // Touches d'accès rapide
+    CODE_CONVERT_WK_SC(LaunchMail, 171);
+    CODE_CONVERT_WK_SC(LaunchMedia, 172);
+    CODE_CONVERT_WK_SC(Launch0, 164);
+    CODE_CONVERT_WK_SC(Launch1, 165);
+    CODE_CONVERT_WK_SC(Launch2, 166);
+    CODE_CONVERT_WK_SC(Launch3, 167);
+    CODE_CONVERT_WK_SC(Launch4, 168);
+    CODE_CONVERT_WK_SC(Launch5, 169);
+    CODE_CONVERT_WK_SC(Launch6, 170);
+    CODE_CONVERT_WK_SC(Launch7, 171);
+    CODE_CONVERT_WK_SC(Launch8, 172);
+    CODE_CONVERT_WK_SC(Launch9, 173);
+    CODE_CONVERT_WK_SC(LaunchA, 164);
+    CODE_CONVERT_WK_SC(LaunchB, 165);
+    CODE_CONVERT_WK_SC(LaunchC, 166);
+    CODE_CONVERT_WK_SC(LaunchD, 167);
+    CODE_CONVERT_WK_SC(LaunchE, 168);
+    CODE_CONVERT_WK_SC(LaunchF, 169);
+
+    // Touches de contrôle de l'écran
+    CODE_CONVERT_WK_SC(MonBrightnessUp, 233);
+    CODE_CONVERT_WK_SC(MonBrightnessDown, 234);
+    CODE_CONVERT_WK_SC(KeyboardLightOnOff, 248);
+    CODE_CONVERT_WK_SC(KeyboardBrightnessUp, 238);
+    CODE_CONVERT_WK_SC(KeyboardBrightnessDown, 239);
+    CODE_CONVERT_WK_SC(PowerOff, 222);
+    CODE_CONVERT_WK_SC(WakeUp, 143);
+    CODE_CONVERT_WK_SC(Eject, 162);
+    CODE_CONVERT_WK_SC(ScreenSaver, 248);
+
+    // Touches Internet
+    CODE_CONVERT_WK_SC(WWW, 150);
+    CODE_CONVERT_WK_SC(Memo, 149);
+    CODE_CONVERT_WK_SC(LightBulb, 235);
+    CODE_CONVERT_WK_SC(Shop, 152);
+    CODE_CONVERT_WK_SC(History, 151);
+    CODE_CONVERT_WK_SC(AddFavorite, 154);
+    CODE_CONVERT_WK_SC(HotLinks, 153);
+    CODE_CONVERT_WK_SC(BrightnessAdjust, 235);
+    CODE_CONVERT_WK_SC(Finance, 158);
+    CODE_CONVERT_WK_SC(Community, 157);
+    CODE_CONVERT_WK_SC(AudioRewind, 175);
+    CODE_CONVERT_WK_SC(BackForward, 168);
+    CODE_CONVERT_WK_SC(ApplicationLeft, 166);
+    CODE_CONVERT_WK_SC(ApplicationRight, 167);
+
+    // Touches Office
+    CODE_CONVERT_WK_SC(Book, 184);
+    CODE_CONVERT_WK_SC(CD, 200);
+    CODE_CONVERT_WK_SC(Calculator, 215);
+    CODE_CONVERT_WK_SC(ToDoList, 184);
+    CODE_CONVERT_WK_SC(ClearGrab, 160);
+    CODE_CONVERT_WK_SC(Close, 159);
+    CODE_CONVERT_WK_SC(Copy, 220);
+    CODE_CONVERT_WK_SC(Cut, 218);
+    CODE_CONVERT_WK_SC(Display, 240);
+    CODE_CONVERT_WK_SC(DOS, 228);
+    CODE_CONVERT_WK_SC(Documents, 226);
+    CODE_CONVERT_WK_SC(Excel, 216);
+    CODE_CONVERT_WK_SC(Explorer, 227);
+    CODE_CONVERT_WK_SC(Game, 236);
+    CODE_CONVERT_WK_SC(Go, 237);
+    CODE_CONVERT_WK_SC(iTouch, 238);
+    CODE_CONVERT_WK_SC(LogOff, 145);
+    CODE_CONVERT_WK_SC(Market, 238);
+    CODE_CONVERT_WK_SC(Meeting, 247);
+    CODE_CONVERT_WK_SC(MenuKB, 236);
+    CODE_CONVERT_WK_SC(MenuPB, 237);
+    CODE_CONVERT_WK_SC(MySites, 238);
+    CODE_CONVERT_WK_SC(News, 239);
+    CODE_CONVERT_WK_SC(OfficeHome, 240);
+    CODE_CONVERT_WK_SC(Option, 241);
+    CODE_CONVERT_WK_SC(Paste, 221);
+    CODE_CONVERT_WK_SC(Phone, 142);
+    CODE_CONVERT_WK_SC(Calendar, 243);
+    CODE_CONVERT_WK_SC(Reply, 145);
+    CODE_CONVERT_WK_SC(Reload, 152);
+    CODE_CONVERT_WK_SC(RotateWindows, 125);
+    CODE_CONVERT_WK_SC(RotationPB, 126);
+    CODE_CONVERT_WK_SC(RotationKB, 127);
+    CODE_CONVERT_WK_SC(Save, 228);
+    CODE_CONVERT_WK_SC(Send, 141);
+    CODE_CONVERT_WK_SC(Spell, 154);
+    CODE_CONVERT_WK_SC(SplitScreen, 125);
+    CODE_CONVERT_WK_SC(Support, 154);
+    CODE_CONVERT_WK_SC(TaskPane, 122);
+    CODE_CONVERT_WK_SC(Terminal, 123);
+    CODE_CONVERT_WK_SC(Tools, 124);
+    CODE_CONVERT_WK_SC(Travel, 239);
+    CODE_CONVERT_WK_SC(Video, 238);
+    CODE_CONVERT_WK_SC(Word, 229);
+    CODE_CONVERT_WK_SC(Xfer, 234);
+    CODE_CONVERT_WK_SC(ZoomIn, 235);
+    CODE_CONVERT_WK_SC(ZoomOut, 236);
+
+    // Touches multimédia (suite)
+    CODE_CONVERT_WK_SC(Away, 244);
+    CODE_CONVERT_WK_SC(Messenger, 245);
+    CODE_CONVERT_WK_SC(WebCam, 148);
+    CODE_CONVERT_WK_SC(MailForward, 146);
+    CODE_CONVERT_WK_SC(Pictures, 147);
+    CODE_CONVERT_WK_SC(Music, 148);
+    CODE_CONVERT_WK_SC(Battery, 244);
+    CODE_CONVERT_WK_SC(Bluetooth, 245);
+    CODE_CONVERT_WK_SC(WLAN, 246);
+    CODE_CONVERT_WK_SC(UWB, 247);
+    CODE_CONVERT_WK_SC(AudioForward, 207);
+    CODE_CONVERT_WK_SC(AudioRepeat, 208);
+    CODE_CONVERT_WK_SC(AudioRandomPlay, 209);
+    CODE_CONVERT_WK_SC(Subtitle, 212);
+    CODE_CONVERT_WK_SC(AudioCycleTrack, 232);
+    CODE_CONVERT_WK_SC(Time, 240);
+    CODE_CONVERT_WK_SC(Hibernate, 222);
+    CODE_CONVERT_WK_SC(View, 221);
+    CODE_CONVERT_WK_SC(TopMenu, 178);
+    CODE_CONVERT_WK_SC(PowerDown, 222);
+    CODE_CONVERT_WK_SC(Suspend, 223);
+    CODE_CONVERT_WK_SC(ContrastAdjust, 235);
+    
+    // Touches de lancement (suite)
+    CODE_CONVERT_WK_SC(LaunchG, 164);
+    CODE_CONVERT_WK_SC(LaunchH, 173);
+
+    // Touches du touchpad
+    CODE_CONVERT_WK_SC(TouchpadToggle, 199);
+    CODE_CONVERT_WK_SC(TouchpadOn, 200);
+    CODE_CONVERT_WK_SC(TouchpadOff, 201);
+
+    // Touches du microphone
+    CODE_CONVERT_WK_SC(MicMute, 198);
+
+    // Touches de couleur
+    CODE_CONVERT_WK_SC(Red, 167);
+    CODE_CONVERT_WK_SC(Green, 168);
+    CODE_CONVERT_WK_SC(Yellow, 169);
+    CODE_CONVERT_WK_SC(Blue, 170);
+
+    // Touches des canaux
+    CODE_CONVERT_WK_SC(ChannelUp, 201);
+    CODE_CONVERT_WK_SC(ChannelDown, 202);
+
+    // Dernière touche
+    CODE_CONVERT_WK_SC(MediaLast, 252);
+
+    // Touches génériques
+    CODE_CONVERT_WK_SC(Select, 191);
+    CODE_CONVERT_WK_SC(Yes, 152);
+    CODE_CONVERT_WK_SC(No, 153);
+    CODE_CONVERT_WK_SC(Cancel, 156);
+    CODE_CONVERT_WK_SC(Printer, 232);
+    CODE_CONVERT_WK_SC(Execute, 170);
+    CODE_CONVERT_WK_SC(Sleep, 150);
+    CODE_CONVERT_WK_SC(Play, 207);
+    CODE_CONVERT_WK_SC(Zoom, 235);
+    CODE_CONVERT_WK_SC(Jisho, 246);
+    CODE_CONVERT_WK_SC(Oyayubi_Left, 138);
+    CODE_CONVERT_WK_SC(Oyayubi_Right, 139);
+
+    // Touches de contexte
+    CODE_CONVERT_WK_SC(Context1, 172);
+    CODE_CONVERT_WK_SC(Context2, 173);
+    CODE_CONVERT_WK_SC(Context3, 174);
+    CODE_CONVERT_WK_SC(Context4, 175);
+    CODE_CONVERT_WK_SC(Call, 76);
+    CODE_CONVERT_WK_SC(Hangup, 77);
+    CODE_CONVERT_WK_SC(Flip, 78);
+    CODE_CONVERT_WK_SC(ToggleCallHangup, 79);
+    CODE_CONVERT_WK_SC(VoiceDial, 80);
+    CODE_CONVERT_WK_SC(LastNumberRedial, 81);
+
+    // Touches de conversion
+    CODE_CONVERT_WK_SC(Kana, 112);
+    CODE_CONVERT_WK_SC(One, 111);
+    CODE_CONVERT_WK_SC(Junja, 113);
+    CODE_CONVERT_WK_SC(Final, 114);
+    CODE_CONVERT_WK_SC(Hanja, 115);
+    CODE_CONVERT_WK_SC(Off, 118);
+
+    // Touches de conversion (suite)
+    CODE_CONVERT_WK_SC(Convert, 121);
+    CODE_CONVERT_WK_SC(NonConvert, 123);
+    CODE_CONVERT_WK_SC(Accept, 126);
+    CODE_CONVERT_WK_SC(ModeChange, 127);
+    CODE_CONVERT_WK_SC(PrintScreen, 99);
+    CODE_CONVERT_WK_SC(Apps, 118);
+    CODE_CONVERT_WK_SC(Separator, 132);
+    CODE_CONVERT_WK_SC(Attn, 120);
+    CODE_CONVERT_WK_SC(CrSel, 121);
+    CODE_CONVERT_WK_SC(ExSel, 122);
+    CODE_CONVERT_WK_SC(EraseEOF, 99);
+    CODE_CONVERT_WK_SC(NoName, 124);
+    CODE_CONVERT_WK_SC(Pa1, 125);
+    CODE_CONVERT_WK_SC(Quotation, 126);
+    CODE_CONVERT_WK_SC(Backtick, 129);
+
+    // Touches de la caméra
+    CODE_CONVERT_WK_SC(Camera, 208);
+    CODE_CONVERT_WK_SC(CameraFocus, 209);
+
+    return Keyboard::NotDefine;
+}
 
     ModifierState WindowEventCode::ModifierStateToWinkey()
     {

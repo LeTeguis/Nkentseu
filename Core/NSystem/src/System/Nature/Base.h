@@ -94,7 +94,8 @@ namespace nkentseu{
         return ss.str();
     }
 
-    std::string ToString(bool value);
+    std::string NKENTSEU_API ToString(bool value);
+    std::string NKENTSEU_API UnicodeToUTF8(uint64 unicode_code);
 } // namespace nkentseu
 
 

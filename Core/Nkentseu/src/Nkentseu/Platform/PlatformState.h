@@ -24,6 +24,8 @@
     #ifdef NKENTSEU_LINUX_WIN_API_XCB
         #include <X11/Xlib-xcb.h>
         #include <xcb/xcb.h>
+    #elif NKENTSEU_LINUX_WIN_API_XLIB
+        #include <X11/Xatom.h>
     #endif
 #endif
 
@@ -111,6 +113,13 @@ namespace nkentseu {
         #elif defined(NKENTSEU_LINUX_WIN_API_XLIB)
             struct NKENTSEU_API WindowProtocolAtom{
                 Atom deleteWindow;
+                Atom fullScreen;
+                Atom windowCreatedAtom;
+                Atom wmMotifHints;
+                Atom wmChangeState;
+                Atom wmMinimize;
+                Atom wmMaximizeHorz;
+                Atom wmMaximizeVert;
             };
         #endif
     #endif

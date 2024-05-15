@@ -8,7 +8,7 @@
 #include "Nkentseu/Platform/PlatformState.h"
 
 namespace nkentseu {
-    WindowProperties::WindowProperties() : backgroundColor(Color::DarkGray)
+    WindowProperties::WindowProperties() : backgroundColor(Color::DarkGray())
     {
     }
 

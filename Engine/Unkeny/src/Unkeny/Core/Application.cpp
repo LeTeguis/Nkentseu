@@ -90,7 +90,7 @@ namespace nkentseu {
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
             //m_Renderer->Clear(color::RandomRGB());
-            m_Renderer->Clear(Color::DefaultBackground);
+            m_Renderer->Clear(Color::DefaultBackground());
             m_Renderer->Present();
         }
         m_Renderer->Deinitialize();
@@ -101,6 +101,7 @@ namespace nkentseu {
     void Application::OnEvent(Event& event)
     {
         EventBroker broker(event);
+        //Log.Debug("{0}", event);
 
         broker.Route<WindowStatusEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowStatusEvent));
         broker.Route<KeyboardEvent>(REGISTER_CLIENT_EVENT(Application::OnKeyboardEvent));

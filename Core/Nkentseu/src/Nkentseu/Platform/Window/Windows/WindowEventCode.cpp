@@ -543,6 +543,10 @@ namespace nkentseu {
             if (keycode == Keyboard::Semicolon) {
                 return Keyboard::Colon;
             }
+            
+            if (keycode == Keyboard::Semicolon) {
+                return Keyboard::Colon;
+            }
 
             if (keycode == Keyboard::Apostrophe) {
                 return Keyboard::Quotation;
