@@ -81,6 +81,10 @@ namespace nkentseu {
             m_Window->Close();
             return;
         }
+        std::unordered_map<ShaderType::Code, std::string> shaderFiles;
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.glsl.vert";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.glsl.frag";
+        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(shaderFiles);
 
         while (m_Running) {
             //Log.Debug();

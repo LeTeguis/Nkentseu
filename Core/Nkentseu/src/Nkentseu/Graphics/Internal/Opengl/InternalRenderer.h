@@ -12,11 +12,13 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_OPENGL
 
+#include <System/Definitions/Memory.h>
 #include <Nkentseu/Graphics/Color.h>
 #include <Ntsm/Vector/Vector2.h>
 
 namespace nkentseu {
     class Context;
+    class Shader;
 
     class NKENTSEU_API InternalRenderer
     {
@@ -33,9 +35,13 @@ namespace nkentseu {
             bool Present();
             bool Swapbuffer();
 
+            bool SetActiveShader(Memory::Shared<class Shader> shader);
+            bool UnsetActiveShader();
+
             bool Resize(const Vector2u& size);
         private:
             class Context* m_Context = nullptr;
+            Memory::Shared<class Shader> m_CurrentShader = nullptr;
     };
 } // namespace nkentseu
 

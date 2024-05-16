@@ -12,14 +12,10 @@
 #include "Context.h"
 #include "Color.h"
 #include <Ntsm/Vector/Vector2.h>
+#include "Shader.h"
 
 namespace nkentseu {
     class InternalRenderer;
-
-    struct InternalRendererInfo {
-        Memory::Shared<InternalRenderer> internalInfo = null_pointer;
-        bool isLoad;
-    };
 
     class NKENTSEU_API Renderer
     {
@@ -34,12 +30,18 @@ namespace nkentseu {
             bool Clear(const Color& color);
             bool Clear(uint8 r, uint8 g, uint8 b, uint8 a = 255);
 
+            bool SetActiveShader(Memory::Shared<Shader> shader);
+            bool UnsetActiveShader();
+
             bool Present();
             bool Swapbuffer();
 
             bool Resize(const Vector2u& size);
         private:
-            Memory::Shared<InternalRendererInfo> m_InternalRendererInfo = null_pointer;
+            Memory::Shared<InternalRenderer> m_InternalRenderer = null_pointer;
+
+            bool IsValideInternal();
+            bool m_IsInitialsed = false;
     };
 } // namespace nkentseu
 

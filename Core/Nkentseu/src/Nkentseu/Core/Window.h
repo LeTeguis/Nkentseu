@@ -20,11 +20,6 @@
 namespace nkentseu {
     class WindowInternal;
 
-    struct WindowInternalInfo {
-        Memory::Shared<WindowInternal> internalInfo = null_pointer;
-        bool isLoad;
-    };
-
     class NKENTSEU_API Window {
     public:
         Window();
@@ -85,7 +80,8 @@ namespace nkentseu {
         virtual WindowInternal* GetInternal();
 
     private:
-        Memory::Shared<WindowInternalInfo> m_WindowInternalInfo = null_pointer;
+        Memory::Shared<WindowInternal> m_WindowInternal = null_pointer;
+        bool m_IsInitialized = false;
         //WindowInternalInfo m_WindowInternalInfo;
     };
 } // namespace nkentseu

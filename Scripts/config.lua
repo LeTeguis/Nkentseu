@@ -306,7 +306,7 @@ end
 
 function langageInformations()
     language "C++"
-    cppdialect "C++17"
+    cppdialect "C++20"
 
     -- toolset ("clang")
 

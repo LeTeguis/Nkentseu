@@ -27,17 +27,13 @@
 
 namespace nkentseu {
 
-    Context::Context() : m_InternalContextInfo(nullptr) {
-        if (m_InternalContextInfo == nullptr) {
-            m_InternalContextInfo = Memory::Alloc<InternalContextInfo>();
-        }
-
-        if (m_InternalContextInfo->internalInfo == nullptr) {
-            m_InternalContextInfo->internalInfo = Memory::Alloc<InternalContext>();
+    Context::Context() : m_InternalContext(nullptr) {
+        if (m_InternalContext == nullptr) {
+            m_InternalContext = Memory::Alloc<InternalContext>();
         }
     }
 
-    Context::Context(Window* window, const ContextProperties& contextProperties) : m_InternalContextInfo(nullptr)
+    Context::Context(Window* window, const ContextProperties& contextProperties) : m_InternalContext(nullptr)
     {
         Initialize(window, contextProperties);
     }
@@ -47,145 +43,134 @@ namespace nkentseu {
 
     bool Context::SetWindow(Window* window)
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) {
+        if (m_InternalContext == nullptr) {
             return false;
         }
-        return m_InternalContextInfo->internalInfo->SetWindow(window);
+        return m_InternalContext->SetWindow(window);
     }
 
     bool Context::SetProperties(const ContextProperties& properties)
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) {
+        if (m_InternalContext == nullptr) {
             return false;
         }
-        return m_InternalContextInfo->internalInfo->SetProperties(properties);
+        return m_InternalContext->SetProperties(properties);
     }
 
     bool Context::Initialize()
     {
-        if (m_InternalContextInfo == nullptr) {
-            m_InternalContextInfo = Memory::Alloc<InternalContextInfo>();
-            if (m_InternalContextInfo == nullptr) return false;
+        if (m_InternalContext == nullptr) {
+            m_InternalContext = Memory::Alloc<InternalContext>();
+            if (m_InternalContext == nullptr) return false;
         }
-
-        if (m_InternalContextInfo->internalInfo == nullptr) {
-            m_InternalContextInfo->internalInfo = Memory::Alloc<InternalContext>();
-            if (m_InternalContextInfo->internalInfo == nullptr) return false;
+        
+        if (m_IsInitialized == false) {
+            m_IsInitialized = m_InternalContext->Initialize();
         }
-        if (m_InternalContextInfo->isLoad == false) {
-            m_InternalContextInfo->isLoad = m_InternalContextInfo->internalInfo->Initialize();
-        }
-        return m_InternalContextInfo->isLoad;
+        return m_IsInitialized;
     }
 
     bool Context::Initialize(Window* window, const ContextProperties& contextProperties)
     {
-        if (m_InternalContextInfo == nullptr) {
-            m_InternalContextInfo = Memory::Alloc<InternalContextInfo>();
-            if (m_InternalContextInfo == nullptr) return false;
+        if (m_InternalContext == nullptr){
+            m_InternalContext = Memory::Alloc<InternalContext>();
+            if (m_InternalContext == nullptr) return false;
         }
 
-        if (m_InternalContextInfo->internalInfo == nullptr){
-            m_InternalContextInfo->internalInfo = Memory::Alloc<InternalContext>();
-            if (m_InternalContextInfo->internalInfo == nullptr) return false;
+        if (m_IsInitialized == false) {
+            m_IsInitialized = m_InternalContext->Initialize(window, contextProperties);
         }
-
-        if (m_InternalContextInfo->isLoad == false) {
-            m_InternalContextInfo->isLoad = m_InternalContextInfo->internalInfo->Initialize(window, contextProperties);
-        }
-        return m_InternalContextInfo->isLoad;
+        return m_IsInitialized;
     }
 
     bool Context::Deinitialize()
     {
-        if (m_InternalContextInfo == nullptr) return false;
-
-        if (m_InternalContextInfo->internalInfo != nullptr) {
-            bool deinitialize = m_InternalContextInfo->internalInfo->Deinitialize();
+        if (m_InternalContext != nullptr) {
+            bool deinitialize = m_InternalContext->Deinitialize();
 
             if (!deinitialize) {
                 return false;
             }
 
-            Memory::Reset(m_InternalContextInfo->internalInfo);
+            Memory::Reset(m_InternalContext);
         }
-        m_InternalContextInfo->isLoad = false;
-        Memory::Reset(m_InternalContextInfo);
+        m_IsInitialized = false;
+        Memory::Reset(m_InternalContext);
         return true;
     }
 
     bool Context::IsInitialize()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->IsInitialize();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->IsInitialize();
     }
 
     bool Context::MakeCurrent()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->MakeCurrent();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->MakeCurrent();
     }
 
     bool Context::UnmakeCurrent()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->UnmakeCurrent();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->UnmakeCurrent();
     }
 
     bool Context::IsCurrent()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->IsCurrent();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->IsCurrent();
     }
 
     bool Context::EnableVSync()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->EnableVSync();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->EnableVSync();
     }
 
     bool Context::DisableVSync()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->DisableVSync();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->DisableVSync();
     }
 
     bool Context::Present()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->Present();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->Present();
     }
 
     bool Context::Swapchaine()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return false;
-        return m_InternalContextInfo->internalInfo->Swapchaine();
+        if (m_InternalContext == nullptr) return false;
+        return m_InternalContext->Swapchaine();
     }
 
     const GraphicsInfos& Context::GetGraphicsInfo()
     {
         static const GraphicsInfos graphicInfos = {}; 
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return graphicInfos;
-        return m_InternalContextInfo->internalInfo->GetGraphicsInfo();
+        if (m_InternalContext == nullptr) return graphicInfos;
+        return m_InternalContext->GetGraphicsInfo();
     }
 
     Window* Context::GetWindow()
     {
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return nullptr;
-        return m_InternalContextInfo->internalInfo->GetWindow();
+        if (m_InternalContext == nullptr) return nullptr;
+        return m_InternalContext->GetWindow();
     }
 
-    InternalContextInfo* Context::GetInternal()
+    InternalContext* Context::GetInternal()
     {
-        if (m_InternalContextInfo == nullptr) return nullptr;
-        return m_InternalContextInfo.get();
+        if (m_InternalContext == nullptr) return nullptr;
+        return m_InternalContext.get();
     }
 
     const ContextProperties& Context::GetProperties()
     {
         static const ContextProperties contextProperties = {}; 
-        if (m_InternalContextInfo == nullptr || m_InternalContextInfo->internalInfo == nullptr) return contextProperties;
-        return m_InternalContextInfo->internalInfo->GetProperties();
+        if (m_InternalContext == nullptr) return contextProperties;
+        return m_InternalContext->GetProperties();
     }
 
 }    // namespace nkentseu

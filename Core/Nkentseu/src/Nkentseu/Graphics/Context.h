@@ -18,11 +18,6 @@ namespace nkentseu {
     class InternalContext;
     class Window;
 
-    struct InternalContextInfo {
-        Memory::Shared<InternalContext> internalInfo = null_pointer;
-        bool isLoad = false;
-    };
-
     class NKENTSEU_API Context
     {
         public:
@@ -52,10 +47,11 @@ namespace nkentseu {
 
             class Window* GetWindow();
 
-            virtual InternalContextInfo* GetInternal();
+            virtual InternalContext* GetInternal();
             const ContextProperties& GetProperties();
         private:
-            Memory::Shared<InternalContextInfo> m_InternalContextInfo = null_pointer;
+            Memory::Shared<InternalContext> m_InternalContext = null_pointer;
+            bool m_IsInitialized = false;
     };
 } // namespace nkentseu
 

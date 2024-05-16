@@ -14,14 +14,14 @@
 #include <memory>
 
 namespace nkentseu {
-	#define ValidateObject(o, so, ret, vret, methode, ... )		if (o == nullptr || o->so == nullptr) { \
-																	return vret; \
-																} \
-																if (ret) { \
-																	return o->so->methode(__VA_ARGS__); \
-																} else { \
-																	o->so->methode(__VA_ARGS__); \
-																}
+	#define ValidateObject(o, ret, vret, methode, ... )		if (o == nullptr) { \
+																return vret; \
+															} \
+															if (ret) { \
+																return o->methode(__VA_ARGS__); \
+															} else { \
+																o->methode(__VA_ARGS__); \
+															}
     class NKENTSEU_API Memory
     {
         public:

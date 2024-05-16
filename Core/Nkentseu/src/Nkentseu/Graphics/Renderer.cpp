@@ -27,13 +27,9 @@
 
 namespace nkentseu {
 
-    Renderer::Renderer() : m_InternalRendererInfo(nullptr) {
-        if (m_InternalRendererInfo == nullptr) {
-            m_InternalRendererInfo = Memory::Alloc<InternalRendererInfo>();
-        }
-
-        if (m_InternalRendererInfo->internalInfo == nullptr) {
-            m_InternalRendererInfo->internalInfo = Memory::Alloc<InternalRenderer>();
+    Renderer::Renderer() : m_InternalRenderer(nullptr) {
+        if (m_InternalRenderer == nullptr) {
+            m_InternalRenderer = Memory::Alloc<InternalRenderer>();
         }
     }
 
@@ -47,16 +43,9 @@ namespace nkentseu {
 
     bool Renderer::Initialize(Context* context)
     {
-        if (m_InternalRendererInfo == nullptr) {
-            m_InternalRendererInfo = Memory::Alloc<InternalRendererInfo>();
-            if (m_InternalRendererInfo == nullptr) {
-                return false;
-            }
-        }
-
-        if (m_InternalRendererInfo->internalInfo == nullptr) {
-            m_InternalRendererInfo->internalInfo = Memory::Alloc<InternalRenderer>();
-            if (m_InternalRendererInfo->internalInfo == nullptr) {
+        if (m_InternalRenderer == nullptr) {
+            m_InternalRenderer = Memory::Alloc<InternalRenderer>();
+            if (m_InternalRenderer == nullptr) {
                 return false;
             }
         }
@@ -64,48 +53,62 @@ namespace nkentseu {
             return false;
         }
 
-        if (m_InternalRendererInfo->isLoad == false) {
-            m_InternalRendererInfo->isLoad = m_InternalRendererInfo->internalInfo->Initialize(context);
-        }
-        return m_InternalRendererInfo->isLoad;
+        return m_IsInitialsed = m_InternalRenderer->Initialize(context);
     }
 
     bool Renderer::Deinitialize()
     {
-        if (m_InternalRendererInfo == nullptr || m_InternalRendererInfo->internalInfo == nullptr || !m_InternalRendererInfo->isLoad) return false;
-        return m_InternalRendererInfo->internalInfo->Deinitialize();
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Deinitialize();
     }
 
     bool Renderer::Clear(const Color& color)
     {
-        if (m_InternalRendererInfo == nullptr || m_InternalRendererInfo->internalInfo == nullptr || !m_InternalRendererInfo->isLoad) {
+        if (!IsValideInternal()) {
             return false;
         }
-        return m_InternalRendererInfo->internalInfo->Clear(color);
+        return m_InternalRenderer->Clear(color);
     }
 
     bool Renderer::Clear(uint8 r, uint8 g, uint8 b, uint8 a)
     {
-        if (m_InternalRendererInfo == nullptr || m_InternalRendererInfo->internalInfo == nullptr || !m_InternalRendererInfo->isLoad) return false;
-        return m_InternalRendererInfo->internalInfo->Clear(r, g, b, a);
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Clear(r, g, b, a);
+    }
+
+    bool Renderer::SetActiveShader(Memory::Shared<Shader> shader)
+    {
+        if (!IsValideInternal() || shader == nullptr) return false;
+        return m_InternalRenderer->SetActiveShader(shader);
+    }
+
+    bool Renderer::UnsetActiveShader()
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->UnsetActiveShader();
     }
 
     bool Renderer::Present()
     {
-        if (m_InternalRendererInfo == nullptr || m_InternalRendererInfo->internalInfo == nullptr || !m_InternalRendererInfo->isLoad) return false;
-        return m_InternalRendererInfo->internalInfo->Present();
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Present();
     }
 
     bool Renderer::Swapbuffer()
     {
-        if (m_InternalRendererInfo == nullptr || m_InternalRendererInfo->internalInfo == nullptr || !m_InternalRendererInfo->isLoad) return false;
-        return m_InternalRendererInfo->internalInfo->Swapbuffer();
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Swapbuffer();
     }
 
     bool Renderer::Resize(const Vector2u& size)
     {
-        if (m_InternalRendererInfo == nullptr || m_InternalRendererInfo->internalInfo == nullptr || !m_InternalRendererInfo->isLoad) return false;
-        return m_InternalRendererInfo->internalInfo->Resize(size);
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Resize(size);
+    }
+
+    bool Renderer::IsValideInternal()
+    {
+        return !(m_InternalRenderer == nullptr  || !m_IsInitialsed);
     }
 
 }    // namespace nkentseu

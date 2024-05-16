@@ -11,6 +11,8 @@
 #include <Nkentseu/Graphics/Context.h>
 #include "Nkentseu/Graphics/Color.h"
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include "InternalRenderer.h"
+#include "InternalRenderer.h"
 
 namespace nkentseu {
 

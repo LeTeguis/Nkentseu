@@ -32,13 +32,13 @@ def help_command():
     print(f"**./nken.{extension_file} create**")
     print("Génère un fichier source et un fichier d'en-tête en fonction des paramètres spécifiés.")
     print("Utilisation:")
-    print("   create -project_name <nom_projet> -file_path <chemin_fichier> -generate_type <type_generation> -file_name <nom_fichier> [options]")
+    print("   create -project <nom_projet> -path <chemin_fichier> -type <type_generation> -file <nom_fichier> [options]")
     print("Options:")
-    print("   -user_who_created <nom_utilisateur>: Spécifie le nom de l'utilisateur qui crée le fichier.")
-    print("   -company_who_created <nom_entreprise>: Spécifie le nom de l'entreprise qui crée le fichier.")
-    print("   -namespace_name <nom_namespace>: Spécifie le nom du namespace pour le fichier généré.")
-    print("   -api_definition <definition_api>: Spécifie la définition de l'API pour le fichier généré.")
-    print("   -has_pch <True/False>: Indique si le fichier généré utilise un fichier d'en-tête précompilé (PCH).")
+    print("   -user <nom_utilisateur>: Spécifie le nom de l'utilisateur qui crée le fichier.")
+    print("   -company <nom_entreprise>: Spécifie le nom de l'entreprise qui crée le fichier.")
+    print("   -namespace <nom_namespace>: Spécifie le nom du namespace pour le fichier généré.")
+    print("   -api <definition_api>: Spécifie la définition de l'API pour le fichier généré.")
+    print("   -pch <True/False>: Indique si le fichier généré utilise un fichier d'en-tête précompilé (PCH).")
     print("   -constructor <True/False>: Indique si le fichier généré inclut un constructeur par défaut.")
 
 def firstLower(strName):
@@ -68,7 +68,7 @@ def structHeaderGenerator(apiDefinition, structName, hasConstructor):
     return f'''
     struct {apiDefinition} {structName} {{
         {constructor}
-        std::string ToString();
+        std::string ToString() const;
         friend std::string ToString(const {structName}& {firstLower(structName)});
     }};
 '''
@@ -118,7 +118,7 @@ def classGeneratorCpp(className, hasConstructor):
     }}
 '''
     return f'''{constructor}
-    std::string {className}::ToString() {{
+    std::string {className}::ToString() const {{
         return FORMATTER.Format(""); // mettez votre formatteur To string entre les guillemets
     }}
 
@@ -171,6 +171,8 @@ def headerGenerated(fileName, content, userWhoCreated, companyWhoCreated, fileDe
 
 #pragma once
 
+#include <System/System.h>
+
 {content}
 
 #endif  // __{guard}_H__!'''
@@ -192,6 +194,7 @@ def cppGenerator(fileName, content, hasPch, projectName, userWhoCreated, company
 
 {pchInclude}
 #include "{fileName}.h"
+#include <Logger/Formatter.h>
 
 {content}'''
 
@@ -232,32 +235,32 @@ def generateFile(generatorProperties):
     apiDefinition = ""
     hasPch = False
 
-    if "project_name" not in generatorProperties or "file_path" not in generatorProperties \
-            or "generate_type" not in generatorProperties or "file_name" not in generatorProperties:
+    if "project" not in generatorProperties or "path" not in generatorProperties \
+            or "type" not in generatorProperties or "file" not in generatorProperties:
         return False
 
-    projectName = generatorProperties["project_name"]
-    filePath = generatorProperties["file_path"]
-    generateType = generatorProperties["generate_type"]
-    fileName = generatorProperties["file_name"]
+    projectName = generatorProperties["project"]
+    filePath = generatorProperties["path"]
+    generateType = generatorProperties["type"]
+    fileName = generatorProperties["file"]
 
-    if "user_who_created" in generatorProperties:
-        userWhoCreated = generatorProperties["user_who_created"]
+    if "user" in generatorProperties:
+        userWhoCreated = generatorProperties["user"]
 
-    if "company_who_created" in generatorProperties:
-        companyWhoCreated = generatorProperties["company_who_created"]
+    if "company" in generatorProperties:
+        companyWhoCreated = generatorProperties["company"]
 
-    if "namespace_name" in generatorProperties:
-        namespaceName = generatorProperties["namespace_name"]
+    if "namespace" in generatorProperties:
+        namespaceName = generatorProperties["namespace"]
 
-    if "api_definition" in generatorProperties:
-        apiDefinition = generatorProperties["api_definition"]
+    if "api" in generatorProperties:
+        apiDefinition = generatorProperties["api"]
 
-    if "has_pch" in generatorProperties:
-        hasPch = generatorProperties["has_pch"]
+    if "pch" in generatorProperties:
+        hasPch = generatorProperties["pch"]
         
-    contentHeader = ""
-    contentCpp = ""
+    contentHeader = None
+    contentCpp = None
 
     if generateType == "enum":
         subtype = "enum"
@@ -284,25 +287,28 @@ def generateFile(generatorProperties):
         className = fileName
         contentHeader = classGeneratorHeader(apiDefinition, className)
         contentCpp = classGeneratorCpp(className, True)  # Fixed here
+    elif generateType == "file":
+        contentHeader = ""
+        contentCpp = ""
     
-    if not contentHeader:
+    if contentHeader == None:
         return False
     
     headerFile = headerGenerated(fileName, namespaceGuard(namespaceName, contentHeader), userWhoCreated, companyWhoCreated, "")
 
-    if contentCpp:
+    if contentCpp != None:
         cppFile = cppGenerator(fileName, namespaceGuard(namespaceName, contentCpp), hasPch, projectName, userWhoCreated, companyWhoCreated)
 
     if not headerFile:
         return False
 
     # Écrire le contenu dans les fichiers correspondants
-    file_path = os.path.join(filePath, fileName)
-    with open(f'{file_path}.h', 'w') as header_file:
+    path = os.path.join(filePath, fileName)
+    with open(f'{path}.h', 'w') as header_file:
         header_file.write(headerFile)
 
     if cppFile:
-        with open(f'{file_path}.cpp', 'w') as cpp_file:
+        with open(f'{path}.cpp', 'w') as cpp_file:
             cpp_file.write(cppFile)
 
     return True
@@ -314,16 +320,16 @@ def parse_arguments(args):
 
     # Initialiser les propriétés du générateur avec des valeurs par défaut
     generatorProperties = {
-        "project_name": "",
-        "file_path": "",
-        "generate_type": "",
-        "file_name": "",
-        "user_who_created": f"{user_name} {user_first_name}",
-        "company_who_created": man.COMPANY_NAME,
-        "copyright_date": man.COMPANY_COPYRIGHT,
-        "namespace_name": man.NAMESPACE_PROJECT,
-        "api_definition": man.API_DEFINITION,
-        "has_pch": True,
+        "project": "",
+        "path": "",
+        "type": "",
+        "file": "",
+        "user": f"{user_name} {user_first_name}",
+        "company": man.COMPANY_NAME,
+        "date": man.COMPANY_COPYRIGHT,
+        "namespace": man.NAMESPACE_PROJECT,
+        "api": man.API_DEFINITION,
+        "pch": True,
         "constructor": True,
     }
 
@@ -342,7 +348,7 @@ def parse_arguments(args):
             return None
     
     # Vérifier si toutes les propriétés nécessaires sont définies
-    required_properties = ["project_name", "file_path", "generate_type", "file_name"]
+    required_properties = ["project", "path", "type", "file"]
     for prop in required_properties:
         if generatorProperties[prop] == "":
             print(f"La propriété '{prop}' est manquante.")
@@ -365,16 +371,16 @@ def main():
         return 2
 
     # Vérifier si le nom du projet existe dans PROJECTS_NAME
-    project_name = generatorProperties["project_name"]
-    if project_name not in man.PROJECTS_NAME:
-        print(f"Le nom du projet '{project_name}' n'existe pas dans PROJECTS_NAME.")
+    project = generatorProperties["project"]
+    if project not in man.PROJECTS_NAME:
+        print(f"Le nom du projet '{project}' n'existe pas dans PROJECTS_NAME.")
         return 3
 
     # Concaténer le chemin du projet avec le nom du projet pour obtenir le chemin complet du fichier
-    file_path = man.PROJECTS_NAME[generatorProperties["project_name"]]
-    file_path = file_path.rstrip('/')  # Supprimer le slash final si présent
-    #print(generatorProperties['file_name'])
-    generatorProperties["file_path"] = os.path.join(file_path, "src", generatorProperties['file_path'])
+    path = man.PROJECTS_NAME[generatorProperties["project"]]
+    path = path.rstrip('/')  # Supprimer le slash final si présent
+    #print(generatorProperties['file'])
+    generatorProperties["path"] = os.path.join(path, "src", generatorProperties['path'])
 
     # Générer le fichier en fonction des propriétés définies
     if generateFile(generatorProperties):

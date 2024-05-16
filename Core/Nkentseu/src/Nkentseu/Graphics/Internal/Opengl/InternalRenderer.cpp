@@ -9,19 +9,14 @@
 #ifdef NKENTSEU_GRAPHICS_API_OPENGL
 
 #include <Nkentseu/Graphics/Context.h>
-#include "Nkentseu/Graphics/Color.h"
+#include <Nkentseu/Graphics/Shader.h>
+#include <Nkentseu/Graphics/Color.h>
+#include <Nkentseu/Core/NkentseuLogger.h>
+#include "InternalShader.h"
+
 #include <glad/gl.h>
 
-#ifdef NKENTSEU_PLATFORM_WINDOWS
-//#include "Nkentseu/Graphics/Internal/Opengl/InternalContext.h"
-//#include <glad/wgl.h>
-#elif defined NKENTSEU_PLATFORM_LINUX
-//#include <glad/glx.h>
-#else
-#error "Plaform ("  + STR_PLATFORM + ") cannot supported this graphics context"
-#endif
 
-#include <Nkentseu/Core/NkentseuLogger.h>
 
 namespace nkentseu {
 
@@ -65,7 +60,6 @@ namespace nkentseu {
         if (m_Context->IsCurrent()) {
             glClearColor(color.Rf(), color.Gf(), color.Bf(), color.Af());
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-            // Log_nts.Debug();
             return true;
         }
         return false;
@@ -95,6 +89,37 @@ namespace nkentseu {
     bool InternalRenderer::Swapbuffer()
     {
         return Present();
+    }
+
+    bool InternalRenderer::SetActiveShader(Memory::Shared<Shader> shader)
+    {
+        if (shader == nullptr || shader->GetInternal() == nullptr) {
+            return false;
+        }
+
+        if (m_CurrentShader != nullptr) {
+            bool unbind = m_CurrentShader->GetInternal()->Unbind();
+
+            if (!unbind) {
+                return false;
+            }
+        }
+        m_CurrentShader = shader;
+        return m_CurrentShader->GetInternal()->Bind();
+    }
+
+    bool InternalRenderer::UnsetActiveShader()
+    {
+        if (m_CurrentShader != nullptr) {
+            bool unbind = m_CurrentShader->GetInternal()->Unbind();
+
+            if (!unbind) {
+                return false;
+            }
+            m_CurrentShader = nullptr;
+            return true;
+        }
+        return false;
     }
 
     bool InternalRenderer::Resize(const Vector2u& size)
