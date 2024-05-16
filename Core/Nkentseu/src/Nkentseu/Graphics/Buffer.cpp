@@ -75,9 +75,16 @@ namespace nkentseu {
 
     // Index buffer
 
+    IndexBuffer::IndexBuffer()
+    {
+        m_InternalIndexBuffer = Memory::Alloc<InternalIndexBuffer>();
+    }
+
     IndexBuffer::IndexBuffer(const BufferAttribute& attribut)
     {
+        Log_nts.Debug();
         m_InternalIndexBuffer = Memory::Alloc<InternalIndexBuffer>(attribut);
+        Log_nts.Debug();
     }
 
     IndexBuffer::~IndexBuffer()
@@ -134,9 +141,16 @@ namespace nkentseu {
 
     // Vertex Buffer
 
+    VertexBuffer::VertexBuffer()
+    {
+        m_InternalVertexBuffer = Memory::Alloc<InternalVertexBuffer>();
+    }
+
     VertexBuffer::VertexBuffer(const BufferAttribute& attribut)
     {
+        Log_nts.Debug();
         m_InternalVertexBuffer = Memory::Alloc<InternalVertexBuffer>(attribut);
+        Log_nts.Debug();
     }
 
     VertexBuffer::~VertexBuffer()
@@ -145,7 +159,9 @@ namespace nkentseu {
 
     InternalVertexBuffer* VertexBuffer::GetInternal()
     {
+        //Log_nts.Debug();
         if (m_InternalVertexBuffer == nullptr) return nullptr;
+        //Log_nts.Debug();
         return m_InternalVertexBuffer.get();
     }
 

@@ -34,8 +34,8 @@ namespace nkentseu {
         0, 1, 2
     };
 
-    Memory::Shared<VertexBuffer> vertexBuffer;
-    Memory::Shared<IndexBuffer> indexBuffer;
+    Memory::Shared<VertexBuffer> vertexBuffer = nullptr;
+    Memory::Shared<IndexBuffer> indexBuffer = nullptr;
 
     Application::Application() : m_Running(false) {
     }
@@ -100,16 +100,26 @@ namespace nkentseu {
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
         shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.glsl.vert";
         shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.glsl.frag";
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.glsl.vert";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.glsl.frag";
         Memory::Shared<Shader> shader = Memory::Alloc<Shader>(shaderFiles);
 
         shader->Create();
-
+        Log.Debug();
         indexBuffer = Memory::Alloc<IndexBuffer>();
+        Log.Debug();
         vertexBuffer = Memory::Alloc<VertexBuffer>();
+        Log.Debug();
 
         indexBuffer->Create(indices);
+        //Log.Debug();
         vertexBuffer->Create(vertices);
+        //Log.Debug();
         vertexBuffer->AddIndexBuffer(indexBuffer);
+        //Log.Debug();
+
+        m_Renderer->SetActiveShader(shader);
+        //Log.Debug();
 
         while (m_Running) {
             //Log.Debug();
@@ -120,7 +130,9 @@ namespace nkentseu {
 
             //m_Renderer->Clear(color::RandomRGB());
             m_Renderer->Clear(Color::DefaultBackground());
+            //Log.Debug();
             m_Renderer->DrawVertexBuffer(vertexBuffer);
+            //Log.Debug();
             m_Renderer->Present();
         }
 

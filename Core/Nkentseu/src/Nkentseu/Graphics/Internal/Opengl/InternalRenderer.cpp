@@ -20,6 +20,7 @@
 #include <Nkentseu/Core/NkentseuLogger.h>
 
 #include <glad/gl.h>
+#include "InternalContext.h"
 
 
 
@@ -64,7 +65,20 @@ namespace nkentseu {
         }
         if (m_Context->IsCurrent()) {
             glClearColor(color.Rf(), color.Gf(), color.Bf(), color.Af());
+            glCheckError();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            glCheckError();
+
+            /*/Log_nts.Debug();
+            if (m_CurrentShader != nullptr) {
+                //Log_nts.Debug();
+                if (m_CurrentShader->GetInternal()->Bind()) {
+                    Log_nts.Debug();
+                    glDrawArrays(GL_TRIANGLES, 0, 3);
+                    Log_nts.Debug();
+                    glCheckError();
+                }
+            }*/
             return true;
         }
         return false;
@@ -80,14 +94,53 @@ namespace nkentseu {
 
     bool InternalRenderer::DrawVertexBuffer(Memory::Shared<VertexBuffer> vertex)
     {
+        //Log_nts.Debug();
         if (m_Context == nullptr || !m_Context->IsInitialize() || m_CurrentShader == nullptr) {
             return false;
         }
-        if (!m_CurrentShader->GetInternal()->Bind() || !vertex->GetInternal()->GetVertexArray()->GetInternal()->Bind() || !vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->Bind()) {
+        //Log_nts.Debug();
+        /*if (!m_CurrentShader->GetInternal()->Bind() || !vertex->GetInternal()->GetVertexArray()->GetInternal()->Bind() || !vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->Bind()) {
+            return false;
+        }*/
+        if (!m_CurrentShader->GetInternal()->Bind()) {
             return false;
         }
-        glDrawElements(GL_TRIANGLES, vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->GetLength(), GL_UNSIGNED_INT, vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->GetIndices().data());
-        return true;
+
+        if (vertex == nullptr) {
+            return false;
+        }
+
+        InternalVertexBuffer *vertexBuffer = vertex->GetInternal();
+
+        if (vertexBuffer == nullptr) {
+            return false;
+        }
+
+        if (vertexBuffer->GetInternalVertexArray() == nullptr) {
+            return false;
+        }
+        Log_nts.Debug();
+        if (!vertexBuffer->GetInternalVertexArray()->Bind()) {
+            return false;
+        }
+        Log_nts.Debug();
+
+        if (vertexBuffer->GetInternalIndexBuffer(0) == nullptr) {
+            return false;
+        }
+
+        Log_nts.Debug();
+        if (!vertexBuffer->GetInternalIndexBuffer(0)->Bind()) {
+            return false;
+        }
+        Log_nts.Debug();
+
+        // glDrawElements(GL_TRIANGLES, vertexBuffer->GetInternalIndexBuffer(0)->GetLength(), GL_UNSIGNED_INT, vertexBuffer->GetInternalIndexBuffer(0)->GetIndices().data());
+        glDrawElements(GL_TRIANGLES, vertexBuffer->GetInternalIndexBuffer(0)->GetLength(), GL_UNSIGNED_INT, 0);
+        Log_nts.Debug();
+
+        //Log_nts.Debug();
+        return false;
     }
 
     bool InternalRenderer::DrawIndexBuffer(Memory::Shared<IndexBuffer> index)

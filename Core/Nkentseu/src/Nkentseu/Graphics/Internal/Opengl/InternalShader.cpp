@@ -95,6 +95,7 @@ namespace nkentseu {
         if (m_Programme != 0) {
             glUseProgram(m_Programme);
             glCheckError();
+            return true;
         }
         return false;
     }
@@ -103,6 +104,7 @@ namespace nkentseu {
         if (m_Programme != 0) {
             glUseProgram(0);
             glCheckError();
+            return true;
         }
         return false;
     }

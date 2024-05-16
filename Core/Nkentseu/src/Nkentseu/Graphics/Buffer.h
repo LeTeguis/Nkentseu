@@ -38,7 +38,7 @@ namespace nkentseu {
 
     class NKENTSEU_API IndexBuffer {
     public:
-        IndexBuffer(){}
+        IndexBuffer();
         IndexBuffer(const BufferAttribute& attribut);
         ~IndexBuffer();
 
@@ -62,7 +62,7 @@ namespace nkentseu {
 
     class NKENTSEU_API VertexBuffer {
         public:
-            VertexBuffer() {}
+            VertexBuffer();
             VertexBuffer(const BufferAttribute& attribut);
             ~VertexBuffer();
 

@@ -16,6 +16,8 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_OPENGL
 
+#include "InternalVertexArray.h"
+
 namespace nkentseu {
 
     class IndexBuffer;
@@ -95,6 +97,9 @@ namespace nkentseu {
         IndexBuffer* GetIndexBuffer(usize index);
         usize GetIndexBufferSize();
         VertexArray* GetVertexArray();
+
+        InternalIndexBuffer* GetInternalIndexBuffer(usize index);
+        InternalVertexArray* GetInternalVertexArray();
 
         const BufferAttribute& GetAttribut();
 

@@ -359,6 +359,18 @@ namespace nkentseu {
         return m_VertexArray.get();
     }
 
+    InternalIndexBuffer* InternalVertexBuffer::GetInternalIndexBuffer(usize index)
+    {
+        if (m_VertexArray == nullptr || m_Buffer == 0 || index >= m_IndexBuffers.size() || m_IndexBuffers[index] == nullptr) return nullptr;
+        return m_IndexBuffers[index]->GetInternal();
+    }
+
+    InternalVertexArray* InternalVertexBuffer::GetInternalVertexArray()
+    {
+        if (m_VertexArray == nullptr || m_Buffer == 0 || m_VertexArray->GetInternal() == nullptr) return nullptr;
+        return m_VertexArray->GetInternal();
+    }
+
     const BufferAttribute& InternalVertexBuffer::GetAttribut()
     {
         return m_Attribut;
