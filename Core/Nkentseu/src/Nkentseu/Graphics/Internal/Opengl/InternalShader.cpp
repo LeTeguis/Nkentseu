@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-15 at 04:56:08 PM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-15 at 04:56:08 PM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -173,6 +173,10 @@ namespace nkentseu {
             glGetShaderInfoLog(shader, 1024, NULL, errorLog);
             Log_nts.Error("Shader Module compile error: {0}", std::string(errorLog));
             shader = 0;
+
+            for (uint32 shaderModule : m_Modules) {
+                glDeleteShader(shaderModule);
+            }
 
             return 0;
         }
