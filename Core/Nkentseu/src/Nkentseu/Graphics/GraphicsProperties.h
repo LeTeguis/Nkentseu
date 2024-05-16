@@ -117,6 +117,7 @@ namespace nkentseu {
         uint32 auxBuffers = 0;
         bool   pbuffer;
 
+        //uint32 attributeFlags = (uint32)GraphicsAttribute::AttributeDefault;
         uint32 attributeFlags = (uint32)GraphicsAttribute::AttributeCore;
         bool   sRgb = false;
 

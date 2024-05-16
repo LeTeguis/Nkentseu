@@ -94,6 +94,7 @@ namespace nkentseu {
     bool InternalShader::Bind() const {
         if (m_Programme != 0) {
             glUseProgram(m_Programme);
+            glCheckError();
         }
         return false;
     }
@@ -101,6 +102,7 @@ namespace nkentseu {
     bool InternalShader::Unbind() const {
         if (m_Programme != 0) {
             glUseProgram(0);
+            glCheckError();
         }
         return false;
     }
@@ -137,12 +139,6 @@ namespace nkentseu {
 
     uint32 InternalShader::MakeShader()
     {
-        //std::vector<uint32> modules;
-
-        //for (auto [shaderType, shaderFile] : filesShaderPath) {
-        //    modules.push_back(MakeModule(shaderFile, shaderType));
-        //}
-
         uint32 shader = glCreateProgram();
         glCheckError();
 
@@ -164,18 +160,20 @@ namespace nkentseu {
         glCheckError();
 
         int32 success;
-
-        glGetShaderiv(shader, GL_LINK_STATUS, &success);
+        glGetProgramiv(shader, GL_LINK_STATUS, &success);
         glCheckError();
 
         if (!success) {
-            char errorLog[1024];
-            glGetShaderInfoLog(shader, 1024, NULL, errorLog);
+            GLsizei logLength = 0;
+            GLchar errorLog[1024];
+            //glGetShaderInfoLog(shader, 1024, NULL, errorLog);
+            glGetProgramInfoLog(shader, 1024, &logLength, errorLog);
             Log_nts.Error("Shader Module compile error: {0}", std::string(errorLog));
             shader = 0;
 
             for (uint32 shaderModule : m_Modules) {
                 glDeleteShader(shaderModule);
+                glCheckError();
             }
 
             return 0;
@@ -183,6 +181,7 @@ namespace nkentseu {
 
         for (uint32 shaderModule : m_Modules) {
             glDeleteShader(shaderModule);
+            glCheckError();
         }
 
         m_Modules.clear();
