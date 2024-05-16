@@ -13,16 +13,69 @@
 #include <glad/gl.h>
 #include <vector>
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include "InternalContext.h"
 
 namespace nkentseu {
-    static uint32 MakeModule(const std::string& filepath, ShaderType::Code code);
-    static uint32 MakeShader(const std::unordered_map<ShaderType::Code, std::string>& filesShaderPath);
-    static uint32 GetModuleType(ShaderType::Code code);
     
     // Constructor
-    InternalShader::InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) {
+    InternalShader::InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_Programme(0) {
         // Ajoutez votre code de constructeur ici
-        m_Programme = MakeShader(shaderFiles);
+        SetShaderFiles(shaderFiles);
+    }
+
+    void InternalShader::SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    {
+        m_ShaderFiles.clear();
+        m_ShaderFiles = shaderFiles;
+        // Create a deep copy of shaderFiles using the copy constructor
+        // std::copy(m_ShaderFiles.begin(), m_ShaderFiles.end(), shaderFiles);
+    }
+
+    bool InternalShader::CreateShader()
+    {
+        if (m_Programme != 0) {
+            return false;
+        }
+
+        m_Modules.clear();
+
+        for (auto [shaderType, shaderFile] : m_ShaderFiles) {
+            uint32 module = MakeModule(shaderFile, shaderType);
+
+            if (module == 0) {
+                m_Modules.clear();
+                return false;
+            }
+            m_Modules.push_back(module);
+        }
+        return true;
+    }
+
+    bool InternalShader::CompileShader()
+    {
+        if (m_Modules.size() == 0) {
+            return false;
+        }
+
+        uint32 programme = MakeShader();
+
+        if (programme == 0) {
+            return false;
+        }
+
+        m_Programme = programme;
+        return true;
+    }
+
+    bool InternalShader::Destroy()
+    {
+        if (m_Programme != 0) {
+            if (Unbind()) {
+                m_Programme = 0;
+                return true;
+            }
+        }
+        return false;
     }
 
     // Destructor
@@ -39,14 +92,20 @@ namespace nkentseu {
     }
 
     bool InternalShader::Bind() const {
+        if (m_Programme != 0) {
+            glUseProgram(m_Programme);
+        }
         return false;
     }
 
     bool InternalShader::Unbind() const {
+        if (m_Programme != 0) {
+            glUseProgram(0);
+        }
         return false;
     }
 
-    uint32 MakeModule(const std::string& filepath, ShaderType::Code code)
+    uint32 InternalShader::MakeModule(const std::string& filepath, ShaderType::Code code)
     {
         uint32 module_type = GetModuleType(code);
         if (module_type == 0) {
@@ -58,11 +117,15 @@ namespace nkentseu {
         const char* shaderSrc = shaderSource.c_str();
 
         uint32 shaderModule = glCreateShader(module_type);
+        glCheckError();
         glShaderSource(shaderModule, 1, &shaderSrc, NULL);
+        glCheckError();
         glCompileShader(shaderModule);
+        glCheckError();
 
         int32 success;
         glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success);
+        glCheckError();
         if (!success) {
             char errorLog[1024];
             glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
@@ -72,44 +135,58 @@ namespace nkentseu {
         return shaderModule;
     }
 
-    uint32 MakeShader(const std::unordered_map<ShaderType::Code, std::string>& filesShaderPath)
+    uint32 InternalShader::MakeShader()
     {
-        std::vector<uint32> modules;
+        //std::vector<uint32> modules;
 
-        for (auto [shaderType, shaderFile] : filesShaderPath) {
-            modules.push_back(MakeModule(shaderFile, shaderType));
-        }
+        //for (auto [shaderType, shaderFile] : filesShaderPath) {
+        //    modules.push_back(MakeModule(shaderFile, shaderType));
+        //}
 
         uint32 shader = glCreateProgram();
+        glCheckError();
 
         /*
-        gl_bin attribut
+            // This step is unnecessary if you use the location specifier in your shader
+            // e.g. layout (location = 0) in vec3 position;
+            glBindAttribLocation(program, 0, "position"); // The index passed into glBindAttribLocation is
+            glBindAttribLocation(program, 1, "texcoord"); // used by glEnableVertexAttribArray. "position"
+            glBindAttribLocation(program, 2, "normal");   // "texcoord" "normal" and "color" are the names of the
+            glBindAttribLocation(program, 3, "color");    // respective inputs in your fragment shader.
         */
-        for (uint32 shaderModule : modules) {
+
+        for (uint32 shaderModule : m_Modules) {
             glAttachShader(shader, shaderModule);
+            glCheckError();
         }
 
         glLinkProgram(shader);
+        glCheckError();
 
         int32 success;
-        Log_nts.Debug();
+
         glGetShaderiv(shader, GL_LINK_STATUS, &success);
-        Log_nts.Debug();
+        glCheckError();
+
         if (!success) {
             char errorLog[1024];
             glGetShaderInfoLog(shader, 1024, NULL, errorLog);
             Log_nts.Error("Shader Module compile error: {0}", std::string(errorLog));
             shader = 0;
+
+            return 0;
         }
 
-        for (uint32 shaderModule : modules) {
+        for (uint32 shaderModule : m_Modules) {
             glDeleteShader(shaderModule);
         }
+
+        m_Modules.clear();
 
         return shader;
     }
 
-    uint32 GetModuleType(ShaderType::Code code)
+    uint32 InternalShader::GetModuleType(ShaderType::Code code)
     {
         if (code == ShaderType::Vertex) return GL_VERTEX_SHADER;
         if (code == ShaderType::Fragment) return GL_FRAGMENT_SHADER;

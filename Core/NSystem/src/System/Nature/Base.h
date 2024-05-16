@@ -23,12 +23,13 @@ namespace nkentseu{
     #define STR_BOOL(b) ((b) ? "True" : "False")
 
     // Unsigned int types.
-    typedef unsigned long               uint_word;
+    typedef unsigned long               ulong;
+    typedef unsigned long long          usize;
     typedef unsigned char               uint8;
     typedef unsigned short              uint16;
     typedef unsigned int                uint32;
     typedef unsigned long int           uintl32;
-    typedef uintl32                     nts_size;
+    typedef uintl32                     uisize;
     typedef unsigned long long int      uint64;
 
     // Signed int types.

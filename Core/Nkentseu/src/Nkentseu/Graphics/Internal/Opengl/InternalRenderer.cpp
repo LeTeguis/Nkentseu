@@ -10,9 +10,14 @@
 
 #include <Nkentseu/Graphics/Context.h>
 #include <Nkentseu/Graphics/Shader.h>
+#include <Nkentseu/Graphics/Buffer.h>
+#include <Nkentseu/Graphics/VertexArray.h>
+#include "InternalBuffer.h"
+#include "InternalShader.h"
+#include "InternalVertexArray.h"
+
 #include <Nkentseu/Graphics/Color.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
-#include "InternalShader.h"
 
 #include <glad/gl.h>
 
@@ -67,7 +72,30 @@ namespace nkentseu {
 
     bool InternalRenderer::Clear(uint8 r, uint8 g, uint8 b, uint8 a)
     {
+        if (m_Context == nullptr || !m_Context->IsInitialize()) {
+            return false;
+        }
         return Clear(Color(r, g, b, a));
+    }
+
+    bool InternalRenderer::DrawVertexBuffer(Memory::Shared<VertexBuffer> vertex)
+    {
+        if (m_Context == nullptr || !m_Context->IsInitialize() || m_CurrentShader == nullptr) {
+            return false;
+        }
+        if (!m_CurrentShader->GetInternal()->Bind() || !vertex->GetInternal()->GetVertexArray()->GetInternal()->Bind() || !vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->Bind()) {
+            return false;
+        }
+        glDrawElements(GL_TRIANGLES, vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->GetLength(), GL_UNSIGNED_INT, vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->GetIndices().data());
+        return true;
+    }
+
+    bool InternalRenderer::DrawIndexBuffer(Memory::Shared<IndexBuffer> index)
+    {
+        if (m_Context == nullptr || !m_Context->IsInitialize() || m_CurrentShader == nullptr) {
+            return false;
+        }
+        return true;
     }
 
     bool InternalRenderer::Present()

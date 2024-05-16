@@ -23,14 +23,26 @@ namespace nkentseu {
             InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
             ~InternalShader();
 
+            void SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            bool CreateShader();
+            bool CompileShader();
+            bool Destroy();
+
             std::string ToString() const;
             friend std::string ToString(const InternalShader& internalShader);
 
             bool Bind() const;
             bool Unbind() const;
         private:
-            uint32 m_Programme;
-        protected:
+            uint32 m_Programme = 0;
+
+            std::unordered_map<ShaderType::Code, std::string> m_ShaderFiles;
+            std::vector<uint32> m_Modules;
+
+        private:
+            uint32 MakeModule(const std::string& filepath, ShaderType::Code code);
+            uint32 MakeShader();
+            uint32 GetModuleType(ShaderType::Code code);
     };
 
 }  //  nkentseu

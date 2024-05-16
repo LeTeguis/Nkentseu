@@ -23,6 +23,10 @@ namespace nkentseu {
             Shader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
             ~Shader();
 
+            bool Create();
+            bool Destroy();
+            void SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+
             InternalShader* GetInternal();
 
             std::string ToString() const;

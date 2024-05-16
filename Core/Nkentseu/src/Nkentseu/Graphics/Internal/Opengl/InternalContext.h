@@ -23,9 +23,13 @@
 
 #endif //  NKENTSEU_PLATFORM_WINDOWS
 
+#include <glad/gl.h>
+
 namespace nkentseu {
     class NativeContext;
 
+    GLenum glCheckError_(const std::string& file, int32 line, const std::string& function);
+    #define glCheckError() glCheckError_(__FILE__, __LINE__, __FUNCTION__) 
 
     class NKENTSEU_API InternalContext
     {

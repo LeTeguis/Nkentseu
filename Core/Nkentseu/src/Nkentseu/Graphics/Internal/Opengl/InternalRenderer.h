@@ -16,9 +16,14 @@
 #include <Nkentseu/Graphics/Color.h>
 #include <Ntsm/Vector/Vector2.h>
 
+#include <vector>
+
 namespace nkentseu {
     class Context;
     class Shader;
+    class VertexBuffer;
+    class IndexBuffer;
+    class VertexArray;
 
     class NKENTSEU_API InternalRenderer
     {
@@ -31,6 +36,9 @@ namespace nkentseu {
 
             bool Clear(const Color& color);
             bool Clear(uint8 r, uint8 g, uint8 b, uint8 a = 255);
+
+            bool DrawVertexBuffer(Memory::Shared<VertexBuffer> vertex);
+            bool DrawIndexBuffer(Memory::Shared<IndexBuffer> index);
 
             bool Present();
             bool Swapbuffer();

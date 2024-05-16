@@ -33,6 +33,41 @@ namespace nkentseu {
         Memory::Reset(m_InternalShader);
     }
 
+    bool Shader::Create()
+    {
+        if (m_InternalShader == nullptr) return false;
+
+        bool isCreate = m_InternalShader->CreateShader();
+
+        if (!isCreate) {
+            Log_nts.Error("Cannot create shader");
+            return false;
+        }
+
+#ifdef NKENTSEU_GRAPHICS_API_OPENGL
+        if (!m_InternalShader->CompileShader()) {
+            Log_nts.Error("Cannot compile opengl shader");
+            return false;
+        }
+#endif
+
+        return isCreate;
+    }
+
+    bool Shader::Destroy()
+    {
+        if (m_InternalShader == nullptr) return false;
+
+        return m_InternalShader->Destroy();
+    }
+
+    void Shader::SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    {
+        if (m_InternalShader == nullptr) return;
+
+        m_InternalShader->SetShaderFiles(shaderFiles);
+    }
+
     InternalShader* Shader::GetInternal()
     {
         if (m_InternalShader == nullptr) return nullptr;

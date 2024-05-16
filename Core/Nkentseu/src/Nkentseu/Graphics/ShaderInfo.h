@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-15 at 06:01:02 PM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-15 at 06:01:02 PM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -36,6 +36,21 @@ namespace nkentseu {
 		static ShaderType::Code FromString(const std::string& shaderDataTypeStr);
 	};
 
+	// Reprï¿½sente diffï¿½rents types de buffers
+	struct NKENTSEU_API BufferType {
+		using Code = uint64;
+		// Enumï¿½ration des types de buffers
+		enum : Code {
+			NotDefine, Vertex, Index, Uniform, Storage, Texture, Constant
+		};
+
+		// Convertit un code de type de buffer en chaï¿½ne de caractï¿½res
+		static std::string ToString(BufferType::Code bufferType);
+
+		// Convertit une chaï¿½ne de caractï¿½res en code de type de buffer
+		static BufferType::Code FromString(const std::string& bufferTypeStr);
+	};
+
 	struct NKENTSEU_API ShaderData {
 		ShaderType::Code type;
 		std::string data;
@@ -47,6 +62,56 @@ namespace nkentseu {
 		static std::vector<ShaderData> LoadShaderToMemoryDatas(const std::string& shaderFile);
 		static const char* LoadShaderToMemoryChar(const std::string& shaderFile);
 	};
+
+	struct NKENTSEU_API BufferAttribute {
+		std::string name = "";
+		ShaderDataType::Code type = ShaderDataType::NotDefine;
+		uint32 size = 0;
+		usize offset = 0;
+		bool normalized = false;
+		BufferType::Code bufferType = BufferType::NotDefine;
+
+		BufferAttribute() = default;
+
+		BufferAttribute(BufferType::Code bufferType, ShaderDataType::Code type, const std::string& name, bool normalized = false);
+
+		uint32 GetComponentCount() const;
+	};
+
+	struct NKENTSEU_API BufferLayout {
+		std::vector<BufferAttribute> attributes;
+		uint32 stride = 0;
+
+		BufferLayout() = default;
+
+		BufferLayout(const std::initializer_list<BufferAttribute>& attributes);
+
+		void CalculateOffsetsAndStride();
+
+		const std::vector<BufferAttribute>& GetAttributes() const;
+
+		uint32 GetStride() const;
+
+		std::vector<BufferAttribute>::iterator begin();
+		std::vector<BufferAttribute>::iterator end();
+		std::vector<BufferAttribute>::const_iterator begin() const;
+		std::vector<BufferAttribute>::const_iterator end() const;
+	};
+
+	struct NKENTSEU_API VertexInputElement {
+		std::string name;
+		uint32 size;
+		uint32 binding;
+		uint32 location;
+		ShaderDataType::Code type;
+		uint32 offset;
+		bool normalized;
+
+		VertexInputElement() = default;
+
+		VertexInputElement(const std::string& name, uint32 binding, uint32 location, ShaderDataType::Code type, uint32 size, uint32 offset, bool normalized = false);
+	};
+
 }  //  nkentseu
 
 #endif  // __SHADER_INFO_H__!

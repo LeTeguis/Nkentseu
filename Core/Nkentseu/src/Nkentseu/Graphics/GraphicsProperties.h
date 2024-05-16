@@ -23,7 +23,7 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API GraphicsAttribute {
-        using Attributes = uint_word;
+        using Attributes = ulong;
         
         enum : Attributes {
             AttributeDefault = 0,
@@ -33,7 +33,7 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API GraphicsFlag {
-        using Flags = uint_word;
+        using Flags = ulong;
 
         enum : Flags {
             DrawToWindow = 1 << 1,
@@ -71,7 +71,7 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API GraphicsPixelType {
-        using PixelType = uint_word;
+        using PixelType = ulong;
 
         enum : PixelType {
             RgbaArb = 1 << 1,

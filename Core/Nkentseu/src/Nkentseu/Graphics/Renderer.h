@@ -12,10 +12,12 @@
 #include "Context.h"
 #include "Color.h"
 #include <Ntsm/Vector/Vector2.h>
-#include "Shader.h"
 
 namespace nkentseu {
     class InternalRenderer;
+    class VertexBuffer;
+    class IndexBuffer;
+    class Shader;
 
     class NKENTSEU_API Renderer
     {
@@ -30,15 +32,18 @@ namespace nkentseu {
             bool Clear(const Color& color);
             bool Clear(uint8 r, uint8 g, uint8 b, uint8 a = 255);
 
-            bool SetActiveShader(Memory::Shared<Shader> shader);
+            bool SetActiveShader(Memory::Shared<class Shader> shader);
             bool UnsetActiveShader();
+
+            bool DrawVertexBuffer(Memory::Shared<class VertexBuffer> vertex);
+            bool DrawIndexBuffer(Memory::Shared<class IndexBuffer> index);
 
             bool Present();
             bool Swapbuffer();
 
             bool Resize(const Vector2u& size);
         private:
-            Memory::Shared<InternalRenderer> m_InternalRenderer = null_pointer;
+            Memory::Shared<class InternalRenderer> m_InternalRenderer = null_pointer;
 
             bool IsValideInternal();
             bool m_IsInitialsed = false;

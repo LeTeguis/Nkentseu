@@ -112,6 +112,32 @@ namespace nkentseu {
 
         return ShaderDataType::NotDefine;
     }
+
+    // Convertit un code de type de buffer en chaîne de caractères
+    std::string BufferType::ToString(BufferType::Code bufferType) {
+        switch (bufferType) {
+        case NotDefine: return "NotDefine";
+        case Vertex: return "Vertex";
+        case Index: return "Index";
+        case Uniform: return "Uniform";
+        case Storage: return "Storage";
+        case Texture: return "Texture";
+        case Constant: return "Constant";
+        default: return "Unknown";
+        }
+    }
+
+    // Convertit une chaîne de caractères en code de type de buffer
+    BufferType::Code BufferType::FromString(const std::string& bufferTypeStr) {
+        if (bufferTypeStr == "NotDefine") return NotDefine;
+        if (bufferTypeStr == "Vertex") return Vertex;
+        if (bufferTypeStr == "Index") return Index;
+        if (bufferTypeStr == "Uniform") return Uniform;
+        if (bufferTypeStr == "Storage") return Storage;
+        if (bufferTypeStr == "Texture") return Texture;
+        if (bufferTypeStr == "Constant") return Constant;
+        return NotDefine; // Valeur par défaut
+    }
     
     std::string ShaderLoader::LoadShaderToMemoryStr(const std::string& shaderFile)
     {
@@ -164,4 +190,42 @@ namespace nkentseu {
         return shaderSource.c_str();
     }
 
+    BufferAttribute::BufferAttribute(BufferType::Code bufferType, ShaderDataType::Code type, const std::string& name, bool normalized)
+        : name(name), type(type), bufferType(bufferType), size(ShaderDataType::ComponentSize(type)), offset(0), normalized(normalized) {}
+
+    uint32 BufferAttribute::GetComponentCount() const {
+        return ShaderDataType::ComponentCount(type);  // Get number of components from data type
+    }
+
+    BufferLayout::BufferLayout(const std::initializer_list<BufferAttribute>& attributes)
+        : attributes(attributes) {
+        CalculateOffsetsAndStride();
+    }
+
+    void BufferLayout::CalculateOffsetsAndStride() {
+        usize offset = 0;
+        stride = 0;
+        for (auto& attribute : attributes) {
+            attribute.offset = offset;  // Set offset for each attribute
+            offset += attribute.size;    // Update offset for the next attribute
+            stride += attribute.size;    // Accumulate size for total stride
+        }
+    }
+
+    const std::vector<BufferAttribute>& BufferLayout::GetAttributes() const {
+        return attributes;
+    }
+
+    uint32 BufferLayout::GetStride() const {
+        return stride;
+    }
+
+    std::vector<BufferAttribute>::iterator BufferLayout::begin() { return attributes.begin(); }
+    std::vector<BufferAttribute>::iterator BufferLayout::end() { return attributes.end(); }
+    std::vector<BufferAttribute>::const_iterator BufferLayout::begin() const { return attributes.begin(); }
+    std::vector<BufferAttribute>::const_iterator BufferLayout::end() const { return attributes.end(); }
+
+    VertexInputElement::VertexInputElement(const std::string& name, uint32 binding, uint32 location, ShaderDataType::Code type, uint32 size, uint32 offset, bool normalized)
+        : binding(binding), location(location), type(type), size(size), offset(offset), normalized(normalized), name(name) {}
+    
 }  //  nkentseu

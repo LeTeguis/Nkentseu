@@ -19,7 +19,23 @@
 
 #include <Nkentseu/Event/InputManager.h>
 
+#include <Nkentseu/Graphics/Shader.h>
+#include <Nkentseu/Graphics/Buffer.h>
+
 namespace nkentseu {
+
+    float32 vertices[] = {
+        -0.5f, -0.5f, 0.0f, // 0
+        0.5f, -0.5f, 0.0f, // 1
+        0.5f, 0.5f, 0.0f  // 2
+    };
+
+    uint32 indices[] = {
+        0, 1, 2
+    };
+
+    Memory::Shared<VertexBuffer> vertexBuffer;
+    Memory::Shared<IndexBuffer> indexBuffer;
 
     Application::Application() : m_Running(false) {
     }
@@ -86,6 +102,15 @@ namespace nkentseu {
         shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.glsl.frag";
         Memory::Shared<Shader> shader = Memory::Alloc<Shader>(shaderFiles);
 
+        shader->Create();
+
+        indexBuffer = Memory::Alloc<IndexBuffer>();
+        vertexBuffer = Memory::Alloc<VertexBuffer>();
+
+        indexBuffer->Create(indices);
+        vertexBuffer->Create(vertices);
+        vertexBuffer->AddIndexBuffer(indexBuffer);
+
         while (m_Running) {
             //Log.Debug();
 
@@ -95,8 +120,13 @@ namespace nkentseu {
 
             //m_Renderer->Clear(color::RandomRGB());
             m_Renderer->Clear(Color::DefaultBackground());
+            m_Renderer->DrawVertexBuffer(vertexBuffer);
             m_Renderer->Present();
         }
+
+        vertexBuffer->Destroy();
+        indexBuffer->Destroy();
+
         m_Renderer->Deinitialize();
         m_Context->Deinitialize();
         m_Window->Close();

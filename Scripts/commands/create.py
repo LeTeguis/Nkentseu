@@ -51,7 +51,7 @@ def classGeneratorHeader(apiDefinition, className):
             {className}();
             ~{className}();
 
-            std::string ToString();
+            std::string ToString() const;
             friend std::string ToString(const {className}& {firstLower(className)});
         private:
         protected:

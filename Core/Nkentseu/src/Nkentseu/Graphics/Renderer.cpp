@@ -25,6 +25,10 @@
 #include <Nkentseu/Platform/Internal/InternalMemory.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
 
+#include "Shader.h"
+#include "Buffer.h"
+#include "VertexArray.h"
+
 namespace nkentseu {
 
     Renderer::Renderer() : m_InternalRenderer(nullptr) {
@@ -86,6 +90,18 @@ namespace nkentseu {
     {
         if (!IsValideInternal()) return false;
         return m_InternalRenderer->UnsetActiveShader();
+    }
+
+    bool Renderer::DrawVertexBuffer(Memory::Shared<VertexBuffer> vertex)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->DrawVertexBuffer(vertex);
+    }
+
+    bool Renderer::DrawIndexBuffer(Memory::Shared<IndexBuffer> index)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->DrawIndexBuffer(index);
     }
 
     bool Renderer::Present()
