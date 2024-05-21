@@ -295,7 +295,7 @@ function linksGraphicApi()
                 links { "libvulkan.1", "libMoltenVK", "libshaderc_combined" }
 
             filter "system:linux"
-                links { "libvulkan-1", "libVkLayer_utils" }
+                links { "libvulkan", "libVkLayer_utils" }
         end
 	end
 end
