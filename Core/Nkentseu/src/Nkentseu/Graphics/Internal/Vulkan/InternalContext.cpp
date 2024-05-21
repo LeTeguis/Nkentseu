@@ -13,24 +13,40 @@
 
 namespace nkentseu {
 
-    InternalContext::InternalContext() : m_Window(nullptr) {
+    InternalContext::InternalContext() : m_Window(nullptr), m_IsInitialize(false) {
     }
 
     InternalContext::~InternalContext(){
     }
 
     bool InternalContext::SetWindow(Window* window) {
-        return false;
+        if (window == nullptr) return false;
+        m_Window = window;
+        return true;
     }
     bool InternalContext::SetProperties(const ContextProperties& properties) {
-        return false;
+        m_ContextProperties = properties;
+        return true;
     }
 
     bool InternalContext::Initialize() {
-        return false;
+        if (m_Window == nullptr) return false;
+
+        m_Extension.Defined();
+
+        if (!m_Instance.Create(m_Window, m_ContextProperties, &m_Extension)) return false;
+        if (!m_Surface.Create(m_Window, &m_Instance)) return false;
+        if (!m_Gpu.GetDevice(&m_Instance, &m_Surface, &m_Extension)) return false;
+        if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
+        if (!m_CommandPool.Create(&m_Gpu)) return false;
+        if (!m_Semaphore.Create(&m_Gpu)) return false;
+
+        m_IsInitialize = true;
+
+        return m_IsInitialize;
     }
     bool InternalContext::IsInitialize() {
-        return false;
+        return m_IsInitialize;
     }
 
     bool InternalContext::EnableVSync() {
@@ -38,14 +54,6 @@ namespace nkentseu {
     }
 
     bool InternalContext::DisableVSync() {
-        return false;
-    }
-
-    bool InternalContext::Present() {
-        return false;
-    }
-
-    bool InternalContext::Swapchaine() {
         return false;
     }
 
@@ -57,32 +65,12 @@ namespace nkentseu {
 
         if (m_Window == nullptr) return false;
 
-        m_Extension.Defined();
+        m_ContextProperties = contextProperties;
 
-        if (!m_Instance.Create(m_Window, contextProperties, &m_Extension)) return false;
-        if (!m_Surface.Create(m_Window, &m_Instance)) return false;
-        if (!m_Gpu.GetDevice(&m_Instance, &m_Surface, &m_Extension)) return false;
-        if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
-
-        return false;
+        return Initialize();
     }
 
     bool InternalContext::Deinitialize()
-    {
-        return false;
-    }
-
-    bool InternalContext::MakeCurrent()
-    {
-        return false;
-    }
-
-    bool InternalContext::UnmakeCurrent()
-    {
-        return false;
-    }
-
-    bool InternalContext::IsCurrent()
     {
         return false;
     }
@@ -93,8 +81,7 @@ namespace nkentseu {
 
     const ContextProperties& InternalContext::GetProperties()
     {
-        static ContextProperties tmp;
-        return tmp;
+        return m_ContextProperties;
     }
 
 

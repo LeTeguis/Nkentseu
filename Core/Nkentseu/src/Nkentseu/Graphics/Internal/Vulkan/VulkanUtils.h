@@ -17,7 +17,7 @@
 #include <Nkentseu/Core/NkentseuLogger.h>
 
 namespace nkentseu {
-    struct VkResultNts {
+    struct VulkanResult {
         bool success = false;
         VkResult result;
     };
@@ -28,8 +28,8 @@ namespace nkentseu {
     };
 
     template<typename... Args>
-    VkResultNts vkCheckError_(VkResult result, const std::string& file, int32 line, const std::string& function, const char* format, Args&&... args) {
-        VkResultNts result_;
+    VulkanResult vkCheckError_(VkResult result, const std::string& file, int32 line, const std::string& function, const char* format, Args&&... args) {
+        VulkanResult result_;
         result_.result = result;
         result_.success = result == VK_SUCCESS;
 

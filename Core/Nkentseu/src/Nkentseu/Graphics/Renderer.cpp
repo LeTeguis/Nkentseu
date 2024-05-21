@@ -104,6 +104,18 @@ namespace nkentseu {
         return m_InternalRenderer->Draw(vertexArray, drawVertex);
     }
 
+    bool Renderer::Prepare()
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Prepare();
+    }
+
+    bool Renderer::Finalize()
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->Finalize();
+    }
+
     bool Renderer::Present()
     {
         if (!IsValideInternal()) return false;

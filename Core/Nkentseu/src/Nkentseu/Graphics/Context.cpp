@@ -105,24 +105,6 @@ namespace nkentseu {
         return m_InternalContext->IsInitialize();
     }
 
-    bool Context::MakeCurrent()
-    {
-        if (m_InternalContext == nullptr) return false;
-        return m_InternalContext->MakeCurrent();
-    }
-
-    bool Context::UnmakeCurrent()
-    {
-        if (m_InternalContext == nullptr) return false;
-        return m_InternalContext->UnmakeCurrent();
-    }
-
-    bool Context::IsCurrent()
-    {
-        if (m_InternalContext == nullptr) return false;
-        return m_InternalContext->IsCurrent();
-    }
-
     bool Context::EnableVSync()
     {
         if (m_InternalContext == nullptr) return false;
@@ -133,18 +115,6 @@ namespace nkentseu {
     {
         if (m_InternalContext == nullptr) return false;
         return m_InternalContext->DisableVSync();
-    }
-
-    bool Context::Present()
-    {
-        if (m_InternalContext == nullptr) return false;
-        return m_InternalContext->Present();
-    }
-
-    bool Context::Swapchaine()
-    {
-        if (m_InternalContext == nullptr) return false;
-        return m_InternalContext->Swapchaine();
     }
 
     const GraphicsInfos& Context::GetGraphicsInfo()

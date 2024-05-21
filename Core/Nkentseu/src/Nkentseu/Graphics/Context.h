@@ -33,10 +33,6 @@ namespace nkentseu {
             bool Deinitialize();
             bool IsInitialize();
 
-            bool MakeCurrent();
-            bool UnmakeCurrent();
-            bool IsCurrent();
-
             bool EnableVSync();
             bool DisableVSync();
 

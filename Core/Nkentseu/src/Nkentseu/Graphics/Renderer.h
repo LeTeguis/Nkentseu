@@ -38,6 +38,9 @@ namespace nkentseu {
             bool DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode);
             bool Draw(Memory::Shared<class VertexArray> vertexArray, DrawVertexType::Code drawVertex);
 
+            bool Prepare();
+            bool Finalize();
+
             bool Present();
             bool Swapbuffer();
 

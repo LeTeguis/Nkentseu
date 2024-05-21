@@ -97,10 +97,10 @@ namespace nkentseu {
 		instanceInfo.ppEnabledLayerNames = extension->layers.data();
 		instanceInfo.enabledLayerCount = extension->layers.size();
 
-		VkResultNts result = vkCheckError(vkCreateInstance(&instanceInfo, 0, &instance), "Cannot create vulkan instance");
+		VulkanResult result = vkCheckError(vkCreateInstance(&instanceInfo, 0, &instance), "Cannot create vulkan instance");
 
 		if (result.success) {	
-			Log_nts.Error("Create vulkan instance is good");
+			Log_nts.Info("Create vulkan instance is good");
 
 			auto vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 
@@ -113,17 +113,15 @@ namespace nkentseu {
 
 				vkCreateDebugUtilsMessengerEXT(instance, &debugInfo, 0, &debugMessenger);
 			}
-
-			return true;
 		}
-		return false;
+		return result.success;
 	}
 
 	bool VulkanSurface::Create(Window* window, VulkanInstance* instance)
 	{
 		if (window == nullptr || instance == nullptr) return false;
 		if (window->GetInternal() == nullptr || window->GetInternal()->GetWindowDisplay() == nullptr) return false;
-		VkResultNts result;
+		VulkanResult result;
 
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 		WindowInternal* internal = window->GetInternal();
@@ -135,11 +133,10 @@ namespace nkentseu {
 		surfaceInfo.hwnd = (HWND)internal->GetWindowDisplay()->windowHandle;
 		surfaceInfo.hinstance = internal->GetWindowDisplay()->instanceHandle;
 
-		result = vkCheckError(vkCreateWin32SurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface");
+		result = vkCheckError(vkCreateWin32SurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface windows");
 
 		if (result.success) {
-			Log_nts.Error("Create vulkan surface is good");
-			return true;
+			Log_nts.Info("Create vulkan surface is good for windows");
 		}
 #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
 		WindowInternal* internal = window->GetInternal();
@@ -151,11 +148,10 @@ namespace nkentseu {
 		surfaceInfo.dpy = PlatformState.display;
 		surfaceInfo.window = internal->GetWindowDisplay()->windowHandle;
 
-		result = vkCheckError(vkCreateXlibSurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface");
+		result = vkCheckError(vkCreateXlibSurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface linux xlib");
 
 		if (result.success) {
-			Log_nts.Error("Create vulkan surface is good");
-			return true;
+			Log_nts.Info("Create vulkan surface is good for linux xlib");
 		}
 #elif defined(NKENTSEU_LINUX_WIN_API_XCB)
 		WindowInternal* internal = window->GetInternal();
@@ -167,11 +163,10 @@ namespace nkentseu {
 		surfaceInfo.dpy = PlatformState.connection;
 		surfaceInfo.window = internal->GetWindowDisplay()->windowHandle;
 
-		result = vkCheckError(vkCreateXcbSurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface");
+		result = vkCheckError(vkCreateXcbSurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface linux xcb");
 
 		if (result.success) {
-			Log_nts.Error("Create vulkan surface is good");
-			return true;
+			Log_nts.Info("Create vulkan surface is good for linux xcb");
 		}
 #endif
 		return result.success;
@@ -179,46 +174,49 @@ namespace nkentseu {
 	bool VulkanGpu::GetDevice(VulkanInstance* instance, VulkanSurface* surface, VulkanExtension* extension)
 	{
 		if (instance == nullptr || surface == nullptr) return false;
-		VkResultNts result;
+		VulkanResult result;
+
 		uint32 gpuCount = 0;
 		VkPhysicalDevice gpusAll[10];
 		graphicsIndex = -1;
 		result = vkCheckError(vkEnumeratePhysicalDevices(instance->instance, &gpuCount, 0), "Cannot count physical device");
 		result = result.success ? vkCheckError(vkEnumeratePhysicalDevices(instance->instance, &gpuCount, gpusAll), "Cannot get all physical device") : result;
 
-		for (uint32 index = 0; index < gpuCount; index++) {
-			VkPhysicalDevice currentGpu = gpusAll[index];
-			gpus.push_back(gpusAll[index]);
+		if (result.success) {
+			for (uint32 index = 0; index < gpuCount; index++) {
+				VkPhysicalDevice currentGpu = gpusAll[index];
+				gpus.push_back(gpusAll[index]);
 
-			uint32 currentQFC = 0;
-			VkQueueFamilyProperties currentQP[10];
+				uint32 currentQFC = 0;
+				VkQueueFamilyProperties currentQP[10];
 
-			vkGetPhysicalDeviceQueueFamilyProperties(currentGpu, &currentQFC, 0);
-			vkGetPhysicalDeviceQueueFamilyProperties(currentGpu, &currentQFC, currentQP);
+				vkGetPhysicalDeviceQueueFamilyProperties(currentGpu, &currentQFC, 0);
+				vkGetPhysicalDeviceQueueFamilyProperties(currentGpu, &currentQFC, currentQP);
 
-			for (uint32 indexQueue = 0; indexQueue < currentQFC; indexQueue++) {
-				if (currentQP[indexQueue].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-					VkBool32 surfaceSupport = VK_FALSE;
+				for (uint32 indexQueue = 0; indexQueue < currentQFC; indexQueue++) {
+					if (currentQP[indexQueue].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+						VkBool32 surfaceSupport = VK_FALSE;
 
-					vkCheckError(vkGetPhysicalDeviceSurfaceSupportKHR(currentGpu, indexQueue, surface->surface, &surfaceSupport), "cannot support physical device surface");
+						vkCheckError(vkGetPhysicalDeviceSurfaceSupportKHR(currentGpu, indexQueue, surface->surface, &surfaceSupport), "cannot support physical device surface");
 
-					if (surfaceSupport) {
-						graphicsIndex = indexQueue;
-						queueProperties.push_back(currentQP[indexQueue]);
-						gpu = currentGpu;
-						break;
+						if (surfaceSupport) {
+							graphicsIndex = indexQueue;
+							queueProperties.push_back(currentQP[indexQueue]);
+							gpu = currentGpu;
+							break;
+						}
 					}
 				}
 			}
+
+			if (graphicsIndex < 0) {
+				return false;
+			}
+
+			result.success = GetLogicalDevice(surface, extension);
 		}
 
-		if (graphicsIndex < 0) {
-			return false;
-		}
-
-		bool success = GetLogicalDevice(surface, extension);
-
-		return true;
+		return result.success;
 	}
 
 	bool VulkanGpu::GetLogicalDevice(VulkanSurface* surface, VulkanExtension* extension)
@@ -242,17 +240,19 @@ namespace nkentseu {
 		deviceInfo.ppEnabledExtensionNames = extension->deviceExtension.data();
 		deviceInfo.enabledExtensionCount = extension->deviceExtension.size();
 
-		VkResultNts result = vkCheckError(vkCreateDevice(gpu, &deviceInfo, 0, &device), "cannot create device");
+		VulkanResult result = vkCheckError(vkCreateDevice(gpu, &deviceInfo, 0, &device), "cannot create device");
 
 		if (result.success) {
-			Log_nts.Error("Create vulkan device is good");
+			Log_nts.Info("Create vulkan device is good");
+			vkGetDeviceQueue(device, graphicsIndex, 0, &graphicsQueue);
 		}
 		// VK_ERROR_DEVICE_LOST
 		return result.success;
 	}
 
 	bool VulkanSwapchain::Create(VulkanGpu* gpu, VulkanSurface* surface) {
-		VkResultNts result;
+		if (gpu == nullptr || surface == nullptr) return false;
+		VulkanResult result;
 
 		uint32 formatCount = 0;
 		VkSurfaceFormatKHR surfaceFormats[10];
@@ -271,26 +271,64 @@ namespace nkentseu {
 		VkSurfaceCapabilitiesKHR surfaceCaps = {};
 		result = result.success ? vkCheckError(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->gpu, surface->surface, &surfaceCaps), "cannot get surface capabilities khr") : result;
 
-		uint32 imageCount;
-		imageCount = surfaceCaps.minImageCount + 1;
-		imageCount = imageCount > surfaceCaps.maxImageCount ? imageCount - 1 : imageCount;
+		if (result.success) {
+			uint32 imageCount;
+			imageCount = surfaceCaps.minImageCount + 1;
+			imageCount = imageCount > surfaceCaps.maxImageCount ? imageCount - 1 : imageCount;
 
-		VkSwapchainCreateInfoKHR swapchainInfo = {};
-		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		swapchainInfo.surface = surface->surface;
-		swapchainInfo.imageFormat = surfaceFormat.format;
-		swapchainInfo.preTransform = surfaceCaps.currentTransform;
-		swapchainInfo.imageExtent = surfaceCaps.currentExtent;
-		swapchainInfo.minImageCount = imageCount;
-		swapchainInfo.imageArrayLayers = 1;
+			VkSwapchainCreateInfoKHR swapchainInfo = {};
+			swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+			swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+			swapchainInfo.surface = surface->surface;
+			swapchainInfo.imageFormat = surfaceFormat.format;
+			swapchainInfo.preTransform = surfaceCaps.currentTransform;
+			swapchainInfo.imageExtent = surfaceCaps.currentExtent;
+			swapchainInfo.minImageCount = imageCount;
+			swapchainInfo.imageArrayLayers = 1;
 
-		result = result.success ? vkCheckError(vkCreateSwapchainKHR(gpu->device, &swapchainInfo, 0, &swapchain), "cannot create swapchain") : result;
+			result = result.success ? vkCheckError(vkCreateSwapchainKHR(gpu->device, &swapchainInfo, 0, &swapchain), "cannot create swapchain") : result;
+		}
 
 		if (result.success) {
-			Log_nts.Error("Create vulkan swapchain is good");
+			Log_nts.Info("Create vulkan swapchain is good");
 		}
+		uint32 scImageCount = 0;
+		VkImage scImages[5];
+
+		result = result.success ? vkCheckError(vkGetSwapchainImagesKHR(gpu->device, swapchain, &scImageCount, 0), "cannot count swapchain image khr") : result;
+		result = result.success ? vkCheckError(vkGetSwapchainImagesKHR(gpu->device, swapchain, &scImageCount, scImages), "cannot getswapchain image khr") : result;
+
+		for (uint32 index = 0; index < scImageCount; index++) {
+			swapchainImages.push_back(scImages[index]);
+		}
+
+		return result.success;
+	}
+
+	bool VulkanCommandPool::Create(VulkanGpu* gpu) {
+		if (gpu == nullptr) return false;
+
+		VulkanResult result;
+
+		VkCommandPoolCreateInfo poolInfo = {};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = gpu->graphicsIndex;
+		result = vkCheckError(vkCreateCommandPool(gpu->device, &poolInfo, 0, &commandPool), "cannot getswapchain image khr");
+
+		return result.success;
+	}
+
+	bool VulkanSemaphore::Create(VulkanGpu* gpu) {
+		if (gpu == nullptr) return false;
+
+		VulkanResult result;
+
+		VkSemaphoreCreateInfo semaphoreInfo = {};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		result = vkCheckError(vkCreateSemaphore(gpu->device, &semaphoreInfo, 0, &aquireSemaphore), "cannot create acquire semaphore");
+		result = result.success ? vkCheckError(vkCreateSemaphore(gpu->device, &semaphoreInfo, 0, &submitSemaphore), "cannot create submit semaphore") : result;
 
 		return result.success;
 	}

@@ -46,8 +46,8 @@ namespace nkentseu {
             return m_Context->Initialize();
         }
         bool makecurrent = true;
-        if (!m_Context->IsCurrent()) {
-            makecurrent = m_Context->MakeCurrent();
+        if (!m_Context->GetInternal()->IsCurrent()) {
+            makecurrent = m_Context->GetInternal()->MakeCurrent();
         }
         return makecurrent;
     }
@@ -58,8 +58,8 @@ namespace nkentseu {
             return false;
         }
         bool makecurrent = false;
-        if (m_Context->IsCurrent()) {
-            makecurrent = m_Context->UnmakeCurrent();
+        if (m_Context->GetInternal()->IsCurrent()) {
+            makecurrent = m_Context->GetInternal()->UnmakeCurrent();
         }
         return false;
     }
@@ -69,7 +69,7 @@ namespace nkentseu {
         if (m_Context == nullptr || !m_Context->IsInitialize()) {
             return false;
         }
-        if (m_Context->IsCurrent()) {
+        if (m_Context->GetInternal()->IsCurrent()) {
             glClearColor(color.Rf(), color.Gf(), color.Bf(), color.Af());
             if (glCheckError() == GL_NO_ERROR) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -161,8 +161,8 @@ namespace nkentseu {
         if (m_Context == nullptr || !m_Context->IsInitialize()) {
             return false;
         }
-        if (m_Context->IsCurrent()) {
-            bool swap = m_Context->Present();
+        if (m_Context->GetInternal()->IsCurrent()) {
+            bool swap = m_Context->GetInternal()->Present();
 
             if (swap) {
                 glFlush();
@@ -173,6 +173,16 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::Swapbuffer()
+    {
+        return Present();
+    }
+
+    bool InternalRenderer::Prepare()
+    {
+        return true;
+    }
+
+    bool InternalRenderer::Finalize()
     {
         return Present();
     }

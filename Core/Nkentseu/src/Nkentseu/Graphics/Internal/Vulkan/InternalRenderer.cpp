@@ -19,6 +19,7 @@
 #include "InternalIndexBuffer.h"
 #include "InternalVertexArray.h"
 #include "InternalVertexBuffer.h"
+#include "VulkanUtils.h"
 
 namespace nkentseu {
     
@@ -33,7 +34,14 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::Initialize(Context* context) {
-        return false;
+        if (context == nullptr) {
+            return false;
+        }
+        m_Context = context;
+        if (!m_Context->IsInitialize()) {
+            return m_Context->Initialize();
+        }
+        return true;
     }
 
     bool InternalRenderer::Deinitialize() {
@@ -41,11 +49,27 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::Clear(const Color& color) {
-        return false;
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
+        InternalContext* context = m_Context->GetInternal();
+
+        VulkanResult result;
+
+        VkClearColorValue vkColor = { color.Rf(), color.Gf(), color.Bf(), color.Af() };
+        VkImageSubresourceRange range = {};
+        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        range.layerCount = 1;
+        range.levelCount = 1;
+
+        vkCmdClearColorImage(m_CurrentCommandBuffer, context->m_Swapchain.swapchainImages[m_CurrentImageIndice], VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, &vkColor, 1, &range);
+        Log_nts.Debug();
+        // return result.success;
+        m_PreviousColor = color;
+        m_ClearColor = true;
+        return true;
     }
 
     bool InternalRenderer::Clear(uint8 r, uint8 g, uint8 b, uint8 a) {
-        return false;
+        return Clear(Color(r, g, b, a));
     }
 
     bool InternalRenderer::SetActiveShader(Memory::Shared<Shader> shader) {
@@ -57,6 +81,79 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode) {
+        return false;
+    }
+
+    bool InternalRenderer::Prepare()
+    {
+        m_IsPrepare = false;
+
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr) return false;
+        InternalContext* context = m_Context->GetInternal();
+
+        VulkanResult result;
+        m_CurrentImageIndice = 0;
+
+        result = vkCheckError(vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr");
+        result.success = true;
+
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandBufferCount = 1;
+        allocInfo.commandPool = context->m_CommandPool.commandPool;
+
+        result = result.success ? vkCheckError(vkAllocateCommandBuffers(context->m_Gpu.device, &allocInfo, &m_CurrentCommandBuffer), "cannot allocate command buffer") : result;
+
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        result = result.success ? vkCheckError(vkBeginCommandBuffer(m_CurrentCommandBuffer, &beginInfo), "cannot start command buffer") : result;
+
+        if (!m_ClearColor) {
+            Clear(m_PreviousColor);
+        }
+
+        m_IsPrepare = result.success;
+        m_ClearColor = false;
+        return result.success;
+    }
+
+    bool InternalRenderer::Finalize()
+    {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
+        InternalContext* context = m_Context->GetInternal();
+
+        VulkanResult result;
+
+        result = result.success ? vkCheckError(vkEndCommandBuffer(m_CurrentCommandBuffer), "cannot finish command buffer") : result;
+
+        VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.pWaitDstStageMask = &waitStage;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &m_CurrentCommandBuffer;
+        submitInfo.pSignalSemaphores = &context->m_Semaphore.submitSemaphore;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = &context->m_Semaphore.aquireSemaphore;
+        submitInfo.waitSemaphoreCount = 1;
+
+        result = result.success ? vkCheckError(vkQueueSubmit(context->m_Gpu.graphicsQueue, 1, &submitInfo, 0), "cannot submit command") : result;
+
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.pSwapchains = &context->m_Swapchain.swapchain;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pImageIndices = &m_CurrentImageIndice;
+        presentInfo.pWaitSemaphores = &context->m_Semaphore.submitSemaphore;
+        presentInfo.waitSemaphoreCount = 1;
+
+        result = result.success ? vkCheckError(vkQueuePresentKHR(context->m_Gpu.graphicsQueue, &presentInfo), "cannot present image") : result;
+
+        result = result.success ? vkCheckError(vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle") : result;
+        vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer);
         return false;
     }
 

@@ -43,6 +43,9 @@ namespace nkentseu {
             bool Present();
             bool Swapbuffer();
 
+            bool Prepare();
+            bool Finalize();
+
             bool SetActiveShader(Memory::Shared<class Shader> shader);
             bool UnsetActiveShader();
 

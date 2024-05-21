@@ -18,6 +18,8 @@
 #include <Ntsm/Vector/Vector2.h>
 #include <vector>
 
+#include <vulkan/vulkan.h>
+
 namespace nkentseu {
     class Context;
     class Shader;
@@ -43,9 +45,18 @@ namespace nkentseu {
             bool Present();
             bool Swapbuffer();
 
+            bool Prepare();
+            bool Finalize();
+
             bool Resize(const Vector2u& size);
         private:
+            Context* m_Context;
+            VkCommandBuffer m_CurrentCommandBuffer;
+            uint32 m_CurrentImageIndice = 0;
+            bool m_IsPrepare = false;
 
+            bool m_ClearColor = false;
+            Color m_PreviousColor;
     };
 
 }  //  nkentseu

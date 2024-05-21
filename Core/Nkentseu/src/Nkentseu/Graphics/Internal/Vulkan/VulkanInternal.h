@@ -56,6 +56,7 @@ namespace nkentseu {
         std::vector<VkPhysicalDevice> gpus;
         VkPhysicalDevice gpu;
         VkDevice device;
+        VkQueue graphicsQueue;
 
         std::vector<VkQueueFamilyProperties> queueProperties;
 
@@ -67,6 +68,20 @@ namespace nkentseu {
 
         VkSwapchainKHR swapchain = nullptr;
         VkSurfaceFormatKHR surfaceFormat;
+        std::vector<VkImage> swapchainImages;
+    };
+
+    struct NKENTSEU_API VulkanCommandPool {
+        bool Create(VulkanGpu* gpu);
+
+        VkCommandPool commandPool = nullptr;
+    };
+
+    struct NKENTSEU_API VulkanSemaphore {
+        bool Create(VulkanGpu* gpu);
+
+        VkSemaphore submitSemaphore = nullptr;
+        VkSemaphore aquireSemaphore = nullptr;
     };
     
 }  //  nkentseu

@@ -32,27 +32,28 @@ namespace nkentseu {
             bool Deinitialize();
             bool IsInitialize();
 
-            bool MakeCurrent();
-            bool UnmakeCurrent();
-            bool IsCurrent();
-
             bool EnableVSync();
             bool DisableVSync();
-
-            bool Present();
-            bool Swapchaine();
 
             const GraphicsInfos& GetGraphicsInfo();
 
             Window* GetWindow();
             const ContextProperties& GetProperties();
         private:
+            friend class InternalRenderer;
+
             Window* m_Window;
+            ContextProperties m_ContextProperties;
+
             VulkanInstance m_Instance;
             VulkanSurface m_Surface;
             VulkanExtension m_Extension;
             VulkanGpu m_Gpu;
             VulkanSwapchain m_Swapchain;
+            VulkanCommandPool m_CommandPool;
+            VulkanSemaphore m_Semaphore;
+
+            bool m_IsInitialize = false;
     };
 } // namespace nkentseu
 
