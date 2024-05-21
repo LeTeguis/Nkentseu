@@ -12,11 +12,11 @@
 #include "Context.h"
 #include "Color.h"
 #include <Ntsm/Vector/Vector2.h>
+#include "Nkentseu/Graphics/ShaderInfo.h"
 
 namespace nkentseu {
     class InternalRenderer;
-    class VertexBuffer;
-    class IndexBuffer;
+    class VertexArray;
     class Shader;
 
     class NKENTSEU_API Renderer
@@ -35,8 +35,8 @@ namespace nkentseu {
             bool SetActiveShader(Memory::Shared<class Shader> shader);
             bool UnsetActiveShader();
 
-            bool DrawVertexBuffer(Memory::Shared<class VertexBuffer> vertex);
-            bool DrawIndexBuffer(Memory::Shared<class IndexBuffer> index);
+            bool DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode);
+            bool Draw(Memory::Shared<class VertexArray> vertexArray, DrawVertexType::Code drawVertex);
 
             bool Present();
             bool Swapbuffer();

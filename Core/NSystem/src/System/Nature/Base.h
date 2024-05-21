@@ -37,6 +37,7 @@ namespace nkentseu{
     typedef signed short int            int16;
     typedef signed int                  int32;
     typedef signed long long int        int64;
+    typedef signed long long            usize_gpu;
 
     // Floating point types
     typedef float                       float32;

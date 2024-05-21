@@ -18,6 +18,9 @@ Makefile
 # Mono auto generated files
 mono_crash.*
 
+# Profil
+[Ss]cripts/user/profil.py
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

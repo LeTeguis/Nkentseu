@@ -19,8 +19,7 @@ AddParentModule()
 import configuration as conf
 import manager as man
 
-import user.teuguia_tadjuidje_rodolf_sederis as ttrs
-import user.nguengoue_louise_morena as nlm
+import user.profil as profil
 
 def help_command():
     """Affiche l'aide de la commande `create`."""
@@ -314,9 +313,8 @@ def generateFile(generatorProperties):
     return True
 
 def parse_arguments(args):
-    current_user = man.USER_DATA[man.CURRENT_USER]
-    user_name = current_user["family_name"]
-    user_first_name = current_user["first_name"]
+    user_name = profil.PROFIL["family_name"]
+    user_first_name = profil.PROFIL["first_name"]
 
     # Initialiser les propriétés du générateur avec des valeurs par défaut
     generatorProperties = {

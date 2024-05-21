@@ -50,6 +50,8 @@ namespace nkentseu {
         bool Swapchaine();
 
         const GraphicsInfos& GetGraphicsInfo();
+
+        bool IsSupportDAS();
     private:
         class Window* m_Window;
         HWND                m_WindowHandle = nullptr;
@@ -59,6 +61,7 @@ namespace nkentseu {
 
         bool m_IsInitialize;
         bool m_IsCurrent;
+        bool m_IsSupportDSA = false;
 
     private:
         GraphicsInfos m_GraphicsInfo = {};

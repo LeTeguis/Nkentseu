@@ -79,6 +79,9 @@ namespace nkentseu {
         // Is this window a modal?
         bool modal = false;
 
+        Vector2u applicationVersion = Vector2u(1, 0);
+        Vector2u engineVersion = Vector2u(1, 0);
+
         // App Data
         // 
         // Window Title

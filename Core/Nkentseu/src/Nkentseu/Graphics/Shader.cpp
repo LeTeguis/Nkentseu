@@ -10,6 +10,8 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_OPENGL
 #include "Internal/Opengl/InternalShader.h"
+#elif defined(NKENTSEU_GRAPHICS_API_VULKAN)
+#include "Internal/Vulkan/InternalShader.h"
 #endif
 #include <Nkentseu/Core/NkentseuLogger.h>
 

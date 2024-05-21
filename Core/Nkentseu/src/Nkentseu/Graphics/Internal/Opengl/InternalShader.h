@@ -3,8 +3,8 @@
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __INTERNAL_SHADER_H__
-#define __INTERNAL_SHADER_H__
+#ifndef __OPENGL_INTERNAL_SHADER_H__
+#define __OPENGL_INTERNAL_SHADER_H__
 
 #pragma once
 

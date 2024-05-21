@@ -92,16 +92,16 @@ namespace nkentseu {
         return m_InternalRenderer->UnsetActiveShader();
     }
 
-    bool Renderer::DrawVertexBuffer(Memory::Shared<VertexBuffer> vertex)
+    bool Renderer::DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode)
     {
         if (!IsValideInternal()) return false;
-        return m_InternalRenderer->DrawVertexBuffer(vertex);
+        return m_InternalRenderer->DrawMode(mode, contentMode);
     }
 
-    bool Renderer::DrawIndexBuffer(Memory::Shared<IndexBuffer> index)
+    bool Renderer::Draw(Memory::Shared<class VertexArray> vertexArray, DrawVertexType::Code drawVertex)
     {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->DrawIndexBuffer(index);
+        if (!IsValideInternal() || vertexArray == nullptr) return false;
+        return m_InternalRenderer->Draw(vertexArray, drawVertex);
     }
 
     bool Renderer::Present()

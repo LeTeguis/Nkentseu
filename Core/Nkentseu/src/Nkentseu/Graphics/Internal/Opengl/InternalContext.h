@@ -3,8 +3,8 @@
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __NKENTSEU_INTERNAL_CONTEXT_H__
-#define __NKENTSEU_INTERNAL_CONTEXT_H__
+#ifndef __OPENGL_INTERNAL_CONTEXT_H__
+#define __OPENGL_INTERNAL_CONTEXT_H__
 
 #pragma once
 

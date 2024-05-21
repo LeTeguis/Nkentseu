@@ -57,6 +57,7 @@ namespace nkentseu {
     }
 
     bool NativeContext::Initialize() {
+        bool isInitialize = true;
         if (!IsInitialize()) {
             std::string title;
             bool isOffscreen = false;
@@ -78,9 +79,14 @@ namespace nkentseu {
                 return false;
             }
 
-            return InitializeInternal(m_WindowHandle, title, isOffscreen);
+            isInitialize = InitializeInternal(m_WindowHandle, title, isOffscreen);
         }
-        return true;
+
+        if (isInitialize) {
+            //wglIsDirect();
+        }
+
+        return isInitialize;
     }
 
     bool NativeContext::Deinitialize() {

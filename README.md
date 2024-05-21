@@ -43,12 +43,12 @@ La configuration actuelle du projet est gérée par des scripts `nken`.
 
 ### Configuration Linux
 - Si vous utilisez WSL sous Windows, vous devez :
-- Ouvrir un terminal et saisir `nano ~/.bashrc`, puis ajouter les lignes suivantes au code :
-    ```markdown
-    export DISPLAY=localhost:0.0\
-    export LIBGL_ALWAYS_INDIRECT=0\
-    export MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA  # Remplacer "NVIDIA" par le nom de votre GPU\
-    ```
+    * Ouvrir un terminal et saisir `nano ~/.bashrc`, puis ajouter les lignes suivantes au code :
+        ```markdown
+        export DISPLAY=localhost:0.0\
+        export LIBGL_ALWAYS_INDIRECT=0\
+        export MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA  # Remplacer "NVIDIA" par le nom de votre GPU\
+        ```
     * Ensuite, quitter nano en sauvegardant les modifications et saisir la commande `source ~/.bashrc` pour appliquer les changements.
     * Assurez-vous de remplacer `"NVIDIA"` dans la variable `MESA_D3D12_DEFAULT_ADAPTER_NAME` par le nom correct de votre GPU. Vous pouvez trouver le nom de votre GPU dans les paramètres de votre système d'exploitation ou en utilisant l'outil `glxinfo`.
     * La version d'`OpenGL` prise en charge par WSL2 est actuellement `4.2`, mais sur Ubuntu et Windows, vous pouvez atteindre la version `4.6`, en fonction de votre carte graphique.
@@ -64,6 +64,16 @@ Selon que vous utilisez `nken`, [`./nken.bat`](./nken.bat) ou [`./nken.sh`](./nk
 - `[nken clean]` : pour vider ou supprimer les dossiers de build et de génération. Vous devez ensuite exécuter à nouveau `nken gen` pour continuer à travailler sur les projets.
 - `[nken build]` : pour compiler le projet en fonction de la plateforme cible.
 - `[nken run]` ou `[nken run proj1 proj2 ... projn]` : pour exécuter le projet par défaut défini dans le fichier [`./Script/manager.py`](./Scripts/manager.py), ou pour exécuter l'un des projets exécutables situés dans le même fichier.
+- `[nken create]` : la commande `create` permet de crée un fichier `(.cpp et .h)`, une `class`, une `structure (struct)`, et une `enumeration (enum)` en suivant certains principe (lire la documentation pour en savoir plus). vous pouvez decider de modifier la présentation de ces fichier en modifant directement le code source de la command ou si vous voulez utiliser comme c'est actuellement, il vous faut crée un fichier dans `profil.py` dans le dossier `Scripts/user` e y ajouter les informations suivants:
+    ```python
+    PROFIL = {
+        "family_name": "votre nom",
+        "first_name": "votre prenom",
+        "description": "une description", # facultatif
+        "function": "votre fonction" # facultatif
+    }
+    ```
+    et n'oublier pas de définir le nom de la structure si elle n'est as déjà faite.
 
 Si vous souhaitez ajouter un autre projet, n'oubliez pas de le spécifier dans [`./Scripts/manager.py`](./Scripts/manager.py), dans [`./premake5.lua`](./premake5.lua), dans [`./Scripts/config.lua`](./Scripts/config.lua), et de créer le fichier `premake5.lua` correspondant pour le projet en question.
 

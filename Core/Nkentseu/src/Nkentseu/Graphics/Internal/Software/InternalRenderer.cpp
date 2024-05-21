@@ -13,6 +13,7 @@
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "InternalRenderer.h"
 #include "InternalRenderer.h"
+#include "InternalRenderer.h"
 
 namespace nkentseu {
 
@@ -56,7 +57,6 @@ namespace nkentseu {
     {
         return true;
     }
-
 }    // namespace nkentseu
 
 #endif

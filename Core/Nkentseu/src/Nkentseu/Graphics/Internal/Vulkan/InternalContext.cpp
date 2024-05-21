@@ -9,12 +9,44 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 
+#include "Nkentseu/Core/Window.h"
+
 namespace nkentseu {
 
     InternalContext::InternalContext() : m_Window(nullptr) {
     }
 
     InternalContext::~InternalContext(){
+    }
+
+    bool InternalContext::SetWindow(Window* window) {
+        return false;
+    }
+    bool InternalContext::SetProperties(const ContextProperties& properties) {
+        return false;
+    }
+
+    bool InternalContext::Initialize() {
+        return false;
+    }
+    bool InternalContext::IsInitialize() {
+        return false;
+    }
+
+    bool InternalContext::EnableVSync() {
+        return false;
+    }
+
+    bool InternalContext::DisableVSync() {
+        return false;
+    }
+
+    bool InternalContext::Present() {
+        return false;
+    }
+
+    bool InternalContext::Swapchaine() {
+        return false;
     }
 
     bool InternalContext::Initialize(Window* window, const ContextProperties& contextProperties)
@@ -24,6 +56,13 @@ namespace nkentseu {
         m_Window = window;
 
         if (m_Window == nullptr) return false;
+
+        m_Extension.Defined();
+
+        if (!m_Instance.Create(m_Window, contextProperties, &m_Extension)) return false;
+        if (!m_Surface.Create(m_Window, &m_Instance)) return false;
+        if (!m_Gpu.GetDevice(&m_Instance, &m_Surface, &m_Extension)) return false;
+        if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
 
         return false;
     }
@@ -54,9 +93,14 @@ namespace nkentseu {
 
     const ContextProperties& InternalContext::GetProperties()
     {
-        // TODO: insérer une instruction return ici
-        if (m_NativeContext == nullptr) return {};
-        return m_NativeContext->GetProperties();
+        static ContextProperties tmp;
+        return tmp;
+    }
+
+
+    const GraphicsInfos& InternalContext::GetGraphicsInfo() {
+        static GraphicsInfos tmp;
+        return tmp;
     }
 }    // namespace nkentseu
 

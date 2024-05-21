@@ -9,10 +9,13 @@
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <Logger/Formatter.h>
 
+#include "Nkentseu/Graphics/Context.h"
+#include "InternalContext.h"
+
 namespace nkentseu {
     
     // Constructor
-    InternalShader::InternalShader() {
+    InternalShader::InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) {
         // Ajoutez votre code de constructeur ici
     }
 
@@ -21,13 +24,21 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    std::string InternalShader::ToString() const {
-        return FORMATTER.Format(""); // mettez votre formatteur To string entre les guillemets
+    bool InternalShader::Create() {
+        return false;
     }
 
-    std::string ToString(const InternalShader& internalShader) {
-        return internalShader.ToString();
+    bool InternalShader::CreateShader() {
+        return false;
     }
+
+    bool InternalShader::Destroy() {
+        return false;
+    }
+
+    void InternalShader::SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) {
+    }
+
 
 }  //  nkentseu
 

@@ -284,6 +284,10 @@ function linksGraphicApi()
         end
 
         if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
+            libdirs {
+                "%{Externals.VkLib}/"
+            }
+            
             filter "system:windows"
                 links { "vulkan-1", "VkLayer_utils" }
 
@@ -291,7 +295,7 @@ function linksGraphicApi()
                 links { "libvulkan.1", "libMoltenVK", "libshaderc_combined" }
 
             filter "system:linux"
-                links { "libvulkan", "libVkLayer_utils" }
+                links { "libvulkan-1", "libVkLayer_utils" }
         end
 	end
 end

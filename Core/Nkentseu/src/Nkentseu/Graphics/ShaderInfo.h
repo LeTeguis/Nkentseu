@@ -30,10 +30,37 @@ namespace nkentseu {
 			NotDefine, Boolean, Float, Float2, Float3, Float4, Int, Int2, Int3, Int4, Byte4, Mat3, Mat4, Struct
 		};
 
-		static int32 ComponentCount(ShaderDataType::Code shaderDataType);
-		static int32 ComponentSize(ShaderDataType::Code shaderDataType);
+		static uint32 ComponentCount(ShaderDataType::Code shaderDataType);
+		static uint32 ComponentElementSize(ShaderDataType::Code shaderDataType);
+		static uint32 ComponentSize(ShaderDataType::Code shaderDataType);
 		static std::string ToString(ShaderDataType::Code shaderDataType);
 		static ShaderType::Code FromString(const std::string& shaderDataTypeStr);
+	};
+
+	struct NKENTSEU_API BufferDataUsage {
+		using Code = uint64;
+
+		enum : Code {
+			NotDefine,
+			StaticDraw,
+			DynamicDraw,
+			StreamDraw
+		};
+
+		static std::string ToString(BufferDataUsage::Code bufferUsage);
+		static BufferDataUsage::Code FromString(const std::string& bufferUsageStr);
+	};
+
+	struct NKENTSEU_API DrawVertexType {
+		using Code = uint64;
+
+		enum : Code {
+			NotDefine,
+			Triangles
+		};
+
+		static std::string ToString(DrawVertexType::Code shaderDataDrawType);
+		static DrawVertexType::Code FromString(const std::string& shaderDataDrawTypeStr);
 	};
 
 	// Repr�sente diff�rents types de buffers
@@ -51,6 +78,51 @@ namespace nkentseu {
 		static BufferType::Code FromString(const std::string& bufferTypeStr);
 	};
 
+	// Repr�sente diff�rents types de buffers
+	struct NKENTSEU_API DrawMode {
+		using Code = uint64;
+		// Enum�ration des types de buffers
+		enum : Code {
+			NotDefine, Front, Back, FrontBack
+		};
+
+		// Convertit un code de type de buffer en cha�ne de caract�res
+		static std::string ToString(DrawMode::Code drawMode);
+
+		// Convertit une cha�ne de caract�res en code de type de buffer
+		static DrawMode::Code FromString(const std::string& drawModeStr);
+	};
+
+	// Repr�sente diff�rents types de buffers
+	struct NKENTSEU_API DrawContentMode {
+		using Code = uint64;
+		// Enum�ration des types de buffers
+		enum : Code {
+			NotDefine, Line, Fill
+		};
+
+		// Convertit un code de type de buffer en cha�ne de caract�res
+		static std::string ToString(DrawContentMode::Code drawContentMode);
+
+		// Convertit une cha�ne de caract�res en code de type de buffer
+		static DrawContentMode::Code FromString(const std::string& drawContentModeStr);
+	};
+
+	// Repr�sente diff�rents types de buffers
+	struct NKENTSEU_API DrawIndexType {
+		using Code = uint64;
+		// Enum�ration des types de buffers
+		enum : Code {
+			NotDefine, UnsignedInt
+		};
+
+		// Convertit un code de type de buffer en cha�ne de caract�res
+		static std::string ToString(DrawIndexType::Code indexType);
+
+		// Convertit une cha�ne de caract�res en code de type de buffer
+		static DrawIndexType::Code FromString(const std::string& indexTypeStr);
+	};
+
 	struct NKENTSEU_API ShaderData {
 		ShaderType::Code type;
 		std::string data;
@@ -63,27 +135,64 @@ namespace nkentseu {
 		static const char* LoadShaderToMemoryChar(const std::string& shaderFile);
 	};
 
+	struct NKENTSEU_API PushConstantAttribut {
+		std::string name = "";
+		uint32 location;
+		ShaderDataType::Code type = ShaderDataType::NotDefine;
+		uint32 size = 0;
+		usize offset = 0;
+
+		PushConstantAttribut() = default;
+
+		PushConstantAttribut(ShaderDataType::Code type, const std::string& name);
+
+		uint32 GetComponentCount() const;
+		uint32 GetComponentSize() const;
+	};
+
+	struct NKENTSEU_API PushConstantLayout {
+		std::vector<PushConstantAttribut> attributes;
+		uint32 stride = 0;
+		uint32 componentCount = 0;
+
+		PushConstantLayout() = default;
+
+		PushConstantLayout(const std::initializer_list<PushConstantAttribut>& attributes);
+
+		void CalculateOffsetsAndStride();
+
+		const std::vector<PushConstantAttribut>& GetAttributes() const;
+
+		uint32 GetStride() const;
+
+		std::vector<PushConstantAttribut>::iterator begin();
+		std::vector<PushConstantAttribut>::iterator end();
+		std::vector<PushConstantAttribut>::const_iterator begin() const;
+		std::vector<PushConstantAttribut>::const_iterator end() const;
+	};
+
 	struct NKENTSEU_API BufferAttribute {
 		std::string name = "";
 		ShaderDataType::Code type = ShaderDataType::NotDefine;
 		uint32 size = 0;
 		usize offset = 0;
 		bool normalized = false;
-		BufferType::Code bufferType = BufferType::NotDefine;
 
 		BufferAttribute() = default;
 
-		BufferAttribute(BufferType::Code bufferType, ShaderDataType::Code type, const std::string& name, bool normalized = false);
+		BufferAttribute(ShaderDataType::Code type, const std::string& name, bool normalized = false);
 
 		uint32 GetComponentCount() const;
+		uint32 GetComponentSize() const;
 	};
 
 	struct NKENTSEU_API BufferLayout {
 		std::vector<BufferAttribute> attributes;
 		uint32 stride = 0;
+		uint32 componentCount = 0;
 
 		BufferLayout() = default;
-
+		
 		BufferLayout(const std::initializer_list<BufferAttribute>& attributes);
 
 		void CalculateOffsetsAndStride();

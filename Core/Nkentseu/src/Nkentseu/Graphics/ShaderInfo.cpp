@@ -38,7 +38,7 @@ namespace nkentseu {
         return ShaderType::NotDefine;
     }
 
-    int32 ShaderDataType::ComponentCount(ShaderDataType::Code shaderDataType)
+    uint32 ShaderDataType::ComponentCount(ShaderDataType::Code shaderDataType)
     {
         if (shaderDataType == ShaderDataType::Boolean) return 1;
         if (shaderDataType == ShaderDataType::Float) return 1;
@@ -50,30 +50,35 @@ namespace nkentseu {
         if (shaderDataType == ShaderDataType::Int3) return 3;
         if (shaderDataType == ShaderDataType::Int4) return 4;
         if (shaderDataType == ShaderDataType::Byte4) return 4;
-        if (shaderDataType == ShaderDataType::Mat3) return 6;
+        if (shaderDataType == ShaderDataType::Mat3) return 9;
         if (shaderDataType == ShaderDataType::Mat4) return 16;
         if (shaderDataType == ShaderDataType::Struct) return -1;
 
         return 0;
     }
 
-    int32 ShaderDataType::ComponentSize(ShaderDataType::Code shaderDataType)
+    uint32 ShaderDataType::ComponentElementSize(ShaderDataType::Code shaderDataType)
     {
-        if (shaderDataType == ShaderDataType::Boolean) return 1;
-        if (shaderDataType == ShaderDataType::Float) return 4 * 1;
-        if (shaderDataType == ShaderDataType::Float2) return 4 * 2;
-        if (shaderDataType == ShaderDataType::Float3) return 4 * 3;
-        if (shaderDataType == ShaderDataType::Float4) return 4 * 4;
-        if (shaderDataType == ShaderDataType::Int) return 4 * 1;
-        if (shaderDataType == ShaderDataType::Int2) return 4 * 2;
-        if (shaderDataType == ShaderDataType::Int3) return 4 * 3;
-        if (shaderDataType == ShaderDataType::Int4) return 4 * 4;
-        if (shaderDataType == ShaderDataType::Byte4) return -1; // a definir
-        if (shaderDataType == ShaderDataType::Mat3) return 4 * 3 * 3;
-        if (shaderDataType == ShaderDataType::Mat4) return 4 * 4 * 4;
-        if (shaderDataType == ShaderDataType::Struct) return -2;
+        if (shaderDataType == ShaderDataType::Boolean) return sizeof(bool);
+        if (shaderDataType == ShaderDataType::Float) return sizeof(float32);
+        if (shaderDataType == ShaderDataType::Float2) return sizeof(float32);
+        if (shaderDataType == ShaderDataType::Float3) return sizeof(float32);
+        if (shaderDataType == ShaderDataType::Float4) return sizeof(float32);
+        if (shaderDataType == ShaderDataType::Int) return sizeof(int32);
+        if (shaderDataType == ShaderDataType::Int2) return sizeof(int32);
+        if (shaderDataType == ShaderDataType::Int3) return sizeof(int32);
+        if (shaderDataType == ShaderDataType::Int4) return sizeof(int32);
+        if (shaderDataType == ShaderDataType::Byte4) return 1;
+        if (shaderDataType == ShaderDataType::Mat3) return sizeof(float32);
+        if (shaderDataType == ShaderDataType::Mat4) return sizeof(float32);
+        if (shaderDataType == ShaderDataType::Struct) return 0;
 
         return 0;
+    }
+
+    uint32 ShaderDataType::ComponentSize(ShaderDataType::Code shaderDataType)
+    {
+        return ComponentElementSize(shaderDataType) * ComponentCount(shaderDataType);
     }
 
     std::string ShaderDataType::ToString(ShaderDataType::Code shaderDataType) {
@@ -190,11 +195,80 @@ namespace nkentseu {
         return shaderSource.c_str();
     }
 
-    BufferAttribute::BufferAttribute(BufferType::Code bufferType, ShaderDataType::Code type, const std::string& name, bool normalized)
-        : name(name), type(type), bufferType(bufferType), size(ShaderDataType::ComponentSize(type)), offset(0), normalized(normalized) {}
+    PushConstantAttribut::PushConstantAttribut(ShaderDataType::Code type, const std::string& name)
+        : name(name), type(type), size(ShaderDataType::ComponentSize(type)), offset(0) {
+    }
+
+    uint32 PushConstantAttribut::GetComponentCount() const
+    {
+        return ShaderDataType::ComponentCount(type);
+    }
+
+    uint32 PushConstantAttribut::GetComponentSize() const
+    {
+        return ShaderDataType::ComponentSize(type);
+    }
+
+    PushConstantLayout::PushConstantLayout(const std::initializer_list<PushConstantAttribut>& attributes)
+        : attributes(attributes) {
+        CalculateOffsetsAndStride();
+    }
+
+    void PushConstantLayout::CalculateOffsetsAndStride()
+    {
+        usize offset = 0;
+        stride = 0;
+        componentCount = 0;
+        for (auto& attribute : attributes) {
+            attribute.offset = offset;  // Set offset for each attribute
+            offset += attribute.size;    // Update offset for the next attribute
+            stride += attribute.size;    // Accumulate size for total stride
+            componentCount += attribute.GetComponentCount();
+        }
+    }
+
+    const std::vector<PushConstantAttribut>& PushConstantLayout::GetAttributes() const
+    {
+        return attributes;
+    }
+
+    uint32 PushConstantLayout::GetStride() const
+    {
+        return stride;
+    }
+
+    std::vector<PushConstantAttribut>::iterator PushConstantLayout::begin()
+    {
+        return attributes.begin();
+    }
+
+    std::vector<PushConstantAttribut>::iterator PushConstantLayout::end()
+    {
+        return attributes.end();
+    }
+
+    std::vector<PushConstantAttribut>::const_iterator PushConstantLayout::begin() const
+    {
+        return attributes.begin();
+    }
+
+    std::vector<PushConstantAttribut>::const_iterator PushConstantLayout::end() const
+    {
+        return attributes.end();
+    }
+
+
+    BufferAttribute::BufferAttribute(ShaderDataType::Code type, const std::string& name, bool normalized)
+        : name(name), type(type), size(ShaderDataType::ComponentSize(type)), offset(0), normalized(normalized) {
+    }
 
     uint32 BufferAttribute::GetComponentCount() const {
         return ShaderDataType::ComponentCount(type);  // Get number of components from data type
+    }
+
+    uint32 BufferAttribute::GetComponentSize() const
+    {
+        return ShaderDataType::ComponentSize(type);
     }
 
     BufferLayout::BufferLayout(const std::initializer_list<BufferAttribute>& attributes)
@@ -205,10 +279,12 @@ namespace nkentseu {
     void BufferLayout::CalculateOffsetsAndStride() {
         usize offset = 0;
         stride = 0;
+        componentCount = 0;
         for (auto& attribute : attributes) {
             attribute.offset = offset;  // Set offset for each attribute
             offset += attribute.size;    // Update offset for the next attribute
             stride += attribute.size;    // Accumulate size for total stride
+            componentCount += attribute.GetComponentCount();
         }
     }
 
@@ -228,4 +304,83 @@ namespace nkentseu {
     VertexInputElement::VertexInputElement(const std::string& name, uint32 binding, uint32 location, ShaderDataType::Code type, uint32 size, uint32 offset, bool normalized)
         : binding(binding), location(location), type(type), size(size), offset(offset), normalized(normalized), name(name) {}
     
+    std::string BufferDataUsage::ToString(BufferDataUsage::Code bufferUsage)
+    {
+        switch (bufferUsage) {
+        case StaticDraw: return "StaticDraw";
+        case DynamicDraw: return "DynamicDraw";
+        case StreamDraw: return "StreamDraw";
+        default: return "NotDefine";
+        }
+    }
+
+    BufferDataUsage::Code BufferDataUsage::FromString(const std::string& bufferUsageStr)
+    {
+        if (bufferUsageStr == "StaticDraw") return StaticDraw;
+        if (bufferUsageStr == "DynamicDraw") return DynamicDraw;
+        if (bufferUsageStr == "StreamDraw") return StreamDraw;
+        return NotDefine; // Valeur par défaut
+    }
+
+    std::string DrawVertexType::ToString(DrawVertexType::Code shaderDataDrawType)
+    {
+        switch (shaderDataDrawType) {
+        case Triangles: return "Triangles";
+        default: return "NotDefine";
+        }
+    }
+
+    DrawVertexType::Code DrawVertexType::FromString(const std::string& shaderDataDrawTypeStr)
+    {
+        if (shaderDataDrawTypeStr == "Triangles") return Triangles;
+        return NotDefine; // Valeur par défaut
+    }
+
+    std::string DrawMode::ToString(DrawMode::Code drawMode)
+    {
+        switch (drawMode) {
+        case Front: return "Front";
+        case Back: return "Back";
+        case FrontBack: return "FrontBack";
+        default: return "NotDefine";
+        }
+    }
+
+    DrawMode::Code DrawMode::FromString(const std::string& drawModeStr)
+    {
+        if (drawModeStr == "Front") return Front;
+        if (drawModeStr == "Back") return Back;
+        if (drawModeStr == "FrontBack") return FrontBack;
+        return NotDefine; // Valeur par défaut
+    }
+
+    std::string DrawContentMode::ToString(DrawContentMode::Code drawContentMode)
+    {
+        switch (drawContentMode) {
+        case Line: return "Line";
+        case Fill: return "Fill";
+        default: return "NotDefine";
+        }
+    }
+
+    DrawContentMode::Code DrawContentMode::FromString(const std::string& drawContentModeStr)
+    {
+        if (drawContentModeStr == "Line") return Line;
+        if (drawContentModeStr == "Fill") return Fill;
+        return NotDefine; // Valeur par défaut
+    }
+
+    std::string DrawIndexType::ToString(DrawIndexType::Code indexType)
+    {
+        switch (indexType) {
+        case UnsignedInt: return "UnsignedInt";
+        default: return "NotDefine";
+        }
+    }
+
+    DrawIndexType::Code DrawIndexType::FromString(const std::string& indexTypeStr)
+    {
+        if (indexTypeStr == "UnsignedInt") return UnsignedInt;
+        return NotDefine; // Valeur par défaut
+    }
 }  //  nkentseu

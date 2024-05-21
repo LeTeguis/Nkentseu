@@ -10,11 +10,16 @@
 
 #include <Nkentseu/Graphics/Context.h>
 #include <Nkentseu/Graphics/Shader.h>
+#include "InternalShader.h"
+
 #include <Nkentseu/Graphics/Buffer.h>
 #include <Nkentseu/Graphics/VertexArray.h>
+
 #include "InternalBuffer.h"
-#include "InternalShader.h"
 #include "InternalVertexArray.h"
+#include "InternalVertexBuffer.h"
+#include "InternalIndexBuffer.h"
+#include "OpenGLUtils.h"
 
 #include <Nkentseu/Graphics/Color.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
@@ -25,7 +30,6 @@
 
 
 namespace nkentseu {
-
     InternalRenderer::InternalRenderer() : m_Context(nullptr){
     }
 
@@ -41,10 +45,11 @@ namespace nkentseu {
         if (!m_Context->IsInitialize()) {
             return m_Context->Initialize();
         }
+        bool makecurrent = true;
         if (!m_Context->IsCurrent()) {
-            return m_Context->MakeCurrent();
+            makecurrent = m_Context->MakeCurrent();
         }
-        return true;
+        return makecurrent;
     }
 
     bool InternalRenderer::Deinitialize()
@@ -52,8 +57,9 @@ namespace nkentseu {
         if (m_Context == nullptr || !m_Context->IsInitialize()) {
             return false;
         }
+        bool makecurrent = false;
         if (m_Context->IsCurrent()) {
-            return m_Context->UnmakeCurrent();
+            makecurrent = m_Context->UnmakeCurrent();
         }
         return false;
     }
@@ -65,21 +71,11 @@ namespace nkentseu {
         }
         if (m_Context->IsCurrent()) {
             glClearColor(color.Rf(), color.Gf(), color.Bf(), color.Af());
-            glCheckError();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-            glCheckError();
-
-            /*/Log_nts.Debug();
-            if (m_CurrentShader != nullptr) {
-                //Log_nts.Debug();
-                if (m_CurrentShader->GetInternal()->Bind()) {
-                    Log_nts.Debug();
-                    glDrawArrays(GL_TRIANGLES, 0, 3);
-                    Log_nts.Debug();
-                    glCheckError();
-                }
-            }*/
-            return true;
+            if (glCheckError() == GL_NO_ERROR) {
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+                return glCheckError() == GL_NO_ERROR;
+            }
+            return false;
         }
         return false;
     }
@@ -92,63 +88,72 @@ namespace nkentseu {
         return Clear(Color(r, g, b, a));
     }
 
-    bool InternalRenderer::DrawVertexBuffer(Memory::Shared<VertexBuffer> vertex)
+    bool nkentseu::InternalRenderer::DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode)
     {
-        //Log_nts.Debug();
-        if (m_Context == nullptr || !m_Context->IsInitialize() || m_CurrentShader == nullptr) {
+        if (m_Context == nullptr || !m_Context->IsInitialize()) {
             return false;
         }
-        //Log_nts.Debug();
-        /*if (!m_CurrentShader->GetInternal()->Bind() || !vertex->GetInternal()->GetVertexArray()->GetInternal()->Bind() || !vertex->GetInternal()->GetIndexBuffer(0)->GetInternal()->Bind()) {
+        glPolygonMode(GLConvert::DrawModeType(mode), GLConvert::DrawContentModeType(contentMode));
+        return glCheckError() == GL_NO_ERROR;
+    }
+
+    bool InternalRenderer::Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex)
+    {
+        if (m_Context == nullptr || !m_Context->IsInitialize() || m_CurrentShader == nullptr || drawVertex == DrawVertexType::NotDefine) {
             return false;
-        }*/
+        }
         if (!m_CurrentShader->GetInternal()->Bind()) {
             return false;
         }
 
-        if (vertex == nullptr) {
+        if (vertexArray == nullptr) {
             return false;
         }
 
-        InternalVertexBuffer *vertexBuffer = vertex->GetInternal();
+        InternalVertexArray *internalVertexArray = vertexArray->GetInternal();
+
+        if (internalVertexArray == nullptr) {
+            return false;
+        }
+
+        if (!internalVertexArray->Bind()) {
+            return false;
+        }
+
+
+        InternalVertexBuffer* vertexBuffer = vertexArray->GetInternal()->GetInternalVertexBuffer();
 
         if (vertexBuffer == nullptr) {
             return false;
         }
 
-        if (vertexBuffer->GetInternalVertexArray() == nullptr) {
-            return false;
-        }
-        Log_nts.Debug();
-        if (!vertexBuffer->GetInternalVertexArray()->Bind()) {
-            return false;
-        }
-        Log_nts.Debug();
+        InternalIndexBuffer* indexBuffer = vertexArray->GetInternal()->GetInternalIndexBuffer();
 
-        if (vertexBuffer->GetInternalIndexBuffer(0) == nullptr) {
-            return false;
+        uint32 vertexType = GLConvert::VertexType(drawVertex);
+        uint32 vertices_per_type = GLConvert::VerticesPerType(vertexType);
+
+        if (indexBuffer == nullptr) {
+            if (vertexBuffer->Bind()) {
+                uint32 count = vertexBuffer->Leng();
+                glDrawArrays(vertexType, 0, count);
+
+                if (glCheckError() != GL_NO_ERROR) {
+                    return false;
+                }
+            }
+        }
+        else {
+            if (indexBuffer->Bind()) {
+                uint32 count = indexBuffer->Leng();
+                glDrawElements(vertexType, count, GLConvert::IndexType(indexBuffer->GetIndexType()), 0);
+
+                if (glCheckError() != GL_NO_ERROR) {
+                    return false;
+                }
+            }
         }
 
-        Log_nts.Debug();
-        if (!vertexBuffer->GetInternalIndexBuffer(0)->Bind()) {
-            return false;
-        }
-        Log_nts.Debug();
-
-        // glDrawElements(GL_TRIANGLES, vertexBuffer->GetInternalIndexBuffer(0)->GetLength(), GL_UNSIGNED_INT, vertexBuffer->GetInternalIndexBuffer(0)->GetIndices().data());
-        glDrawElements(GL_TRIANGLES, vertexBuffer->GetInternalIndexBuffer(0)->GetLength(), GL_UNSIGNED_INT, 0);
-        Log_nts.Debug();
-
-        //Log_nts.Debug();
-        return false;
-    }
-
-    bool InternalRenderer::DrawIndexBuffer(Memory::Shared<IndexBuffer> index)
-    {
-        if (m_Context == nullptr || !m_Context->IsInitialize() || m_CurrentShader == nullptr) {
-            return false;
-        }
-        return true;
+        return internalVertexArray->Unbind();
     }
 
     bool InternalRenderer::Present()
@@ -161,7 +166,7 @@ namespace nkentseu {
 
             if (swap) {
                 glFlush();
-                return true;
+                return glCheckError() == GL_NO_ERROR;
             }
         }
         return false;
@@ -206,9 +211,8 @@ namespace nkentseu {
     bool InternalRenderer::Resize(const Vector2u& size)
     {
         glViewport(0, 0, size.width, size.height);
-        return true;
+        return glCheckError() == GL_NO_ERROR;
     }
-
 }    // namespace nkentseu
 
 #endif

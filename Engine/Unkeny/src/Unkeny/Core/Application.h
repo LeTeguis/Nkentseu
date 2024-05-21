@@ -16,6 +16,8 @@
 #include "Nkentseu/Core/Events.h"
 #include "Nkentseu/Event/InputCode.h"
 
+#include <Nkentseu/Graphics/VertexArray.h>
+
 #include <vector>
 #include <string>
 
@@ -47,6 +49,8 @@ namespace nkentseu {
         Memory::Shared<class Context> m_Context;
         Memory::Shared<class Renderer> m_Renderer;
         bool m_Running;
+
+        DrawContentMode::Code m_DrawMode = DrawContentMode::Fill;
     };
 
     Memory::Shared<Application> MainApplication(const ARGV& argv);

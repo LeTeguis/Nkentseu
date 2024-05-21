@@ -20,22 +20,33 @@
 #include <Nkentseu/Event/InputManager.h>
 
 #include <Nkentseu/Graphics/Shader.h>
-#include <Nkentseu/Graphics/Buffer.h>
+
 
 namespace nkentseu {
 
-    float32 vertices[] = {
-        -0.5f, -0.5f, 0.0f, // 0
-        0.5f, -0.5f, 0.0f, // 1
-        0.5f, 0.5f, 0.0f  // 2
+    std::vector<float32> vertices =
+    {
+        //0.5f, 0.5f, 0.0f, // top right
+        0.5f, -0.5f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f // top left
     };
 
-    uint32 indices[] = {
-        0, 1, 2
+    std::vector<float32> verticesTriangle =
+    {
+        0.5f, 0.5f, 0.0f, // top right
+        0.5f, -0.5f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+    };
+
+    std::vector<uint32> indices = {
+        0, 1, 3, // premier triangle
+        1, 2, 3 // second triangle
     };
 
     Memory::Shared<VertexBuffer> vertexBuffer = nullptr;
     Memory::Shared<IndexBuffer> indexBuffer = nullptr;
+    Memory::Shared<VertexArray> vertexArray = nullptr;
 
     Application::Application() : m_Running(false) {
     }
@@ -98,46 +109,77 @@ namespace nkentseu {
             return;
         }
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.glsl.vert";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.glsl.frag";
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vs";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag";
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.glsl.vert";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.glsl.frag";
         //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.glsl.vert";
         //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.glsl.frag";
         Memory::Shared<Shader> shader = Memory::Alloc<Shader>(shaderFiles);
 
         shader->Create();
-        Log.Debug();
-        indexBuffer = Memory::Alloc<IndexBuffer>();
-        Log.Debug();
-        vertexBuffer = Memory::Alloc<VertexBuffer>();
-        Log.Debug();
-
-        indexBuffer->Create(indices);
-        //Log.Debug();
-        vertexBuffer->Create(vertices);
-        //Log.Debug();
-        vertexBuffer->AddIndexBuffer(indexBuffer);
-        //Log.Debug();
-
         m_Renderer->SetActiveShader(shader);
-        //Log.Debug();
+
+        BufferLayout bufferLayout;
+        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", false));
+        //bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", false));
+        bufferLayout.CalculateOffsetsAndStride();
+
+        vertexBuffer = Memory::Alloc<VertexBuffer>();
+        if (vertexBuffer != nullptr) {
+            if (!vertexBuffer->Create(BufferDataUsage::StaticDraw, vertices, bufferLayout.componentCount)) {
+                Log.Error("Cannot create vertex buffer");
+            }
+        }
+        else {
+            Log.Error("Cannot allocate memory for vertex buffer");
+        }
+
+        indexBuffer = Memory::Alloc<IndexBuffer>();
+        if (indexBuffer != nullptr) {
+            if (!indexBuffer->Create(BufferDataUsage::StaticDraw, DrawIndexType::UnsignedInt, indices)) {
+                Log.Error("Cannot create index buffer");
+            }
+        }
+        else {
+            Log.Error("Cannot allocate memory for index buffer");
+        }
+
+        vertexArray = Memory::Alloc<VertexArray>();
+        if (vertexArray != nullptr) {
+            vertexArray->SetVertexBuffer(vertexBuffer);
+            vertexArray->SetIndexBuffer(indexBuffer);
+
+            if (!vertexArray->Create(bufferLayout)) {
+                Log.Error("Cannot create vertex array");
+            }
+        }
+        else {
+            Log.Error("Cannot allocate memory for vertex array");
+        }
 
         while (m_Running) {
-            //Log.Debug();
-
             EventTrack.Pick();
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
             //m_Renderer->Clear(color::RandomRGB());
             m_Renderer->Clear(Color::DefaultBackground());
-            //Log.Debug();
-            m_Renderer->DrawVertexBuffer(vertexBuffer);
-            //Log.Debug();
+            m_Renderer->Draw(vertexArray, DrawVertexType::Triangles);
             m_Renderer->Present();
         }
 
-        vertexBuffer->Destroy();
-        indexBuffer->Destroy();
+        if (vertexArray != nullptr) {
+            vertexArray->Destroy();
+        }
+
+        if (indexBuffer != nullptr) {
+            indexBuffer->Destroy();
+        }
+
+        if (vertexBuffer != nullptr) {
+            vertexBuffer->Destroy();
+        }
 
         m_Renderer->Deinitialize();
         m_Context->Deinitialize();
@@ -169,6 +211,19 @@ namespace nkentseu {
     {
         if (event.GetKeycode() == Keyboard::Escape){
             m_Running = false;
+        }
+
+        if (event.GetKeycode() == Keyboard::Space && event.GetState() == ButtonState::Pressed) {
+            if (m_DrawMode == DrawContentMode::Fill) {
+                m_DrawMode = DrawContentMode::Line;
+            }
+            else if (m_DrawMode == DrawContentMode::Line) {
+                m_DrawMode = DrawContentMode::Fill;
+            }
+
+            if (m_Renderer != nullptr) {
+                m_Renderer->DrawMode(DrawMode::FrontBack, m_DrawMode);
+            }
         }
         return false;
     }

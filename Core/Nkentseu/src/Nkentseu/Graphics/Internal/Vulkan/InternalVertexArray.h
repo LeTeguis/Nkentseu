@@ -1,26 +1,23 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-16 at 10:11:05 AM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-20 at 09:22:16 AM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __OPENGL_INTERNAL_VERTEX_ARRAY_H__
-#define __OPENGL_INTERNAL_VERTEX_ARRAY_H__
+#ifndef __VULKAN_INTERNAL_VERTEX_ARRAY_H__
+#define __VULKAN_INTERNAL_VERTEX_ARRAY_H__
 
 #pragma once
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-
-#include <glad/gl.h>
-
+#ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <System/Definitions/Memory.h>
-#include <Nkentseu/Graphics/ShaderInfo.h>
+#include "Nkentseu/Graphics/ShaderInfo.h"
 
 namespace nkentseu {
     class VertexBuffer;
-    class IndexBuffer;
     class InternalVertexBuffer;
+    class IndexBuffer;
     class InternalIndexBuffer;
     
     class NKENTSEU_API InternalVertexArray {
@@ -29,6 +26,7 @@ namespace nkentseu {
             ~InternalVertexArray();
 
             bool Create(const BufferLayout& bufferLayout);
+            bool Destroy();
 
             bool SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer);
             Memory::Shared<VertexBuffer> GetVertexBuffer();
@@ -37,24 +35,11 @@ namespace nkentseu {
             bool SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer);
             Memory::Shared<IndexBuffer> GetIndexBuffer();
             InternalIndexBuffer* GetInternalIndexBuffer();
-
-            bool Destroy();
-            bool Bind();
-            bool Unbind();
-
-            const BufferLayout& GetBufferLayout();
-
-            GLuint GetVAO();
-            //uint32 
         private:
-            GLuint m_VertexArrayObject = 0; // VAO
-            Memory::Shared<VertexBuffer> m_VertexBuffer;
-            Memory::Shared<IndexBuffer> m_IndexBuffer;
-            BufferLayout m_BufferLayout;
     };
 
 }  //  nkentseu
 
-#endif  // __INTERNAL_VERTEX_ARRAY_H__!
-
 #endif
+
+#endif  // __INTERNAL_VERTEX_ARRAY_H__!

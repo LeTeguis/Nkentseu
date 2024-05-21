@@ -3,8 +3,8 @@
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
-#ifndef __INTERNAL_SHADER_H__
-#define __INTERNAL_SHADER_H__
+#ifndef __VULKAN_INTERNAL_SHADER_H__
+#define __VULKAN_INTERNAL_SHADER_H__
 
 #pragma once
 
@@ -12,18 +12,23 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <System/Definitions/Memory.h>
+#include <unordered_map>
+#include "Nkentseu/Graphics/ShaderInfo.h"
+#include <string>
 
 namespace nkentseu {
+    class Context;
     
     class NKENTSEU_API InternalShader {
         public:
-            InternalShader();
+            InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
             ~InternalShader();
 
-            std::string ToString() const;
-            friend std::string ToString(const InternalShader& internalShader);
+            bool Create();
+            bool CreateShader();
+            bool Destroy();
+            void SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
         private:
-        protected:
     };
 
 }  //  nkentseu
