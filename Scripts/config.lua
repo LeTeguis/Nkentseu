@@ -240,9 +240,7 @@ function defineGraphicApi()
                 links { "GL" }
 
             filter {}
-        end
-
-        if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
+        elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             includedirs {
                 "%{Externals.VkInclude}/",
             }
@@ -258,7 +256,7 @@ function defineGraphicApi()
                 links { "libvulkan.1", "libMoltenVK", "libshaderc_combined" }
 
             filter "system:linux"
-                links { "libvulkan", "libVkLayer_utils" }
+                links {"vulkan"}
 
             filter {}
         end
@@ -281,9 +279,7 @@ function linksGraphicApi()
                 links { "GL" }
 
             filter {}
-        end
-
-        if graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
+        elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             libdirs {
                 "%{Externals.VkLib}/"
             }
@@ -295,7 +291,7 @@ function linksGraphicApi()
                 links { "libvulkan.1", "libMoltenVK", "libshaderc_combined" }
 
             filter "system:linux"
-                links { "libvulkan-1", "libVkLayer_utils" }
+                links {"vulkan"}
         end
 	end
 end

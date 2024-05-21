@@ -15,14 +15,6 @@
 
 #include "Nkentseu/Core/Window.h"
 
-#ifdef  NKENTSEU_PLATFORM_WINDOWS
-#include <Windows.h>
-#elif defined NKENTSEU_PLATFORM_LINUX
-
-#else
-
-#endif //  NKENTSEU_PLATFORM_WINDOWS
-
 #include <glad/gl.h>
 
 namespace nkentseu {
