@@ -581,7 +581,9 @@ namespace nkentseu {
 			RECT* const r = (LPRECT)msg.lParam;
 			if (r) {
 				currentWindowRect = *r;
-				position = Vector2i(r->left / scaleFactor, r->top / scaleFactor);
+				float32 x = (float32)r->left / scaleFactor;
+				float32 y = (float32)r->top / scaleFactor;
+				position = Vector2i((int32)x, (int32)y);
 				window->m_Properties.position = position;
 				return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
 			}
@@ -702,14 +704,14 @@ namespace nkentseu {
 			if (window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = false;
 				SetMouseTracking(false, window);
-				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Exited, Vector2i(positionGlobal.x - area.left / scaleFactor, positionGlobal.y - area.top / scaleFactor)), 0, msg, window);
+				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Exited, Vector2i(positionGlobal.x - (float32)area.left / scaleFactor, positionGlobal.y - (float32)area.top / scaleFactor)), 0, msg, window);
 			}
 		}
 		else {
 			if (!window->GetWindowDisplay()->isMouseInside) {
 				window->GetWindowDisplay()->isMouseInside = true;
 				SetMouseTracking(true, window);
-				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Entered, Vector2i(positionGlobal.x - area.left / scaleFactor, positionGlobal.y - area.top / scaleFactor)), 0, msg, window);
+				FinalizePushEvent(new MouseWindowEvent(window->ID(), RegionState::Entered, Vector2i(positionGlobal.x - (float32)area.left / scaleFactor, positionGlobal.y - (float32)area.top / scaleFactor)), 0, msg, window);
 			}
 		}
 

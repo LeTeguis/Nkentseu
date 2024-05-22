@@ -60,8 +60,8 @@ namespace nkentseu {
         range.layerCount = 1;
         range.levelCount = 1;
 
-        vkCmdClearColorImage(m_CurrentCommandBuffer, context->m_Swapchain.swapchainImages[m_CurrentImageIndice], VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, &vkColor, 1, &range);
-        Log_nts.Debug();
+        vkCheckErrorVoid(vkCmdClearColorImage(m_CurrentCommandBuffer, context->m_Swapchain.swapchainImages[m_CurrentImageIndice], VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, &vkColor, 1, &range));
+        //Log_nts.Debug();
         // return result.success;
         m_PreviousColor = color;
         m_ClearColor = true;
@@ -92,25 +92,26 @@ namespace nkentseu {
         InternalContext* context = m_Context->GetInternal();
 
         VulkanResult result;
+        bool first = true;
         m_CurrentImageIndice = 0;
 
-        result = vkCheckError(vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr");
-        result.success = true;
+        vkCheckError(first, result, vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr");
+        //result.success = true;
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandBufferCount = 1;
         allocInfo.commandPool = context->m_CommandPool.commandPool;
 
-        result = result.success ? vkCheckError(vkAllocateCommandBuffers(context->m_Gpu.device, &allocInfo, &m_CurrentCommandBuffer), "cannot allocate command buffer") : result;
+        vkCheckError(first, result, vkAllocateCommandBuffers(context->m_Gpu.device, &allocInfo, &m_CurrentCommandBuffer), "cannot allocate command buffer");
 
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        result = result.success ? vkCheckError(vkBeginCommandBuffer(m_CurrentCommandBuffer, &beginInfo), "cannot start command buffer") : result;
+        vkCheckError(first, result, vkBeginCommandBuffer(m_CurrentCommandBuffer, &beginInfo), "cannot start command buffer");
 
-        if (!m_ClearColor) {
+        if (!m_ClearColor && result.success) {
             Clear(m_PreviousColor);
         }
 
@@ -125,8 +126,9 @@ namespace nkentseu {
         InternalContext* context = m_Context->GetInternal();
 
         VulkanResult result;
+        bool first = true;
 
-        result = result.success ? vkCheckError(vkEndCommandBuffer(m_CurrentCommandBuffer), "cannot finish command buffer") : result;
+        vkCheckError(first, result, vkEndCommandBuffer(m_CurrentCommandBuffer), "cannot finish command buffer");
 
         VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -140,7 +142,7 @@ namespace nkentseu {
         submitInfo.pWaitSemaphores = &context->m_Semaphore.aquireSemaphore;
         submitInfo.waitSemaphoreCount = 1;
 
-        result = result.success ? vkCheckError(vkQueueSubmit(context->m_Gpu.graphicsQueue, 1, &submitInfo, 0), "cannot submit command") : result;
+        vkCheckError(first, result, vkQueueSubmit(context->m_Gpu.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -150,10 +152,10 @@ namespace nkentseu {
         presentInfo.pWaitSemaphores = &context->m_Semaphore.submitSemaphore;
         presentInfo.waitSemaphoreCount = 1;
 
-        result = result.success ? vkCheckError(vkQueuePresentKHR(context->m_Gpu.graphicsQueue, &presentInfo), "cannot present image") : result;
+        vkCheckError(first, result, vkQueuePresentKHR(context->m_Gpu.graphicsQueue, &presentInfo), "cannot present image");
 
-        result = result.success ? vkCheckError(vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle") : result;
-        vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer);
+        vkCheckError(first, result, vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle");
+        vkCheckErrorVoid(vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer));
         return false;
     }
 

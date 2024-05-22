@@ -10,7 +10,11 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
-	const char* VulkanConvert::VkResultToString(VkResult result) {
+    std::string VulkanStaticDebugInfo::file_call;
+    uint32 VulkanStaticDebugInfo::line_call = 0;
+    std::string VulkanStaticDebugInfo::methode_call;
+
+	const char* VulkanConvert::VulkanResultToString(VkResult result) {
         switch (result) {
         case VK_SUCCESS: return "VK_SUCCESS";
         case VK_NOT_READY: return "VK_NOT_READY";
@@ -59,6 +63,41 @@ namespace nkentseu {
         case VK_ERROR_COMPRESSION_EXHAUSTED_EXT: return "VK_ERROR_COMPRESSION_EXHAUSTED_EXT";
         default: return "VK_UNKNOWN_ERROR";
         }
+    }
+
+    void VulkanConvert::GetResourceLimits(VkPhysicalDevice physicalDevice) {
+        VkPhysicalDeviceProperties deviceProperties = {};
+        vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+        VkPhysicalDeviceLimits limits = deviceProperties.limits;
+
+        // Limites minimales des ressources
+        uint64 minUniformBufferOffsetAlignment = limits.minUniformBufferOffsetAlignment;
+        uint64 minStorageBufferOffsetAlignment = limits.minStorageBufferOffsetAlignment;
+        uint64 minTexelBufferOffsetAlignment = limits.minTexelBufferOffsetAlignment;
+        uint64 minTexelOffset = limits.minTexelOffset;
+        uint64 minTexelGatherOffset = limits.minTexelGatherOffset;
+
+        // Limites maximales des ressources
+        uint64 maxMemoryAllocationCount = limits.maxMemoryAllocationCount;
+        uint64 maxSamplerAllocationCount = limits.maxSamplerAllocationCount;
+        uint64 maxStorageBufferRange = limits.maxStorageBufferRange;
+        uint64 maxPerStageDescriptorStorageBuffers = limits.maxPerStageDescriptorStorageBuffers;
+        uint64 maxPerStageDescriptorSampledImages = limits.maxPerStageDescriptorSampledImages;
+
+        // Affichage des limites
+        Log_nts.Info("Limites minimales des ressources :");
+        Log_nts.Info("    {0} : {1}", "minUniformBufferOffsetAlignment", minUniformBufferOffsetAlignment);
+        Log_nts.Info("    {0} : {1}", "minStorageBufferOffsetAlignment", minStorageBufferOffsetAlignment);
+        Log_nts.Info("    {0} : {1}", "minTexelBufferOffsetAlignment", minTexelBufferOffsetAlignment);
+        Log_nts.Info("    {0} : {1}", "minTexelOffset", minTexelOffset);
+        Log_nts.Info("    {0} : {1}", "minTexelGatherOffset", minTexelGatherOffset);
+
+        Log_nts.Info("Limites maximales des ressources :");
+        Log_nts.Info("    {0} : {1}", "maxMemoryAllocationCount", maxMemoryAllocationCount);
+        Log_nts.Info("    {0} : {1}", "maxSamplerAllocationCount", maxSamplerAllocationCount);
+        Log_nts.Info("    {0} : {1}", "maxStorageBufferRange", maxStorageBufferRange);
+        Log_nts.Info("    {0} : {1}", "maxPerStageDescriptorStorageBuffers", maxPerStageDescriptorStorageBuffers);
+        Log_nts.Info("    {0} : {1}", "maxPerStageDescriptorSampledImages", maxPerStageDescriptorSampledImages);
     }
 }  //  nkentseu
 

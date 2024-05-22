@@ -18,7 +18,7 @@
 #include <Ntsm/Vector/Vector2.h>
 #include <vector>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 namespace nkentseu {
     class Context;
