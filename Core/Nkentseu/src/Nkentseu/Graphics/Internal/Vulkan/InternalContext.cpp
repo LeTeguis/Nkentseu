@@ -22,6 +22,7 @@ namespace nkentseu {
     bool InternalContext::SetWindow(Window* window) {
         if (window == nullptr) return false;
         m_Window = window;
+        m_WindowSize = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
         return true;
     }
     bool InternalContext::SetProperties(const ContextProperties& properties) {
@@ -40,11 +41,18 @@ namespace nkentseu {
         if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
         if (!m_CommandPool.Create(&m_Gpu)) return false;
         if (!m_Semaphore.Create(&m_Gpu)) return false;
+        if (!m_RenderPass.Create(&m_Gpu, &m_Swapchain)) return false;
+        if (!m_PipelineLayout.Create(&m_Gpu)) return false;
+
+        m_WindowSize = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
+
+        if (!m_Framebuffer.Create(&m_Gpu, m_WindowSize, &m_RenderPass, &m_Swapchain)) return false;
 
         m_IsInitialize = true;
 
         return m_IsInitialize;
     }
+
     bool InternalContext::IsInitialize() {
         return m_IsInitialize;
     }
@@ -88,6 +96,107 @@ namespace nkentseu {
     const GraphicsInfos& InternalContext::GetGraphicsInfo() {
         static GraphicsInfos tmp;
         return tmp;
+    }
+
+    VulkanInstance* nkentseu::InternalContext::GetInstance()
+    {
+        return &m_Instance;
+    }
+
+    VulkanSurface* nkentseu::InternalContext::GetSurface()
+    {
+        return &m_Surface;
+    }
+
+    VulkanExtension* nkentseu::InternalContext::GetExtension()
+    {
+        return &m_Extension;
+    }
+
+    VulkanGpu* nkentseu::InternalContext::GetGpu()
+    {
+        return &m_Gpu;
+    }
+
+    VulkanSwapchain* nkentseu::InternalContext::GetSwapchain()
+    {
+        return &m_Swapchain;
+    }
+
+    VulkanCommandPool* nkentseu::InternalContext::GetCommandPool()
+    {
+        return &m_CommandPool;
+    }
+
+    VulkanSemaphore* nkentseu::InternalContext::GetSemaphore()
+    {
+        return &m_Semaphore;
+    }
+
+    VulkanRenderPass* nkentseu::InternalContext::GetRenderPass()
+    {
+        return &m_RenderPass;
+    }
+
+    VulkanFramebuffer* nkentseu::InternalContext::GetFramebuffer()
+    {
+        return &m_Framebuffer;
+    }
+
+    Vector2u InternalContext::GetWindowSize(bool forceRecreate) {
+        Vector2u current_Size = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
+        if (m_WindowSize != current_Size || forceRecreate) {
+            m_WindowSize = current_Size;
+
+            // recreate swapchain and others;
+
+            // Iterate over m_RecreateList and call non-null callbacks, remove null callbacks
+            auto it = m_RecreateList.begin();
+            while (it != m_RecreateList.end()) {
+                if (*it) {
+                    // Call the callback with the forceRecreate parameter
+                    (*it)(forceRecreate);
+                    ++it;
+                }
+                else {
+                    // Remove null callbacks
+                    it = m_RecreateList.erase(it);
+                }
+            }
+        }
+        return m_WindowSize;
+    }
+
+    bool InternalContext::AddRecreateCallback(RerecreateCallBackFn func) {
+        if (func == nullptr) return false;
+
+        auto it = std::find_if(m_RecreateList.begin(), m_RecreateList.end(),
+            [&func](const RerecreateCallBackFn& registeredFunc) {
+                // Compare target of std::function objects
+                return registeredFunc.target<bool(bool)>() == func.target<bool(bool)>();
+            });
+
+        if (it == m_RecreateList.end()) {
+            m_RecreateList.push_back(func);
+            return true;
+        }
+        return false; // Function already exists
+    }
+
+    bool InternalContext::RemoveRecreateCallback(RerecreateCallBackFn func) {
+        if (func == nullptr) return false;
+
+        auto it = std::find_if(m_RecreateList.begin(), m_RecreateList.end(),
+            [&func](const RerecreateCallBackFn& registeredFunc) {
+                // Compare target of std::function objects
+                return registeredFunc.target<bool(bool)>() == func.target<bool(bool)>();
+            });
+
+        if (it != m_RecreateList.end()) {
+            m_RecreateList.erase(it);
+            return true;
+        }
+        return false; // Function not found
     }
 }    // namespace nkentseu
 

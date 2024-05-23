@@ -159,7 +159,7 @@ namespace nkentseu {
     }
 
     Vector2 WindowInternal::ConvertPixelToDpi(const Vector2& pixel) const {
-        return {};
+        return pixel;
     }
 
     Vector2u WindowInternal::CurrentDisplaySize() const {

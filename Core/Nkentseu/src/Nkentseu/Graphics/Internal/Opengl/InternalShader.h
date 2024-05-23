@@ -17,15 +17,16 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 
 namespace nkentseu {
+    class Context;
     
     class NKENTSEU_API InternalShader {
         public:
-            InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
             ~InternalShader();
 
-            void SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
-            bool CreateShader();
-            bool CompileShader();
+            void SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            bool Create();
+            bool Compile();
             bool Destroy();
 
             std::string ToString() const;
@@ -35,6 +36,7 @@ namespace nkentseu {
             bool Unbind() const;
         private:
             uint32 m_Programme = 0;
+            Context* m_Context = nullptr;
 
             std::unordered_map<ShaderType::Code, std::string> m_ShaderFiles;
             std::vector<uint32> m_Modules;
@@ -42,7 +44,8 @@ namespace nkentseu {
         private:
             uint32 MakeModule(const std::string& filepath, ShaderType::Code code);
             uint32 MakeShader();
-            uint32 GetModuleType(ShaderType::Code code);
+
+            std::string LoadShader(const std::string& shaderFile);
     };
 
 }  //  nkentseu

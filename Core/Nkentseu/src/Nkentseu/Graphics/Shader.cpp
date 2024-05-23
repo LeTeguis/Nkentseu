@@ -15,12 +15,14 @@
 #endif
 #include <Nkentseu/Core/NkentseuLogger.h>
 
+#include "Context.h"
+
 namespace nkentseu {
     
     // Constructor
-    Shader::Shader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_InternalShader(nullptr) {
+    Shader::Shader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_InternalShader(nullptr) {
         // Ajoutez votre code de constructeur ici
-        m_InternalShader = Memory::Alloc<InternalShader>(shaderFiles);
+        m_InternalShader = Memory::Alloc<InternalShader>(context, shaderFiles);
 
         if (m_InternalShader == nullptr) {
             Log_nts.Error("unload shader");
@@ -39,7 +41,7 @@ namespace nkentseu {
     {
         if (m_InternalShader == nullptr) return false;
 
-        bool isCreate = m_InternalShader->CreateShader();
+        bool isCreate = m_InternalShader->Create();
 
         if (!isCreate) {
             Log_nts.Error("Cannot create shader");
@@ -47,7 +49,7 @@ namespace nkentseu {
         }
 
 #ifdef NKENTSEU_GRAPHICS_API_OPENGL
-        if (!m_InternalShader->CompileShader()) {
+        if (!m_InternalShader->Compile()) {
             Log_nts.Error("Cannot compile opengl shader");
             return false;
         }
@@ -63,11 +65,11 @@ namespace nkentseu {
         return m_InternalShader->Destroy();
     }
 
-    void Shader::SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    void Shader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
     {
         if (m_InternalShader == nullptr) return;
 
-        m_InternalShader->SetShaderFiles(shaderFiles);
+        m_InternalShader->SetShaderFiles(context, shaderFiles);
     }
 
     InternalShader* Shader::GetInternal()

@@ -13,6 +13,7 @@ namespace nkentseu {
     std::string VulkanStaticDebugInfo::file_call;
     uint32 VulkanStaticDebugInfo::line_call = 0;
     std::string VulkanStaticDebugInfo::methode_call;
+    bool VulkanStaticDebugInfo::success = true;
 
 	const char* VulkanConvert::VulkanResultToString(VkResult result) {
         switch (result) {
@@ -98,6 +99,55 @@ namespace nkentseu {
         Log_nts.Info("    {0} : {1}", "maxStorageBufferRange", maxStorageBufferRange);
         Log_nts.Info("    {0} : {1}", "maxPerStageDescriptorStorageBuffers", maxPerStageDescriptorStorageBuffers);
         Log_nts.Info("    {0} : {1}", "maxPerStageDescriptorSampledImages", maxPerStageDescriptorSampledImages);
+    }
+
+    VkShaderStageFlagBits VulkanConvert::GetshaderStageType(ShaderType::Code type) {
+        switch (type) {
+        case ShaderType::Vertex:
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderType::Fragment:
+        case ShaderType::Pixel: // Assuming Pixel is synonymous with Fragment
+            return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderType::Geometry:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderType::TesControl:
+            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderType::TesEvaluation:
+            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderType::Compute:
+            return VK_SHADER_STAGE_COMPUTE_BIT;
+        default:
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        }
+    }
+
+    glslang_stage_t VulkanConvert::GetshaderStageTypeGLSLang(ShaderType::Code shaderType)
+    {
+        if (shaderType == ShaderType::Vertex)
+            return GLSLANG_STAGE_VERTEX;
+
+        if (shaderType == ShaderType::Fragment)
+            return GLSLANG_STAGE_FRAGMENT;
+
+        if (shaderType == ShaderType::Geometry)
+            return GLSLANG_STAGE_GEOMETRY;
+
+        if (shaderType == ShaderType::Compute)
+            return GLSLANG_STAGE_COMPUTE;
+
+        if (shaderType == ShaderType::TesControl)
+            return GLSLANG_STAGE_TESSCONTROL;
+
+        if (shaderType == ShaderType::TesEvaluation)
+            return GLSLANG_STAGE_TESSEVALUATION;
+
+        return GLSLANG_STAGE_VERTEX;
+    }
+    bool VulkanConvert::EndsWith(const std::string& s, const std::string& part) {
+        if (s.size() >= part.size()) {
+            return (s.compare(s.size() - part.size(), part.size(), part) == 0);
+        }
+        return false;
     }
 }  //  nkentseu
 

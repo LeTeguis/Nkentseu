@@ -21,6 +21,8 @@
 #include "InternalVertexBuffer.h"
 #include "VulkanUtils.h"
 
+#include "Nkentseu/Core/Window.h"
+
 namespace nkentseu {
     
     // Constructor
@@ -39,8 +41,16 @@ namespace nkentseu {
         }
         m_Context = context;
         if (!m_Context->IsInitialize()) {
-            return m_Context->Initialize();
+            if (!m_Context->Initialize()) {
+                return false;
+            }
         }
+        InternalContext* icontext = m_Context->GetInternal();
+        //Vector2u size = context->GetWindow()->GetSize();
+        //Vector2f dpiSize = context->GetWindow()->ConvertPixelToDpi(Vector2f(size.width, size.height));
+        //m_ViewportSize = { (uint32)dpiSize.width, (uint32)dpiSize.height };
+        Vector2u size = icontext->GetWindowSize(false);
+        m_ViewportSize = { size.width, size.height };
         return true;
     }
 
@@ -52,19 +62,8 @@ namespace nkentseu {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
         InternalContext* context = m_Context->GetInternal();
 
-        VulkanResult result;
-
-        VkClearColorValue vkColor = { color.Rf(), color.Gf(), color.Bf(), color.Af() };
-        VkImageSubresourceRange range = {};
-        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        range.layerCount = 1;
-        range.levelCount = 1;
-
-        vkCheckErrorVoid(vkCmdClearColorImage(m_CurrentCommandBuffer, context->m_Swapchain.swapchainImages[m_CurrentImageIndice], VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, &vkColor, 1, &range));
-        //Log_nts.Debug();
-        // return result.success;
         m_PreviousColor = color;
-        m_ClearColor = true;
+
         return true;
     }
 
@@ -72,11 +71,22 @@ namespace nkentseu {
         return Clear(Color(r, g, b, a));
     }
 
-    bool InternalRenderer::SetActiveShader(Memory::Shared<Shader> shader) {
-        return false;
+    bool InternalRenderer::SetActiveShader(Memory::Shared<Shader> shader)
+    {
+        if (shader == nullptr || shader->GetInternal() == nullptr) {
+            return false;
+        }
+
+        m_CurrentShader = shader;
+        return true;
     }
 
-    bool InternalRenderer::UnsetActiveShader() {
+    bool InternalRenderer::UnsetActiveShader()
+    {
+        if (m_CurrentShader != nullptr) {
+            m_CurrentShader = nullptr;
+            return true;
+        }
         return false;
     }
 
@@ -91,12 +101,32 @@ namespace nkentseu {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr) return false;
         InternalContext* context = m_Context->GetInternal();
 
+        static uint32 recreate_number = 0;
+
+        recreate_jump_point:;
+        Vector2u size = context->GetWindowSize(m_ForceRecreate);
+        m_ViewportSize = { size.width, size.height };
+
         VulkanResult result;
         bool first = true;
         m_CurrentImageIndice = 0;
 
         vkCheckError(first, result, vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr");
-        //result.success = true;
+        if (!result.success) {
+            if (result.result == VK_ERROR_OUT_OF_DATE_KHR || result.result == VK_SUBOPTIMAL_KHR) {
+                m_ForceRecreate = true;
+                recreate_number++;
+
+                if (recreate_number >= 10) {
+                    return false;
+                }
+                goto recreate_jump_point;
+            }
+            recreate_number = 0;
+        }
+        else {
+            recreate_number = 0;
+        }
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -111,8 +141,27 @@ namespace nkentseu {
 
         vkCheckError(first, result, vkBeginCommandBuffer(m_CurrentCommandBuffer, &beginInfo), "cannot start command buffer");
 
-        if (!m_ClearColor && result.success) {
-            Clear(m_PreviousColor);
+        VkClearValue clearValue = {};
+        clearValue.color = { m_PreviousColor.Rf(), m_PreviousColor.Gf(), m_PreviousColor.Bf(), m_PreviousColor.Af() };
+
+        std::vector<VkClearValue> clearValues;
+        clearValues.push_back(clearValue);
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass = context->m_RenderPass.renderPass;
+        renderPassBeginInfo.renderArea.extent = m_ViewportSize;
+        renderPassBeginInfo.framebuffer = context->m_Framebuffer.framebuffer[m_CurrentImageIndice];
+        renderPassBeginInfo.pClearValues = clearValues.data();
+        renderPassBeginInfo.clearValueCount = clearValues.size();
+
+        vkCheckErrorVoid(vkCmdBeginRenderPass(m_CurrentCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE));
+
+        {
+            if (m_CurrentShader != nullptr && m_CurrentShader->GetInternal() != nullptr) {
+                m_CurrentShader->GetInternal()->Bind(m_CurrentCommandBuffer);
+                vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, 3, 1, 0, 0));
+            }
         }
 
         m_IsPrepare = result.success;
@@ -128,6 +177,8 @@ namespace nkentseu {
         VulkanResult result;
         bool first = true;
 
+        vkCheckErrorVoid(vkCmdEndRenderPass(m_CurrentCommandBuffer));
+
         vkCheckError(first, result, vkEndCommandBuffer(m_CurrentCommandBuffer), "cannot finish command buffer");
 
         VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -142,7 +193,7 @@ namespace nkentseu {
         submitInfo.pWaitSemaphores = &context->m_Semaphore.aquireSemaphore;
         submitInfo.waitSemaphoreCount = 1;
 
-        vkCheckError(first, result, vkQueueSubmit(context->m_Gpu.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
+        vkCheckError(first, result, vkQueueSubmit(context->m_Gpu.queue.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -152,7 +203,7 @@ namespace nkentseu {
         presentInfo.pWaitSemaphores = &context->m_Semaphore.submitSemaphore;
         presentInfo.waitSemaphoreCount = 1;
 
-        vkCheckError(first, result, vkQueuePresentKHR(context->m_Gpu.graphicsQueue, &presentInfo), "cannot present image");
+        vkCheckError(first, result, vkQueuePresentKHR(context->m_Gpu.queue.graphicsQueue, &presentInfo), "cannot present image");
 
         vkCheckError(first, result, vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle");
         vkCheckErrorVoid(vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer));
@@ -164,15 +215,20 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::Present() {
-        return false;
+        return Prepare();
     }
 
     bool InternalRenderer::Swapbuffer() {
-        return false;
+        return Prepare();
     }
 
     bool InternalRenderer::Resize(const Vector2u& size) {
-        return false;
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
+        InternalContext* context = m_Context->GetInternal();
+
+        Vector2f dpiSize = context->GetWindow()->ConvertPixelToDpi(Vector2f(size.width, size.height));
+        m_ViewportSize = { (uint32)dpiSize.width, (uint32)dpiSize.height };
+        return true;
     }
 
 }  //  nkentseu

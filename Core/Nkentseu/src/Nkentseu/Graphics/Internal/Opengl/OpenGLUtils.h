@@ -26,6 +26,7 @@ namespace nkentseu {
             static uint32 VerticesPerType(uint32 vertexType);
             static uint32 VertexType(DrawVertexType::Code drawVertex);
             static uint32 IndexType(DrawIndexType::Code drawIndex);
+            static uint32 GetModuleType(ShaderType::Code code);
     };
 }  //  nkentseu
 

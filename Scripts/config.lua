@@ -44,6 +44,8 @@ Externals = {}
 
 Externals["Glad"] = "%{wks.location}/External/Libs/Glad"
 Externals["Stb"] = "%{wks.location}/External/Libs/Stb"
+Externals["SPIRVCross"] = "%{wks.location}/External/libs/SPIRV-Cross/"
+Externals["Glslang"] = "%{wks.location}/External/Libs/GLSlang"
 --Externals["VkInclude"] = "%{wks.location}/External/Libs/Vulkan-Headers-1.3.272/include"
 Externals["VkInclude"] = VULKAN_SDK .. "/Include"
 Externals["VkLib"] = VULKAN_SDK .. "/Lib"
@@ -243,10 +245,17 @@ function defineGraphicApi()
         elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             includedirs {
                 "%{Externals.VkInclude}/",
+                "%{Externals.Glslang}",
+                "%{Externals.Glslang}/glslang/Include",
+                "%{Externals.Glslang}/StandAlone",
+                "%{Externals.SPIRVCross}/src",
+                "%{Externals.SPIRVCross}/include",
             }
 
             libdirs {
-                "%{Externals.VkLib}/"
+                "%{Externals.VkLib}/",
+                "GLSlang",
+                "SPIRVCross",
             }
 
             filter "system:windows"
@@ -281,7 +290,9 @@ function linksGraphicApi()
             filter {}
         elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             libdirs {
-                "%{Externals.VkLib}/"
+                "%{Externals.VkLib}/",
+                "GLSlang",
+                "SPIRVCross",
             }
             
             filter "system:windows"

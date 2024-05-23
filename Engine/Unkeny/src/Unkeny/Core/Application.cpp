@@ -77,7 +77,7 @@ namespace nkentseu {
 
         if (m_Context != nullptr) {
             if (m_Context->Initialize(m_Window.get(), propertie)) {
-                Log.Debug("OpenGL version {0}.{1}", m_Context->GetProperties().version.major, m_Context->GetProperties().version.minor);
+                Log.Debug("Api version {0}.{1}", m_Context->GetProperties().version.major, m_Context->GetProperties().version.minor);
                 if (m_Renderer != nullptr) {
                     m_Renderer->Initialize(m_Context.get());
                 }
@@ -109,13 +109,13 @@ namespace nkentseu {
             return;
         }
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vs";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.glsl.vert";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.glsl.frag";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.glsl.vert";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.glsl.frag";
-        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(shaderFiles);
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
+        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(m_Context == nullptr ? nullptr : m_Context.get(), shaderFiles);
 
         shader->Create();
         m_Renderer->SetActiveShader(shader);
@@ -163,9 +163,10 @@ namespace nkentseu {
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
+            //m_Renderer->Clear(Color::RandomRGB());
+            m_Renderer->Clear(Color::DefaultBackground());
+
             m_Renderer->Prepare();
-            m_Renderer->Clear(Color::RandomRGB());
-            //m_Renderer->Clear(Color::DefaultBackground());
             m_Renderer->Draw(vertexArray, DrawVertexType::Triangles);
             m_Renderer->Finalize();
         }

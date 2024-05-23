@@ -17,15 +17,16 @@
 
 namespace nkentseu {
     class InternalShader;
+    class Context;
     
     class NKENTSEU_API Shader {
         public:
-            Shader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            Shader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
             ~Shader();
 
             bool Create();
             bool Destroy();
-            void SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            void SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
 
             InternalShader* GetInternal();
 

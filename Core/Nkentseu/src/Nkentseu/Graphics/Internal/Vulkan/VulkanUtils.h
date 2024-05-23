@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-20 at 09:28:10 AM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-20 at 09:28:10 AM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -16,6 +16,8 @@
 #include <string>
 #include <Logger/Formatter.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include <Nkentseu/Graphics/ShaderInfo.h>
+#include <glslang_c_shader_types.h>
 
 namespace nkentseu {
     struct VulkanResult {
@@ -27,6 +29,7 @@ namespace nkentseu {
         static std::string file_call;
         static uint32 line_call;
         static std::string methode_call;
+        static bool success;
 
         static void SetInfo(const std::string& file, uint32 line, const std::string& method) {
             file_call = file;
@@ -39,13 +42,16 @@ namespace nkentseu {
     public:
         static const char* VulkanResultToString(VkResult result);
         static void GetResourceLimits(VkPhysicalDevice physicalDevice);
+        static VkShaderStageFlagBits GetshaderStageType(ShaderType::Code type);
+        static glslang_stage_t GetshaderStageTypeGLSLang(ShaderType::Code shaderType);
+        static bool EndsWith(const std::string& s, const std::string& part);
     };
 
     template<typename... Args>
     VulkanResult vkCheckError_(VkResult result, const char* format, Args&&... args) {
         VulkanResult result_;
         result_.result = result;
-        result_.success = (result == VK_SUCCESS);
+        result_.success = result == VK_SUCCESS;
 
         std::string file = VulkanStaticDebugInfo::file_call;
         std::string methode = VulkanStaticDebugInfo::methode_call;

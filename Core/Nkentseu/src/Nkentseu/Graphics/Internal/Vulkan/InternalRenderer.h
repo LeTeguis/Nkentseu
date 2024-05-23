@@ -57,6 +57,10 @@ namespace nkentseu {
 
             bool m_ClearColor = false;
             Color m_PreviousColor;
+
+            VkExtent2D m_ViewportSize;
+            bool m_ForceRecreate = false;
+            Memory::Shared<Shader> m_CurrentShader = nullptr;
     };
 
 }  //  nkentseu

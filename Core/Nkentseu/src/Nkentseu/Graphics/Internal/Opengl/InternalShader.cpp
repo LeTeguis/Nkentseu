@@ -12,28 +12,36 @@
 
 #include <glad/gl.h>
 #include <vector>
+#include <fstream>
+#include <sstream>
+
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include "Nkentseu/Graphics/Context.h"
 #include "InternalContext.h"
+#include "OpenGLUtils.h"
 
 namespace nkentseu {
     
     // Constructor
-    InternalShader::InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_Programme(0) {
+    InternalShader::InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_Programme(0) {
         // Ajoutez votre code de constructeur ici
-        SetShaderFiles(shaderFiles);
+        SetShaderFiles(context, shaderFiles);
     }
 
-    void InternalShader::SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    void InternalShader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
     {
+        if (context == nullptr || context->GetInternal()) return;
+
         m_ShaderFiles.clear();
         m_ShaderFiles = shaderFiles;
+        m_Context = context;
         // Create a deep copy of shaderFiles using the copy constructor
         // std::copy(m_ShaderFiles.begin(), m_ShaderFiles.end(), shaderFiles);
     }
 
-    bool InternalShader::CreateShader()
+    bool InternalShader::Create()
     {
-        if (m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
             return false;
         }
 
@@ -51,9 +59,9 @@ namespace nkentseu {
         return true;
     }
 
-    bool InternalShader::CompileShader()
+    bool InternalShader::Compile()
     {
-        if (m_Modules.size() == 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() || m_Modules.size() == 0) {
             return false;
         }
 
@@ -69,7 +77,7 @@ namespace nkentseu {
 
     bool InternalShader::Destroy()
     {
-        if (m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
             if (Unbind()) {
                 m_Programme = 0;
                 return true;
@@ -92,7 +100,7 @@ namespace nkentseu {
     }
 
     bool InternalShader::Bind() const {
-        if (m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
             glUseProgram(m_Programme);
             glCheckError();
             return true;
@@ -101,7 +109,7 @@ namespace nkentseu {
     }
 
     bool InternalShader::Unbind() const {
-        if (m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
             glUseProgram(0);
             glCheckError();
             return true;
@@ -111,12 +119,12 @@ namespace nkentseu {
 
     uint32 InternalShader::MakeModule(const std::string& filepath, ShaderType::Code code)
     {
-        uint32 module_type = GetModuleType(code);
+        uint32 module_type = GLConvert::GetModuleType(code);
         if (module_type == 0) {
             return 0;
         }
 
-        std::string shaderSource = ShaderLoader::LoadShaderToMemoryStr(filepath);
+        std::string shaderSource = LoadShader(filepath);
         // Log_nts.Debug("<{0}>", shaderSource);
         const char* shaderSrc = shaderSource.c_str();
 
@@ -191,16 +199,24 @@ namespace nkentseu {
         return shader;
     }
 
-    uint32 InternalShader::GetModuleType(ShaderType::Code code)
+    std::string InternalShader::LoadShader(const std::string& shaderFile)
     {
-        if (code == ShaderType::Vertex) return GL_VERTEX_SHADER;
-        if (code == ShaderType::Fragment) return GL_FRAGMENT_SHADER;
-        if (code == ShaderType::Compute) return GL_COMPUTE_SHADER;
-        if (code == ShaderType::Geometry) return GL_GEOMETRY_SHADER;
-        //if (code == ShaderType::Pixel) return GL_PIXEL_SHADER;
-        if (code == ShaderType::TesControl) return GL_TESS_CONTROL_SHADER;
-        if (code == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER;
-        return 0;
+        std::ifstream file;
+        std::stringstream bufferedLines;
+        std::string line;
+
+        file.open(shaderFile);
+
+        while (std::getline(file, line)) {
+            bufferedLines << line << "\n";
+        }
+
+        std::string shaderSource = bufferedLines.str();
+        bufferedLines.str("");
+
+        file.close();
+
+        return shaderSource;
     }
 
 }  //  nkentseu

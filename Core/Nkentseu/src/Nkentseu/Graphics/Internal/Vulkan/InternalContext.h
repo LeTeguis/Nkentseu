@@ -12,11 +12,18 @@
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 
 #include "System/System.h"
+#include "System/Nature/Base.h"
 #include "Nkentseu/Graphics/Context.h"
 #include "VulkanInternal.h"
 
+#include <functional>
+#include <vector>
+
 namespace nkentseu {
     class Window;
+
+    using RerecreateCallBackFn = std::function<bool(bool)>;
+    #define RECREATE_CALLBACK_FN(method) std::bind(&method, this, STDPH(1))
 
     class NKENTSEU_API InternalContext
     {
@@ -39,7 +46,22 @@ namespace nkentseu {
 
             Window* GetWindow();
             const ContextProperties& GetProperties();
-        private:
+
+            VulkanInstance* GetInstance();
+            VulkanSurface* GetSurface();
+            VulkanExtension* GetExtension();
+            VulkanGpu* GetGpu();
+            VulkanSwapchain* GetSwapchain();
+            VulkanCommandPool* GetCommandPool();
+            VulkanSemaphore* GetSemaphore();
+            VulkanRenderPass* GetRenderPass();
+            VulkanFramebuffer* GetFramebuffer();
+
+            Vector2u GetWindowSize(bool forceRecreate);
+
+            bool AddRecreateCallback(RerecreateCallBackFn func);
+            bool RemoveRecreateCallback(RerecreateCallBackFn func);
+        public:
             friend class InternalRenderer;
 
             Window* m_Window;
@@ -52,8 +74,15 @@ namespace nkentseu {
             VulkanSwapchain m_Swapchain;
             VulkanCommandPool m_CommandPool;
             VulkanSemaphore m_Semaphore;
+            VulkanRenderPass m_RenderPass;
+            VulkanFramebuffer m_Framebuffer;
+            VulkanPipelineLayout m_PipelineLayout;
 
             bool m_IsInitialize = false;
+            
+            Vector2u m_WindowSize = {};
+
+            std::vector<RerecreateCallBackFn> m_RecreateList;
     };
 } // namespace nkentseu
 

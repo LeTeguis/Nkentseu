@@ -36,9 +36,6 @@ namespace nkentseu {
             bool EnableVSync();
             bool DisableVSync();
 
-            bool Present();
-            bool Swapchaine();
-
             const GraphicsInfos& GetGraphicsInfo();
 
             class Window* GetWindow();

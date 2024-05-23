@@ -16,19 +16,47 @@
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include <string>
 
+#include <vulkan/vulkan.hpp>
+#include "VulkanInternal.h"
+#include "VulkanUtils.h"
+
 namespace nkentseu {
     class Context;
     
     class NKENTSEU_API InternalShader {
         public:
-            InternalShader(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            InternalShader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
             ~InternalShader();
 
             bool Create();
-            bool CreateShader();
             bool Destroy();
-            void SetShaderFiles(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            void SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+
+            bool Bind(VkCommandBuffer commandBuffer) const;
+            bool Unbind(VkCommandBuffer commandBuffer) const;
         private:
+            Context* m_Context = nullptr;
+            VkPipeline m_GraphicsPipeline = {};
+            VulkanPipelineConfig m_PipelineConfig;
+            // VulkanPipelineLayout m_PipelineLayout;
+            VkRect2D m_Scissor = {};
+            VkViewport m_ViewPort = {};
+
+            struct infos_shader {
+                VkShaderModule module;
+                VkPipelineShaderStageCreateInfo shaderStage;
+            };
+
+            std::unordered_map<ShaderType::Code, VkShaderModule> m_Modules;
+            std::unordered_map<ShaderType::Code, std::string> m_ShaderFiles;
+        private:
+            std::vector<char> LoadShader(const std::string& shaderFile);
+            VkShaderModule MakeModule(const std::string& filepath, ShaderType::Code code);
+            bool Recreate(bool force);
+
+            std::string ReplaceShaderExtension(const std::string& shaderPath);
+            bool CheckIfShaderExists(const std::string& shaderPath);
+            bool CompileShader(const std::string& filePath, ShaderType::Code shaderType);
     };
 
 }  //  nkentseu

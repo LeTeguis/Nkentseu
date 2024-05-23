@@ -1,0 +1,6 @@
+glslc -fshader-stage=vertex triangleInternal.vert.glsl -o triangleInternal.vert.spv
+glslc -fshader-stage=fragment triangleInternal.frag.glsl -o triangleInternal.frag.spv
+glslc -fshader-stage=compute triangleInternal.comp.glsl -o triangleInternal.comp.spv
+glslc -fshader-stage=geometry triangleInternal.geom.glsl -o triangleInternal.geom.spv
+glslc -fshader-stage=tesscontrol triangleInternal.tesc.glsl -o triangleInternal.tesc.spv
+glslc -fshader-stage=tesseval triangleInternal.tese.glsl -o triangleInternal.tese.spv

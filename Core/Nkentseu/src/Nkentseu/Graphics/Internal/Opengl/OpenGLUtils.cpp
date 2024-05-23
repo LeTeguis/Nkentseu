@@ -66,6 +66,17 @@ namespace nkentseu {
         if (drawIndex == DrawIndexType::UnsignedInt) return GL_UNSIGNED_INT;
         return 0;
     }
+    uint32 GLConvert::GetModuleType(ShaderType::Code code)
+    {
+        if (code == ShaderType::Vertex) return GL_VERTEX_SHADER;
+        if (code == ShaderType::Fragment) return GL_FRAGMENT_SHADER;
+        if (code == ShaderType::Compute) return GL_COMPUTE_SHADER;
+        if (code == ShaderType::Geometry) return GL_GEOMETRY_SHADER;
+        //if (code == ShaderType::Pixel) return GL_PIXEL_SHADER;
+        if (code == ShaderType::TesControl) return GL_TESS_CONTROL_SHADER;
+        if (code == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER;
+        return 0;
+    }
 }  //  nkentseu
 
 #endif
