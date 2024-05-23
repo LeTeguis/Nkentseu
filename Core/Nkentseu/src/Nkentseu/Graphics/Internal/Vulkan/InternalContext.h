@@ -83,6 +83,10 @@ namespace nkentseu {
             Vector2u m_WindowSize = {};
 
             std::vector<RerecreateCallBackFn> m_RecreateList;
+
+        public:
+            bool CleanupSwapChain();
+            bool RecreateSwapChain();
     };
 } // namespace nkentseu
 

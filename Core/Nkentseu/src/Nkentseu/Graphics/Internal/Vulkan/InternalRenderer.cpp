@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-20 at 08:17:20 AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-20 at 08:17:20 AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -113,7 +113,7 @@ namespace nkentseu {
 
         vkCheckError(first, result, vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr");
         if (!result.success) {
-            if (result.result == VK_ERROR_OUT_OF_DATE_KHR || result.result == VK_SUBOPTIMAL_KHR) {
+            if (result.result == VK_ERROR_OUT_OF_DATE_KHR) {
                 m_ForceRecreate = true;
                 recreate_number++;
 
@@ -121,6 +121,9 @@ namespace nkentseu {
                     return false;
                 }
                 goto recreate_jump_point;
+            } else if (result.result != VK_SUBOPTIMAL_KHR && result.result != VK_SUCCESS){
+                Log_nts.Error("cannot acquiere a vulkan next image");
+                return false;
             }
             recreate_number = 0;
         }
@@ -205,6 +208,14 @@ namespace nkentseu {
 
         vkCheckError(first, result, vkQueuePresentKHR(context->m_Gpu.queue.graphicsQueue, &presentInfo), "cannot present image");
 
+        if (result.result == VK_ERROR_OUT_OF_DATE_KHR || result.result == VK_SUBOPTIMAL_KHR) {
+            Vector2u size = context->GetWindowSize(true);
+            m_ViewportSize = { size.width, size.height };
+        } else if (result.result != VK_SUCCESS) {
+            Log_nts.Error("failed to present swap chain image!");
+            return false;
+        }
+
         vkCheckError(first, result, vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle");
         vkCheckErrorVoid(vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer));
         return false;
@@ -226,8 +237,13 @@ namespace nkentseu {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
         InternalContext* context = m_Context->GetInternal();
 
-        Vector2f dpiSize = context->GetWindow()->ConvertPixelToDpi(Vector2f(size.width, size.height));
-        m_ViewportSize = { (uint32)dpiSize.width, (uint32)dpiSize.height };
+        Vector2u size_translate = context->GetWindow()->ConvertPixelToDpi(size);
+        Vector2u size_current = context->GetWindowSize(true);
+
+        if (size_current != size_translate){
+            Log_nts.Warning("Potential error du to different window size when windows is resize");
+        }
+        m_ViewportSize = { size_current.width, size_current.height };
         return true;
     }
 

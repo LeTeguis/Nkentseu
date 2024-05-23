@@ -10,6 +10,7 @@
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 
 #include "Nkentseu/Core/Window.h"
+#include "VulkanUtils.h"
 
 namespace nkentseu {
 
@@ -147,8 +148,13 @@ namespace nkentseu {
         Vector2u current_Size = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
         if (m_WindowSize != current_Size || forceRecreate) {
             m_WindowSize = current_Size;
+            Log_nts.Debug("Resize");
 
             // recreate swapchain and others;
+            if (!RecreateSwapChain()){
+                Log_nts.Error("cannot recreate swapchain");
+                return {};
+            }
 
             // Iterate over m_RecreateList and call non-null callbacks, remove null callbacks
             auto it = m_RecreateList.begin();
@@ -197,6 +203,36 @@ namespace nkentseu {
             return true;
         }
         return false; // Function not found
+    }
+
+    bool InternalContext::CleanupSwapChain() {
+        for (usize i = 0; i < m_Framebuffer.framebuffer.size(); i++) {
+            vkCheckErrorVoid(vkDestroyFramebuffer(m_Gpu.device, m_Framebuffer.framebuffer[i], nullptr));
+        }
+
+        for (usize i = 0; i < m_Swapchain.imageView.size(); i++) {
+            vkCheckErrorVoid(vkDestroyImageView(m_Gpu.device, m_Swapchain.imageView[i], nullptr));
+        }
+
+        vkCheckErrorVoid(vkDestroySwapchainKHR(m_Gpu.device, m_Swapchain.swapchain, nullptr));
+
+        return true;
+    }
+
+    bool InternalContext::RecreateSwapChain() {
+		VulkanResult result;
+		bool first = true;
+
+        vkCheckError(first, result, vkDeviceWaitIdle(m_Gpu.device), "cannot wait idle");
+
+        if (result.result == false) return false;
+
+        if (!CleanupSwapChain()) return false;
+
+        if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
+        if (!m_Framebuffer.Create(&m_Gpu, m_WindowSize, &m_RenderPass, &m_Swapchain)) return false;
+
+        return true;
     }
 }    // namespace nkentseu
 
