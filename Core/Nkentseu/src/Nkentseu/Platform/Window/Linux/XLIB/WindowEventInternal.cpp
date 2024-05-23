@@ -112,7 +112,7 @@ namespace nkentseu {
                 return HandleGraphicsExposeEvent(event.xgraphicsexpose);
                 break;
             case NoExpose:
-                Log_nts.Debug("NoExpose event received");
+                //Log_nts.Debug("NoExpose event received");
                 break;
             case VisibilityNotify:
                 return HandleVisibilityEvent(event.xvisibility);
@@ -133,19 +133,19 @@ namespace nkentseu {
                 //Log_nts.Debug("MapRequest event received");
                 break;
             case ReparentNotify:
-                Log_nts.Debug("ReparentNotify event received");
+                //Log_nts.Debug("ReparentNotify event received");
                 break;
             case ConfigureNotify:
                 HandleConfigureEvent(event.xconfigure);
                 break;
             case ConfigureRequest:
-                Log_nts.Debug("ConfigureRequest event received");
+                //Log_nts.Debug("ConfigureRequest event received");
                 break;
             case GravityNotify:
                 // Log_nts.Debug("GravityNotify event received");
                 break;
             case ResizeRequest:
-                Log_nts.Debug("ResizeRequest event received");
+                //Log_nts.Debug("ResizeRequest event received");
                 break;
             case CirculateNotify:
                 //Log_nts.Debug("CirculateNotify event received");
@@ -154,31 +154,31 @@ namespace nkentseu {
                 //Log_nts.Debug("CirculateRequest event received");
                 break;
             case PropertyNotify:
-                Log_nts.Debug("PropertyNotify event received");
+                //Log_nts.Debug("PropertyNotify event received");
                 break;
             case SelectionClear:
-                Log_nts.Debug("SelectionClear event received");
+                //Log_nts.Debug("SelectionClear event received");
                 break;
             case SelectionRequest:
-                Log_nts.Debug("SelectionRequest event received");
+                //Log_nts.Debug("SelectionRequest event received");
                 break;
             case SelectionNotify:
-                Log_nts.Debug("SelectionNotify event received");
+                //Log_nts.Debug("SelectionNotify event received");
                 break;
             case ColormapNotify:
-                Log_nts.Debug("ColormapNotify event received");
+                //Log_nts.Debug("ColormapNotify event received");
                 break;
             case ClientMessage:
                 return HandleClientMessage(event.xclient);
                 break;
             case MappingNotify:
-                Log_nts.Debug("MappingNotify event received");
+                //Log_nts.Debug("MappingNotify event received");
                 break;
             case GenericEvent:
-                Log_nts.Debug("GenericEvent event received");
+                //Log_nts.Debug("GenericEvent event received");
                 break;
             default:
-                Log_nts.Debug("Unknown event received");
+                //Log_nts.Debug("Unknown event received");
                 break;
         }
         return 0;

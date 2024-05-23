@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-15 at 04:56:52 PM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-15 at 04:56:52 PM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -15,7 +15,7 @@
 #include "InternalContext.h"
 #include "VulkanUtils.h"
 
-#include <glslang_c_interface.h>
+/*#include <glslang_c_interface.h>
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
@@ -26,7 +26,7 @@
 
 #include <SPIRV/GlslangToSpv.h>
 #include <SPIRV/GLSL.std.450.h>
-#include <SPIRV/GlslangToSpv.h>
+#include <SPIRV/GlslangToSpv.h>*/
 
 #include <string>
 #include <filesystem>
@@ -304,9 +304,9 @@ namespace nkentseu {
     {
         std::filesystem::path path(shaderPath);
 
-        // Mapping des extensions à leurs équivalents pour l'extension .spv
+        // Mapping des extensions ï¿½ leurs ï¿½quivalents pour l'extension .spv
         std::unordered_map<std::string, std::string> extensionMappings = {
-            {".glsl", ".spv"},    // Extension .glsl sera remplacée par .spv
+            {".glsl", ".spv"},    // Extension .glsl sera remplacï¿½e par .spv
             {".vert", ".vert.spv"},
             {".frag", ".frag.spv"},
             {".comp", ".comp.spv"},
@@ -318,13 +318,13 @@ namespace nkentseu {
         // Obtention de l'extension du fichier
         std::string extension = path.extension().string();
 
-        // Vérification si l'extension est dans la liste des extensions à mapper
+        // Vï¿½rification si l'extension est dans la liste des extensions ï¿½ mapper
         if (extensionMappings.find(extension) != extensionMappings.end()) {
             // Si oui, remplacement de l'extension
             path.replace_extension(extensionMappings[extension]);
         }
 
-        // Retourner le chemin mis à jour
+        // Retourner le chemin mis ï¿½ jour
         return path.string();
     }
 
@@ -344,7 +344,7 @@ namespace nkentseu {
             {ShaderType::TesEvaluation, "--tese"}
         };
 
-        // Séparation du chemin du fichier en répertoire et nom de fichier avec extension
+        // Sï¿½paration du chemin du fichier en rï¿½pertoire et nom de fichier avec extension
         std::filesystem::path path(filePath);
         std::string directory = path.parent_path().string();
         std::string fileName = path.filename().string();

@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-20 at 09:28:10 AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-20 at 09:28:10 AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -121,7 +121,7 @@ namespace nkentseu {
         }
     }
 
-    glslang_stage_t VulkanConvert::GetshaderStageTypeGLSLang(ShaderType::Code shaderType)
+    /*glslang_stage_t VulkanConvert::GetshaderStageTypeGLSLang(ShaderType::Code shaderType)
     {
         if (shaderType == ShaderType::Vertex)
             return GLSLANG_STAGE_VERTEX;
@@ -142,7 +142,8 @@ namespace nkentseu {
             return GLSLANG_STAGE_TESSEVALUATION;
 
         return GLSLANG_STAGE_VERTEX;
-    }
+    }*/
+
     bool VulkanConvert::EndsWith(const std::string& s, const std::string& part) {
         if (s.size() >= part.size()) {
             return (s.compare(s.size() - part.size(), part.size(), part) == 0);

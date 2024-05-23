@@ -28,8 +28,8 @@ LINUX_WIN_API = "NKENTSEU_LINUX_WIN_API_XLIB"
 # project name
 PROJECTS_NAME = {
     "." : "",
-    "Glslang" : os.path.join("External", "Libs", "Glslang"),
-    "SPIRVCross" : os.path.join("External", "Libs", "SPIRV-Cross"),
+    #"Glslang" : os.path.join("External", "Libs", "Glslang"),
+    #"SPIRVCross" : os.path.join("External", "Libs", "SPIRV-Cross"),
     "Stb" : os.path.join("External", "Libs", "Stb"),
     "Glad" : os.path.join("External", "Libs", "Glad"),
     "NSystem" : os.path.join("Core", "NSystem"),

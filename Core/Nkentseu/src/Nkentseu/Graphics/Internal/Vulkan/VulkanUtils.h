@@ -17,7 +17,7 @@
 #include <Logger/Formatter.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include <Nkentseu/Graphics/ShaderInfo.h>
-#include <glslang_c_shader_types.h>
+//#include <glslang_c_shader_types.h>
 
 namespace nkentseu {
     struct VulkanResult {
@@ -43,7 +43,7 @@ namespace nkentseu {
         static const char* VulkanResultToString(VkResult result);
         static void GetResourceLimits(VkPhysicalDevice physicalDevice);
         static VkShaderStageFlagBits GetshaderStageType(ShaderType::Code type);
-        static glslang_stage_t GetshaderStageTypeGLSLang(ShaderType::Code shaderType);
+        //static glslang_stage_t GetshaderStageTypeGLSLang(ShaderType::Code shaderType);
         static bool EndsWith(const std::string& s, const std::string& part);
     };
 
