@@ -1,4 +1,4 @@
-#version 420 core
+#version 450 core
 
 const vec2 positions[3] = vec2[](
     vec2(0.0,  0.5),

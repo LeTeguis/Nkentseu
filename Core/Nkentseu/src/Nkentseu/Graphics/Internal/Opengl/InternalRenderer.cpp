@@ -179,6 +179,10 @@ namespace nkentseu {
 
     bool InternalRenderer::Prepare()
     {
+        if (m_CurrentShader != nullptr && m_CurrentShader->GetInternal() != nullptr) {
+            //m_CurrentShader->GetInternal()->Bind();
+            //glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
         return true;
     }
 

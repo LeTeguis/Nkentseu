@@ -24,13 +24,13 @@ namespace nkentseu {
     
     // Constructor
     InternalShader::InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_Programme(0) {
-        // Ajoutez votre code de constructeur ici
+        if (context == nullptr) return;
         SetShaderFiles(context, shaderFiles);
     }
 
     void InternalShader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
     {
-        if (context == nullptr || context->GetInternal()) return;
+        if (context == nullptr || context->GetInternal() == nullptr ) return;
 
         m_ShaderFiles.clear();
         m_ShaderFiles = shaderFiles;
@@ -41,10 +41,9 @@ namespace nkentseu {
 
     bool InternalShader::Create()
     {
-        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || m_Programme != 0) {
             return false;
         }
-
         m_Modules.clear();
 
         for (auto [shaderType, shaderFile] : m_ShaderFiles) {
@@ -61,7 +60,7 @@ namespace nkentseu {
 
     bool InternalShader::Compile()
     {
-        if (m_Context == nullptr || m_Context->GetInternal() || m_Modules.size() == 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || m_Modules.size() == 0) {
             return false;
         }
 
@@ -77,7 +76,7 @@ namespace nkentseu {
 
     bool InternalShader::Destroy()
     {
-        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr  || m_Programme != 0) {
             if (Unbind()) {
                 m_Programme = 0;
                 return true;
@@ -100,7 +99,7 @@ namespace nkentseu {
     }
 
     bool InternalShader::Bind() const {
-        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr  || m_Programme != 0) {
             glUseProgram(m_Programme);
             glCheckError();
             return true;
@@ -109,7 +108,7 @@ namespace nkentseu {
     }
 
     bool InternalShader::Unbind() const {
-        if (m_Context == nullptr || m_Context->GetInternal() || m_Programme != 0) {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr  || m_Programme != 0) {
             glUseProgram(0);
             glCheckError();
             return true;

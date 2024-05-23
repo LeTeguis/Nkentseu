@@ -160,11 +160,9 @@ namespace nkentseu {
 
         vkCheckErrorVoid(vkCmdBeginRenderPass(m_CurrentCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE));
 
-        {
-            if (m_CurrentShader != nullptr && m_CurrentShader->GetInternal() != nullptr) {
-                m_CurrentShader->GetInternal()->Bind(m_CurrentCommandBuffer);
-                vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, 3, 1, 0, 0));
-            }
+        if (m_CurrentShader != nullptr && m_CurrentShader->GetInternal() != nullptr) {
+            m_CurrentShader->GetInternal()->Bind(m_CurrentCommandBuffer);
+            vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, 3, 1, 0, 0));
         }
 
         m_IsPrepare = result.success;

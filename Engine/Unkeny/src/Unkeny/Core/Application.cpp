@@ -109,12 +109,12 @@ namespace nkentseu {
             return;
         }
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
         //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
         //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
         Memory::Shared<Shader> shader = Memory::Alloc<Shader>(m_Context == nullptr ? nullptr : m_Context.get(), shaderFiles);
 
         shader->Create();
