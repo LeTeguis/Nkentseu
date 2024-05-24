@@ -71,6 +71,7 @@ namespace nkentseu {
         uint64 HandleGraphicsExposeEvent(XGraphicsExposeEvent event);
         uint64 HandleConfigureEvent(XConfigureEvent event) ;
         uint64 HandleVisibilityEvent(XVisibilityEvent event);
+        uint64 HandleResizeEvent(XResizeRequestEvent event);
 
         float64 CalculateDPI(int32 width_pixels, int32 height_pixels, float64 width_inches, float64 height_inches);
         float64 GetCurrentDpi(Display* display);

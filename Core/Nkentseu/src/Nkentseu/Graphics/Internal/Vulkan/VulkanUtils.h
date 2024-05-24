@@ -43,7 +43,10 @@ namespace nkentseu {
         static const char* VulkanResultToString(VkResult result);
         static void GetResourceLimits(VkPhysicalDevice physicalDevice);
         static VkShaderStageFlagBits GetshaderStageType(ShaderType::Code type);
-        //static glslang_stage_t GetshaderStageTypeGLSLang(ShaderType::Code shaderType);
+
+        static VkCullModeFlagBits CullModeType(CullModeType::Code mode);
+        static VkPolygonMode PolygonModeType(PolygonModeType::Code contentMode);
+
         static bool EndsWith(const std::string& s, const std::string& part);
     };
 

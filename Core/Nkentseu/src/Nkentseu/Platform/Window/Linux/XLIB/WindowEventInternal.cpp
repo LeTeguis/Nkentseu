@@ -145,7 +145,7 @@ namespace nkentseu {
                 // Log_nts.Debug("GravityNotify event received");
                 break;
             case ResizeRequest:
-                //Log_nts.Debug("ResizeRequest event received");
+                return HandleResizeEvent(event.xresizerequest);
                 break;
             case CirculateNotify:
                 //Log_nts.Debug("CirculateNotify event received");
@@ -206,6 +206,28 @@ namespace nkentseu {
     Event& WindowEventInternal::FrontReference()
     {
         return *eventQueue.front();
+    }
+    
+    uint64 WindowEventInternal::HandleResizeEvent(XResizeRequestEvent event){
+        WindowInternal* window = WindowInternal::GetCurrent(event.window);
+
+        if (window != nullptr){
+            Vector2u size = window->m_Properties.size;
+            
+            float32 prevArea = size.width * size.height;
+            float32 currentArea = event.width * event.height;
+            ResizeState::Code state = ResizeState::NotChange;
+
+            if (prevArea > currentArea){
+                state = ResizeState::Reduced;
+            } else if (prevArea < currentArea){
+                state = ResizeState::Expanded;
+            }
+
+            window->m_Properties.size = Vector2u(event.width, event.height);
+            FinalizePushEvent(new WindowResizedEvent(window->ID(), state, window->m_Properties.size), 0);
+        }
+        return 0;
     }
 
     uint64 WindowEventInternal::HandleKeyboard(XKeyEvent event, bool isPressed){

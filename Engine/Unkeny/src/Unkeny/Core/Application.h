@@ -50,7 +50,7 @@ namespace nkentseu {
         Memory::Shared<class Renderer> m_Renderer;
         bool m_Running;
 
-        DrawContentMode::Code m_DrawMode = DrawContentMode::Fill;
+        PolygonModeType::Code m_PolygonMode = PolygonModeType::Fill;
     };
 
     Memory::Shared<Application> MainApplication(const ARGV& argv);

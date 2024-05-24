@@ -336,7 +336,7 @@ namespace nkentseu {
         return NotDefine; // Valeur par défaut
     }
 
-    std::string DrawMode::ToString(DrawMode::Code drawMode)
+    std::string CullModeType::ToString(CullModeType::Code drawMode)
     {
         switch (drawMode) {
         case Front: return "Front";
@@ -346,7 +346,7 @@ namespace nkentseu {
         }
     }
 
-    DrawMode::Code DrawMode::FromString(const std::string& drawModeStr)
+    CullModeType::Code CullModeType::FromString(const std::string& drawModeStr)
     {
         if (drawModeStr == "Front") return Front;
         if (drawModeStr == "Back") return Back;
@@ -354,19 +354,23 @@ namespace nkentseu {
         return NotDefine; // Valeur par défaut
     }
 
-    std::string DrawContentMode::ToString(DrawContentMode::Code drawContentMode)
+    std::string PolygonModeType::ToString(PolygonModeType::Code drawContentMode)
     {
         switch (drawContentMode) {
         case Line: return "Line";
         case Fill: return "Fill";
+        case Point: return "Point";
+        case FillRectangle: return "FillRectangle";
         default: return "NotDefine";
         }
     }
 
-    DrawContentMode::Code DrawContentMode::FromString(const std::string& drawContentModeStr)
+    PolygonModeType::Code PolygonModeType::FromString(const std::string& drawContentModeStr)
     {
         if (drawContentModeStr == "Line") return Line;
         if (drawContentModeStr == "Fill") return Fill;
+        if (drawContentModeStr == "FillRectangle") return FillRectangle;
+        if (drawContentModeStr == "Point") return Point;
         return NotDefine; // Valeur par défaut
     }
 

@@ -80,19 +80,19 @@ namespace nkentseu {
         return m_InternalRenderer->Clear(r, g, b, a);
     }
 
-    bool Renderer::SetActiveShader(Memory::Shared<Shader> shader)
-    {
-        if (!IsValideInternal() || shader == nullptr) return false;
-        return m_InternalRenderer->SetActiveShader(shader);
-    }
-
-    bool Renderer::UnsetActiveShader()
+    bool Renderer::UseShader(Memory::Shared<Shader> shader)
     {
         if (!IsValideInternal()) return false;
-        return m_InternalRenderer->UnsetActiveShader();
+        return m_InternalRenderer->UseShader(shader);
     }
 
-    bool Renderer::DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode)
+    bool Renderer::UnuseShader()
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->UnuseShader();
+    }
+
+    bool Renderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
     {
         if (!IsValideInternal()) return false;
         return m_InternalRenderer->DrawMode(mode, contentMode);

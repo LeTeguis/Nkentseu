@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "Nkentseu/Graphics/ShaderInfo.h"
+#include "Nkentseu/Core/Events.h"
 
 namespace nkentseu {
     class Context;
@@ -46,17 +47,19 @@ namespace nkentseu {
             bool Prepare();
             bool Finalize();
 
-            bool SetActiveShader(Memory::Shared<class Shader> shader);
-            bool UnsetActiveShader();
+            bool UseShader(Memory::Shared<Shader> shader);
+            bool UnuseShader();
 
             bool Resize(const Vector2u& size);
         private:
-            class Context* m_Context = nullptr;
-            Memory::Shared<class Shader> m_CurrentShader = nullptr;
+            Context* m_Context = nullptr;
+            Memory::Shared<Shader> m_CurrentShader = nullptr;
+            bool m_IsPrepare = false;
 
         private:
             void OnEvent(Event& event);
             bool OnWindowResizedEvent(class WindowResizedEvent& event);
+            bool CanRender();
     };
 } // namespace nkentseu
 

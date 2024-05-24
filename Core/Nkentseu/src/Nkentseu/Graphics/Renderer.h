@@ -32,10 +32,10 @@ namespace nkentseu {
             bool Clear(const Color& color);
             bool Clear(uint8 r, uint8 g, uint8 b, uint8 a = 255);
 
-            bool SetActiveShader(Memory::Shared<class Shader> shader);
-            bool UnsetActiveShader();
+            bool UseShader(Memory::Shared<Shader> shader);
+            bool UnuseShader();
 
-            bool DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode);
+            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode);
             bool Draw(Memory::Shared<class VertexArray> vertexArray, DrawVertexType::Code drawVertex);
 
             bool Prepare();

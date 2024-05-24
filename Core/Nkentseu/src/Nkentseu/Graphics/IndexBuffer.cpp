@@ -26,7 +26,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool IndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices)
+    bool IndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
     {
         if (m_Internal == nullptr) {
             m_Internal = Memory::Alloc<InternalIndexBuffer>();
@@ -34,7 +34,7 @@ namespace nkentseu {
                 return false;
             }
         }
-        return m_Internal->Create(bufferUsage, indexType, indices);
+        return m_Internal->Create(bufferUsage, indexType, indices, bufferLayout);
     }
 
     bool IndexBuffer::Destroy()

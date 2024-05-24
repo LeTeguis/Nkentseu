@@ -121,28 +121,20 @@ namespace nkentseu {
         }
     }
 
-    /*glslang_stage_t VulkanConvert::GetshaderStageTypeGLSLang(ShaderType::Code shaderType)
-    {
-        if (shaderType == ShaderType::Vertex)
-            return GLSLANG_STAGE_VERTEX;
+    VkCullModeFlagBits VulkanConvert::CullModeType(CullModeType::Code mode) {
+        if (mode == CullModeType::Front) return VK_CULL_MODE_FRONT_BIT;
+        if (mode == CullModeType::Back) return VK_CULL_MODE_BACK_BIT;
+        if (mode == CullModeType::FrontBack) return VK_CULL_MODE_FRONT_AND_BACK;
+        return VK_CULL_MODE_NONE;
+    }
 
-        if (shaderType == ShaderType::Fragment)
-            return GLSLANG_STAGE_FRAGMENT;
-
-        if (shaderType == ShaderType::Geometry)
-            return GLSLANG_STAGE_GEOMETRY;
-
-        if (shaderType == ShaderType::Compute)
-            return GLSLANG_STAGE_COMPUTE;
-
-        if (shaderType == ShaderType::TesControl)
-            return GLSLANG_STAGE_TESSCONTROL;
-
-        if (shaderType == ShaderType::TesEvaluation)
-            return GLSLANG_STAGE_TESSEVALUATION;
-
-        return GLSLANG_STAGE_VERTEX;
-    }*/
+    VkPolygonMode VulkanConvert::PolygonModeType(PolygonModeType::Code contentMode) {
+        if (contentMode == PolygonModeType::Line) return VK_POLYGON_MODE_LINE;
+        if (contentMode == PolygonModeType::Fill) return VK_POLYGON_MODE_FILL;
+        if (contentMode == PolygonModeType::Point) return VK_POLYGON_MODE_POINT;
+        if (contentMode == PolygonModeType::FillRectangle) return VK_POLYGON_MODE_FILL_RECTANGLE_NV;
+        return VK_POLYGON_MODE_FILL;
+    }
 
     bool VulkanConvert::EndsWith(const std::string& s, const std::string& part) {
         if (s.size() >= part.size()) {

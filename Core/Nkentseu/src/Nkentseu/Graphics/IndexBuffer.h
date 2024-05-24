@@ -21,7 +21,7 @@ namespace nkentseu {
             IndexBuffer();
             ~IndexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices);
+            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
             bool Destroy();
 
             InternalIndexBuffer* GetInternal();

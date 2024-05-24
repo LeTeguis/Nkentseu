@@ -21,7 +21,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool InternalVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, uint32 numberElements) {
+    bool InternalVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout) {
         return false;
     }
 

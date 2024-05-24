@@ -38,7 +38,6 @@ namespace nkentseu {
         return 0;
     }
 
-
     uint32 GLConvert::DrawModeType(DrawMode::Code mode) {
         if (mode == DrawMode::Front) return GL_BACK;
         if (mode == DrawMode::Back) return GL_FRONT;
@@ -49,6 +48,8 @@ namespace nkentseu {
     uint32 GLConvert::DrawContentModeType(DrawContentMode::Code contentMode) {
         if (contentMode == DrawContentMode::Line) return GL_LINE;
         if (contentMode == DrawContentMode::Fill) return GL_FILL;
+        if (contentMode == DrawContentMode::FillRectangle) return GL_FILL_RECTANGLE_NV;
+        if (contentMode == DrawContentMode::Point) return GL_POINT;
         return 0;
     }
 

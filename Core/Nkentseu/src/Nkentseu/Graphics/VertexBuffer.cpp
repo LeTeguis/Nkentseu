@@ -27,7 +27,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool VertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, uint32 numberElements)
+    bool VertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
     {
         if (m_Internal == nullptr) {
             m_Internal = Memory::Alloc<InternalVertexBuffer>();
@@ -35,7 +35,7 @@ namespace nkentseu {
                 return false;
             }
         }
-        return m_Internal->Create(bufferUsage, vertices, numberElements);
+        return m_Internal->Create(bufferUsage, vertices, bufferLayout);
     }
 
     bool VertexBuffer::Destroy()

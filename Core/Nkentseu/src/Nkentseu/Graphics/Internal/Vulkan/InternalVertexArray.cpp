@@ -31,6 +31,16 @@ namespace nkentseu {
         return false;
     }
 
+    bool InternalVertexArray::Create(uint32 vertexNumber)
+    {
+        m_VertexNumber = vertexNumber;
+        return true;
+    }
+
+    uint32 InternalVertexArray::GetVertexNumber() {
+        return m_VertexNumber;
+    }
+
     bool InternalVertexArray::Destroy() {
         return false;
     }

@@ -29,10 +29,12 @@ namespace nkentseu {
             ~InternalVertexArray();
 
             bool Create(const BufferLayout& bufferLayout);
+            bool Create(uint32 vertexNumber);
 
             bool SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer);
             Memory::Shared<VertexBuffer> GetVertexBuffer();
             InternalVertexBuffer* GetInternalVertexBuffer();
+            uint32 GetVertexNumber();
 
             bool SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer);
             Memory::Shared<IndexBuffer> GetIndexBuffer();
@@ -51,6 +53,7 @@ namespace nkentseu {
             Memory::Shared<VertexBuffer> m_VertexBuffer;
             Memory::Shared<IndexBuffer> m_IndexBuffer;
             BufferLayout m_BufferLayout;
+            uint32 m_VertexNumber = 0;
     };
 
 }  //  nkentseu

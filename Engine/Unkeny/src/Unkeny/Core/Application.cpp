@@ -124,11 +124,10 @@ namespace nkentseu {
         Memory::Shared<Shader> shader = Memory::Alloc<Shader>(m_Context == nullptr ? nullptr : m_Context.get(), shaderFiles);
 
         shader->Create();
-        m_Renderer->SetActiveShader(shader);
 
         vertexBuffer = Memory::Alloc<VertexBuffer>();
         if (vertexBuffer != nullptr) {
-            if (!vertexBuffer->Create(BufferDataUsage::StaticDraw, vertices, bufferLayout.componentCount)) {
+            if (!vertexBuffer->Create(BufferDataUsage::StaticDraw, vertices, bufferLayout)) {
                 Log.Error("Cannot create vertex buffer");
             }
         }
@@ -148,10 +147,11 @@ namespace nkentseu {
 
         vertexArray = Memory::Alloc<VertexArray>();
         if (vertexArray != nullptr) {
-            vertexArray->SetVertexBuffer(vertexBuffer);
-            vertexArray->SetIndexBuffer(indexBuffer);
+            //vertexArray->SetVertexBuffer(vertexBuffer);
+            //vertexArray->SetIndexBuffer(indexBuffer);
 
-            if (!vertexArray->Create(bufferLayout)) {
+            //if (!vertexArray->Create(bufferLayout)) {
+            if (!vertexArray->Create(3)) {
                 Log.Error("Cannot create vertex array");
             }
         }
@@ -169,6 +169,8 @@ namespace nkentseu {
             m_Renderer->Clear(Color::DefaultBackground());
 
             m_Renderer->Prepare();
+            m_Renderer->DrawMode(CullModeType::Back, m_PolygonMode);
+            m_Renderer->UseShader(shader);
             m_Renderer->Draw(vertexArray, DrawVertexType::Triangles);
             m_Renderer->Finalize();
         }
@@ -218,15 +220,11 @@ namespace nkentseu {
         }
 
         if (event.GetKeycode() == Keyboard::Space && event.GetState() == ButtonState::Pressed) {
-            if (m_DrawMode == DrawContentMode::Fill) {
-                m_DrawMode = DrawContentMode::Line;
+            if (m_PolygonMode == PolygonModeType::Fill) {
+                m_PolygonMode = PolygonModeType::Line;
             }
-            else if (m_DrawMode == DrawContentMode::Line) {
-                m_DrawMode = DrawContentMode::Fill;
-            }
-
-            if (m_Renderer != nullptr) {
-                m_Renderer->DrawMode(DrawMode::FrontBack, m_DrawMode);
+            else if (m_PolygonMode == PolygonModeType::Line) {
+                m_PolygonMode = PolygonModeType::Fill;
             }
         }
         return false;

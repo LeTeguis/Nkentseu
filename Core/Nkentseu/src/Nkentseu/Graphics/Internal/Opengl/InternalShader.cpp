@@ -23,12 +23,12 @@
 namespace nkentseu {
     
     // Constructor
-    InternalShader::InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_Programme(0) {
+    InternalShader::InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout) : m_Programme(0) {
         if (context == nullptr) return;
-        SetShaderFiles(context, shaderFiles);
+        SetShaderFiles(context, shaderFiles, bufferLayout);
     }
 
-    void InternalShader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    void InternalShader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout)
     {
         if (context == nullptr || context->GetInternal() == nullptr ) return;
 

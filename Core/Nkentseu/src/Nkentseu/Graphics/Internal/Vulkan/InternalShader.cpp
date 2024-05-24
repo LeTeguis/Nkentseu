@@ -36,10 +36,10 @@
 namespace nkentseu {
     
     // Constructor
-    InternalShader::InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_GraphicsPipeline(nullptr), m_Context(nullptr){
+    InternalShader::InternalShader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout) : m_GraphicsPipeline(nullptr), m_Context(nullptr){
         if (context == nullptr) return;
 
-        SetShaderFiles(context, shaderFiles);
+        SetShaderFiles(context, shaderFiles, bufferLayout);
     }
 
     // Destructor
@@ -112,7 +112,7 @@ namespace nkentseu {
         VkPipelineRasterizationStateCreateInfo rasterizationState = {};
         rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
-        rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizationState.cullMode = VK_CULL_MODE_NONE;
         rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizationState.lineWidth = 1.0f;
 
@@ -154,6 +154,7 @@ namespace nkentseu {
         dynamicStates.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY);
         dynamicStates.push_back(VK_DYNAMIC_STATE_FRONT_FACE);
         dynamicStates.push_back(VK_DYNAMIC_STATE_CULL_MODE);
+        dynamicStates.push_back(VK_DYNAMIC_STATE_POLYGON_MODE_EXT);
 
         VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
         dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -201,7 +202,7 @@ namespace nkentseu {
         return false;
     }
 
-    void InternalShader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) {
+    void InternalShader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout) {
         if (context == nullptr) return;
 
         m_ShaderFiles.clear();
@@ -243,7 +244,7 @@ namespace nkentseu {
         return shaderModule;
     }
 
-    bool InternalShader::Bind(VkCommandBuffer commandBuffer) const {
+    bool InternalShader::Bind(VkCommandBuffer commandBuffer, const VulkanDynamicMode& dynamicMode) const {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr || m_GraphicsPipeline == nullptr) return false;
         InternalContext* context = m_Context->GetInternal();
 
@@ -259,9 +260,13 @@ namespace nkentseu {
 
         vkCheckErrorVoid(vkCmdSetScissor(commandBuffer, 0, 1, &scissor));
         vkCheckErrorVoid(vkCmdSetViewport(commandBuffer, 0, 1, &viewport));
-        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(commandBuffer, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST));
-        vkCheckErrorVoid(vkCmdSetFrontFace(commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE));
-        vkCheckErrorVoid(vkCmdSetCullMode(commandBuffer, VK_CULL_MODE_BACK_BIT));
+        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(commandBuffer, dynamicMode.primitiveTopology));
+        vkCheckErrorVoid(vkCmdSetFrontFace(commandBuffer, dynamicMode.frontFace));
+        vkCheckErrorVoid(vkCmdSetCullMode(commandBuffer, dynamicMode.cullMode));
+
+        if (context->m_Gpu.cmdSetPolygonModeEXT != nullptr) {
+            vkCheckErrorVoid(context->m_Gpu.cmdSetPolygonModeEXT(commandBuffer, dynamicMode.polygoneMode));
+        }
 
         vkCheckErrorVoid(vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline));
 

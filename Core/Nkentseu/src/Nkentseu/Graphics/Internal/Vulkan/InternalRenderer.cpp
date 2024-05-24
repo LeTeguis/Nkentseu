@@ -72,6 +72,7 @@ namespace nkentseu {
 
     bool InternalRenderer::OnWindowResizedEvent(WindowResizedEvent& event)
     {
+        Log_nts.Debug("resize = {0}", event.GetSize());
         if (event.GetSize() == Vector2u()) {
             return false;
         }
@@ -101,27 +102,37 @@ namespace nkentseu {
         return Clear(Color(r, g, b, a));
     }
 
-    bool InternalRenderer::SetActiveShader(Memory::Shared<Shader> shader)
+    bool InternalRenderer::UseShader(Memory::Shared<Shader> shader)
     {
-        if (shader == nullptr || shader->GetInternal() == nullptr) {
-            return false;
-        }
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
+        if (m_CurrentCommandBuffer == nullptr || shader == nullptr || shader->GetInternal() == nullptr) return false;
 
-        m_CurrentShader = shader;
+        InternalContext* context = m_Context->GetInternal();
+        InternalShader* shader_i = shader->GetInternal();
+
+        if (shader != m_CurrentShader) {
+            m_CurrentShader = shader;
+        }
+        return shader_i->Bind(m_CurrentCommandBuffer, m_DynamicMode);
+    }
+
+    bool InternalRenderer::UnuseShader()
+    {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare || m_CurrentCommandBuffer == nullptr) return false;
+        InternalContext* context = m_Context->GetInternal();
+
+        m_CurrentShader = nullptr;
+
         return true;
     }
 
-    bool InternalRenderer::UnsetActiveShader()
-    {
-        if (m_CurrentShader != nullptr) {
-            m_CurrentShader = nullptr;
-            return true;
+    bool InternalRenderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) {
+        if (!CanRender()) {
+            return false;
         }
-        return false;
-    }
-
-    bool InternalRenderer::DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode) {
-        return false;
+        m_DynamicMode.cullMode = VulkanConvert::CullModeType(mode);
+        m_DynamicMode.polygoneMode = VulkanConvert::PolygonModeType(contentMode);
+        return true;
     }
 
     bool InternalRenderer::Prepare()
@@ -177,11 +188,6 @@ namespace nkentseu {
         renderPassBeginInfo.clearValueCount = clearValues.size();
 
         vkCheckErrorVoid(vkCmdBeginRenderPass(m_CurrentCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE));
-
-        if (m_CurrentShader != nullptr && m_CurrentShader->GetInternal() != nullptr) {
-            m_CurrentShader->GetInternal()->Bind(m_CurrentCommandBuffer);
-            vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, 3, 1, 0, 0));
-        }
 
         m_IsPrepare = result.success;
         m_ClearColor = false;
@@ -258,7 +264,36 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex) {
-        return false;
+        if (!CanRender() || m_CurrentShader == nullptr || drawVertex == DrawVertexType::NotDefine) {
+            return false;
+        }
+
+        if (vertexArray == nullptr) {
+            return false;
+        }
+
+        InternalVertexArray* internalVertexArray = vertexArray->GetInternal();
+        if (internalVertexArray == nullptr) {
+            return false;
+        }
+
+        InternalVertexBuffer* vertexBuffer = vertexArray->GetInternal()->GetInternalVertexBuffer();
+        InternalIndexBuffer* indexBuffer = vertexArray->GetInternal()->GetInternalIndexBuffer();
+
+
+        if (vertexBuffer == nullptr && internalVertexArray->GetVertexNumber() == 0) {
+            return false;
+        }
+
+        uint32 count = internalVertexArray->GetVertexNumber();
+
+        if (indexBuffer == nullptr) {
+            vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, count, 1, 0, 0));
+        }
+        else {
+        }
+
+        return true;
     }
 
     bool InternalRenderer::Present() {
@@ -287,7 +322,7 @@ namespace nkentseu {
         return true;
     }
 
-    bool nkentseu::InternalRenderer::CanRender()
+    bool InternalRenderer::CanRender()
     {
         if (m_Context == nullptr) {
             return false;

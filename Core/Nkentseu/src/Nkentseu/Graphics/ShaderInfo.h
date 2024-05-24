@@ -79,7 +79,7 @@ namespace nkentseu {
 	};
 
 	// Repr�sente diff�rents types de buffers
-	struct NKENTSEU_API DrawMode {
+	struct NKENTSEU_API CullModeType {
 		using Code = uint64;
 		// Enum�ration des types de buffers
 		enum : Code {
@@ -87,25 +87,25 @@ namespace nkentseu {
 		};
 
 		// Convertit un code de type de buffer en cha�ne de caract�res
-		static std::string ToString(DrawMode::Code drawMode);
+		static std::string ToString(CullModeType::Code drawMode);
 
 		// Convertit une cha�ne de caract�res en code de type de buffer
-		static DrawMode::Code FromString(const std::string& drawModeStr);
+		static CullModeType::Code FromString(const std::string& drawModeStr);
 	};
 
 	// Repr�sente diff�rents types de buffers
-	struct NKENTSEU_API DrawContentMode {
+	struct NKENTSEU_API PolygonModeType {
 		using Code = uint64;
 		// Enum�ration des types de buffers
 		enum : Code {
-			NotDefine, Line, Fill
+			NotDefine, Line, Fill, Point, FillRectangle
 		};
 
 		// Convertit un code de type de buffer en cha�ne de caract�res
-		static std::string ToString(DrawContentMode::Code drawContentMode);
+		static std::string ToString(PolygonModeType::Code drawContentMode);
 
 		// Convertit une cha�ne de caract�res en code de type de buffer
-		static DrawContentMode::Code FromString(const std::string& drawContentModeStr);
+		static PolygonModeType::Code FromString(const std::string& drawContentModeStr);
 	};
 
 	// Repr�sente diff�rents types de buffers

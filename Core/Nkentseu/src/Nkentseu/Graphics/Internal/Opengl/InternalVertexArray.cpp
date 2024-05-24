@@ -86,11 +86,35 @@ namespace nkentseu {
             }
         }
 
-        if (!m_VertexBuffer->GetInternal()->Unbind()) {
+
+        if (m_VertexBuffer == nullptr || m_VertexBuffer->GetInternal() == nullptr || !m_VertexBuffer->GetInternal()->Unbind()) {
             return false;
         }
 
+        m_VertexNumber = m_VertexBuffer->GetInternal()->Leng();
+
         return Unbind();
+    }
+
+    bool InternalVertexArray::Create(uint32 vertexNumber)
+    {
+        if (m_VertexArrayObject != 0) return false;
+
+        glGenVertexArrays(1, &m_VertexArrayObject);
+        if (glCheckError() != GL_NO_ERROR || m_VertexArrayObject == 0) {
+            return false;
+        }
+
+        if (!Bind()) {
+            return false;
+        }
+
+        m_VertexNumber = vertexNumber;
+        return Unbind();
+    }
+
+    uint32 InternalVertexArray::GetVertexNumber() {
+        return m_VertexNumber;
     }
 
     bool InternalVertexArray::SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer)

@@ -20,9 +20,9 @@
 namespace nkentseu {
     
     // Constructor
-    Shader::Shader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles) : m_InternalShader(nullptr) {
+    Shader::Shader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout) : m_InternalShader(nullptr) {
         // Ajoutez votre code de constructeur ici
-        m_InternalShader = Memory::Alloc<InternalShader>(context, shaderFiles);
+        m_InternalShader = Memory::Alloc<InternalShader>(context, shaderFiles, bufferLayout);
 
         if (m_InternalShader == nullptr) {
             Log_nts.Error("unload shader");
@@ -65,11 +65,11 @@ namespace nkentseu {
         return m_InternalShader->Destroy();
     }
 
-    void Shader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    void Shader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout)
     {
         if (m_InternalShader == nullptr) return;
 
-        m_InternalShader->SetShaderFiles(context, shaderFiles);
+        m_InternalShader->SetShaderFiles(context, shaderFiles, bufferLayout);
     }
 
     InternalShader* Shader::GetInternal()

@@ -26,7 +26,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool InternalIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices)
+    bool InternalIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
     {
         if (m_ElementBufferObject != 0) {
             return false;

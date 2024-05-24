@@ -91,6 +91,7 @@ namespace nkentseu {
         VkDevice device;
 
         std::vector<VkQueueFamilyProperties> queueProperties;
+        PFN_vkCmdSetPolygonModeEXT cmdSetPolygonModeEXT = nullptr;
     };
 
     struct NKENTSEU_API VulkanSwapchain {
@@ -177,6 +178,13 @@ namespace nkentseu {
         bool Create(VulkanGpu* gpu);
 
         VkPipelineLayout pipelineLayout = nullptr;
+    };
+
+    struct NKENTSEU_API VulkanDynamicMode {
+        VkPrimitiveTopology primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        VkCullModeFlagBits cullMode = VK_CULL_MODE_BACK_BIT;
+        VkPolygonMode polygoneMode = VK_POLYGON_MODE_LINE;
     };
     
 }  //  nkentseu

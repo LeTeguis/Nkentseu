@@ -25,14 +25,14 @@ namespace nkentseu {
     
     class NKENTSEU_API InternalShader {
         public:
-            InternalShader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            InternalShader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout = {});
             ~InternalShader();
 
             bool Create();
             bool Destroy();
-            void SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            void SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout = {});
 
-            bool Bind(VkCommandBuffer commandBuffer) const;
+            bool Bind(VkCommandBuffer commandBuffer, const VulkanDynamicMode& dynamicMode) const;
             bool Unbind(VkCommandBuffer commandBuffer) const;
         private:
             Context* m_Context = nullptr;

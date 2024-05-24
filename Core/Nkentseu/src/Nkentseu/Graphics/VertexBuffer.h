@@ -20,7 +20,7 @@ namespace nkentseu {
             VertexBuffer();
             ~VertexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, uint32 numberElements);
+            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
             bool Destroy();
 
             InternalVertexBuffer* GetInternal();

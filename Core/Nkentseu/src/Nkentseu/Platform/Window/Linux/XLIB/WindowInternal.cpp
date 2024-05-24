@@ -60,6 +60,8 @@ namespace nkentseu {
 
         m_NativeWindow->windowHandle = XCreateWindow(display, rootWindow, position.x, position.y, size.width, size.height, 0, DefaultDepth(display, screen), InputOutput, visual, CWColormap | CWEventMask, &m_NativeWindow->attributes);
 
+        XSelectInput(display, m_NativeWindow->windowHandle, m_NativeWindow->attributes.event_mask);
+
         currentWindowInternal = this;
         GetCurrent(m_NativeWindow->windowHandle);
 

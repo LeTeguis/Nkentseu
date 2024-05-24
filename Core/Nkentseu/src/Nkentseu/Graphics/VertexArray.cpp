@@ -39,6 +39,18 @@ namespace nkentseu {
         return m_InternalVertexArray->Create(bufferLayout);
     }
 
+    bool VertexArray::Create(uint32 vertexNumber)
+    {
+        if (m_InternalVertexArray == nullptr) {
+            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>();
+
+            if (m_InternalVertexArray == nullptr) {
+                return false;
+            }
+        }
+        return m_InternalVertexArray->Create(vertexNumber);
+    }
+
     bool VertexArray::Destroy()
     {
         if (m_InternalVertexArray == nullptr) return false;
@@ -61,6 +73,14 @@ namespace nkentseu {
     {
         if (m_InternalVertexArray == nullptr || m_InternalVertexArray->GetInternalVertexBuffer() == nullptr) return nullptr;
         return m_InternalVertexArray->GetInternalVertexBuffer();
+    }
+
+    uint32 VertexArray::GetVertexNumber()
+    {
+        if (m_InternalVertexArray == nullptr) {
+            return 0;
+        }
+        return m_InternalVertexArray->GetVertexNumber();
     }
 
     bool VertexArray::SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer)

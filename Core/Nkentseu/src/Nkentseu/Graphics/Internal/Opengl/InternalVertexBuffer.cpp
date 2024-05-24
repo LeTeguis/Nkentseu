@@ -32,7 +32,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool InternalVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, uint32 numberElements)
+    bool InternalVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
     {
         if (m_VertexBufferObject != 0) {
             return false;
@@ -55,7 +55,7 @@ namespace nkentseu {
             return false;
         }
 
-        m_Leng = vertices.size() / numberElements;
+        m_Leng = vertices.size() / bufferLayout.componentCount;
 
         if (Unbind()) {
             return true;

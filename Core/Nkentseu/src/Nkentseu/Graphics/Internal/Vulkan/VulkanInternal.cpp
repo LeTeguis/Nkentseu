@@ -78,6 +78,7 @@ namespace nkentseu {
 #endif
 		instanceExtension.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		instanceExtension.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+		instanceExtension.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		//instanceExtension.push_back(VK_NV_GLSL_SHADER_EXTENSION_NAME);
 
 		// Device Extension
@@ -85,6 +86,7 @@ namespace nkentseu {
 		deviceExtension.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 		deviceExtension.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 		deviceExtension.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+		deviceExtension.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
 
 		// Layer
 		layers.push_back("VK_LAYER_KHRONOS_validation");
@@ -312,6 +314,16 @@ namespace nkentseu {
 
 			vkGetPhysicalDeviceProperties(gpu, &properties);
 			result.success = GetLogicalDevice(surface, extension);
+
+			if (result.success) {
+				if (cmdSetPolygonModeEXT == nullptr) {
+					cmdSetPolygonModeEXT = (PFN_vkCmdSetPolygonModeEXT)vkGetDeviceProcAddr(device, "vkCmdSetPolygonModeEXT");
+
+					if (!cmdSetPolygonModeEXT) {
+						Log_nts.Error("Failed to load vkCmdSetPolygonModeEXT");
+					}
+				}
+			}
 		}
 
 		return result.success;
@@ -333,12 +345,22 @@ namespace nkentseu {
 			queueInfos.push_back(queueCreateInfo);
 		}
 
-		VkPhysicalDeviceFeatures deviceFeatures = {};
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		VkPhysicalDeviceExtendedDynamicState3FeaturesEXT extendedDynamicState3Features = {};
+		extendedDynamicState3Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+		extendedDynamicState3Features.extendedDynamicState3PolygonMode = VK_TRUE;
+
+		/*VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
+		deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		deviceFeatures2.pNext = &extendedDynamicState3Features;*/
 
 		VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeature{};
 		extendedDynamicStateFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
 		extendedDynamicStateFeature.extendedDynamicState = VK_TRUE;
+		extendedDynamicStateFeature.pNext = &extendedDynamicState3Features;
+
+		VkPhysicalDeviceFeatures deviceFeatures = {};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.fillModeNonSolid = VK_TRUE;
 
 		VkDeviceCreateInfo deviceInfo = {};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
