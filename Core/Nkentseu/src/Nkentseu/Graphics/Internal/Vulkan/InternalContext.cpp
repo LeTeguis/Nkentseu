@@ -34,18 +34,18 @@ namespace nkentseu {
     bool InternalContext::Initialize() {
         if (m_Window == nullptr) return false;
 
+        m_WindowSize = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
+
         m_Extension.Defined();
 
         if (!m_Instance.Create(m_Window, m_ContextProperties, &m_Extension)) return false;
         if (!m_Surface.Create(m_Window, &m_Instance)) return false;
         if (!m_Gpu.GetDevice(&m_Instance, &m_Surface, &m_Extension)) return false;
-        if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
+        if (!m_Swapchain.Create(&m_Gpu, &m_Surface, m_WindowSize, m_ContextProperties)) return false;
         if (!m_CommandPool.Create(&m_Gpu)) return false;
         if (!m_Semaphore.Create(&m_Gpu)) return false;
         if (!m_RenderPass.Create(&m_Gpu, &m_Swapchain)) return false;
         if (!m_PipelineLayout.Create(&m_Gpu)) return false;
-
-        m_WindowSize = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
 
         if (!m_Framebuffer.Create(&m_Gpu, m_WindowSize, &m_RenderPass, &m_Swapchain)) return false;
 
@@ -144,33 +144,8 @@ namespace nkentseu {
         return &m_Framebuffer;
     }
 
-    Vector2u InternalContext::GetWindowSize(bool forceRecreate) {
-        Vector2u current_Size = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize().width, m_Window->GetSize().height));
-        if (m_WindowSize != current_Size || forceRecreate) {
-            m_WindowSize = current_Size;
-            Log_nts.Debug("Resize");
-
-            // recreate swapchain and others;
-            if (!RecreateSwapChain()){
-                Log_nts.Error("cannot recreate swapchain");
-                return {};
-            }
-
-            // Iterate over m_RecreateList and call non-null callbacks, remove null callbacks
-            auto it = m_RecreateList.begin();
-            while (it != m_RecreateList.end()) {
-                if (*it) {
-                    // Call the callback with the forceRecreate parameter
-                    (*it)(forceRecreate);
-                    ++it;
-                }
-                else {
-                    // Remove null callbacks
-                    it = m_RecreateList.erase(it);
-                }
-            }
-        }
-        return m_WindowSize;
+    Vector2u InternalContext::GetFrameBufferSize() {
+        return m_Framebuffer.size;
     }
 
     bool InternalContext::AddRecreateCallback(RerecreateCallBackFn func) {
@@ -206,16 +181,8 @@ namespace nkentseu {
     }
 
     bool InternalContext::CleanupSwapChain() {
-        for (usize i = 0; i < m_Framebuffer.framebuffer.size(); i++) {
-            vkCheckErrorVoid(vkDestroyFramebuffer(m_Gpu.device, m_Framebuffer.framebuffer[i], nullptr));
-        }
-
-        for (usize i = 0; i < m_Swapchain.imageView.size(); i++) {
-            vkCheckErrorVoid(vkDestroyImageView(m_Gpu.device, m_Swapchain.imageView[i], nullptr));
-        }
-
-        vkCheckErrorVoid(vkDestroySwapchainKHR(m_Gpu.device, m_Swapchain.swapchain, nullptr));
-
+        m_Framebuffer.Destroy(&m_Gpu);
+        m_Swapchain.Destroy(&m_Gpu);
         return true;
     }
 
@@ -223,14 +190,30 @@ namespace nkentseu {
 		VulkanResult result;
 		bool first = true;
 
+        m_WindowSize = m_Window->ConvertPixelToDpi(Vector2f(m_Window->GetSize()));
+
         vkCheckError(first, result, vkDeviceWaitIdle(m_Gpu.device), "cannot wait idle");
 
-        if (result.result == false) return false;
+        if (result.success == false) return false;
 
         if (!CleanupSwapChain()) return false;
 
-        if (!m_Swapchain.Create(&m_Gpu, &m_Surface)) return false;
+        if (!m_Swapchain.Create(&m_Gpu, &m_Surface, m_WindowSize, m_ContextProperties)) return false;
         if (!m_Framebuffer.Create(&m_Gpu, m_WindowSize, &m_RenderPass, &m_Swapchain)) return false;
+
+        // Iterate over m_RecreateList and call non-null callbacks, remove null callbacks
+        auto it = m_RecreateList.begin();
+        while (it != m_RecreateList.end()) {
+            if (*it) {
+                // Call the callback with the forceRecreate parameter
+                (*it)(true);
+                ++it;
+            }
+            else {
+                // Remove null callbacks
+                it = m_RecreateList.erase(it);
+            }
+        }
 
         return true;
     }

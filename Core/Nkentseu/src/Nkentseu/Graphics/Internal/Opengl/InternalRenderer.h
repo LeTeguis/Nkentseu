@@ -53,6 +53,10 @@ namespace nkentseu {
         private:
             class Context* m_Context = nullptr;
             Memory::Shared<class Shader> m_CurrentShader = nullptr;
+
+        private:
+            void OnEvent(Event& event);
+            bool OnWindowResizedEvent(class WindowResizedEvent& event);
     };
 } // namespace nkentseu
 

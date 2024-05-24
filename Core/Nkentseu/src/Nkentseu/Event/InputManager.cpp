@@ -237,9 +237,7 @@ namespace nkentseu {
     InputManager::InputManager() {
         if (!s_initialize) {
             s_initialize = true;
-            #ifdef NKENTSEU_PLATFORM_WINDOWS
             EventTrack.AddObserver(REGISTER_CLIENT_EVENT(InputManager::OnEvent));
-            #endif
             m_Clock.Start();
             m_Clock.Reset();
 

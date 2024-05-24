@@ -383,7 +383,7 @@ namespace nkentseu {
                     state = ResizeState::Expanded;
                 }
                 window->m_Properties.size = Vector2u(event.width, event.height);
-                FinalizePushEvent(new WindowResizedEvent(window->ID(), state, Rectangle(event.x, event.y, event.width, event.height)), 0);
+                FinalizePushEvent(new WindowResizedEvent(window->ID(), state, window->m_Properties.size), 0);
             }
         }
         return 0;

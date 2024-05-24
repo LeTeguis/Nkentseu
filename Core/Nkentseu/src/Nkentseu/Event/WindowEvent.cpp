@@ -60,17 +60,17 @@ namespace nkentseu {
         return m_Color;
     }
 
-    WindowResizedEvent::WindowResizedEvent(uint64 win, ResizeState::Code state, const Rectangle& rectangle)
-        : Event(win), m_Rectangle(rectangle), m_State(state) {}
+    WindowResizedEvent::WindowResizedEvent(uint64 win, ResizeState::Code state, const Vector2u& size)
+        : Event(win), m_Size(size), m_State(state) {}
 
-    WindowResizedEvent::WindowResizedEvent(const WindowResizedEvent& e) : Event(e), m_Rectangle(e.m_Rectangle), m_State(e.m_State) {}
+    WindowResizedEvent::WindowResizedEvent(const WindowResizedEvent& e) : Event(e), m_Size(e.m_Size), m_State(e.m_State) {}
 
     std::string WindowResizedEvent::ToString() const {
-        return FORMATTER.Format("WindowResizedEvent {Window ID : {0}, Resize State : {2}, Rectangle: {1}}", m_WindowID, m_Rectangle, ResizeState::ToString(m_State));
+        return FORMATTER.Format("WindowResizedEvent {Window ID : {0}, Resize State : {2}, size: {1}}", m_WindowID, m_Size, ResizeState::ToString(m_State));
     }
 
-    Rectangle WindowResizedEvent::GetWindowRec() const{
-        return m_Rectangle;
+    Vector2u WindowResizedEvent::GetSize() const{
+        return m_Size;
     }
 
     ResizeState::Code WindowResizedEvent::GetRisizeState() const{

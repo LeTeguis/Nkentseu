@@ -74,14 +74,14 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::WindowResized)
         EVENT_CATEGORY_FLAGS(EventCategory::Window)
     public:
-        WindowResizedEvent(uint64 win, ResizeState::Code state, const Rectangle& rectangle = {});
+        WindowResizedEvent(uint64 win, ResizeState::Code state, const Vector2u& size = {});
         WindowResizedEvent(const WindowResizedEvent& e);
         virtual std::string ToString() const override;
 
-        Rectangle GetWindowRec() const;
+        Vector2u GetSize() const;
         ResizeState::Code GetRisizeState() const;
     private:
-        Rectangle m_Rectangle;
+        Vector2u m_Size;
         ResizeState::Code m_State;
     };
 

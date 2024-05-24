@@ -108,22 +108,23 @@ namespace nkentseu {
             m_Window->Close();
             return;
         }
-        std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
-        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(m_Context == nullptr ? nullptr : m_Context.get(), shaderFiles);
-
-        shader->Create();
-        m_Renderer->SetActiveShader(shader);
 
         BufferLayout bufferLayout;
         bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", false));
         //bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", false));
         bufferLayout.CalculateOffsetsAndStride();
+
+        std::unordered_map<ShaderType::Code, std::string> shaderFiles;
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
+        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(m_Context == nullptr ? nullptr : m_Context.get(), shaderFiles);
+
+        shader->Create();
+        m_Renderer->SetActiveShader(shader);
 
         vertexBuffer = Memory::Alloc<VertexBuffer>();
         if (vertexBuffer != nullptr) {
@@ -234,8 +235,8 @@ namespace nkentseu {
     bool Application::OnWindowResizedEvent(WindowResizedEvent& event)
     {
         if (m_Renderer != nullptr) {
-            m_Renderer->Resize(event.GetWindowRec().size);
-            Log.Debug("{0}", event);
+            //m_Renderer->Resize(event.GetSize());
+            //Log.Debug("{0}", event);
         }
         return false;
     }

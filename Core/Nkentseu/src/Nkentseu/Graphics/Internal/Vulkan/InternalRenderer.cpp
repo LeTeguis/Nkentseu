@@ -22,11 +22,13 @@
 #include "VulkanUtils.h"
 
 #include "Nkentseu/Core/Window.h"
+#include <Nkentseu/Event/EventFilter.h>
+#include <Nkentseu/Event/EventBroker.h>
 
 namespace nkentseu {
     
     // Constructor
-    InternalRenderer::InternalRenderer() {
+    InternalRenderer::InternalRenderer() : m_CurrentImageIndice(0) {
         // Ajoutez votre code de constructeur ici
     }
 
@@ -46,15 +48,43 @@ namespace nkentseu {
             }
         }
         InternalContext* icontext = m_Context->GetInternal();
-        //Vector2u size = context->GetWindow()->GetSize();
-        //Vector2f dpiSize = context->GetWindow()->ConvertPixelToDpi(Vector2f(size.width, size.height));
-        //m_ViewportSize = { (uint32)dpiSize.width, (uint32)dpiSize.height };
-        Vector2u size = icontext->GetWindowSize(false);
+        Vector2u size = icontext->GetFrameBufferSize();
         m_ViewportSize = { size.width, size.height };
+
+        EventTrack.AddObserver(REGISTER_CLIENT_EVENT(InternalRenderer::OnEvent));
+
+        m_CurrentImageIndice = 0;
         return true;
     }
 
     bool InternalRenderer::Deinitialize() {
+        EventTrack.RemoveObserver(REGISTER_CLIENT_EVENT(InternalRenderer::OnEvent));
+        return true;
+    }
+
+    void InternalRenderer::OnEvent(Event& event) {
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return;
+
+        EventBroker broker(event);
+
+        broker.Route<WindowResizedEvent>(REGISTER_CLIENT_EVENT(InternalRenderer::OnWindowResizedEvent));
+    }
+
+    bool InternalRenderer::OnWindowResizedEvent(WindowResizedEvent& event)
+    {
+        if (event.GetSize() == Vector2u()) {
+            return false;
+        }
+
+        InternalContext* context = m_Context->GetInternal();
+
+        Log_nts.Debug("resize");
+
+        context->RecreateSwapChain();
+        Vector2u size = context->GetFrameBufferSize();
+        m_ViewportSize = { size.width , size.height };
+        m_CurrentImageIndice = 0;
+
         return false;
     }
 
@@ -98,37 +128,25 @@ namespace nkentseu {
     {
         m_IsPrepare = false;
 
-        if (m_Context == nullptr || m_Context->GetInternal() == nullptr) return false;
+        if (!CanRender()) return false;
         InternalContext* context = m_Context->GetInternal();
-
-        static uint32 recreate_number = 0;
-
-        recreate_jump_point:;
-        Vector2u size = context->GetWindowSize(m_ForceRecreate);
-        m_ViewportSize = { size.width, size.height };
 
         VulkanResult result;
         bool first = true;
-        m_CurrentImageIndice = 0;
 
-        vkCheckError(first, result, vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr");
+        vkCheckError(first, result, vkAcquireNextImageKHR(context->m_Gpu.device, context->m_Swapchain.swapchain, UINT64_MAX, context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_CurrentImageIndice), "cannot acquier next image khr ({0})", m_CurrentImageIndice);
+        //Log_nts.Debug("current buffer : {0}", m_CurrentImageIndice);
+
         if (!result.success) {
             if (result.result == VK_ERROR_OUT_OF_DATE_KHR) {
-                m_ForceRecreate = true;
-                recreate_number++;
-
-                if (recreate_number >= 10) {
-                    return false;
-                }
-                goto recreate_jump_point;
+                context->RecreateSwapChain();
+                Vector2u size = context->GetFrameBufferSize();
+                m_ViewportSize = { size.width, size.height };
+                m_CurrentImageIndice = 0;
+                return false;
             } else if (result.result != VK_SUBOPTIMAL_KHR && result.result != VK_SUCCESS){
-                Log_nts.Error("cannot acquiere a vulkan next image");
                 return false;
             }
-            recreate_number = 0;
-        }
-        else {
-            recreate_number = 0;
         }
 
         VkCommandBufferAllocateInfo allocInfo = {};
@@ -172,7 +190,7 @@ namespace nkentseu {
 
     bool InternalRenderer::Finalize()
     {
-        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
+        if (!CanRender() || !m_IsPrepare) return false;
         InternalContext* context = m_Context->GetInternal();
 
         VulkanResult result;
@@ -206,16 +224,36 @@ namespace nkentseu {
 
         vkCheckError(first, result, vkQueuePresentKHR(context->m_Gpu.queue.graphicsQueue, &presentInfo), "cannot present image");
 
-        if (result.result == VK_ERROR_OUT_OF_DATE_KHR || result.result == VK_SUBOPTIMAL_KHR) {
-            Vector2u size = context->GetWindowSize(true);
-            m_ViewportSize = { size.width, size.height };
-        } else if (result.result != VK_SUCCESS) {
-            Log_nts.Error("failed to present swap chain image!");
-            return false;
+        if (!result.success) {
+            bool exited = false;
+
+            if (result.result == VK_ERROR_OUT_OF_DATE_KHR || result.result == VK_SUBOPTIMAL_KHR) {
+                context->RecreateSwapChain();
+                Vector2u size = context->GetFrameBufferSize();
+                m_ViewportSize = { size.width, size.height };
+                m_CurrentImageIndice = 0;
+
+                exited = true;
+            }
+
+            if (exited) {
+                if (m_CurrentCommandBuffer != nullptr) {
+                    vkCheckError(first, result, vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle");
+                    vkCheckErrorVoid(vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer));
+                }
+                Log_nts.Error("failed to present swap chain image!");
+                return false;
+            }
         }
 
         vkCheckError(first, result, vkDeviceWaitIdle(context->m_Gpu.device), "cannot wait device idle");
         vkCheckErrorVoid(vkFreeCommandBuffers(context->m_Gpu.device, context->m_CommandPool.commandPool, 1, &m_CurrentCommandBuffer));
+
+        m_CurrentImageIndice++;
+
+        if (m_CurrentImageIndice >= context->m_Swapchain.swapchainImages.size()) {
+            m_CurrentImageIndice = 0;
+        }
         return false;
     }
 
@@ -232,16 +270,38 @@ namespace nkentseu {
     }
 
     bool InternalRenderer::Resize(const Vector2u& size) {
-        if (m_Context == nullptr || m_Context->GetInternal() == nullptr || !m_IsPrepare) return false;
+        if (!CanRender() || !m_IsPrepare) return false;
         InternalContext* context = m_Context->GetInternal();
 
+        Log_nts.Debug("resize");
+
+        context->RecreateSwapChain();
+        Vector2u size_current = context->GetFrameBufferSize();
         Vector2u size_translate = context->GetWindow()->ConvertPixelToDpi(size);
-        Vector2u size_current = context->GetWindowSize(true);
 
         if (size_current != size_translate){
+
             Log_nts.Warning("Potential error du to different window size when windows is resize");
         }
         m_ViewportSize = { size_current.width, size_current.height };
+        return true;
+    }
+
+    bool nkentseu::InternalRenderer::CanRender()
+    {
+        if (m_Context == nullptr) {
+            return false;
+        }
+        if (m_Context->GetInternal() == nullptr) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+        if (context->m_Swapchain.swapchainImages.size() == 0) {
+            return false;
+        }
+        if (context->GetWindow()->GetSize() == Vector2u()) {
+            return false;
+        }
         return true;
     }
 

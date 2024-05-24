@@ -32,11 +32,11 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanExtension {
         void Defined();
+        bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+
         std::vector<const char*> instanceExtension;
         std::vector<const char*> deviceExtension;
         std::vector<const char*> layers;
-
-        bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     };
 
     struct NKENTSEU_API VulkanInstance {
@@ -94,11 +94,16 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanSwapchain {
-        bool Create(VulkanGpu* gpu, VulkanSurface* surface);
+        bool Create(VulkanGpu* gpu, VulkanSurface* surface, const Vector2u& size, const ContextProperties& contextProperties);
+        bool Destroy(VulkanGpu* gpu);
         bool FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat* format);
+        static uint32 GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode);
+        VkPresentModeKHR SelectPresentMode(VulkanGpu* gpu, VulkanSurface* surface, const ContextProperties& contextProperties);
 
+        VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
         VkSwapchainKHR swapchain = nullptr;
         VkSurfaceFormatKHR surfaceFormat;
+
         std::vector<VkImage> swapchainImages;
         std::vector<VkImageView> imageView;
     };
@@ -162,8 +167,10 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanFramebuffer {
         bool Create(VulkanGpu* gpu, const Vector2u& size, VulkanRenderPass* renderPass, VulkanSwapchain* swapchain);
+        bool Destroy(VulkanGpu* gpu);
 
         std::vector<VkFramebuffer> framebuffer;
+        Vector2u size = {};
     };
 
     struct NKENTSEU_API VulkanPipelineLayout {

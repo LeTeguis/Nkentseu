@@ -247,7 +247,7 @@ namespace nkentseu {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr || m_GraphicsPipeline == nullptr) return false;
         InternalContext* context = m_Context->GetInternal();
 
-        Vector2u size = m_Context->GetInternal()->GetWindowSize(false);
+        Vector2u size = m_Context->GetInternal()->GetFrameBufferSize();
 
         VkRect2D scissor = {};
         scissor.extent = { size.width, size.height };
@@ -358,60 +358,6 @@ namespace nkentseu {
         }
         return true;
     }
-
-    /*std::vector<unsigned int> InternalShader::CompileShader(ShaderType::Code stage, const char* shaderSource) {
-        glslang_input_t input;
-        {
-            input.language = GLSLANG_SOURCE_GLSL;
-            input.stage = VulkanConvert::GetshaderStageTypeGLSLang(stage);
-            input.client = GLSLANG_CLIENT_VULKAN;
-            input.client_version = GLSLANG_TARGET_VULKAN_1_2;
-            input.target_language = GLSLANG_TARGET_SPV;
-            input.target_language_version = GLSLANG_TARGET_SPV_1_5;
-            input.code = shaderSource;
-            input.default_version = 100;
-            input.default_profile = GLSLANG_NO_PROFILE;
-            input.force_default_version_and_profile = false;
-            input.forward_compatible = false;
-            input.messages = GLSLANG_MSG_DEFAULT_BIT;
-            input.resource = reinterpret_cast<const glslang_resource_t*>(GetDefaultResources());
-        };
-        glslang_shader_t* shd = glslang_shader_create(&input);
-        if (!glslang_shader_preprocess(shd, &input)) {
-            Log_nts.Error("{0}", "GLSL preprocessing failed");
-            Log_nts.Error("{0}", glslang_shader_get_info_log(shd));
-            Log_nts.Error("{0}", glslang_shader_get_info_debug_log(shd));
-            Log_nts.Error("code: {0}", input.code);
-            return std::vector<unsigned int>();
-        }
-        if (!glslang_shader_parse(shd, &input)) {
-            Log_nts.Error("{0}", "GLSL parsing failed");
-            Log_nts.Error("{0}", glslang_shader_get_info_log(shd));
-            Log_nts.Error("{0}", glslang_shader_get_info_debug_log(shd));
-            Log_nts.Error("{0}", glslang_shader_get_preprocessed_code(shd));
-            return std::vector<unsigned int>();
-        }
-        glslang_program_t* prog = glslang_program_create();
-        glslang_program_add_shader(prog, shd);
-        int msgs = GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT;
-        if (!glslang_program_link(prog, msgs)) {
-            Log_nts.Error("{0}", "GLSL linking failed");
-            Log_nts.Error("{0}", glslang_program_get_info_log(prog));
-            Log_nts.Error("{0}", glslang_program_get_info_debug_log(prog));
-            return std::vector<unsigned int>();
-        }
-        glslang_program_SPIRV_generate(prog, VulkanConvert::GetshaderStageTypeGLSLang(stage));
-        size_t size = glslang_program_SPIRV_get_size(prog);
-        std::vector<unsigned int> spirv;
-        spirv.resize(size);
-        glslang_program_SPIRV_get(prog, spirv.data());
-        const char* spirv_messages = glslang_program_SPIRV_get_messages(prog);
-        if (spirv_messages)
-            Log_nts.Error("{0}", spirv_messages);
-        glslang_program_delete(prog);
-        glslang_shader_delete(shd);
-        return spirv;
-    }*/
 }  //  nkentseu
 
 #endif

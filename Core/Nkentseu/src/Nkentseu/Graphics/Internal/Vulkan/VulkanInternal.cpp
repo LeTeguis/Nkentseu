@@ -42,6 +42,7 @@
 #include "VulkanUtils.h"
 
 namespace nkentseu {
+	// Vulkan Debug information
 	static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity, VkDebugUtilsMessageTypeFlagsEXT msgFlags, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 
 		std::string file = VulkanStaticDebugInfo::file_call;
@@ -64,6 +65,7 @@ namespace nkentseu {
 		return VK_TRUE;
 	}
 
+	// Vulkan extension
 	void VulkanExtension::Defined()
 	{
 		//  Instance extension
@@ -104,6 +106,7 @@ namespace nkentseu {
 		return requiredExtensions.empty();
 	}
 
+	// Vulkan Instance
 	bool VulkanInstance::Create(Window* window, const ContextProperties& contextProperties, VulkanExtension* extension)
 	{
 		if (window == nullptr || extension == nullptr) return false;
@@ -152,6 +155,7 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	// Vulkan surface
 	bool VulkanSurface::Create(Window* window, VulkanInstance* instance)
 	{
 		if (window == nullptr || instance == nullptr) return false;
@@ -208,6 +212,73 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	// VulkanQueueFamilyIndices
+
+	bool VulkanQueueFamilyIndices::FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+	{
+		if (device == nullptr || surface == nullptr) return false;
+
+		uint32 queueFamilyCount = 0;
+
+		vkCheckErrorVoid(vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr));
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+
+		vkCheckErrorVoid(vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data()));
+
+		int i = 0;
+		for (const auto& queueFamily : queueFamilies) {
+			if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				graphicsIndex = i;
+				hasGraphicsFamily = true;
+			}
+			VkBool32 presentSupport = false;
+			VulkanResult result;
+			bool first = true;
+
+			vkCheckError(first, result, vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport), "cannot get physical device surface support");
+
+			if (queueFamily.queueCount > 0 && presentSupport) {
+				presentIndex = i;
+				hasPresentFamily = true;
+			}
+			if (IsComplete()) {
+				break;
+			}
+
+			i++;
+		}
+
+		return true;
+	}
+
+	// VulkanSwapchainSupportDetails
+	bool VulkanSwapchainSupportDetails::QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+	{
+		VulkanResult result;
+		bool first = true;
+
+		vkCheckError(first, result, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &capabilities), "cannot get physical device surface capabilities");
+
+		uint32 formatCount;
+		vkCheckError(first, result, vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr), "cannot cout physical device surface format");
+
+		if (formatCount != 0) {
+			formats.resize(formatCount);
+			vkCheckError(first, result, vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, formats.data()), "cannot get physical device surface format");
+		}
+
+		uint32 presentModeCount;
+		vkCheckError(first, result, vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr), "cannot count physical device surface present mode");
+
+		if (presentModeCount != 0) {
+			presentMode.resize(presentModeCount);
+			vkCheckError(first, result, vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, presentMode.data()), "cannot get physical device surface present mode");
+		}
+		return result.success;
+	}
+
+	// Vulkan Gpu
 	bool VulkanGpu::GetDevice(VulkanInstance* instance, VulkanSurface* surface, VulkanExtension* extension)
 	{
 		if (instance == nullptr || surface == nullptr) return false;
@@ -310,7 +381,8 @@ namespace nkentseu {
 		return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 	}
 
-	bool VulkanSwapchain::Create(VulkanGpu* gpu, VulkanSurface* surface) {
+	// VulkanSwapchain
+	bool VulkanSwapchain::Create(VulkanGpu* gpu, VulkanSurface* surface, const Vector2u& size, const ContextProperties& contextProperties) {
 		if (gpu == nullptr || surface == nullptr) return false;
 		VulkanResult result;
 		bool first = true;
@@ -333,12 +405,45 @@ namespace nkentseu {
 			}
 		}
 
+		presentMode = SelectPresentMode(gpu, surface, contextProperties);
+
 		VkSurfaceCapabilitiesKHR surfaceCaps = {};
 		vkCheckError(first, result, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu->gpu, surface->surface, &surfaceCaps), "cannot get surface capabilities khr");
 
-		uint32 imageCount;
-		imageCount = surfaceCaps.minImageCount + 1;
-		imageCount = imageCount > surfaceCaps.maxImageCount ? imageCount - 1 : imageCount;
+		uint32 imageCount = GetMinImageCountFromPresentMode(presentMode);
+
+		if (imageCount < surfaceCaps.minImageCount) {
+			imageCount = surfaceCaps.minImageCount;
+		}
+		else if (surfaceCaps.maxImageCount != 0 && imageCount > surfaceCaps.maxImageCount) {
+			imageCount = surfaceCaps.maxImageCount;
+		}
+
+		VkExtent2D extend = {};
+
+		if (surfaceCaps.currentExtent.width == 0xffffffff) {
+			extend.width = size.x;
+			extend.height = size.y;
+		}
+		else {
+			extend = surfaceCaps.currentExtent;
+		}
+
+		std::vector<uint32> queueFamilyIndices;
+
+		if (gpu->queue.queueFamily.graphicsIndex >= 0)
+			queueFamilyIndices.push_back(gpu->queue.queueFamily.graphicsIndex);
+
+		if (gpu->queue.queueFamily.presentIndex >= 0 && gpu->queue.queueFamily.presentIndex != gpu->queue.queueFamily.graphicsIndex)
+			queueFamilyIndices.push_back(gpu->queue.queueFamily.presentIndex);
+
+		VkSharingMode sharingMode;
+		if (queueFamilyIndices.size() > 1) {
+			sharingMode = VK_SHARING_MODE_CONCURRENT;
+		}
+		else {
+			sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		}
 
 		VkSwapchainCreateInfoKHR swapchainInfo = {};
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -347,9 +452,13 @@ namespace nkentseu {
 		swapchainInfo.surface = surface->surface;
 		swapchainInfo.imageFormat = surfaceFormat.format;
 		swapchainInfo.preTransform = surfaceCaps.currentTransform;
-		swapchainInfo.imageExtent = surfaceCaps.currentExtent;
+		swapchainInfo.imageExtent = extend;
 		swapchainInfo.minImageCount = imageCount;
 		swapchainInfo.imageArrayLayers = 1;
+		swapchainInfo.presentMode = presentMode;
+		swapchainInfo.queueFamilyIndexCount = queueFamilyIndices.size();
+		swapchainInfo.pQueueFamilyIndices = queueFamilyIndices.data();
+		swapchainInfo.imageSharingMode = sharingMode;
 
 		vkCheckError(first, result, vkCreateSwapchainKHR(gpu->device, &swapchainInfo, 0, &swapchain), "cannot create swapchain");
 
@@ -357,7 +466,7 @@ namespace nkentseu {
 			Log_nts.Info("Create vulkan swapchain is good");
 		}
 		uint32 scImageCount = 0;
-		VkImage scImages[5];
+		VkImage scImages[16];
 
 		vkCheckError(first, result, vkGetSwapchainImagesKHR(gpu->device, swapchain, &scImageCount, 0), "cannot count swapchain image khr");
 		vkCheckError(first, result, vkGetSwapchainImagesKHR(gpu->device, swapchain, &scImageCount, scImages), "cannot getswapchain image khr");
@@ -396,6 +505,19 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	bool VulkanSwapchain::Destroy(VulkanGpu* gpu)
+	{
+		for (usize i = 0; i < imageView.size(); i++) {
+			vkCheckErrorVoid(vkDestroyImageView(gpu->device, imageView[i], nullptr));
+		}
+		imageView.clear();
+		swapchainImages.clear();
+
+		vkCheckErrorVoid(vkDestroySwapchainKHR(gpu->device, swapchain, nullptr));
+		swapchain = nullptr;
+		return true;
+	}
+
 	bool VulkanSwapchain::FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat* format)
 	{
 		for (VkFormat format_ : candidates) {
@@ -415,6 +537,51 @@ namespace nkentseu {
 		return false;
 	}
 
+	uint32 VulkanSwapchain::GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode)
+	{
+		if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR)
+			return 3;
+		if (present_mode == VK_PRESENT_MODE_FIFO_KHR || present_mode == VK_PRESENT_MODE_FIFO_RELAXED_KHR)
+			return 2;
+		if (present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+			return 1;
+		return 1;
+	}
+
+	VkPresentModeKHR VulkanSwapchain::SelectPresentMode(VulkanGpu* gpu, VulkanSurface* surface, const ContextProperties& contextProperties)
+	{
+		if (gpu == nullptr || surface == nullptr) return VK_PRESENT_MODE_FIFO_KHR;
+
+		uint32 availCount = 0;
+		std::vector<VkPresentModeKHR> availPresentModes;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->gpu, surface->surface, &availCount, nullptr);
+		availPresentModes.resize(availCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(gpu->gpu, surface->surface, &availCount, availPresentModes.data());
+
+		std::vector<VkPresentModeKHR> requestPresentMode;
+		if (contextProperties.pixelFormat.flags & GraphicsFlag::DoubleBuffer) {
+			requestPresentMode.push_back(VK_PRESENT_MODE_FIFO_KHR);
+			requestPresentMode.push_back(VK_PRESENT_MODE_FIFO_RELAXED_KHR);
+		}
+		else if (contextProperties.pixelFormat.flags & GraphicsFlag::TripleBuffer) {
+			requestPresentMode.push_back(VK_PRESENT_MODE_MAILBOX_KHR);
+		}
+		else {
+			requestPresentMode.push_back(VK_PRESENT_MODE_IMMEDIATE_KHR);
+		}
+
+		for (uint32 request_i = 0; request_i < requestPresentMode.size(); request_i++) {
+			for (uint32 avail_i = 0; avail_i < availPresentModes.size(); avail_i++) {
+				if (requestPresentMode[request_i] == availPresentModes[avail_i]) {
+					return requestPresentMode[request_i];
+				}
+			}
+		}
+
+		return VK_PRESENT_MODE_FIFO_KHR;
+	}
+
+	// VulkanCommandPool
 	bool VulkanCommandPool::Create(VulkanGpu* gpu) {
 		if (gpu == nullptr) return false;
 		VulkanResult result;
@@ -433,6 +600,7 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	// VulkanSemaphore
 	bool VulkanSemaphore::Create(VulkanGpu* gpu) {
 		if (gpu == nullptr) return false;
 
@@ -452,69 +620,7 @@ namespace nkentseu {
 		return result.success;
 	}
 
-	bool VulkanQueueFamilyIndices::FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
-	{
-		if (device == nullptr || surface == nullptr) return false;
-
-		uint32 queueFamilyCount = 0;
-
-		vkCheckErrorVoid(vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr));
-
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-
-		vkCheckErrorVoid(vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data()));
-
-		int i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				graphicsIndex = i;
-				hasGraphicsFamily = true;
-			}
-			VkBool32 presentSupport = false;
-			VulkanResult result;
-			bool first = true;
-
-			vkCheckError(first, result, vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport), "cannot get physical device surface support");
-			
-			if (queueFamily.queueCount > 0 && presentSupport) {
-				presentIndex = i;
-				hasPresentFamily = true;
-			}
-			if (IsComplete()) {
-				break;
-			}
-
-			i++;
-		}
-
-		return true;
-	}
-
-	bool VulkanSwapchainSupportDetails::QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
-	{
-		VulkanResult result;
-		bool first = true;
-
-		vkCheckError(first, result, vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &capabilities), "cannot get physical device surface capabilities");
-
-		uint32 formatCount;
-		vkCheckError(first, result, vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr), "cannot cout physical device surface format");
-
-		if (formatCount != 0) {
-			formats.resize(formatCount);
-			vkCheckError(first, result, vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, formats.data()), "cannot get physical device surface format");
-		}
-
-		uint32 presentModeCount;
-		vkCheckError(first, result, vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr), "cannot count physical device surface present mode");
-
-		if (presentModeCount != 0) {
-			presentMode.resize(presentModeCount);
-			vkCheckError(first, result, vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, presentMode.data()), "cannot get physical device surface present mode");
-		}
-		return result.success;
-	}
-
+	// VulkanPipelineConfig
 	void VulkanPipelineConfig::DefaultPipelineConfig(VulkanPipelineConfig* configInfo){
 		if (configInfo == nullptr) return;
 		configInfo->inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -603,6 +709,7 @@ namespace nkentseu {
 		configInfo->colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 	}
 
+	// VulkanDefaultVertex
 	std::vector<VkVertexInputBindingDescription> VulkanDefaultVertex::GetBindingDescriptions() {
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 		bindingDescriptions[0].binding = 0;
@@ -621,6 +728,8 @@ namespace nkentseu {
 
 		return attributeDescriptions;
 	}
+
+	// VulkanRenderPass
 	bool VulkanRenderPass::Create(VulkanGpu* gpu, VulkanSwapchain* swapchain)
 	{
 		if (gpu == nullptr || swapchain == nullptr) return false;
@@ -680,18 +789,22 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	// VulkanFramebuffer
 	bool VulkanFramebuffer::Create(VulkanGpu* gpu, const Vector2u& size, VulkanRenderPass* renderPass, VulkanSwapchain* swapchain)
 	{
 		if (gpu == nullptr || renderPass == nullptr || swapchain == nullptr) return false;
 
 		VulkanResult result;
 		bool first = true;
+
+		this->size = size;
+
 		framebuffer.resize(swapchain->swapchainImages.size());
 
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.width = size.width;
-		framebufferInfo.height = size.height;
+		framebufferInfo.width = this->size.width;
+		framebufferInfo.height = this->size.height;
 		framebufferInfo.renderPass = renderPass->renderPass;
 		framebufferInfo.layers = 1;
 		framebufferInfo.attachmentCount = 1;
@@ -709,6 +822,18 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	bool VulkanFramebuffer::Destroy(VulkanGpu* gpu)
+	{
+		for (usize i = 0; i < framebuffer.size(); i++) {
+			vkCheckErrorVoid(vkDestroyFramebuffer(gpu->device, framebuffer[i], nullptr));
+		}
+
+		framebuffer.clear();
+		size = Vector2u();
+		return true;
+	}
+
+	// VulkanPipelineLayout
 	bool VulkanPipelineLayout::Create(VulkanGpu* gpu)
 	{
 		if (gpu == nullptr) return false;

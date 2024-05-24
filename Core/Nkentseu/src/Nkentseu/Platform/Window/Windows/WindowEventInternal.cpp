@@ -428,14 +428,13 @@ namespace nkentseu {
 
 		float32 area = (float32)(window->GetSize().width * window->GetSize().height);
 
-		Rectangle win;
-		win.corner = window->GetProperties().position;
+		Vector2u size;
 
 		if (!resizing) {
 			RECT rect;//, frame, border;
 			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
-			win.size.width = (float32)(rect.right - rect.left);
-			win.size.height = (float32)(rect.bottom - rect.top);
+			size.width = (float32)(rect.right - rect.left);
+			size.height = (float32)(rect.bottom - rect.top);
 			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 		}
 		else {
@@ -447,8 +446,8 @@ namespace nkentseu {
 			GetWindowRect(window->GetWindowDisplay()->windowHandle, &wind);
 			GetClientRect(window->GetWindowDisplay()->windowHandle, &rect);
 
-			win.size.width = (float32)(rect.right - rect.left);
-			win.size.height = (float32)(rect.bottom - rect.top);
+			size.width = (float32)(rect.right - rect.left);
+			size.height = (float32)(rect.bottom - rect.top);
 
 			// Redraw window to refresh it while resizing
 			RedrawWindow(window->GetWindowDisplay()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
@@ -456,10 +455,10 @@ namespace nkentseu {
 		}
 
 		float32 scaleFactor = window->GetDpiScale();
-		win.size.width /= scaleFactor;
-		win.size.height /= scaleFactor;
+		size.width /= scaleFactor;
+		size.height /= scaleFactor;
 
-		float32 newarea = win.size.width * win.size.height;
+		float32 newarea = size.width * size.height;
 		ResizeState::Code state = ResizeState::NotChange;
 
 		if (newarea > area) {
@@ -469,9 +468,9 @@ namespace nkentseu {
 			state = ResizeState::Reduced;
 		}
 
-		window->m_Properties.size = win.size;
+		window->m_Properties.size = size;
 
-		return FinalizePushEvent(new WindowResizedEvent(window->ID(), state, win), result, msg, window);
+		return FinalizePushEvent(new WindowResizedEvent(window->ID(), state, window->m_Properties.size), result, msg, window);
 	}
 
 	LRESULT WindowEventInternal::HandleWindowNCHITTESTEvent(MSG msg, WindowInternal* window) {

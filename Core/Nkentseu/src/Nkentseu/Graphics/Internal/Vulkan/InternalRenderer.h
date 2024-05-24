@@ -16,6 +16,8 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/Color.h>
 #include <Ntsm/Vector/Vector2.h>
+#include "Nkentseu/Core/Events.h"
+
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
@@ -61,6 +63,11 @@ namespace nkentseu {
             VkExtent2D m_ViewportSize;
             bool m_ForceRecreate = false;
             Memory::Shared<Shader> m_CurrentShader = nullptr;
+
+        private:
+            void OnEvent(Event& event);
+            bool OnWindowResizedEvent(class WindowResizedEvent& event);
+            bool CanRender();
     };
 
 }  //  nkentseu

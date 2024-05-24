@@ -26,6 +26,7 @@
 
 #include <glad/gl.h>
 #include "InternalContext.h"
+#include "InternalRenderer.h"
 
 
 
@@ -49,6 +50,7 @@ namespace nkentseu {
         if (!m_Context->GetInternal()->IsCurrent()) {
             makecurrent = m_Context->GetInternal()->MakeCurrent();
         }
+        EventTrack.AddObserver(REGISTER_CLIENT_EVENT(InternalRenderer::OnEvent));
         return makecurrent;
     }
 
@@ -61,7 +63,22 @@ namespace nkentseu {
         if (m_Context->GetInternal()->IsCurrent()) {
             makecurrent = m_Context->GetInternal()->UnmakeCurrent();
         }
+        EventTrack.RemoveObserver(REGISTER_CLIENT_EVENT(InternalRenderer::OnEvent));
         return false;
+    }
+
+    void InternalRenderer::OnEvent(Event& event) {
+        if (m_Context == nullptr || !m_Context->IsInitialize()) return;
+
+        EventBroker broker(event);
+
+        broker.Route<WindowResizedEvent>(REGISTER_CLIENT_EVENT(InternalRenderer::OnWindowResizedEvent));
+    }
+
+    bool InternalRenderer::OnWindowResizedEvent(WindowResizedEvent& event)
+    {
+        glViewport(0, 0, event.GetWindowRec().size.width, event.GetWindowRec().size.height);
+        return true;
     }
 
     bool InternalRenderer::Clear(const Color& color)

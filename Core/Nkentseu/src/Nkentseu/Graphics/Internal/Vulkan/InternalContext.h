@@ -57,7 +57,7 @@ namespace nkentseu {
             VulkanRenderPass* GetRenderPass();
             VulkanFramebuffer* GetFramebuffer();
 
-            Vector2u GetWindowSize(bool forceRecreate);
+            Vector2u GetFrameBufferSize();
 
             bool AddRecreateCallback(RerecreateCallBackFn func);
             bool RemoveRecreateCallback(RerecreateCallBackFn func);
