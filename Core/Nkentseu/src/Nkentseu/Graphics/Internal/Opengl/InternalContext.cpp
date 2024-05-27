@@ -20,6 +20,8 @@
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "OpenGLUtils.h"
 
+#include <GL/glext.h>
+
 namespace nkentseu {
 
 
