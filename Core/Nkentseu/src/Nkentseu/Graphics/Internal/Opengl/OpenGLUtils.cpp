@@ -72,8 +72,8 @@ namespace nkentseu {
     }
 
     uint32 GLConvert::CullModeType(CullModeType::Code mode) {
-        if (mode == CullModeType::Front) return GL_BACK;
-        if (mode == CullModeType::Back) return GL_FRONT;
+        if (mode == CullModeType::Front) return GL_FRONT;
+        if (mode == CullModeType::Back) return GL_BACK;
         if (mode == CullModeType::FrontBack) return GL_FRONT_AND_BACK;
         return 0;
     }

@@ -29,11 +29,56 @@ namespace nkentseu {
         Vector3f color;
     };
 
+    float cubeVertices[] = {
+        // Back face
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right    
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right              
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left                
+        // Front face
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right        
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left        
+        // Left face
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left       
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+        // Right face
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right      
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right          
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+         // Bottom face          
+         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+          0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left        
+          0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+         -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+         -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+         // Top face
+         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+          0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right                 
+          0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // bottom-left  
+         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f  // top-left              
+    };
+
     const std::vector<Vertex> vertices_struct = {
-        {{ 0.5f, 0.5f, 0.0f} , { 0.31, 0.31, 0.31 }}, // top right
-        {{ 0.5f, -0.5f, 0.0f} , { 0.31, 0.31, 0.31 }}, // bottom right
-        {{ -0.5f, -0.5f, 0.0f} , { 0.31, 0.31, 0.31 }}, // bottom left
-        {{ -0.5f, 0.5f, 0.0f} , { 0.31, 0.31, 0.31 }} // top left
+        {{ 0.5f, 0.5f, 0.0f} , { 0.31, 0.0, 0.31 }}, // top right
+        {{ 0.5f, -0.5f, 0.0f} , { 0.0, 0.31, 0.31 }}, // bottom right
+        {{ -0.5f, -0.5f, 0.0f} , { 0.31, 0.31, 0.0 }}, // bottom left
+        {{ -0.5f, 0.5f, 0.0f} , { 0.31, 0.0, 0.0 }} // top left
     };
 
     const std::vector<Vertex> vertices_triangles_multi = {
@@ -150,11 +195,7 @@ namespace nkentseu {
 
         vertexBuffer = Memory::Alloc<VertexBuffer>();
         if (vertexBuffer != nullptr) {
-            //if (!vertexBuffer->Create<Vertex>(context, BufferDataUsage::StaticDraw, vertices_struct, bufferLayout)) {
-            //if (!vertexBuffer->Create<Vertex>(context, BufferDataUsage::StaticDraw, vertices_triangles_multi, bufferLayout)) {
-            if (!vertexBuffer->Create(context, BufferDataUsage::StaticDraw, vertices_triangles_multi.data(), vertices_triangles_multi.size(), bufferLayout)) {
-            //if (!vertexBuffer->Create(context, BufferDataUsage::StaticDraw, vertices.data(), vertices.size()/bufferLayout.componentCount, bufferLayout)) {
-            //if (!vertexBuffer->Create(context, BufferDataUsage::StaticDraw, vertices, bufferLayout)) {
+            if (!vertexBuffer->Create<Vertex>(context, BufferDataUsage::StaticDraw, vertices_struct, bufferLayout)) {
                 Log.Error("Cannot create vertex buffer");
             }
         }
@@ -164,7 +205,7 @@ namespace nkentseu {
 
         indexBuffer = Memory::Alloc<IndexBuffer>();
         if (indexBuffer != nullptr) {
-            if (!indexBuffer->Create(context, BufferDataUsage::StaticDraw, DrawIndexType::UnsignedInt, indices)) {
+            if (!indexBuffer->Create(context, BufferDataUsage::StaticDraw, DrawIndexType::UInt32, indices)) {
                 Log.Error("Cannot create index buffer");
             }
         }
@@ -175,7 +216,7 @@ namespace nkentseu {
         vertexArray = Memory::Alloc<VertexArray>(context);
         if (vertexArray != nullptr) {
             vertexArray->SetVertexBuffer(vertexBuffer);
-            //vertexArray->SetIndexBuffer(indexBuffer);
+            vertexArray->SetIndexBuffer(indexBuffer);
 
             if (!vertexArray->Create(bufferLayout)) {
             //if (!vertexArray->Create(context, 3)) {
@@ -220,9 +261,8 @@ namespace nkentseu {
 
             m_Renderer->Prepare();
             //Log.Debug("Prepare time {0} ms", timer.Reset().milliSeconds);
-            m_Renderer->DrawMode(CullModeType::Back, m_PolygonMode);
-            //m_Renderer->DrawMode(CullModeType::FrontBack, PolygonModeType::Point);
-            //m_Renderer->DrawMode(CullModeType::FrontBack, m_PolygonMode);
+            //m_Renderer->DrawMode(CullModeType::Back, m_PolygonMode);
+            m_Renderer->DrawMode(CullModeType::NoCull, m_PolygonMode);
             //Log.Debug("DrawMode time {0} ms", timer.Reset().milliSeconds);
             m_Renderer->UseShader(shader);
             //Log.Debug("UseShader time {0} ms", timer.Reset().milliSeconds);

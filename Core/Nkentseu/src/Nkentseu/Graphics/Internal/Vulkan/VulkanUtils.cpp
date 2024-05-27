@@ -121,7 +121,7 @@ namespace nkentseu {
         }
     }
 
-    VkCullModeFlagBits VulkanConvert::CullModeType(CullModeType::Code mode) {
+    VkCullModeFlags VulkanConvert::CullModeType(CullModeType::Code mode) {
         if (mode == CullModeType::Front) return VK_CULL_MODE_FRONT_BIT;
         if (mode == CullModeType::Back) return VK_CULL_MODE_BACK_BIT;
         if (mode == CullModeType::FrontBack) return VK_CULL_MODE_FRONT_AND_BACK;
@@ -134,6 +134,29 @@ namespace nkentseu {
         if (contentMode == PolygonModeType::Point) return VK_POLYGON_MODE_POINT;
         if (contentMode == PolygonModeType::FillRectangle) return VK_POLYGON_MODE_FILL_RECTANGLE_NV;
         return VK_POLYGON_MODE_FILL;
+    }
+
+    VkFrontFace VulkanConvert::FrontFaceType(FrontFaceType::Code mode)
+    {
+        if (mode == FrontFaceType::Clockwise) return VK_FRONT_FACE_CLOCKWISE;
+        if (mode == FrontFaceType::CounterClockwise) return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        return VK_FRONT_FACE_CLOCKWISE;
+    }
+
+    VkPrimitiveTopology VulkanConvert::PrimitiveTopologyType(PrimitiveTopologyType::Code mode)
+    {
+        if (mode == PrimitiveTopologyType::PointList) return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        if (mode == PrimitiveTopologyType::LineList) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        if (mode == PrimitiveTopologyType::LineStrip) return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        if (mode == PrimitiveTopologyType::TriangleList) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        if (mode == PrimitiveTopologyType::TriangleStrip) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        if (mode == PrimitiveTopologyType::TriangleFan) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+        if (mode == PrimitiveTopologyType::LineListWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+        if (mode == PrimitiveTopologyType::LineStripWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+        if (mode == PrimitiveTopologyType::TriangleListWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+        if (mode == PrimitiveTopologyType::TriangleStripWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+        if (mode == PrimitiveTopologyType::PathList) return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     }
 
     bool VulkanConvert::EndsWith(const std::string& s, const std::string& part) {

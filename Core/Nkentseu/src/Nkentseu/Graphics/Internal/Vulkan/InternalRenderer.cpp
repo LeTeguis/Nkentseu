@@ -135,6 +135,83 @@ namespace nkentseu {
         return true;
     }
 
+    bool InternalRenderer::PolygonMode(PolygonModeType::Code mode)
+    {
+        if (!CanRender()) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+
+        if (context->m_Gpu.cmdSetPolygonModeEXT != nullptr) {
+            vkCheckErrorVoid(context->m_Gpu.cmdSetPolygonModeEXT(m_CurrentCommandBuffer, VulkanConvert::PolygonModeType(mode)));
+        }
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool InternalRenderer::CullMode(CullModeType::Code mode)
+    {
+        if (!CanRender()) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+        vkCheckErrorVoid(vkCmdSetCullMode(m_CurrentCommandBuffer, VulkanConvert::CullModeType(mode)));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool InternalRenderer::FrontFaceMode(FrontFaceType::Code mode)
+    {
+        if (!CanRender()) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+        vkCheckErrorVoid(vkCmdSetFrontFace(m_CurrentCommandBuffer, VulkanConvert::FrontFaceType(mode)));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool InternalRenderer::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
+    {
+        if (!CanRender()) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_CurrentCommandBuffer, VulkanConvert::PrimitiveTopologyType(mode)));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool InternalRenderer::ScissorMode(const Vector2i& offset, const Vector2u& extend)
+    {
+        if (!CanRender()) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+
+        VkRect2D scissor = {};
+        scissor.extent = { extend.width, extend.height };
+        scissor.offset = { offset.width, offset.height };
+
+        vkCheckErrorVoid(vkCmdSetScissor(m_CurrentCommandBuffer, 0, 1, &scissor));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool InternalRenderer::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
+    {
+        if (!CanRender()) {
+            return false;
+        }
+        InternalContext* context = m_Context->GetInternal();
+
+        VkViewport viewport = {};
+        viewport.x = position.x;
+        viewport.y = position.y;
+        viewport.width = size.width;
+        viewport.height = size.height;
+        viewport.maxDepth = depth.x;
+        viewport.minDepth = depth.y;
+
+        vkCheckErrorVoid(vkCmdSetViewport(m_CurrentCommandBuffer, 0, 1, &viewport));
+        return VulkanStaticDebugInfo::success;
+    }
+
     bool InternalRenderer::Prepare()
     {
         m_IsPrepare = false;
@@ -298,6 +375,12 @@ namespace nkentseu {
             vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, count, 1, 0, 0));
         }
         else {
+            VkBuffer vertexBuffers[] = { vertexBuffer->GetBuffer()->buffer };
+            VkDeviceSize offsets[] = { 0 };
+
+            vkCmdBindVertexBuffers(m_CurrentCommandBuffer, 0, 1, vertexBuffers, offsets);
+            vkCmdBindIndexBuffer(m_CurrentCommandBuffer, indexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(m_CurrentCommandBuffer, indexBuffer->Leng(), 1, 0, 0, 0);
         }
 
         return true;

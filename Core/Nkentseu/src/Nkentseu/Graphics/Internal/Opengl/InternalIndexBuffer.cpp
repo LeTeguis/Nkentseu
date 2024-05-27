@@ -14,6 +14,7 @@
 #include "Nkentseu/Graphics/Context.h"
 #include "InternalContext.h"
 #include "OpenGLUtils.h"
+#include "InternalIndexBuffer.h"
 
 namespace nkentseu {
     

@@ -39,6 +39,8 @@ export LIBGL_ALWAYS_INDIRECT=0
 export MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA
 //------------------------------------ source ~/.bashrc
 
+// git
+1- firs use clon [git config --global user.name] and [git config --global user.email]  
 
 // update ubuntu : 
 1- sudo apt update

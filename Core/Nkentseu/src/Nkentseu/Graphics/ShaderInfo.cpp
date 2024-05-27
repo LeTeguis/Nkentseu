@@ -342,6 +342,7 @@ namespace nkentseu {
         case Front: return "Front";
         case Back: return "Back";
         case FrontBack: return "FrontBack";
+        case NoCull: return "NoCull";
         default: return "NotDefine";
         }
     }
@@ -351,6 +352,7 @@ namespace nkentseu {
         if (drawModeStr == "Front") return Front;
         if (drawModeStr == "Back") return Back;
         if (drawModeStr == "FrontBack") return FrontBack;
+        if (drawModeStr == "NoCull") return NoCull;
         return NotDefine; // Valeur par défaut
     }
 
@@ -377,14 +379,70 @@ namespace nkentseu {
     std::string DrawIndexType::ToString(DrawIndexType::Code indexType)
     {
         switch (indexType) {
-        case UnsignedInt: return "UnsignedInt";
+        case UInt8: return "UInt8";
+        case UInt16: return "UInt16";
+        case UInt32: return "UInt32";
+        case UInt64: return "UInt64";
         default: return "NotDefine";
         }
     }
 
     DrawIndexType::Code DrawIndexType::FromString(const std::string& indexTypeStr)
     {
-        if (indexTypeStr == "UnsignedInt") return UnsignedInt;
+        if (indexTypeStr == "UInt8") return UInt8;
+        if (indexTypeStr == "UInt16") return UInt16;
+        if (indexTypeStr == "UInt32") return UInt32;
+        if (indexTypeStr == "UInt64") return UInt64;
+        return NotDefine; // Valeur par défaut
+    }
+
+    std::string FrontFaceType::ToString(FrontFaceType::Code mode)
+    {
+        switch (mode) {
+        case CounterClockwise: return "CounterClockwise";
+        case Clockwise: return "Clockwise";
+        default: return "NotDefine";
+        }
+    }
+
+    FrontFaceType::Code FrontFaceType::FromString(const std::string& mode)
+    {
+        if (mode == "Clockwise") return Clockwise;
+        if (mode == "CounterClockwise") return CounterClockwise;
+        return NotDefine; // Valeur par défaut
+    }
+
+    std::string PrimitiveTopologyType::ToString(CullModeType::Code mode)
+    {
+        switch (mode) {
+        case PointList: return "PointList";
+        case LineList: return "LineList";
+        case LineStrip: return "LineStrip";
+        case TriangleList: return "TriangleList";
+        case TriangleStrip: return "TriangleStrip";
+        case TriangleFan: return "TriangleFan";
+        case LineListWithAdjacency: return "LineListWithAdjacency";
+        case LineStripWithAdjacency: return "LineStripWithAdjacency";
+        case TriangleListWithAdjacency: return "TriangleListWithAdjacency";
+        case TriangleStripWithAdjacency: return "TriangleStripWithAdjacency";
+        case PathList: return "PathList";
+        default: return "NotDefine";
+        }
+    }
+
+    CullModeType::Code PrimitiveTopologyType::FromString(const std::string& mode)
+    {
+        if (mode == "PointList") return PointList;
+        if (mode == "LineList") return LineList;
+        if (mode == "LineStrip") return LineStrip;
+        if (mode == "TriangleList") return TriangleList;
+        if (mode == "TriangleStrip") return TriangleStrip;
+        if (mode == "TriangleFan") return TriangleFan;
+        if (mode == "LineListWithAdjacency") return LineListWithAdjacency;
+        if (mode == "LineStripWithAdjacency") return LineStripWithAdjacency;
+        if (mode == "TriangleListWithAdjacency") return TriangleListWithAdjacency;
+        if (mode == "TriangleStripWithAdjacency") return TriangleStripWithAdjacency;
+        if (mode == "PathList") return PathList;
         return NotDefine; // Valeur par défaut
     }
 }  //  nkentseu

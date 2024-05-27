@@ -10,6 +10,7 @@
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 #include <Nkentseu/Platform/Window/Windows/WGLContext.h>
 #elif defined NKENTSEU_PLATFORM_LINUX
+    #include <GL/glext.h>
     #if defined(NKENTSEU_PLATFORM_LINUX_XCB)
     #include <Nkentseu/Platform/Window/Linux/XCB/XGLContext.h>
     #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
@@ -19,8 +20,6 @@
 
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "OpenGLUtils.h"
-
-#include <GL/glext.h>
 
 namespace nkentseu {
 
@@ -128,7 +127,15 @@ namespace nkentseu {
                 return false;
             }
         }
-        return m_NativeContext->Initialize();
+        if (m_NativeContext->Initialize()) {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glDebugMessageCallback(glDebugOutput, nullptr);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            glEnable(GL_CULL_FACE);
+            return true;
+        }
+        return false;
     }
 
     bool InternalContext::Initialize(Window* window, const ContextProperties& contextProperties)
@@ -152,6 +159,7 @@ namespace nkentseu {
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback(glDebugOutput, nullptr);
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            glEnable(GL_CULL_FACE);
             return true;
         }
         return false;

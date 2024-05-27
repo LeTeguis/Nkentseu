@@ -39,6 +39,13 @@ namespace nkentseu {
             bool Clear(uint8 r, uint8 g, uint8 b, uint8 a = 255);
 
             bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode);
+            bool PolygonMode(PolygonModeType::Code mode);
+            bool CullMode(CullModeType::Code mode);
+            bool FrontFaceMode(FrontFaceType::Code mode);
+            bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode);
+            bool ScissorMode(const Vector2i& offset, const Vector2u& extend);
+            bool ViewMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth);
+
             bool Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex);
 
             bool Present();

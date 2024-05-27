@@ -37,7 +37,7 @@ namespace nkentseu {
 
         Log_nts.Debug("size = {0} - {1} - {2}", leng, bufferLayout.stride, ((vertices == nullptr) ? "True" : "False"));
 
-        if (!m_VertexBufferObject.Create(&ct->m_Gpu, vertices, leng, bufferLayout.stride, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE)) {
+        if (!m_VertexBufferObject.Create(&ct->m_Gpu, &ct->m_CommandPool, vertices, leng, bufferLayout.stride, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE)) {
             return false;
         }
 

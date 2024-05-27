@@ -43,6 +43,7 @@ namespace nkentseu {
             Context* m_Context = nullptr;
 
             Memory::Shared<VertexBuffer> m_VertexBuffer = nullptr;
+            Memory::Shared<IndexBuffer> m_IndexBuffer = nullptr;
     };
 
 }  //  nkentseu

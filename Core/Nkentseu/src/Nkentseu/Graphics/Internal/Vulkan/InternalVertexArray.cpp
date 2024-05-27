@@ -73,15 +73,23 @@ namespace nkentseu {
     }
 
     bool InternalVertexArray::SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer) {
-        return false;
+        if (m_Context == nullptr || indexBuffer == nullptr || indexBuffer->GetInternal() == nullptr) return false;
+        m_IndexBuffer = indexBuffer;
+
+        m_VertexNumber = m_IndexBuffer->GetInternal()->Leng();
+        return true;
     }
 
     Memory::Shared<IndexBuffer> InternalVertexArray::GetIndexBuffer() {
-        return nullptr;
+        return m_IndexBuffer;
     }
 
     InternalIndexBuffer* InternalVertexArray::GetInternalIndexBuffer() {
-        return nullptr;
+        //Log_nts.Debug();
+        if (m_IndexBuffer == nullptr) return nullptr;
+        //Log_nts.Debug();
+
+        return m_IndexBuffer->GetInternal();
     }
 
 }  //  nkentseu

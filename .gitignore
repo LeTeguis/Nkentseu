@@ -19,7 +19,7 @@ Makefile
 mono_crash.*
 
 # Profil
-[Ss]cripts/user/profil.py
+# [Ss]cripts/user/profil.py
 
 # Build results
 [Dd]ebug/

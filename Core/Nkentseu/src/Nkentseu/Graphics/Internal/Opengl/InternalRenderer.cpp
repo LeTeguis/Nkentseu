@@ -119,7 +119,7 @@ namespace nkentseu {
         return Clear(Color(r, g, b, a));
     }
 
-    bool nkentseu::InternalRenderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
+    bool InternalRenderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
     {
         if (!CanRender()) {
             return false;
@@ -128,8 +128,41 @@ namespace nkentseu {
         OpenGLResult result;
         bool first = true;
 
-        glCheckError(first, result, glPolygonMode(GLConvert::CullModeType(mode), GLConvert::PolygonModeType(contentMode)), "cannot change polygon mode");
+        glCheckError(first, result, glPolygonMode(GLConvert::CullModeType(CullModeType::FrontBack), GLConvert::PolygonModeType(contentMode)), "cannot change polygon mode");
+
+        glCullFace(GLConvert::CullModeType(mode));
+        //glFrontFace(GL_CCW); // GL_CW
         return result.success;
+    }
+
+    bool InternalRenderer::PolygonMode(PolygonModeType::Code mode)
+    {
+        return false;
+    }
+
+    bool InternalRenderer::CullMode(CullModeType::Code mode)
+    {
+        return false;
+    }
+
+    bool InternalRenderer::FrontFaceMode(FrontFaceType::Code mode)
+    {
+        return false;
+    }
+
+    bool InternalRenderer::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
+    {
+        return false;
+    }
+
+    bool InternalRenderer::ScissorMode(const Vector2i& offset, const Vector2u& extend)
+    {
+        return false;
+    }
+
+    bool InternalRenderer::ViewMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
+    {
+        return false;
     }
 
     bool InternalRenderer::Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex)

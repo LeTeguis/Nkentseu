@@ -44,8 +44,10 @@ namespace nkentseu {
         static void GetResourceLimits(VkPhysicalDevice physicalDevice);
         static VkShaderStageFlagBits GetshaderStageType(ShaderType::Code type);
 
-        static VkCullModeFlagBits CullModeType(CullModeType::Code mode);
-        static VkPolygonMode PolygonModeType(PolygonModeType::Code contentMode);
+        static VkCullModeFlags CullModeType(CullModeType::Code mode);
+        static VkPolygonMode PolygonModeType(PolygonModeType::Code mode);
+        static VkFrontFace FrontFaceType(FrontFaceType::Code mode);
+        static VkPrimitiveTopology PrimitiveTopologyType(PrimitiveTopologyType::Code mode);
 
         static bool EndsWith(const std::string& s, const std::string& part);
 

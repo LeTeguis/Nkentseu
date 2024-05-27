@@ -892,60 +892,48 @@ namespace nkentseu {
 	// vulkan buffer 
 	// usage for vertex is VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 	// sharing for vertex is VK_SHARING_MODE_EXCLUSIVE
-	bool VulkanBuffer::Create(VulkanGpu* gpu, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode)
+	bool VulkanBuffer::Create(VulkanGpu* gpu, VulkanCommandPool* commandPool, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode)
 	{
 		if (gpu == nullptr) {
 			return false;
 		}
+
+		VkDeviceSize bufferSize = stride * leng;
+
 		VulkanResult result;
 		bool first = true;
 
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = stride * leng;
-		bufferInfo.usage = usage;
-		bufferInfo.sharingMode = sharingMode;
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
 
-		vkCheckError(first, result, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &buffer), "cannot create buffer");
-
-		if (!result.success) {
+		if (!CreateBuffer(gpu, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, sharingMode, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory)) {
 			return false;
 		}
-
-		VkMemoryRequirements memRequirements;
-		vkCheckErrorVoid(vkGetBufferMemoryRequirements(gpu->device, buffer, &memRequirements));
-
-		if (!VulkanStaticDebugInfo::success) {
-			Log_nts.Error("Cannot get memory buffer requirements");
-			return false;
-		}
-
-		int64 index = FindMemoryType(gpu, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-		if (index < 0) {
-			Log_nts.Error("Cannot find correct memory type");
-			return false;
-		}
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = index;
-
-		vkCheckError(first, result, vkAllocateMemory(gpu->device, &allocInfo, nullptr, &bufferMemory), "cannot allocat memory buffer");
-		vkCheckError(first, result, vkBindBufferMemory(gpu->device, buffer, bufferMemory, 0), "cannot bind buffer memory");
+		
 
 		void* dataInternal;
-		vkCheckError(first, result, vkMapMemory(gpu->device, bufferMemory, 0, bufferInfo.size, 0, &dataInternal), "cannot map buffer memory");
+		vkCheckError(first, result, vkMapMemory(gpu->device, stagingBufferMemory, 0, bufferSize, 0, &dataInternal), "cannot map buffer memory");
 
 		if (!result.success) {
 			return false;
 		}
 
-		memcpy(dataInternal, data, (usize)bufferInfo.size);
-		vkCheckErrorVoid(vkUnmapMemory(gpu->device, bufferMemory));
+		memcpy(dataInternal, data, (usize)bufferSize);
+		vkCheckErrorVoid(vkUnmapMemory(gpu->device, stagingBufferMemory));
+
+		if (VulkanStaticDebugInfo::success && !CreateBuffer(gpu, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, sharingMode, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory)) {
+			return false;
+		}
+
+		if (!CopyBuffer(gpu, commandPool, stagingBuffer, buffer, bufferSize)) {
+			return false;
+		}
+
+		vkCheckErrorVoid(vkDestroyBuffer(gpu->device, stagingBuffer, nullptr));
+		vkCheckErrorVoid(vkFreeMemory(gpu->device, stagingBufferMemory, nullptr));
 
 		if (VulkanStaticDebugInfo::success) {
+
 			Log_nts.Info("Create buffer is good");
 		}
 
@@ -981,6 +969,103 @@ namespace nkentseu {
 		}
 
 		return -1;
+	}
+
+	bool VulkanBuffer::CreateBuffer(VulkanGpu* gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+	{
+		if (gpu == nullptr) {
+			return false;
+		}
+
+		VulkanResult result;
+		bool first = true;
+
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = size;
+		bufferInfo.usage = usage;
+		bufferInfo.sharingMode = sharingMode;
+
+		vkCheckError(first, result, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &buffer), "cannot create buffer");
+
+		if (!result.success) {
+			return false;
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkCheckErrorVoid(vkGetBufferMemoryRequirements(gpu->device, buffer, &memRequirements));
+
+		if (!VulkanStaticDebugInfo::success) {
+			Log_nts.Error("Cannot get memory buffer requirements");
+			return false;
+		}
+
+		int64 index = FindMemoryType(gpu, memRequirements.memoryTypeBits, properties);
+
+		if (index < 0) {
+			Log_nts.Error("Cannot find correct memory type");
+			return false;
+		}
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = index;
+
+		vkCheckError(first, result, vkAllocateMemory(gpu->device, &allocInfo, nullptr, &bufferMemory), "cannot allocat memory buffer");
+		vkCheckError(first, result, vkBindBufferMemory(gpu->device, buffer, bufferMemory, 0), "cannot bind buffer memory");
+
+		return result.success;
+	}
+
+	bool VulkanBuffer::CopyBuffer(VulkanGpu* gpu, VulkanCommandPool* commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+	{
+		if (gpu == nullptr || commandPool == nullptr) {
+			return false;
+		}
+
+		VulkanResult result;
+		bool first = true;
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = commandPool->commandPool;
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer;
+
+		vkCheckError(first, result, vkAllocateCommandBuffers(gpu->device, &allocInfo, &commandBuffer), "cannot allocate command buffer");
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkCheckError(first, result, vkBeginCommandBuffer(commandBuffer, &beginInfo), "cannot begin command buffer");
+
+		VkBufferCopy copyRegion{};
+		copyRegion.srcOffset = 0; // Optionnel
+		copyRegion.dstOffset = 0; // Optionnel
+		copyRegion.size = size;
+
+		if (result.success) {
+			vkCheckErrorVoid(vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion));
+			result.success = VulkanStaticDebugInfo::success;
+		}
+		vkCheckError(first, result, vkEndCommandBuffer(commandBuffer), "cannot end command buffer");
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+		vkCheckError(first, result, vkQueueSubmit(gpu->queue.graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE), "cannot submit queue");
+		vkCheckError(first, result, vkQueueWaitIdle(gpu->queue.graphicsQueue), "cannot wait idle queue");
+
+		if (result.success) {
+			vkCheckErrorVoid(vkFreeCommandBuffers(gpu->device, commandPool->commandPool, 1, &commandBuffer));
+			result.success = VulkanStaticDebugInfo::success;
+		}
+		return result.success;
 	}
 }  //  nkentseu
 

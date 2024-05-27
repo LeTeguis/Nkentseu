@@ -98,6 +98,42 @@ namespace nkentseu {
         return m_InternalRenderer->DrawMode(mode, contentMode);
     }
 
+    bool Renderer::PolygonMode(PolygonModeType::Code mode)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->PolygonMode(mode);
+    }
+
+    bool Renderer::CullMode(CullModeType::Code mode)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->CullMode(mode);
+    }
+
+    bool Renderer::FrontFaceMode(FrontFaceType::Code mode)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->FrontFaceMode(mode);
+    }
+
+    bool Renderer::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->PrimitiveTopologyMode(mode);
+    }
+
+    bool Renderer::ScissorMode(const Vector2i& offset, const Vector2u& extend)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->ScissorMode(offset, extend);
+    }
+
+    bool Renderer::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
+    {
+        if (!IsValideInternal()) return false;
+        return m_InternalRenderer->ViewportMode(position, size, depth);
+    }
+
     bool Renderer::Draw(Memory::Shared<class VertexArray> vertexArray, DrawVertexType::Code drawVertex)
     {
         if (!IsValideInternal() || vertexArray == nullptr) return false;

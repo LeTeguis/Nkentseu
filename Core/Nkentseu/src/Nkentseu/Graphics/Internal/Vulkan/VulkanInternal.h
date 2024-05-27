@@ -184,14 +184,17 @@ namespace nkentseu {
     struct NKENTSEU_API VulkanDynamicMode {
         VkPrimitiveTopology primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-        VkCullModeFlagBits cullMode = VK_CULL_MODE_BACK_BIT;
+        VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
         VkPolygonMode polygoneMode = VK_POLYGON_MODE_LINE;
     };
 
     struct NKENTSEU_API VulkanBuffer {
-        bool Create(VulkanGpu* gpu, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode);
+        bool Create(VulkanGpu* gpu, VulkanCommandPool* commandPool, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode);
         bool Destroy(VulkanGpu* gpu);
         static int64 FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties);
+
+        bool CreateBuffer(VulkanGpu* gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+        bool CopyBuffer(VulkanGpu* gpu, VulkanCommandPool* commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
         VkBuffer buffer = nullptr;
         VkDeviceMemory bufferMemory = nullptr;
