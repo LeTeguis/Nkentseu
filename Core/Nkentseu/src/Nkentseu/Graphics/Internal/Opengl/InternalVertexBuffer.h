@@ -13,28 +13,35 @@
 #ifdef NKENTSEU_GRAPHICS_API_OPENGL
 
 #include "Nkentseu/Graphics/ShaderInfo.h"
+#include "Nkentseu/Core/NkentseuLogger.h"
 
 namespace nkentseu {
+    class Context;
     
     class NKENTSEU_API InternalVertexBuffer {
         public:
             InternalVertexBuffer();
             ~InternalVertexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+
+            template <typename T>
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices, const BufferLayout& bufferLayout = {}) {
+                Log_nts.Debug();
+                return Create(context, bufferUsage, vertices.data(), vertices.size(), bufferLayout);
+            }
             bool Destroy();
 
             bool Bind();
             bool Unbind();
 
-            std::vector<float32> GetVertices();
             uint32 Leng();
 
             uint32 GetVBO();
         private:
             uint32 m_VertexBufferObject = 0;
             BufferDataUsage::Code m_BufferUsage;
-            std::vector<float32> m_Vertices;
 
             uint32 m_Leng = 0;
     };

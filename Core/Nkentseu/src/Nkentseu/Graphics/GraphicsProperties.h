@@ -118,7 +118,7 @@ namespace nkentseu {
         bool   pbuffer;
 
         //uint32 attributeFlags = (uint32)GraphicsAttribute::AttributeDefault;
-        uint32 attributeFlags = (uint32)GraphicsAttribute::AttributeCore;
+        uint32 attributeFlags = (uint32)GraphicsAttribute::AttributeCore | (uint32)GraphicsAttribute::AttributeDebug;
         bool   sRgb = false;
 
         GraphicsFlag::Flags flags = GraphicsFlag::DrawToWindow | GraphicsFlag::DoubleBuffer | GraphicsFlag::SupportOpenGL;

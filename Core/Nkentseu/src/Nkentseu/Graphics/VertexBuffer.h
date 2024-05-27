@@ -14,13 +14,22 @@
 
 namespace nkentseu {
     class InternalVertexBuffer;
+    class Context;
     
     class NKENTSEU_API VertexBuffer {
         public:
             VertexBuffer();
             ~VertexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+
+            template <typename T>
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices, const BufferLayout& bufferLayout = {}) {
+                return Create(context, bufferUsage, vertices.data(), vertices.size(), bufferLayout);
+            }
+
             bool Destroy();
 
             InternalVertexBuffer* GetInternal();

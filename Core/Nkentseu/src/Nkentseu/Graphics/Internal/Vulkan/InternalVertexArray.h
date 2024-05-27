@@ -19,10 +19,11 @@ namespace nkentseu {
     class InternalVertexBuffer;
     class IndexBuffer;
     class InternalIndexBuffer;
+    class Context;
     
     class NKENTSEU_API InternalVertexArray {
         public:
-            InternalVertexArray();
+            InternalVertexArray(Context* context);
             ~InternalVertexArray();
 
             bool Create(const BufferLayout& bufferLayout);
@@ -39,6 +40,9 @@ namespace nkentseu {
             InternalIndexBuffer* GetInternalIndexBuffer();
         private:
             uint32 m_VertexNumber = 0;
+            Context* m_Context = nullptr;
+
+            Memory::Shared<VertexBuffer> m_VertexBuffer = nullptr;
     };
 
 }  //  nkentseu

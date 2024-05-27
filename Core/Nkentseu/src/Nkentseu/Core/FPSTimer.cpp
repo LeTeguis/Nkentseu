@@ -6,29 +6,50 @@
 #include "NkentseuPch/ntspch.h"
 #include "FPSTimer.h"
 
+#include "Ntsm/Utils.h"
+
 namespace nkentseu {
-    FPSTimer::FPSTimer()
-    {
+    FPSTimer::FPSTimer(){
     }
+
+    FPSTimer::~FPSTimer(){
+    }
+
     void FPSTimer::Update() {
-        std::lock_guard<std::mutex> lock(mutex);  // Acquire lock before accessing shared data
+        //std::lock_guard<std::mutex> lock(mutex);  // Acquire lock before accessing shared data
+        float64 delta = m_Timer.Elapsed().seconds;
 
-        m_CurrentFps++;
-
-        if (m_Timer.Elapsed() >= (double)m_UpdateIntervalMs / 1000.0) {
-            m_CurrentFps = 0;
+        if (delta >= 1.0) {
+            m_FrameRate = maths::Max<float64>(1, m_CurrentFrame / delta);
+            m_CurrentFrame = 0;
+            m_FrameTime = 1000.0 / (float64)m_FrameRate;
             m_Timer.Reset();
         }
+
+        m_CurrentFrame++;
     }
 
-    // Set the update interval in milliseconds
-    void FPSTimer::SetUpdateIntervalMs(uint32 intervalMs) {
-        m_UpdateIntervalMs = intervalMs;
+    float32 FPSTimer::GetFrameTime()
+    {
+        //std::lock_guard<std::mutex> lock(mutex);
+        return m_FrameTime;
     }
 
-    uint32 FPSTimer::GetFps() {
-        std::lock_guard<std::mutex> lock(mutex);  // Acquire lock before reading shared data
-        return m_CurrentFps;
+    uint32 FPSTimer::GetCurrentFrame()
+    {
+        //std::lock_guard<std::mutex> lock(mutex);
+        return m_CurrentFrame;
+    }
+
+    uint32 FPSTimer::GetFrameRate()
+    {
+        //std::lock_guard<std::mutex> lock(mutex);
+        return m_FrameRate;
+    }
+
+    uint32 FPSTimer::GetFps()
+    {
+        return GetFrameRate();
     }
 
 }    // namespace nkentseu

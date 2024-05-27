@@ -13,6 +13,7 @@
 #include "Internal/Vulkan/InternalVertexBuffer.h"
 #endif
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include "Context.h"
 
 namespace nkentseu {
     
@@ -27,7 +28,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool VertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
+    bool VertexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
     {
         if (m_Internal == nullptr) {
             m_Internal = Memory::Alloc<InternalVertexBuffer>();
@@ -35,7 +36,18 @@ namespace nkentseu {
                 return false;
             }
         }
-        return m_Internal->Create(bufferUsage, vertices, bufferLayout);
+        return m_Internal->Create(context, bufferUsage, vertices, leng, bufferLayout);
+    }
+
+    bool VertexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
+    {
+        if (m_Internal == nullptr) {
+            m_Internal = Memory::Alloc<InternalVertexBuffer>();
+            if (m_Internal == nullptr) {
+                return false;
+            }
+        }
+        return m_Internal->Create(context, bufferUsage, vertices, bufferLayout);
     }
 
     bool VertexBuffer::Destroy()

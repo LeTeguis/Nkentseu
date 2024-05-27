@@ -138,7 +138,6 @@ namespace nkentseu {
 			Log_nts.Info("Create vulkan instance is good");
 
 			auto vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-			auto vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 
 			if (vkCreateDebugUtilsMessengerEXT) {
 				VkDebugUtilsMessengerCreateInfoEXT debugInfo = {};
@@ -149,12 +148,24 @@ namespace nkentseu {
 
 				vkCreateDebugUtilsMessengerEXT(instance, &debugInfo, 0, &debugMessenger);
 			}
-
-			/*if (vkDestroyDebugUtilsMessengerEXT) {
-				vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, 0);
-			}*/
 		}
 		return result.success;
+	}
+
+	bool VulkanInstance::Destroy()
+	{
+		bool success = false;
+		auto vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+		if (debugMessenger != nullptr && vkDestroyDebugUtilsMessengerEXT != nullptr && instance != nullptr) {
+			vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+			success = true;
+		}
+
+		if (instance != nullptr) {
+			vkDestroyInstance(instance, nullptr);
+			success = true && success;
+		}
+		return success;
 	}
 
 	// Vulkan surface
@@ -507,10 +518,14 @@ namespace nkentseu {
 		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		viewInfo.subresourceRange.layerCount = 1;
 		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-		viewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-		viewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-		viewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+		//viewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+		//viewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+		//viewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+		//viewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+		viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 		viewInfo.subresourceRange = imageRange;
 
 		for (uint32 index = 0; index < scImageCount; index++) {
@@ -872,6 +887,100 @@ namespace nkentseu {
 		}
 
 		return result.success;
+	}
+
+	// vulkan buffer 
+	// usage for vertex is VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+	// sharing for vertex is VK_SHARING_MODE_EXCLUSIVE
+	bool VulkanBuffer::Create(VulkanGpu* gpu, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode)
+	{
+		if (gpu == nullptr) {
+			return false;
+		}
+		VulkanResult result;
+		bool first = true;
+
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = stride * leng;
+		bufferInfo.usage = usage;
+		bufferInfo.sharingMode = sharingMode;
+
+		vkCheckError(first, result, vkCreateBuffer(gpu->device, &bufferInfo, nullptr, &buffer), "cannot create buffer");
+
+		if (!result.success) {
+			return false;
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkCheckErrorVoid(vkGetBufferMemoryRequirements(gpu->device, buffer, &memRequirements));
+
+		if (!VulkanStaticDebugInfo::success) {
+			Log_nts.Error("Cannot get memory buffer requirements");
+			return false;
+		}
+
+		int64 index = FindMemoryType(gpu, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		if (index < 0) {
+			Log_nts.Error("Cannot find correct memory type");
+			return false;
+		}
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = index;
+
+		vkCheckError(first, result, vkAllocateMemory(gpu->device, &allocInfo, nullptr, &bufferMemory), "cannot allocat memory buffer");
+		vkCheckError(first, result, vkBindBufferMemory(gpu->device, buffer, bufferMemory, 0), "cannot bind buffer memory");
+
+		void* dataInternal;
+		vkCheckError(first, result, vkMapMemory(gpu->device, bufferMemory, 0, bufferInfo.size, 0, &dataInternal), "cannot map buffer memory");
+
+		if (!result.success) {
+			return false;
+		}
+
+		memcpy(dataInternal, data, (usize)bufferInfo.size);
+		vkCheckErrorVoid(vkUnmapMemory(gpu->device, bufferMemory));
+
+		if (VulkanStaticDebugInfo::success) {
+			Log_nts.Info("Create buffer is good");
+		}
+
+		return VulkanStaticDebugInfo::success;
+	}
+
+	bool VulkanBuffer::Destroy(VulkanGpu* gpu)
+	{
+		if (buffer != nullptr) {
+			vkCheckErrorVoid(vkDestroyBuffer(gpu->device, buffer, nullptr));
+		}
+
+		bool success = VulkanStaticDebugInfo::success;
+
+		if (bufferMemory != nullptr) {
+			vkCheckErrorVoid(vkFreeMemory(gpu->device, bufferMemory, nullptr));
+		}
+
+		return success && VulkanStaticDebugInfo::success;
+	}
+
+	int64 VulkanBuffer::FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties)
+	{
+		if (gpu == nullptr) return 0;
+
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(gpu->gpu, &memProperties);
+
+		for (uint32 i = 0; i < memProperties.memoryTypeCount; i++) {
+			if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+
+		return -1;
 	}
 }  //  nkentseu
 

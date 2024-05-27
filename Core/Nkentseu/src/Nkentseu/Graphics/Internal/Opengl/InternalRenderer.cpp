@@ -79,7 +79,15 @@ namespace nkentseu {
 
     bool InternalRenderer::OnWindowResizedEvent(WindowResizedEvent& event)
     {
-        glViewport(0, 0, event.GetSize().width, event.GetSize().height);
+        if (m_Context == nullptr || m_Context->GetWindow() == nullptr) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+
+        Vector2u size = m_Context->GetWindow()->ConvertPixelToDpi(event.GetSize());
+        glCheckError(first, result, glViewport(0, 0, size.width, size.height), "cannot change viewport");
+
         return true;
     }
 
@@ -89,10 +97,14 @@ namespace nkentseu {
             return false;
         }
         if (m_Context->GetInternal()->IsCurrent()) {
-            glClearColor(color.Rf(), color.Gf(), color.Bf(), color.Af());
-            if (glCheckError() == GL_NO_ERROR) {
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-                return glCheckError() == GL_NO_ERROR;
+
+            OpenGLResult result;
+            bool first = true;
+
+            glCheckError(first, result, glClearColor(color.Rf(), color.Gf(), color.Bf(), color.Af()), "cannot clear color");
+            if (result.success) {
+                glCheckError(first, result, glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT), "cannot clear");
+                return result.success;
             }
             return false;
         }
@@ -107,13 +119,17 @@ namespace nkentseu {
         return Clear(Color(r, g, b, a));
     }
 
-    bool nkentseu::InternalRenderer::DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode)
+    bool nkentseu::InternalRenderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
     {
         if (!CanRender()) {
             return false;
         }
-        glPolygonMode(GLConvert::DrawModeType(mode), GLConvert::DrawContentModeType(contentMode));
-        return glCheckError() == GL_NO_ERROR;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glPolygonMode(GLConvert::CullModeType(mode), GLConvert::PolygonModeType(contentMode)), "cannot change polygon mode");
+        return result.success;
     }
 
     bool InternalRenderer::Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex)
@@ -142,8 +158,6 @@ namespace nkentseu {
             return false;
         }
 
-        uint32 count = internalVertexArray->GetVertexNumber();
-
         if (!internalVertexArray->Bind()) {
             return false;
         }
@@ -153,24 +167,34 @@ namespace nkentseu {
         uint32 vertices_per_type = GLConvert::VerticesPerType(vertexType);
 
         if (indexBuffer == nullptr) {
+            uint32 count = internalVertexArray->GetVertexNumber();
+
             if (vertexBuffer != nullptr) {
                 if (!vertexBuffer->Bind()) {
                     return false;
                 }
+                count = vertexBuffer->Leng();
             }
 
-            glDrawArrays(vertexType, 0, count);
+            OpenGLResult result;
+            bool first = true;
 
-            if (glCheckError() != GL_NO_ERROR) {
+            glCheckError(first, result, glDrawArrays(vertexType, 0, count), "cannot draw arrays");
+
+            if (!result.success) {
                 return false;
             }
         }
         else {
             if (indexBuffer->Bind()) {
-                uint32 countIndex = indexBuffer->Leng();
-                glDrawElements(vertexType, countIndex, GLConvert::IndexType(indexBuffer->GetIndexType()), 0);
+                uint32 count = indexBuffer->Leng();
 
-                if (glCheckError() != GL_NO_ERROR) {
+                OpenGLResult result;
+                bool first = true;
+
+                glCheckError(first, result, glDrawElements(vertexType, count, GLConvert::IndexType(indexBuffer->GetIndexType()), 0), "cannot draw elements");
+
+                if (!result.success) {
                     return false;
                 }
             }
@@ -186,8 +210,12 @@ namespace nkentseu {
             bool swap = m_Context->GetInternal()->Present();
 
             if (swap) {
-                glFlush();
-                return glCheckError() == GL_NO_ERROR;
+
+                OpenGLResult result;
+                bool first = true;
+
+                glCheckError(first, result, glFlush(), "cannot flus");
+                return result.success;
             }
         }
         return false;
@@ -248,8 +276,11 @@ namespace nkentseu {
     {
         if (!CanRender() || !m_IsPrepare) return false;
 
-        glViewport(0, 0, size.width, size.height);
-        return glCheckError() == GL_NO_ERROR;
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glViewport(0, 0, size.width, size.height), "cannot change viewport");
+        return result.success;
     }
 
     bool InternalRenderer::CanRender()

@@ -8,6 +8,8 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <Logger/Formatter.h>
+#include "Nkentseu/Graphics/Context.h"
+#include "InternalContext.h"
 
 namespace nkentseu {
     
@@ -21,7 +23,8 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool InternalIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout) {
+    bool InternalIndexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout) {
+        if (context == nullptr) return context;
         return false;
     }
 

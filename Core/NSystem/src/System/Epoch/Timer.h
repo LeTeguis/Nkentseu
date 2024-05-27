@@ -26,7 +26,7 @@ namespace nkentseu {
      *
      * This class provides methods to start, stop, reset, and get the elapsed time
      * in nanoseconds, milliseconds, and seconds.
-     */
+     * /
     class NKENTSEU_API Timer {
     public:
         /**
@@ -35,7 +35,7 @@ namespace nkentseu {
          * This function sets the start time of the timer to the current system time
          * using `std::chrono::system_clock::now()` and sets the internal flag
          * `m_Running` to true to indicate that the timer is running.
-         */
+         * /
         void Start();
 
         /**
@@ -44,7 +44,7 @@ namespace nkentseu {
          * This function sets the end time of the timer to the current system time
          * using `std::chrono::system_clock::now()` and sets the internal flag
          * `m_Running` to false to indicate that the timer is stopped.
-         */
+         * /
         void Stop();
 
         /**
@@ -55,7 +55,7 @@ namespace nkentseu {
          * resets the start time to the current system time, and returns the elapsed time.
          *
          * @return The elapsed time in seconds since the timer was last started.
-         */
+         * /
         float64 Reset();
 
         /**
@@ -68,7 +68,7 @@ namespace nkentseu {
          * and returns the number of elapsed nanoseconds.
          *
          * @return The elapsed time in nanoseconds since the timer was last started.
-         */
+         * /
         float64 ElapsedNanoseconds() const;
 
         /**
@@ -78,7 +78,7 @@ namespace nkentseu {
          * and then converts it to milliseconds by multiplying by 0.001 * 0.001.
          *
          * @return The elapsed time in milliseconds since the timer was last started.
-         */
+         * /
         float64 ElapsedMilliseconds() const;
 
         /**
@@ -88,30 +88,48 @@ namespace nkentseu {
          * and then converts it to seconds by multiplying by 0.001.
          *
          * @return The elapsed time in seconds since the timer was last started.
-         */
+         * /
         float64 Elapsed() const;
 
         /**
          * @brief Indique si le chronomètre est en cours d'exécution.
          *
          * @return `true` si le chronomètre est en cours d'exécution, `false` sinon.
-         */
+         * /
         bool IsRunning() const;
     private:
         /**
          * @brief The start time of the timer.
-         */
-        std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+         * /
+        //std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+        std::chrono::steady_clock::time_point m_StartTime;
 
         /**
          * @brief The end time of the timer.
-         */
-        std::chrono::time_point<std::chrono::system_clock> m_EndTime;
+         * /
+        //std::chrono::time_point<std::chrono::system_clock> m_EndTime;
+        std::chrono::steady_clock::time_point m_EndTime;
 
         /**
          * @brief Flag indicating whether the timer is running.
-         */
+         * /
         bool m_Running = false;
+    };*/
+
+    struct NKENTSEU_API ElapsedTime {
+        float64 nanoSeconds = 0.0;
+        float64 milliSeconds = 0.0;
+        float64 seconds = 0.0;
+    };
+
+    class NKENTSEU_API Timer {
+        public:
+            Timer();
+            ~Timer();
+            const ElapsedTime& Reset();
+            const ElapsedTime& Elapsed();
+        private:
+            std::chrono::high_resolution_clock::time_point m_StartTime;
     };
 } // namespace nkentseu
 

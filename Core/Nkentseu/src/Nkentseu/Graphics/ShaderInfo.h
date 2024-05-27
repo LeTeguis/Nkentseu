@@ -176,11 +176,12 @@ namespace nkentseu {
 		ShaderDataType::Code type = ShaderDataType::NotDefine;
 		uint32 size = 0;
 		usize offset = 0;
+		uint32 location = 0;
 		bool normalized = false;
 
 		BufferAttribute() = default;
 
-		BufferAttribute(ShaderDataType::Code type, const std::string& name, bool normalized = false);
+		BufferAttribute(ShaderDataType::Code type, const std::string& name, uint32 location, bool normalized = false);
 
 		uint32 GetComponentCount() const;
 		uint32 GetComponentSize() const;
@@ -194,6 +195,16 @@ namespace nkentseu {
 		BufferLayout() = default;
 		
 		BufferLayout(const std::initializer_list<BufferAttribute>& attributes);
+
+		BufferLayout& operator=(const BufferLayout& bufferLayout) {
+			this->stride = bufferLayout.stride;
+			this->componentCount = bufferLayout.componentCount;
+			this->attributes = bufferLayout.attributes;
+
+			//std::copy(attributes.begin(), attributes.end(), bufferLayout);
+
+			return *this;
+		}
 
 		void CalculateOffsetsAndStride();
 

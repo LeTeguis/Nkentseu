@@ -9,17 +9,22 @@
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <Logger/Formatter.h>
 
+#include "Nkentseu/Graphics/Context.h"
 #include "Nkentseu/Graphics/VertexBuffer.h"
 #include "Nkentseu/Graphics/IndexBuffer.h"
 
+#include "InternalContext.h"
 #include "InternalVertexBuffer.h"
 #include "InternalIndexBuffer.h"
+#include "InternalVertexArray.h"
+#include "InternalVertexArray.h"
 
 namespace nkentseu {
     
     // Constructor
-    InternalVertexArray::InternalVertexArray() {
-        // Ajoutez votre code de constructeur ici
+    InternalVertexArray::InternalVertexArray(Context* context) {
+        if (context == nullptr) return;
+        m_Context = context;
     }
 
     // Destructor
@@ -28,11 +33,13 @@ namespace nkentseu {
     }
 
     bool InternalVertexArray::Create(const BufferLayout& bufferLayout) {
-        return false;
+        if (m_Context == nullptr) return false;
+        return true;
     }
 
     bool InternalVertexArray::Create(uint32 vertexNumber)
     {
+        if (m_Context == nullptr) return false;
         m_VertexNumber = vertexNumber;
         return true;
     }
@@ -46,15 +53,23 @@ namespace nkentseu {
     }
 
     bool InternalVertexArray::SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer) {
-        return false;
+        if (m_Context == nullptr || vertexBuffer == nullptr || vertexBuffer->GetInternal() == nullptr) return false;
+        m_VertexBuffer = vertexBuffer;
+
+        m_VertexNumber = m_VertexBuffer->GetInternal()->Leng();
+        return true;
     }
 
     Memory::Shared<VertexBuffer> InternalVertexArray::GetVertexBuffer() {
-        return nullptr;
+        return m_VertexBuffer;
     }
 
     InternalVertexBuffer* InternalVertexArray::GetInternalVertexBuffer() {
-        return nullptr;
+        //Log_nts.Debug();
+        if (m_VertexBuffer == nullptr) return nullptr;
+        //Log_nts.Debug();
+
+        return m_VertexBuffer->GetInternal();
     }
 
     bool InternalVertexArray::SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer) {

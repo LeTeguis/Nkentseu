@@ -10,6 +10,39 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
+
+    std::string OpenGLStaticDebugInfo::file_call = "";
+    uint32 OpenGLStaticDebugInfo::line_call = 0;
+    std::string OpenGLStaticDebugInfo::methode_call = "";
+    bool OpenGLStaticDebugInfo::success = true;
+
+    OpenGLResult glCheckError_(const std::string& file, int32 line, const std::string& function)
+    {
+        OpenGLResult result = {true, GL_NO_ERROR};
+        GLenum errorCode;
+        while ((errorCode = glGetError()) != GL_NO_ERROR)
+        {
+            std::string error;
+            switch (errorCode)
+            {
+            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
+            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
+            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
+            case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
+            case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
+            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
+            }
+            NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, function.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Error("type = {0}", error);
+
+            if (result.success) {
+                result.result = errorCode;
+                result.success = errorCode == GL_NO_ERROR;
+            }
+        }
+        return result;
+    }
+
     uint32 GLConvert::ShaderType(ShaderDataType::Code type)
     {
         // NotDefine, Boolean, Float, Float2, Float3, Float4, Int, Int2, Int3, Int4, Byte4, Mat3, Mat4, Struct
@@ -38,18 +71,18 @@ namespace nkentseu {
         return 0;
     }
 
-    uint32 GLConvert::DrawModeType(DrawMode::Code mode) {
-        if (mode == DrawMode::Front) return GL_BACK;
-        if (mode == DrawMode::Back) return GL_FRONT;
-        if (mode == DrawMode::FrontBack) return GL_FRONT_AND_BACK;
+    uint32 GLConvert::CullModeType(CullModeType::Code mode) {
+        if (mode == CullModeType::Front) return GL_BACK;
+        if (mode == CullModeType::Back) return GL_FRONT;
+        if (mode == CullModeType::FrontBack) return GL_FRONT_AND_BACK;
         return 0;
     }
 
-    uint32 GLConvert::DrawContentModeType(DrawContentMode::Code contentMode) {
-        if (contentMode == DrawContentMode::Line) return GL_LINE;
-        if (contentMode == DrawContentMode::Fill) return GL_FILL;
-        if (contentMode == DrawContentMode::FillRectangle) return GL_FILL_RECTANGLE_NV;
-        if (contentMode == DrawContentMode::Point) return GL_POINT;
+    uint32 GLConvert::PolygonModeType(PolygonModeType::Code contentMode) {
+        if (contentMode == PolygonModeType::Line) return GL_LINE;
+        if (contentMode == PolygonModeType::Fill) return GL_FILL;
+        if (contentMode == PolygonModeType::FillRectangle) return GL_FILL_RECTANGLE_NV;
+        if (contentMode == PolygonModeType::Point) return GL_POINT;
         return 0;
     }
 

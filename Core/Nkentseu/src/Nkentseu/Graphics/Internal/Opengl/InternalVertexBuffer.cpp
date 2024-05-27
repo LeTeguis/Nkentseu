@@ -11,6 +11,7 @@
 #include <glad/gl.h>
 
 #include <Logger/Formatter.h>
+#include "Nkentseu/Graphics/Context.h"
 #include "InternalContext.h"
 #include "OpenGLUtils.h"
 
@@ -32,40 +33,9 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool InternalVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
+    bool InternalVertexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
     {
-        if (m_VertexBufferObject != 0) {
-            return false;
-        }
-
-        glGenBuffers(1, &m_VertexBufferObject);
-        if (glCheckError() != GL_NO_ERROR || m_VertexBufferObject == 0) {
-            return false;
-        }
-
-        if (!Bind()) {
-            return false;
-        }
-
-        m_BufferUsage = bufferUsage;
-
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float32) * vertices.size(), vertices.data(), GLConvert::UsageType(m_BufferUsage));
-
-        if (glCheckError() != GL_NO_ERROR) {
-            return false;
-        }
-
-        m_Leng = vertices.size() / bufferLayout.componentCount;
-
-        if (Unbind()) {
-            return true;
-        }
-
-        m_Vertices.clear();
-        for (uint32 index = 0; index < vertices.size(); index++) {
-            m_Vertices.push_back(vertices[index]);
-        }
-        return true;
+        return Create(context, bufferUsage, vertices.data(), (vertices.size() / bufferLayout.componentCount), bufferLayout);
     }
 
     bool InternalVertexBuffer::Destroy()
@@ -76,15 +46,52 @@ namespace nkentseu {
         return true;
     }
 
+    bool InternalVertexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
+    {
+        if (m_VertexBufferObject != 0) {
+            return false;
+        }
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glGenBuffers(1, &m_VertexBufferObject), "cannot gen vertex buffer");
+        if (!result.success || m_VertexBufferObject == 0) {
+            return false;
+        }
+
+        if (!Bind()) {
+            return false;
+        }
+
+        m_BufferUsage = bufferUsage;
+
+        glCheckError(first, result, glBufferData(GL_ARRAY_BUFFER, bufferLayout.stride * leng, vertices, GLConvert::UsageType(m_BufferUsage)), "cannot set vertex buffer data");
+        
+        if (!result.success) {
+            return false;
+        }
+
+        m_Leng = leng;
+
+        if (!Unbind()) {
+            return false;
+        }
+
+        return true;
+    }
+
     bool InternalVertexBuffer::Bind()
     {
         if (m_VertexBufferObject == 0) {
             return false;
         }
+        OpenGLResult result;
+        bool first = true;
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferObject);
+        glCheckError(first, result, glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferObject), "cannot bind vertex buffer");
 
-        return glCheckError() == GL_NO_ERROR;
+        return result.success;
     }
 
     bool InternalVertexBuffer::Unbind()
@@ -92,17 +99,12 @@ namespace nkentseu {
         if (m_VertexBufferObject == 0) {
             return false;
         }
+        OpenGLResult result;
+        bool first = true;
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glCheckError(first, result, glBindBuffer(GL_ARRAY_BUFFER, 0), "cannot unbind vertex buffer");
 
-        bool success = glCheckError() == GL_NO_ERROR;
-
-        return success;
-    }
-
-    std::vector<float32> InternalVertexBuffer::GetVertices()
-    {
-        return m_Vertices;
+        return result.success;
     }
 
     uint32 InternalVertexBuffer::Leng()

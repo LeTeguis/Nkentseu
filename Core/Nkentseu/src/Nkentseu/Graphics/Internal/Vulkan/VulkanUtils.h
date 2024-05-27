@@ -48,6 +48,8 @@ namespace nkentseu {
         static VkPolygonMode PolygonModeType(PolygonModeType::Code contentMode);
 
         static bool EndsWith(const std::string& s, const std::string& part);
+
+        static VkFormat ShaderFormatToVkFormat(ShaderDataType::Code shaderDataType);
     };
 
     template<typename... Args>

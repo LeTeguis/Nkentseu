@@ -14,9 +14,10 @@ namespace nkentseu {
      * This function sets the start time of the timer to the current system time
      * using `std::chrono::system_clock::now()` and sets the internal flag
      * `m_Running` to true to indicate that the timer is running.
-     */
+     * /
     void Timer::Start() {
-        m_StartTime = std::chrono::system_clock::now();
+        // m_StartTime = std::chrono::system_clock::now();
+        m_StartTime = std::chrono::high_resolution_clock::now();
         m_Running = true;
     }
 
@@ -26,9 +27,10 @@ namespace nkentseu {
      * This function sets the end time of the timer to the current system time
      * using `std::chrono::system_clock::now()` and sets the internal flag
      * `m_Running` to false to indicate that the timer is stopped.
-     */
+     * /
     void Timer::Stop() {
-        m_EndTime = std::chrono::system_clock::now();
+        //sm_EndTime = std::chrono::system_clock::now();
+        m_EndTime = std::chrono::high_resolution_clock::now();
         m_Running = false;
     }
 
@@ -40,13 +42,14 @@ namespace nkentseu {
      * resets the start time to the current system time, and returns the elapsed time.
      *
      * @return The elapsed time in seconds since the timer was last started.
-     */
+     * /
     float64 Timer::Reset() {
         if (!m_Running) return 0.0f;
 
         float64 elapsed = Elapsed();
 
-        m_StartTime = std::chrono::system_clock::now();
+        //m_StartTime = std::chrono::system_clock::now();
+        m_StartTime = std::chrono::high_resolution_clock::now();
 
         return elapsed;
     }
@@ -61,12 +64,14 @@ namespace nkentseu {
      * and returns the number of elapsed nanoseconds.
      *
      * @return The elapsed time in nanoseconds since the timer was last started.
-     */
+     * /
     float64 Timer::ElapsedNanoseconds() const {
-        std::chrono::time_point<std::chrono::system_clock> endTime;
+        // std::chrono::time_point<std::chrono::system_clock> endTime;
+        std::chrono::steady_clock::time_point endTime;
 
         if (m_Running) {
-            endTime = std::chrono::system_clock::now();
+            //endTime = std::chrono::system_clock::now();
+            endTime = std::chrono::high_resolution_clock::now();
         }
         else {
             endTime = m_EndTime;
@@ -82,7 +87,7 @@ namespace nkentseu {
      * and then converts it to milliseconds by multiplying by 0.001 * 0.001.
      *
      * @return The elapsed time in milliseconds since the timer was last started.
-     */
+     * /
     float64 Timer::ElapsedMilliseconds() const {
         float64 nano = ElapsedNanoseconds();
         return (nano * 0.001 * 0.001);
@@ -95,7 +100,7 @@ namespace nkentseu {
      * and then converts it to seconds by multiplying by 0.001.
      *
      * @return The elapsed time in seconds since the timer was last started.
-     */
+     * /
     float64 Timer::Elapsed() const {
         return (ElapsedMilliseconds() * 0.001);
     }
@@ -104,10 +109,41 @@ namespace nkentseu {
     * @brief Indique si le chronomètre est en cours d'exécution.
     *
     * @return `true` si le chronomètre est en cours d'exécution, `false` sinon.
-    */
+    * /
     bool Timer::IsRunning() const
     {
         return m_Running;
+    }*/
+
+    Timer::Timer() {
+        m_StartTime = std::chrono::high_resolution_clock::now();
+    }
+
+    Timer::~Timer(){
+    }
+
+    const ElapsedTime& Timer::Reset()
+    {
+        static ElapsedTime elapsed;
+
+        elapsed = Elapsed();
+
+        m_StartTime = std::chrono::high_resolution_clock::now();
+
+        return elapsed;
+    }
+
+    const ElapsedTime& Timer::Elapsed()
+    {
+        static ElapsedTime elapsed;
+        std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration<float64, std::nano>(endTime - m_StartTime);
+
+        elapsed.nanoSeconds = duration.count();
+        elapsed.milliSeconds = elapsed.nanoSeconds * 0.001 * 0.001;
+        elapsed.seconds = elapsed.nanoSeconds * 0.001 * 0.001 * 0.001;
+
+        return elapsed;
     }
 
 } // namespace nkentseu

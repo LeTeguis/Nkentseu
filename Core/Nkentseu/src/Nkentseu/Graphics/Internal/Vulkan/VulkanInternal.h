@@ -41,6 +41,7 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanInstance {
         bool Create(Window* window, const ContextProperties& contextProperties, VulkanExtension* extension);
+        bool Destroy();
 
         VkInstance instance = nullptr;
         VkDebugUtilsMessengerEXT debugMessenger = nullptr;
@@ -185,6 +186,15 @@ namespace nkentseu {
         VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         VkCullModeFlagBits cullMode = VK_CULL_MODE_BACK_BIT;
         VkPolygonMode polygoneMode = VK_POLYGON_MODE_LINE;
+    };
+
+    struct NKENTSEU_API VulkanBuffer {
+        bool Create(VulkanGpu* gpu, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode);
+        bool Destroy(VulkanGpu* gpu);
+        static int64 FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties);
+
+        VkBuffer buffer = nullptr;
+        VkDeviceMemory bufferMemory = nullptr;
     };
     
 }  //  nkentseu

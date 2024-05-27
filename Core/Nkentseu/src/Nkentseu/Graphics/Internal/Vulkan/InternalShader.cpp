@@ -88,8 +88,53 @@ namespace nkentseu {
             shaderStages.push_back(shaderStage);
         }
 
+
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};
         vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        bool set = false;
+
+        if (!m_BufferLayout.attributes.empty()) {
+            bindingDescriptions.resize(1);
+
+            bindingDescriptions[0].binding = 0;
+            bindingDescriptions[0].stride = m_BufferLayout.stride;
+            bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+            attributeDescriptions.resize(m_BufferLayout.attributes.size());
+
+            uint32 index = 0;
+            set = true;
+
+            for (const auto& attribute : m_BufferLayout.attributes) {
+                VkFormat format = VulkanConvert::ShaderFormatToVkFormat(attribute.type);
+
+                // Vérification si le format est valide
+                if (format <= VK_FORMAT_UNDEFINED || format > VK_FORMAT_ASTC_12x12_SRGB_BLOCK) {
+                    Log_nts.Error("Invalid format for attribute type: {0}", ShaderDataType::ToString(attribute.type));
+                    set = false;
+                    attributeDescriptions.clear();
+                    break;
+                }
+
+                attributeDescriptions[index].binding = 0;
+                attributeDescriptions[index].location = attribute.location;
+                attributeDescriptions[index].format = VulkanConvert::ShaderFormatToVkFormat(attribute.type);
+                attributeDescriptions[index].offset = attribute.offset;
+
+                index++;
+            }
+
+        }
+
+        if (set == true) {
+            vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
+            vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
+            vertexInputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
+            vertexInputState.pVertexAttributeDescriptions = attributeDescriptions.data();
+        }
         
         std::vector<VkPipelineVertexInputStateCreateInfo> vertexInputStates;
         vertexInputStates.push_back(vertexInputState);
@@ -208,6 +253,7 @@ namespace nkentseu {
         m_ShaderFiles.clear();
         m_ShaderFiles = shaderFiles;
         m_Context = context;
+        m_BufferLayout = bufferLayout;
     }
 
     VkShaderModule InternalShader::MakeModule(const std::string& filepath, ShaderType::Code type) {

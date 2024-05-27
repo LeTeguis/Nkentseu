@@ -18,6 +18,7 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 
 namespace nkentseu {
+    class Context;
     class VertexBuffer;
     class IndexBuffer;
     class InternalVertexBuffer;
@@ -25,8 +26,11 @@ namespace nkentseu {
     
     class NKENTSEU_API InternalVertexArray {
         public:
-            InternalVertexArray();
+            InternalVertexArray(Context* context);
             ~InternalVertexArray();
+
+            Context* GetContext();
+            bool SetContext(Context* context);
 
             bool Create(const BufferLayout& bufferLayout);
             bool Create(uint32 vertexNumber);
@@ -54,6 +58,8 @@ namespace nkentseu {
             Memory::Shared<IndexBuffer> m_IndexBuffer;
             BufferLayout m_BufferLayout;
             uint32 m_VertexNumber = 0;
+
+            Context* m_Context;
     };
 
 }  //  nkentseu

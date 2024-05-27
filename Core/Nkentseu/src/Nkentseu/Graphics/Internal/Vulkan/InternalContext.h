@@ -61,6 +61,8 @@ namespace nkentseu {
 
             bool AddRecreateCallback(RerecreateCallBackFn func);
             bool RemoveRecreateCallback(RerecreateCallBackFn func);
+
+            bool IsValidContext();
         public:
             friend class InternalRenderer;
 

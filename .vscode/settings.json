@@ -62,7 +62,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "ntspch.h": "c"
+        "ntspch.h": "c",
+        "xlocale": "cpp"
     },
     "cmake.configureOnOpen": false
 }

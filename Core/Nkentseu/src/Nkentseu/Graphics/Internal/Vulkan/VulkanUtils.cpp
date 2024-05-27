@@ -142,6 +142,31 @@ namespace nkentseu {
         }
         return false;
     }
+
+    VkFormat VulkanConvert::ShaderFormatToVkFormat(ShaderDataType::Code shaderDataType)
+    {
+        switch (shaderDataType) {
+        case ShaderDataType::Boolean: return VK_FORMAT_R32_UINT;
+        case ShaderDataType::Float: return VK_FORMAT_R32_SFLOAT;
+        case ShaderDataType::Float2: return VK_FORMAT_R32G32_SFLOAT;
+        case ShaderDataType::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case ShaderDataType::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case ShaderDataType::Int: return VK_FORMAT_R32_SINT;
+        case ShaderDataType::Int2: return VK_FORMAT_R32G32_SINT;
+        case ShaderDataType::Int3: return VK_FORMAT_R32G32B32_SINT;
+        case ShaderDataType::Int4: return VK_FORMAT_R32G32B32A32_SINT;
+        //case ShaderDataType::UInt: return VK_FORMAT_R32_UINT;
+        //case ShaderDataType::UInt2: return VK_FORMAT_R32G32_UINT;
+        //case ShaderDataType::UInt3: return VK_FORMAT_R32G32B32_UINT;
+        //case ShaderDataType::UInt4: return VK_FORMAT_R32G32B32A32_UINT;
+        case ShaderDataType::Byte4: return VK_FORMAT_R8G8B8A8_UNORM;
+        case ShaderDataType::Mat3: return VK_FORMAT_R32G32B32_SFLOAT; // Mat3 is typically handled as an array of Float3
+        case ShaderDataType::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT; // Mat4 is typically handled as an array of Float4
+        case ShaderDataType::Struct:
+        default: return VK_FORMAT_UNDEFINED;
+        }
+    }
+
 }  //  nkentseu
 
 #endif

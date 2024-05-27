@@ -13,13 +13,13 @@
 #include "Internal/Vulkan/InternalVertexArray.h"
 #endif
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include "Context.h"
 
 namespace nkentseu {
     
     // Constructor
-    VertexArray::VertexArray() {
-        // Ajoutez votre code de constructeur ici
-        m_InternalVertexArray = Memory::Alloc<InternalVertexArray>();
+    VertexArray::VertexArray(Context* context) : m_Context(context){
+        m_InternalVertexArray = Memory::Alloc<InternalVertexArray>(m_Context);
     }
 
     // Destructor
@@ -27,10 +27,20 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
+    Context* VertexArray::GetContext()
+    {
+        return nullptr;
+    }
+
+    bool VertexArray::SetContext(Context* context)
+    {
+        return false;
+    }
+
     bool VertexArray::Create(const BufferLayout& bufferLayout)
     {
         if (m_InternalVertexArray == nullptr) {
-            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>();
+            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>(m_Context);
 
             if (m_InternalVertexArray == nullptr) {
                 return false;
@@ -42,7 +52,7 @@ namespace nkentseu {
     bool VertexArray::Create(uint32 vertexNumber)
     {
         if (m_InternalVertexArray == nullptr) {
-            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>();
+            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>(m_Context);
 
             if (m_InternalVertexArray == nullptr) {
                 return false;

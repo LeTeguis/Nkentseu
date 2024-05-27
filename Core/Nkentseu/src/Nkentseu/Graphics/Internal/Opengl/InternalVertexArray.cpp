@@ -15,6 +15,7 @@
 #include "InternalVertexBuffer.h"
 #include "InternalIndexBuffer.h"
 
+#include "Nkentseu/Graphics/Context.h"
 #include "InternalContext.h"
 
 #include "OpenGLUtils.h"
@@ -22,7 +23,7 @@
 namespace nkentseu {
     
     // Constructor
-    InternalVertexArray::InternalVertexArray() {
+    InternalVertexArray::InternalVertexArray(Context* context) : m_Context(context) {
         // Ajoutez votre code de constructeur ici
     }
 
@@ -31,12 +32,26 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
+    Context* nkentseu::InternalVertexArray::GetContext()
+    {
+        return nullptr;
+    }
+
+    bool InternalVertexArray::SetContext(Context* context)
+    {
+        return false;
+    }
+
     bool InternalVertexArray::Create(const BufferLayout& bufferLayout)
     {
         if (m_VertexArrayObject != 0) return false;
 
-        glGenVertexArrays(1, &m_VertexArrayObject);
-        if (glCheckError() != GL_NO_ERROR || m_VertexArrayObject == 0) {
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glGenVertexArrays(1, &m_VertexArrayObject), "cannot gen vertex array");
+
+        if (!result.success || m_VertexArrayObject == 0) {
             return false;
         }
 
@@ -61,23 +76,22 @@ namespace nkentseu {
 
         m_BufferLayout = bufferLayout;
         
-        uint32 location = 0;
         for (auto& attribut : m_BufferLayout) {
             uint32 type = GLConvert::ShaderType(attribut.type);
             uint32 normalized = attribut.normalized ? GL_TRUE : GL_FALSE;
             uint32 count = attribut.GetComponentCount();
             uint32 offset = attribut.offset;
+            uint32 location = attribut.location;
 
-            glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (void*)offset);
-            if (glCheckError() != GL_NO_ERROR) {
+            glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (void*)offset), "cannot set vertex attribut pointer");
+            if (!result.success) {
                 return false;
             }
 
-            glEnableVertexAttribArray(location);
-            if (glCheckError() != GL_NO_ERROR) {
+            glCheckError(first, result, glEnableVertexAttribArray(location), "cannot enable vertex atribut array");
+            if (!result.success) {
                 return false;
             }
-            location++;
         }
 
         if (m_IndexBuffer != nullptr) {
@@ -100,8 +114,12 @@ namespace nkentseu {
     {
         if (m_VertexArrayObject != 0) return false;
 
-        glGenVertexArrays(1, &m_VertexArrayObject);
-        if (glCheckError() != GL_NO_ERROR || m_VertexArrayObject == 0) {
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glGenVertexArrays(1, &m_VertexArrayObject), "cannot gen vertex array");
+
+        if (!result.success || m_VertexArrayObject == 0) {
             return false;
         }
 
@@ -159,9 +177,12 @@ namespace nkentseu {
     {
         if (m_VertexArrayObject == 0) return false;
 
-        glDeleteVertexArrays(1, &m_VertexArrayObject);
+        OpenGLResult result;
+        bool first = true;
 
-        if (glCheckError() != GL_NO_ERROR) {
+        glCheckError(first, result, glDeleteVertexArrays(1, &m_VertexArrayObject), "cannot delete vertex array");
+
+        if (!result.success) {
             return false;
         }
 
@@ -172,15 +193,23 @@ namespace nkentseu {
     bool InternalVertexArray::Bind()
     {
         if (m_VertexArrayObject == 0) return false;
-        glBindVertexArray(m_VertexArrayObject);
-        return glCheckError() == GL_NO_ERROR;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glBindVertexArray(m_VertexArrayObject), "cannot bin vertes array");
+        return result.success;
     }
 
     bool InternalVertexArray::Unbind()
     {
         if (m_VertexArrayObject == 0) return false;
-        glBindVertexArray(0);
-        return glCheckError() == GL_NO_ERROR;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glBindVertexArray(0), "cannot unbin vertex array");
+        return result.success;
     }
 
     const BufferLayout& InternalVertexArray::GetBufferLayout()

@@ -143,4 +143,13 @@ namespace nkentseu {
         return m_InternalContext->GetProperties();
     }
 
+    bool Context::IsValidContext()
+    {
+        if (m_InternalContext == nullptr || !m_InternalContext->IsValidContext()) {
+            Log_nts.Error("Invalid Internal context");
+            return false;
+        }
+        return true;
+    }
+
 }    // namespace nkentseu

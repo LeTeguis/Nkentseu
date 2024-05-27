@@ -280,14 +280,21 @@ namespace nkentseu {
         InternalVertexBuffer* vertexBuffer = vertexArray->GetInternal()->GetInternalVertexBuffer();
         InternalIndexBuffer* indexBuffer = vertexArray->GetInternal()->GetInternalIndexBuffer();
 
-
-        if (vertexBuffer == nullptr && internalVertexArray->GetVertexNumber() == 0) {
+        if ((vertexBuffer == nullptr || vertexBuffer->GetBuffer() == nullptr) && internalVertexArray->GetVertexNumber() == 0) {
             return false;
         }
 
-        uint32 count = internalVertexArray->GetVertexNumber();
-
         if (indexBuffer == nullptr) {
+            uint32 count = internalVertexArray->GetVertexNumber();
+
+            if (vertexBuffer != nullptr && vertexBuffer->GetBuffer() != nullptr) {
+                count = vertexBuffer->Leng();
+                //Log_nts.Debug("{0}", count);
+                VkBuffer vertexBuffers[] = { vertexBuffer->GetBuffer()->buffer };
+                VkDeviceSize offsets[] = { 0 };
+                vkCheckErrorVoid(vkCmdBindVertexBuffers(m_CurrentCommandBuffer, 0, 1, vertexBuffers, offsets));
+            }
+
             vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, count, 1, 0, 0));
         }
         else {

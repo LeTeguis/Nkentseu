@@ -38,7 +38,7 @@ namespace nkentseu {
             bool Clear(const Color& color);
             bool Clear(uint8 r, uint8 g, uint8 b, uint8 a = 255);
 
-            bool DrawMode(DrawMode::Code mode, DrawContentMode::Code contentMode);
+            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode);
             bool Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex);
 
             bool Present();

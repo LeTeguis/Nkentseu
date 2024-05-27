@@ -41,6 +41,7 @@ namespace nkentseu {
             // VulkanPipelineLayout m_PipelineLayout;
             VkRect2D m_Scissor = {};
             VkViewport m_ViewPort = {};
+            BufferLayout m_BufferLayout;
 
             struct infos_shader {
                 VkShaderModule module;

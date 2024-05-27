@@ -12,18 +12,35 @@
 
 #ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include "Nkentseu/Graphics/ShaderInfo.h"
+#include "VulkanInternal.h"
+
+#include <vulkan/vulkan.hpp>
 
 namespace nkentseu {
+    class Context;
     
     class NKENTSEU_API InternalVertexBuffer {
         public:
             InternalVertexBuffer();
             ~InternalVertexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+
+            template <typename T>
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices, const BufferLayout& bufferLayout = {}) {
+                return Create(context, bufferUsage, vertices.data(), vertices.size(), bufferLayout);
+            }
+
+            VulkanBuffer* GetBuffer();
+
             bool Destroy();
+            uint32 Leng();
         private:
-        protected:
+            VulkanBuffer m_VertexBufferObject;
+            Context* m_Context = nullptr;
+
+            uint32 m_Leng = 0;
     };
 
 }  //  nkentseu

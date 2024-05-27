@@ -258,8 +258,8 @@ namespace nkentseu {
     }
 
 
-    BufferAttribute::BufferAttribute(ShaderDataType::Code type, const std::string& name, bool normalized)
-        : name(name), type(type), size(ShaderDataType::ComponentSize(type)), offset(0), normalized(normalized) {
+    BufferAttribute::BufferAttribute(ShaderDataType::Code type, const std::string& name, uint32 location, bool normalized)
+        : name(name), type(type), size(ShaderDataType::ComponentSize(type)), offset(0), normalized(normalized), location(location) {
     }
 
     uint32 BufferAttribute::GetComponentCount() const {

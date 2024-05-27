@@ -20,9 +20,6 @@
 namespace nkentseu {
     class NativeContext;
 
-    GLenum glCheckError_(const std::string& file, int32 line, const std::string& function);
-    #define glCheckError() glCheckError_(__FILE__, __LINE__, __FUNCTION__) 
-
     class NKENTSEU_API InternalContext
     {
         public:
@@ -53,6 +50,8 @@ namespace nkentseu {
 
             Window* GetWindow();
             const ContextProperties& GetProperties();
+
+            bool IsValidContext();
         private:
             Window* m_Window = nullptr;
             Memory::Shared<class NativeContext> m_NativeContext;

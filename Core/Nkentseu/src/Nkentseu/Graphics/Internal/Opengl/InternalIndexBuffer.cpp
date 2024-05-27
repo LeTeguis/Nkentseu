@@ -11,6 +11,7 @@
 #include <glad/gl.h>
 
 #include <Logger/Formatter.h>
+#include "Nkentseu/Graphics/Context.h"
 #include "InternalContext.h"
 #include "OpenGLUtils.h"
 
@@ -26,14 +27,17 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool InternalIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
+    bool InternalIndexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
     {
         if (m_ElementBufferObject != 0) {
             return false;
         }
 
-        glGenBuffers(1, &m_ElementBufferObject);
-        if (glCheckError() != GL_NO_ERROR && m_ElementBufferObject == 0) {
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glGenBuffers(1, &m_ElementBufferObject), "cannot gen buffer for index buffer");
+        if (!result.success || m_ElementBufferObject == 0) {
             return false;
         }
 
@@ -43,9 +47,9 @@ namespace nkentseu {
 
         m_BufferUsage = bufferUsage;
 
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices.size(), indices.data(), GLConvert::UsageType(m_BufferUsage));
+        glCheckError(first, result, glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices.size(), indices.data(), GLConvert::UsageType(m_BufferUsage)), "cannot set buffer data for index buffer");
 
-        if (glCheckError() != GL_NO_ERROR) {
+        if (!result.success) {
             return false;
         }
 
@@ -72,8 +76,12 @@ namespace nkentseu {
         if (m_ElementBufferObject == 0) {
             return false;
         }
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ElementBufferObject);
-        return glCheckError() == GL_NO_ERROR;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ElementBufferObject), "cannot bin index buffer");
+        return result.success;
     }
 
     bool InternalIndexBuffer::Unbind()
@@ -81,8 +89,12 @@ namespace nkentseu {
         if (m_ElementBufferObject == 0) {
             return false;
         }
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        return glCheckError() == GL_NO_ERROR;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0), "cannot unbin index buffer");
+        return result.success;
     }
 
     uint32 InternalIndexBuffer::Leng() const

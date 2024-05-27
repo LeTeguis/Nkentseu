@@ -81,6 +81,7 @@ namespace nkentseu {
 
     bool InternalContext::Deinitialize()
     {
+        // m_Instance.Destroy();
         return false;
     }
 
@@ -180,6 +181,11 @@ namespace nkentseu {
         return false; // Function not found
     }
 
+    bool InternalContext::IsValidContext()
+    {
+        return m_IsInitialize;
+    }
+
     bool InternalContext::CleanupSwapChain() {
         m_Framebuffer.Destroy(&m_Gpu);
         m_Swapchain.Destroy(&m_Gpu);
@@ -187,6 +193,8 @@ namespace nkentseu {
     }
 
     bool InternalContext::RecreateSwapChain() {
+        if (!m_IsInitialize) return false;
+
 		VulkanResult result;
 		bool first = true;
 

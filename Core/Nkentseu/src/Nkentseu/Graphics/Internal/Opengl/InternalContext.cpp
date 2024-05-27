@@ -16,19 +16,86 @@
     #include <Nkentseu/Platform/Window/Linux/XLIB/XGLContext.h>
     #endif
 #endif
+
 #include <Nkentseu/Core/NkentseuLogger.h>
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
-#include "InternalContext.h"
+#include "OpenGLUtils.h"
 
 namespace nkentseu {
+
+
+    void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char* message, const void* userParam)
+    {
+        // ignore non-significant error/warning codes
+        if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+        std::string source_str;
+        std::string type_str;
+
+        switch (source)
+        {
+        case GL_DEBUG_SOURCE_API:
+            source_str = "API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+            source_str = "Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+            source_str = "Shader Compile"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+            source_str = "Third party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:
+            source_str = "Application"; break;
+        case GL_DEBUG_SOURCE_OTHER:
+            source_str = "Other"; break;
+        }
+
+        switch (type)
+        {
+        case GL_DEBUG_TYPE_ERROR:
+            type_str = "Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            type_str = "Deprecated Behaviour"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            type_str = "Undefined Behaviour"; break;
+        case GL_DEBUG_TYPE_PORTABILITY:
+            type_str = "Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            type_str = "Performance"; break;
+        case GL_DEBUG_TYPE_MARKER:
+            type_str = "Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP:
+            type_str = "Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP:
+            type_str = "Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER:
+            type_str = "Other"; break;
+        }
+
+        std::string file = OpenGLStaticDebugInfo::file_call;
+        std::string methode = OpenGLStaticDebugInfo::methode_call;
+        uint32 line = OpenGLStaticDebugInfo::line_call;
+
+        OpenGLStaticDebugInfo::success = false;
+
+        if (severity == GL_DEBUG_SEVERITY_HIGH) {
+            std::string message = FORMATTER.Format("source : {0}({1}, type : {2}({3})", source_str, source, type_str, type);
+            NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Fatal("{0}", message);
+            return;
+        }
+        else if (severity == GL_DEBUG_SEVERITY_MEDIUM) {
+            std::string message = FORMATTER.Format("source : {0}({1}, type : {2}({3})", source_str, source, type_str, type);
+            NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Error("{0}", message);
+            return;
+        }
+        else if (severity == GL_DEBUG_SEVERITY_LOW) {
+            std::string message = FORMATTER.Format("source : {0}({1}, type : {2}({3})", source_str, source, type_str, type);
+            NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Warning("{0}", message);
+            return;
+        }
+        else if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
+            //NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Warning("{0}", message);
+            //return;
+        }
+
+        OpenGLStaticDebugInfo::success = true;
+    }
 
     InternalContext::InternalContext() : m_Window(nullptr){
         if (m_NativeContext == nullptr) {
@@ -78,7 +145,14 @@ namespace nkentseu {
             Log_nts.Error();
             return false;
         }
-        return m_NativeContext->Initialize();
+        if (m_NativeContext->Initialize()) {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glDebugMessageCallback(glDebugOutput, nullptr);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            return true;
+        }
+        return false;
     }
 
     bool InternalContext::Deinitialize()
@@ -162,25 +236,10 @@ namespace nkentseu {
         return m_NativeContext->GetProperties();
     }
 
-    GLenum glCheckError_(const std::string& file, int32 line, const std::string& function)
+    bool InternalContext::IsValidContext()
     {
-        GLenum errorCode;
-        while ((errorCode = glGetError()) != GL_NO_ERROR)
-        {
-            std::string error;
-            switch (errorCode)
-            {
-            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-            case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-            case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-            }
-            NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, function.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Error("type = {0}", error);
-        }
-        return errorCode;
+        if (m_NativeContext == nullptr) return false;
+        return m_NativeContext->IsInitialize();
     }
 }    // namespace nkentseu
 

@@ -42,10 +42,15 @@ namespace nkentseu {
 
             virtual InternalContext* GetInternal();
             const ContextProperties& GetProperties();
+
+            bool IsValidContext();
         private:
             Memory::Shared<InternalContext> m_InternalContext = null_pointer;
             bool m_IsInitialized = false;
     };
+
+#define IS_VALID_CONTEXT_PTR(context, return_type) if (context != nullptr && context->IsValidContext()) { Log_nts.Error("Invalid context"); return return_type;}
+#define IS_VALID_CONTEXT(context, return_type) if (context != nullptr && context.IsValidContext()) { Log_nts.Error("Invalid context"); return return_type;}
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_CONTEXT_H__

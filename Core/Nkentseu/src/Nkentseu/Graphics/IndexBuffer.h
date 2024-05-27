@@ -15,13 +15,14 @@
 
 namespace nkentseu {
     class InternalIndexBuffer;
+    class Context;
     
     class NKENTSEU_API IndexBuffer {
         public:
             IndexBuffer();
             ~IndexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
             bool Destroy();
 
             InternalIndexBuffer* GetInternal();

@@ -13,6 +13,9 @@
 #include "Internal/Vulkan/InternalIndexBuffer.h"
 #endif
 
+#include <Nkentseu/Core/NkentseuLogger.h>
+#include "Context.h"
+
 namespace nkentseu {
     
     // Constructor
@@ -26,7 +29,7 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool IndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
+    bool IndexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
     {
         if (m_Internal == nullptr) {
             m_Internal = Memory::Alloc<InternalIndexBuffer>();
@@ -34,7 +37,7 @@ namespace nkentseu {
                 return false;
             }
         }
-        return m_Internal->Create(bufferUsage, indexType, indices, bufferLayout);
+        return m_Internal->Create(context, bufferUsage, indexType, indices, bufferLayout);
     }
 
     bool IndexBuffer::Destroy()

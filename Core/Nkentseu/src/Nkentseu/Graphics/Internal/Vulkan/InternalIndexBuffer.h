@@ -15,16 +15,17 @@
 #include "Nkentseu/Graphics/ShaderInfo.h"
 
 namespace nkentseu {
+    class Context;
     
     class NKENTSEU_API InternalIndexBuffer {
         public:
             InternalIndexBuffer();
             ~InternalIndexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
             bool Destroy();
         private:
-        protected:
+            Context* m_Context = nullptr;
     };
 
 }  //  nkentseu

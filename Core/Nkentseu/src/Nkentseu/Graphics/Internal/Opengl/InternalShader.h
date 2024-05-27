@@ -37,6 +37,7 @@ namespace nkentseu {
         private:
             uint32 m_Programme = 0;
             Context* m_Context = nullptr;
+            BufferLayout m_BufferLayout;
 
             std::unordered_map<ShaderType::Code, std::string> m_ShaderFiles;
             std::vector<uint32> m_Modules;

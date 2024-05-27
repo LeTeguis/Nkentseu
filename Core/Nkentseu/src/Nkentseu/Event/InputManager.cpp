@@ -217,7 +217,7 @@ namespace nkentseu {
 
         ModifierState state(ctrl, alt, shift, super);
 
-        float32 elapse = m_Clock.Elapsed() * CalibrerAxis;
+        float32 elapse = m_Clock.Elapsed().seconds * CalibrerAxis;
 
         UPDATE_AXIS(m_MouseAxis, m_MouseDown, m_MouseUp, elapse);
         UPDATE_AXIS(m_KeyAxis, m_KeyDown, m_KeyUp, elapse);
@@ -238,7 +238,6 @@ namespace nkentseu {
         if (!s_initialize) {
             s_initialize = true;
             EventTrack.AddObserver(REGISTER_CLIENT_EVENT(InputManager::OnEvent));
-            m_Clock.Start();
             m_Clock.Reset();
 
             for (uint64 i = Keyboard::FirstCode; i <= Keyboard::LastCode; i++) {

@@ -20,16 +20,34 @@
 #include <Nkentseu/Event/InputManager.h>
 
 #include <Nkentseu/Graphics/Shader.h>
+#include <Nkentseu/Core/FPSTimer.h>
 
 
 namespace nkentseu {
+    struct Vertex {
+        Vector3f pos;
+        Vector3f color;
+    };
+
+    const std::vector<Vertex> vertices_struct = {
+        {{ 0.5f, 0.5f, 0.0f} , { 0.31, 0.31, 0.31 }}, // top right
+        {{ 0.5f, -0.5f, 0.0f} , { 0.31, 0.31, 0.31 }}, // bottom right
+        {{ -0.5f, -0.5f, 0.0f} , { 0.31, 0.31, 0.31 }}, // bottom left
+        {{ -0.5f, 0.5f, 0.0f} , { 0.31, 0.31, 0.31 }} // top left
+    };
+
+    const std::vector<Vertex> vertices_triangles_multi = {
+        {{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+    };
 
     std::vector<float32> vertices =
     {
-        //0.5f, 0.5f, 0.0f, // top right
-        0.5f, -0.5f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f // top left
+        //0.5f, 0.5f, 0.0f, 0.31, 0.31, 0.31, // top right
+        0.5f, -0.5f, 0.0f, 0.31, 0.31, 0.31, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.31, 0.31, 0.31, // bottom left
+        -0.5f, 0.5f, 0.0f, 0.31, 0.31, 0.31 // top left
     };
 
     std::vector<float32> verticesTriangle =
@@ -40,6 +58,7 @@ namespace nkentseu {
     };
 
     std::vector<uint32> indices = {
+        //0, 1, 2//, // premier triangle
         0, 1, 3, // premier triangle
         1, 2, 3 // second triangle
     };
@@ -102,6 +121,8 @@ namespace nkentseu {
             return;
         }
 
+        Context* context = m_Context == nullptr ? nullptr : m_Context.get();
+
         if (m_Renderer == nullptr || m_Context == nullptr){
             if (m_Context != nullptr) m_Context->Deinitialize();
             if (m_Renderer != nullptr) m_Renderer->Deinitialize();
@@ -109,25 +130,31 @@ namespace nkentseu {
             return;
         }
 
+        Timer timer;
+
         BufferLayout bufferLayout;
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", false));
-        //bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", false));
+        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", 0));
+        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", 1));
         bufferLayout.CalculateOffsetsAndStride();
 
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
         //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
         //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
-        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(m_Context == nullptr ? nullptr : m_Context.get(), shaderFiles);
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
+        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(context, shaderFiles, bufferLayout);
 
         shader->Create();
 
         vertexBuffer = Memory::Alloc<VertexBuffer>();
         if (vertexBuffer != nullptr) {
-            if (!vertexBuffer->Create(BufferDataUsage::StaticDraw, vertices, bufferLayout)) {
+            //if (!vertexBuffer->Create<Vertex>(context, BufferDataUsage::StaticDraw, vertices_struct, bufferLayout)) {
+            //if (!vertexBuffer->Create<Vertex>(context, BufferDataUsage::StaticDraw, vertices_triangles_multi, bufferLayout)) {
+            if (!vertexBuffer->Create(context, BufferDataUsage::StaticDraw, vertices_triangles_multi.data(), vertices_triangles_multi.size(), bufferLayout)) {
+            //if (!vertexBuffer->Create(context, BufferDataUsage::StaticDraw, vertices.data(), vertices.size()/bufferLayout.componentCount, bufferLayout)) {
+            //if (!vertexBuffer->Create(context, BufferDataUsage::StaticDraw, vertices, bufferLayout)) {
                 Log.Error("Cannot create vertex buffer");
             }
         }
@@ -137,7 +164,7 @@ namespace nkentseu {
 
         indexBuffer = Memory::Alloc<IndexBuffer>();
         if (indexBuffer != nullptr) {
-            if (!indexBuffer->Create(BufferDataUsage::StaticDraw, DrawIndexType::UnsignedInt, indices)) {
+            if (!indexBuffer->Create(context, BufferDataUsage::StaticDraw, DrawIndexType::UnsignedInt, indices)) {
                 Log.Error("Cannot create index buffer");
             }
         }
@@ -145,13 +172,13 @@ namespace nkentseu {
             Log.Error("Cannot allocate memory for index buffer");
         }
 
-        vertexArray = Memory::Alloc<VertexArray>();
+        vertexArray = Memory::Alloc<VertexArray>(context);
         if (vertexArray != nullptr) {
-            //vertexArray->SetVertexBuffer(vertexBuffer);
+            vertexArray->SetVertexBuffer(vertexBuffer);
             //vertexArray->SetIndexBuffer(indexBuffer);
 
-            //if (!vertexArray->Create(bufferLayout)) {
-            if (!vertexArray->Create(3)) {
+            if (!vertexArray->Create(bufferLayout)) {
+            //if (!vertexArray->Create(context, 3)) {
                 Log.Error("Cannot create vertex array");
             }
         }
@@ -159,20 +186,50 @@ namespace nkentseu {
             Log.Error("Cannot allocate memory for vertex array");
         }
 
+        int32 numFrames = -1;
+        float32 frameTime = 0;
+
+        FPSTimer fps;
+
         while (m_Running) {
+            fps.Update();
+            /*float64 delta = timer.Elapsed();
+            if (delta >= 1.0) {
+                int32 currency = (int32)(numFrames / delta);
+                int32 framerate = (1 > currency) ? 1 : currency;
+                frameTime = 1000.0 / framerate;
+                numFrames = -1;
+                timer.Reset();
+
+                std::string title = FORMATTER.Format("Running at {0} fps.", framerate);
+                m_Window->SetTitle(title);
+            }
+            ++numFrames;*/
+            std::string title = FORMATTER.Format("Running at {0} fps. {1}", fps.GetFps(), fps.GetFrameTime());
+            m_Window->SetTitle(title);
+
             EventTrack.Pick();
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
             //m_Renderer->Clear(Color::RandomRGB());
             
-            m_Renderer->Clear(Color::DefaultBackground());
+            timer.Reset();
+            m_Renderer->Clear(Color::Black());
+            //Log.Debug("Clear time {0} ms", timer.Reset().milliSeconds);
 
             m_Renderer->Prepare();
+            //Log.Debug("Prepare time {0} ms", timer.Reset().milliSeconds);
             m_Renderer->DrawMode(CullModeType::Back, m_PolygonMode);
+            //m_Renderer->DrawMode(CullModeType::FrontBack, PolygonModeType::Point);
+            //m_Renderer->DrawMode(CullModeType::FrontBack, m_PolygonMode);
+            //Log.Debug("DrawMode time {0} ms", timer.Reset().milliSeconds);
             m_Renderer->UseShader(shader);
+            //Log.Debug("UseShader time {0} ms", timer.Reset().milliSeconds);
             m_Renderer->Draw(vertexArray, DrawVertexType::Triangles);
+            //Log.Debug("Draw time {0} ms", timer.Reset().milliSeconds);
             m_Renderer->Finalize();
+            //Log.Debug("Finalize time {0} ms", timer.Reset().milliSeconds);
         }
 
         if (vertexArray != nullptr) {
@@ -224,6 +281,9 @@ namespace nkentseu {
                 m_PolygonMode = PolygonModeType::Line;
             }
             else if (m_PolygonMode == PolygonModeType::Line) {
+                m_PolygonMode = PolygonModeType::Point;
+            }
+            else if (m_PolygonMode == PolygonModeType::Point) {
                 m_PolygonMode = PolygonModeType::Fill;
             }
         }

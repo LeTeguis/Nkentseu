@@ -35,6 +35,7 @@ namespace nkentseu {
         m_ShaderFiles.clear();
         m_ShaderFiles = shaderFiles;
         m_Context = context;
+        m_BufferLayout = bufferLayout;
         // Create a deep copy of shaderFiles using the copy constructor
         // std::copy(m_ShaderFiles.begin(), m_ShaderFiles.end(), shaderFiles);
     }
@@ -100,8 +101,9 @@ namespace nkentseu {
 
     bool InternalShader::Bind() const {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr  || m_Programme != 0) {
-            glUseProgram(m_Programme);
-            glCheckError();
+            OpenGLResult result;
+            bool first = true;
+            glCheckError(first, result, glUseProgram(m_Programme), "cannot bind shader program");
             return true;
         }
         return false;
@@ -109,8 +111,9 @@ namespace nkentseu {
 
     bool InternalShader::Unbind() const {
         if (m_Context == nullptr || m_Context->GetInternal() == nullptr  || m_Programme != 0) {
-            glUseProgram(0);
-            glCheckError();
+            OpenGLResult result;
+            bool first = true;
+            glCheckError(first, result, glUseProgram(0), "cannot unbind shader program");
             return true;
         }
         return false;
@@ -123,23 +126,23 @@ namespace nkentseu {
             return 0;
         }
 
+        OpenGLResult result;
+        bool first = true;
+
         std::string shaderSource = LoadShader(filepath);
         // Log_nts.Debug("<{0}>", shaderSource);
         const char* shaderSrc = shaderSource.c_str();
 
-        uint32 shaderModule = glCreateShader(module_type);
-        glCheckError();
-        glShaderSource(shaderModule, 1, &shaderSrc, NULL);
-        glCheckError();
-        glCompileShader(shaderModule);
-        glCheckError();
+        glCheckError(first, result, uint32 shaderModule = glCreateShader(module_type), "cannot create shader");
+        glCheckError(first, result, glShaderSource(shaderModule, 1, &shaderSrc, NULL), "cannot set shader source");
+        glCheckError(first, result, glCompileShader(shaderModule), "cannot compile shader");
 
         int32 success;
-        glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success);
-        glCheckError();
+        glCheckError(first, result, glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success), "cannot get shader iv");
+
         if (!success) {
             char errorLog[1024];
-            glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
+            glCheckError(first, result, glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog), "cannot get shader info log");
             Log_nts.Error("Shader Module {0} compile error: {1}", ShaderType::ToString(code), std::string(errorLog));
             return 0;
         }
@@ -148,49 +151,44 @@ namespace nkentseu {
 
     uint32 InternalShader::MakeShader()
     {
-        uint32 shader = glCreateProgram();
-        glCheckError();
+        OpenGLResult result;
+        bool first = true;
 
-        /*
-            // This step is unnecessary if you use the location specifier in your shader
-            // e.g. layout (location = 0) in vec3 position;
-            glBindAttribLocation(program, 0, "position"); // The index passed into glBindAttribLocation is
-            glBindAttribLocation(program, 1, "texcoord"); // used by glEnableVertexAttribArray. "position"
-            glBindAttribLocation(program, 2, "normal");   // "texcoord" "normal" and "color" are the names of the
-            glBindAttribLocation(program, 3, "color");    // respective inputs in your fragment shader.
-        */
+        glCheckError(first, result, uint32 shader = glCreateProgram(), "cannot create shader program");
 
-        for (uint32 shaderModule : m_Modules) {
-            glAttachShader(shader, shaderModule);
-            glCheckError();
+        if (!m_BufferLayout.attributes.empty()) {
+            for (const auto& attribute : m_BufferLayout.attributes) {
+                glCheckError(first, result, glBindAttribLocation(shader, attribute.location, attribute.name.c_str()), "cannot bind attribut location");
+            }
+
         }
 
-        glLinkProgram(shader);
-        glCheckError();
+        for (uint32 shaderModule : m_Modules) {
+            glCheckError(first, result, glAttachShader(shader, shaderModule), "cannot attach shader");
+        }
+
+        glCheckError(first, result, glLinkProgram(shader), "cannot link program");
 
         int32 success;
-        glGetProgramiv(shader, GL_LINK_STATUS, &success);
-        glCheckError();
+        glCheckError(first, result, glGetProgramiv(shader, GL_LINK_STATUS, &success), "cannot get program iv");
 
         if (!success) {
             GLsizei logLength = 0;
             GLchar errorLog[1024];
             //glGetShaderInfoLog(shader, 1024, NULL, errorLog);
-            glGetProgramInfoLog(shader, 1024, &logLength, errorLog);
+            glCheckError(first, result, glGetProgramInfoLog(shader, 1024, &logLength, errorLog), "cannot get program info");
             Log_nts.Error("Shader Module compile error: {0}", std::string(errorLog));
             shader = 0;
 
             for (uint32 shaderModule : m_Modules) {
-                glDeleteShader(shaderModule);
-                glCheckError();
+                glCheckError(first, result, glDeleteShader(shaderModule), "cannot delete shader");
             }
 
             return 0;
         }
 
         for (uint32 shaderModule : m_Modules) {
-            glDeleteShader(shaderModule);
-            glCheckError();
+            glCheckError(first, result, glDeleteShader(shaderModule), "cannot delete shader");
         }
 
         m_Modules.clear();
