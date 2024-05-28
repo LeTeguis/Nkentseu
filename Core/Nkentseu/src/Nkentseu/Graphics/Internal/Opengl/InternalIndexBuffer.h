@@ -23,6 +23,7 @@ namespace nkentseu {
             ~InternalIndexBuffer();
 
             bool Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
+            bool Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
             bool Destroy();
 
             bool Bind();
@@ -33,8 +34,7 @@ namespace nkentseu {
         private:
             uint32 m_ElementBufferObject = 0;
             BufferDataUsage::Code m_BufferUsage = BufferDataUsage::StaticDraw;
-            DrawIndexType::Code m_IndexType = DrawIndexType::UnsignedInt;
-            std::vector<uint32> m_Indices;
+            DrawIndexType::Code m_IndexType = DrawIndexType::UInt32;
 
             uint32 m_Leng = 0;
     };

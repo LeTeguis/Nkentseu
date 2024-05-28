@@ -130,7 +130,20 @@ namespace nkentseu {
 
         glCheckError(first, result, glPolygonMode(GLConvert::CullModeType(CullModeType::FrontBack), GLConvert::PolygonModeType(contentMode)), "cannot change polygon mode");
 
-        glCullFace(GLConvert::CullModeType(mode));
+        static bool cullFaceIsEnable = false;
+
+        if (mode != CullModeType::NoCull) {
+            if (!cullFaceIsEnable) {
+                glEnable(GL_CULL_FACE);
+                cullFaceIsEnable = true;
+            }
+            glCullFace(GLConvert::CullModeType(mode));
+        } else{
+            if (cullFaceIsEnable) {
+                glDisable(GL_CULL_FACE);
+                cullFaceIsEnable = false;
+            }
+        }
         //glFrontFace(GL_CCW); // GL_CW
         return result.success;
     }
@@ -160,7 +173,7 @@ namespace nkentseu {
         return false;
     }
 
-    bool InternalRenderer::ViewMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
+    bool InternalRenderer::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
     {
         return false;
     }
@@ -168,9 +181,6 @@ namespace nkentseu {
     bool InternalRenderer::Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex)
     {
         if (!CanRender() || m_CurrentShader == nullptr || drawVertex == DrawVertexType::NotDefine) {
-            return false;
-        }
-        if (m_CurrentShader->GetInternal() == nullptr || !m_CurrentShader->GetInternal()->Bind()) {
             return false;
         }
 

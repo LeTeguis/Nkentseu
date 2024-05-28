@@ -49,6 +49,7 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanSurface {
         bool Create(Window* window, VulkanInstance* instance);
+        bool Destroy(VulkanInstance* instance);
 
         VkSurfaceKHR surface = nullptr;
     };
@@ -81,7 +82,8 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanGpu {
-        bool GetDevice(VulkanInstance* instance, VulkanSurface* surface, VulkanExtension* extension);
+        bool Create(VulkanInstance* instance, VulkanSurface* surface, VulkanExtension* extension);
+        bool Destroy();
         bool GetLogicalDevice(VulkanSurface* surface, VulkanExtension* extension);
         bool IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, VulkanExtension* extension);
 
@@ -112,12 +114,14 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanCommandPool {
         bool Create(VulkanGpu* gpu);
+        bool Destroy(VulkanGpu* gpu);
 
         VkCommandPool commandPool = nullptr;
     };
 
     struct NKENTSEU_API VulkanSemaphore {
         bool Create(VulkanGpu* gpu);
+        bool Destroy(VulkanGpu* gpu);
 
         VkSemaphore submitSemaphore = nullptr;
         VkSemaphore aquireSemaphore = nullptr;
@@ -163,6 +167,7 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanRenderPass {
         bool Create(VulkanGpu* gpu, VulkanSwapchain* swapchain);
+        bool Destroy(VulkanGpu* gpu);
 
         VkRenderPass renderPass = nullptr;
     };
@@ -177,6 +182,7 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanPipelineLayout {
         bool Create(VulkanGpu* gpu);
+        bool Destroy(VulkanGpu* gpu);
 
         VkPipelineLayout pipelineLayout = nullptr;
     };

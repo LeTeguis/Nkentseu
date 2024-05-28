@@ -57,7 +57,8 @@ namespace nkentseu {
     }
 
     bool InternalVertexBuffer::Destroy() {
-        return false;
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr) return false;
+        return m_VertexBufferObject.Destroy(&m_Context->GetInternal()->m_Gpu);
     }
 
 }  //  nkentseu

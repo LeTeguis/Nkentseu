@@ -78,7 +78,6 @@ namespace nkentseu {
             VulkanSemaphore m_Semaphore;
             VulkanRenderPass m_RenderPass;
             VulkanFramebuffer m_Framebuffer;
-            VulkanPipelineLayout m_PipelineLayout;
 
             bool m_IsInitialize = false;
             

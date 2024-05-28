@@ -75,7 +75,7 @@ namespace nkentseu {
         if (mode == CullModeType::Front) return GL_FRONT;
         if (mode == CullModeType::Back) return GL_BACK;
         if (mode == CullModeType::FrontBack) return GL_FRONT_AND_BACK;
-        return 0;
+        return GL_FRONT_AND_BACK;
     }
 
     uint32 GLConvert::PolygonModeType(PolygonModeType::Code contentMode) {
@@ -97,7 +97,10 @@ namespace nkentseu {
     }
     uint32 GLConvert::IndexType(DrawIndexType::Code drawIndex)
     {
-        if (drawIndex == DrawIndexType::UnsignedInt) return GL_UNSIGNED_INT;
+        if (drawIndex == DrawIndexType::UInt8) return GL_UNSIGNED_INT;
+        if (drawIndex == DrawIndexType::UInt16) return GL_UNSIGNED_INT;
+        if (drawIndex == DrawIndexType::UInt32) return GL_UNSIGNED_INT;
+        if (drawIndex == DrawIndexType::UInt64) return GL_UNSIGNED_INT;
         return 0;
     }
     uint32 GLConvert::GetModuleType(ShaderType::Code code)

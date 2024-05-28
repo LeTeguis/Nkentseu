@@ -55,10 +55,38 @@ namespace nkentseu {
         }
 
         m_Leng = indices.size();
-        m_Indices.clear();
-        for (uint32 index = 0; index < indices.size(); index++) {
-            m_Indices.push_back(indices[index]);
+
+        m_IndexType = indexType;
+        return Unbind();
+    }
+
+    bool InternalIndexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng, const BufferLayout& bufferLayout)
+    {
+        if (m_ElementBufferObject != 0) {
+            return false;
         }
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glGenBuffers(1, &m_ElementBufferObject), "cannot gen buffer for index buffer");
+        if (!result.success || m_ElementBufferObject == 0) {
+            return false;
+        }
+
+        if (!Bind()) {
+            return false;
+        }
+
+        m_BufferUsage = bufferUsage;
+
+        glCheckError(first, result, glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * leng, indices, GLConvert::UsageType(m_BufferUsage)), "cannot set buffer data for index buffer");
+
+        if (!result.success) {
+            return false;
+        }
+
+        m_Leng = leng;
 
         m_IndexType = indexType;
         return Unbind();

@@ -159,7 +159,6 @@ namespace nkentseu {
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback(glDebugOutput, nullptr);
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-            glEnable(GL_CULL_FACE);
             return true;
         }
         return false;

@@ -225,6 +225,13 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	bool VulkanSurface::Destroy(VulkanInstance* instance)
+	{
+		if (instance == nullptr) return false;
+		vkCheckErrorVoid(vkDestroySurfaceKHR(instance->instance, surface, nullptr));
+		return false;
+	}
+
 	// VulkanQueueFamilyIndices
 
 	bool VulkanQueueFamilyIndices::FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
@@ -292,7 +299,7 @@ namespace nkentseu {
 	}
 
 	// Vulkan Gpu
-	bool VulkanGpu::GetDevice(VulkanInstance* instance, VulkanSurface* surface, VulkanExtension* extension)
+	bool VulkanGpu::Create(VulkanInstance* instance, VulkanSurface* surface, VulkanExtension* extension)
 	{
 		if (instance == nullptr || surface == nullptr) return false;
 		VulkanResult result;
@@ -323,7 +330,7 @@ namespace nkentseu {
 				return false;
 			}
 
-			vkGetPhysicalDeviceProperties(gpu, &properties);
+			vkCheckErrorVoid(vkGetPhysicalDeviceProperties(gpu, &properties));
 			result.success = GetLogicalDevice(surface, extension);
 
 			if (result.success) {
@@ -338,6 +345,12 @@ namespace nkentseu {
 		}
 
 		return result.success;
+	}
+
+	bool VulkanGpu::Destroy()
+	{
+		vkCheckErrorVoid(vkDestroyDevice(device, nullptr));
+		return false;
 	}
 
 	bool VulkanGpu::GetLogicalDevice(VulkanSurface* surface, VulkanExtension* extension)
@@ -637,6 +650,13 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	bool VulkanCommandPool::Destroy(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr) return false;
+		vkCheckErrorVoid(vkDestroyCommandPool(gpu->device, commandPool, nullptr));
+		return false;
+	}
+
 	// VulkanSemaphore
 	bool VulkanSemaphore::Create(VulkanGpu* gpu) {
 		if (gpu == nullptr) return false;
@@ -655,6 +675,14 @@ namespace nkentseu {
 		}
 
 		return result.success;
+	}
+
+	bool VulkanSemaphore::Destroy(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr) return false;
+		vkDestroySemaphore(gpu->device, submitSemaphore, nullptr);
+		vkDestroySemaphore(gpu->device, aquireSemaphore, nullptr);
+		return false;
 	}
 
 	// VulkanPipelineConfig
@@ -826,6 +854,13 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	bool VulkanRenderPass::Destroy(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr) return false;
+		vkCheckErrorVoid(vkDestroyRenderPass(gpu->device, renderPass, nullptr));
+		return true;
+	}
+
 	// VulkanFramebuffer
 	bool VulkanFramebuffer::Create(VulkanGpu* gpu, const Vector2u& size, VulkanRenderPass* renderPass, VulkanSwapchain* swapchain)
 	{
@@ -887,6 +922,13 @@ namespace nkentseu {
 		}
 
 		return result.success;
+	}
+
+	bool VulkanPipelineLayout::Destroy(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr) return false;
+		vkCheckErrorVoid(vkDestroyPipelineLayout(gpu->device, pipelineLayout, nullptr));
+		return true;
 	}
 
 	// vulkan buffer 

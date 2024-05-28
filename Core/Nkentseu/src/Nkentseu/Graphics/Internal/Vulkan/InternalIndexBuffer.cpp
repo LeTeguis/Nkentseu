@@ -41,7 +41,8 @@ namespace nkentseu {
     }
 
     bool InternalIndexBuffer::Destroy() {
-        return false;
+        if (m_Context == nullptr || m_Context->GetInternal() == nullptr) return false;
+        return m_IndexBufferObject.Destroy(&m_Context->GetInternal()->m_Gpu);
     }
 
     bool InternalIndexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng, const BufferLayout& bufferLayout)

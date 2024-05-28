@@ -54,13 +54,13 @@ namespace nkentseu {
         VulkanResult result;
         bool first = true;
 
-        if (context->m_PipelineLayout.pipelineLayout == VK_NULL_HANDLE) {
-            Log_nts.Debug("Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
+        if (context->m_RenderPass.renderPass == VK_NULL_HANDLE) {
+            Log_nts.Debug("Cannot create graphics pipeline: no renderPass provided in configInfo");
             return false;
         }
 
-        if (context->m_RenderPass.renderPass == VK_NULL_HANDLE) {
-            Log_nts.Debug("Cannot create graphics pipeline: no renderPass provided in configInfo");
+        if (!m_PipelineLayout.Create(&context->m_Gpu)) {
+            Log_nts.Debug("Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
             return false;
         }
 
@@ -211,7 +211,7 @@ namespace nkentseu {
 
         VkGraphicsPipelineCreateInfo pipelineInfo = {};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.layout = context->m_PipelineLayout.pipelineLayout;
+        pipelineInfo.layout = m_PipelineLayout.pipelineLayout;
         pipelineInfo.renderPass = context->m_RenderPass.renderPass;
         pipelineInfo.pVertexInputState = vertexInputStates.data();
         pipelineInfo.pColorBlendState = colorBlendStates.data();
@@ -242,6 +242,8 @@ namespace nkentseu {
         }
 
         vkCheckErrorVoid(vkDestroyPipeline(context->m_Gpu.device, m_GraphicsPipeline, nullptr));
+
+        m_PipelineLayout.Destroy(&context->m_Gpu);
 
         context->RemoveRecreateCallback(RECREATE_CALLBACK_FN(InternalShader::Recreate));
         return false;

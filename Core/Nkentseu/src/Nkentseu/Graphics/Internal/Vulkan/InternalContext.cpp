@@ -40,12 +40,12 @@ namespace nkentseu {
 
         if (!m_Instance.Create(m_Window, m_ContextProperties, &m_Extension)) return false;
         if (!m_Surface.Create(m_Window, &m_Instance)) return false;
-        if (!m_Gpu.GetDevice(&m_Instance, &m_Surface, &m_Extension)) return false;
+        if (!m_Gpu.Create(&m_Instance, &m_Surface, &m_Extension)) return false;
         if (!m_Swapchain.Create(&m_Gpu, &m_Surface, m_WindowSize, m_ContextProperties)) return false;
         if (!m_CommandPool.Create(&m_Gpu)) return false;
         if (!m_Semaphore.Create(&m_Gpu)) return false;
         if (!m_RenderPass.Create(&m_Gpu, &m_Swapchain)) return false;
-        if (!m_PipelineLayout.Create(&m_Gpu)) return false;
+        // if (!m_PipelineLayout.Create(&m_Gpu)) return false;
 
         if (!m_Framebuffer.Create(&m_Gpu, m_WindowSize, &m_RenderPass, &m_Swapchain)) return false;
 
@@ -81,7 +81,15 @@ namespace nkentseu {
 
     bool InternalContext::Deinitialize()
     {
-        // m_Instance.Destroy();
+        m_Framebuffer.Destroy(&m_Gpu);
+        //m_PipelineLayout.Destroy(&m_Gpu);
+        m_RenderPass.Destroy(&m_Gpu);
+        m_Semaphore.Destroy(&m_Gpu);
+        m_CommandPool.Destroy(&m_Gpu);
+        m_Swapchain.Destroy(&m_Gpu);
+        m_Gpu.Destroy();
+        m_Surface.Destroy(&m_Instance);
+        m_Instance.Destroy();
         return false;
     }
 

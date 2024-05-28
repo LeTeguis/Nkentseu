@@ -75,10 +75,10 @@ namespace nkentseu {
     };
 
     const std::vector<Vertex> vertices_struct = {
-        {{ 0.5f, 0.5f, 0.0f} , { 0.31, 0.0, 0.31 }}, // top right
-        {{ 0.5f, -0.5f, 0.0f} , { 0.0, 0.31, 0.31 }}, // bottom right
-        {{ -0.5f, -0.5f, 0.0f} , { 0.31, 0.31, 0.0 }}, // bottom left
-        {{ -0.5f, 0.5f, 0.0f} , { 0.31, 0.0, 0.0 }} // top left
+        {{ 0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.31f }}, // top right
+        {{ 0.5f, -0.5f, 0.0f} , { 0.0f, 0.31f, 0.31f }}, // bottom right
+        {{ -0.5f, -0.5f, 0.0f} , { 0.31f, 0.31f, 0.0f }}, // bottom left
+        {{ -0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.0f }} // top left
     };
 
     const std::vector<Vertex> vertices_triangles_multi = {
@@ -89,10 +89,10 @@ namespace nkentseu {
 
     std::vector<float32> vertices =
     {
-        //0.5f, 0.5f, 0.0f, 0.31, 0.31, 0.31, // top right
-        0.5f, -0.5f, 0.0f, 0.31, 0.31, 0.31, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.31, 0.31, 0.31, // bottom left
-        -0.5f, 0.5f, 0.0f, 0.31, 0.31, 0.31 // top left
+        //0.5f, 0.5f, 0.0f, 0.31f, 0.31f, 0.31f, // top right
+        0.5f, -0.5f, 0.0f, 0.31f, 0.31f, 0.31f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.31f, 0.31f, 0.31f, // bottom left
+        -0.5f, 0.5f, 0.0f, 0.31f, 0.31f, 0.31f // top left
     };
 
     std::vector<float32> verticesTriangle =
@@ -284,6 +284,7 @@ namespace nkentseu {
             vertexBuffer->Destroy();
         }
 
+        shader->Destroy();
         m_Renderer->Deinitialize();
         m_Context->Deinitialize();
         m_Window->Close();

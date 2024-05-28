@@ -38,7 +38,7 @@ namespace nkentseu {
             Context* m_Context = nullptr;
             VkPipeline m_GraphicsPipeline = {};
             VulkanPipelineConfig m_PipelineConfig;
-            // VulkanPipelineLayout m_PipelineLayout;
+            VulkanPipelineLayout m_PipelineLayout;
             VkRect2D m_Scissor = {};
             VkViewport m_ViewPort = {};
             BufferLayout m_BufferLayout;
