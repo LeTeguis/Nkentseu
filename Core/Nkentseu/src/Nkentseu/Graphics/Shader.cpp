@@ -8,83 +8,29 @@
 
 #include <Logger/Formatter.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-#include "Internal/Opengl/InternalShader.h"
-#elif defined(NKENTSEU_GRAPHICS_API_VULKAN)
-#include "Internal/Vulkan/InternalShader.h"
-#endif
 #include <Nkentseu/Core/NkentseuLogger.h>
+#include "Internal/Vulkan/VulkanShader.h"
+#include "Internal/Opengl/OpenglShader.h"
 
 #include "Context.h"
 
 namespace nkentseu {
-    
-    // Constructor
-    Shader::Shader(Context *context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout) : m_InternalShader(nullptr) {
-        // Ajoutez votre code de constructeur ici
-        m_InternalShader = Memory::Alloc<InternalShader>(context, shaderFiles, bufferLayout);
+#define NKENTSEU_CREATE_SHADER(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+													auto data = Memory::Alloc<class_>(context);	\
+													if (data != nullptr && data->LoadFromFile(shaderFiles, shaderLayout)) {	\
+														return data;	\
+													}	\
+													Memory::Reset(data);	\
+												}
 
-        if (m_InternalShader == nullptr) {
-            Log_nts.Error("unload shader");
-        }
-    }
-
-    // Destructor
-    Shader::~Shader() {
-        // Ajoutez votre code de destructeur ici
-        if (m_InternalShader == nullptr) return;
-
-        Memory::Reset(m_InternalShader);
-    }
-
-    bool Shader::Create()
+    Memory::Shared<Shader> Shader::Create(Memory::Shared<Context> context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout)
     {
-        if (m_InternalShader == nullptr) return false;
+		if (context == nullptr) {
+			return nullptr;
+		}
 
-        bool isCreate = m_InternalShader->Create();
-
-        if (!isCreate) {
-            Log_nts.Error("Cannot create shader");
-            return false;
-        }
-
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-        if (!m_InternalShader->Compile()) {
-            Log_nts.Error("Cannot compile opengl shader");
-            return false;
-        }
-#endif
-
-        return isCreate;
+		NKENTSEU_CREATE_SHADER(GraphicsApiType::VulkanApi, VulkanShader);
+		NKENTSEU_CREATE_SHADER(GraphicsApiType::OpenglApi, OpenglShader);
+		return nullptr;
     }
-
-    bool Shader::Destroy()
-    {
-        if (m_InternalShader == nullptr) return false;
-
-        return m_InternalShader->Destroy();
-    }
-
-    void Shader::SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout)
-    {
-        if (m_InternalShader == nullptr) return;
-
-        m_InternalShader->SetShaderFiles(context, shaderFiles, bufferLayout);
-    }
-
-    InternalShader* Shader::GetInternal()
-    {
-        if (m_InternalShader == nullptr) return nullptr;
-
-        return m_InternalShader.get();
-    }
-
-    std::string Shader::ToString() const {
-        return FORMATTER.Format(""); // mettez votre formatteur To string entre les guillemets
-    }
-
-    std::string ToString(const Shader& shader) {
-        return shader.ToString();
-    }
-
 }  //  nkentseu

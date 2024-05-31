@@ -60,6 +60,24 @@ namespace nkentseu {
 				return false;
 			}
 
+			template <typename child, typename parent>
+			static Shared<child> SharedCast(Shared<parent> data) {
+				if (data != nullptr) {
+					return std::dynamic_pointer_cast<child>(data);
+				}
+				return nullptr;
+			}
+
+			template <typename child, typename parent>
+			static Unique<child> UniqueCast(Unique<parent> data) {
+				if (data != nullptr) {
+					if (dynamic_cast<child*>(data.get()) != nullptr) {
+						static_cast<std::unique_ptr<child>>(std::move(data));
+					}
+				}
+				return nullptr;
+			}
+
         private:
     };
 } // namespace nkentseu

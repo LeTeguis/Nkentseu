@@ -155,14 +155,17 @@ namespace nkentseu {
 	bool VulkanInstance::Destroy()
 	{
 		bool success = false;
-		auto vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-		if (debugMessenger != nullptr && vkDestroyDebugUtilsMessengerEXT != nullptr && instance != nullptr) {
-			vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-			success = true;
-		}
 
 		if (instance != nullptr) {
+			auto vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+			if (debugMessenger != nullptr && vkDestroyDebugUtilsMessengerEXT != nullptr && instance != nullptr) {
+				vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+				debugMessenger = VK_NULL_HANDLE;
+				success = true;
+			}
+
 			vkDestroyInstance(instance, nullptr);
+			instance = VK_NULL_HANDLE;
 			success = true && success;
 		}
 		return success;
@@ -175,10 +178,9 @@ namespace nkentseu {
 		if (window->GetInternal() == nullptr || window->GetInternal()->GetWindowDisplay() == nullptr) return false;
 		VulkanResult result;
 		bool first = true;
-
-#ifdef NKENTSEU_PLATFORM_WINDOWS
 		WindowInternal* internal = window->GetInternal();
 
+#ifdef NKENTSEU_PLATFORM_WINDOWS
 		VkWin32SurfaceCreateInfoKHR surfaceInfo = {};
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.pNext = nullptr;
@@ -192,8 +194,6 @@ namespace nkentseu {
 			Log_nts.Info("Create vulkan surface is good for windows");
 		}
 #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
-		WindowInternal* internal = window->GetInternal();
-
 		VkXlibSurfaceCreateInfoKHR surfaceInfo = {};
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.pNext = nullptr;
@@ -207,8 +207,6 @@ namespace nkentseu {
 			Log_nts.Info("Create vulkan surface is good for linux xlib");
 		}
 #elif defined(NKENTSEU_LINUX_WIN_API_XCB)
-		WindowInternal* internal = window->GetInternal();
-
 		VkXcbSurfaceCreateInfoKHR surfaceInfo = {};
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.pNext = nullptr;
@@ -227,8 +225,9 @@ namespace nkentseu {
 
 	bool VulkanSurface::Destroy(VulkanInstance* instance)
 	{
-		if (instance == nullptr) return false;
+		if (instance == nullptr || surface == nullptr) return false;
 		vkCheckErrorVoid(vkDestroySurfaceKHR(instance->instance, surface, nullptr));
+		surface = VK_NULL_HANDLE;
 		return false;
 	}
 
@@ -349,8 +348,10 @@ namespace nkentseu {
 
 	bool VulkanGpu::Destroy()
 	{
+		if (device == nullptr) return false;
 		vkCheckErrorVoid(vkDestroyDevice(device, nullptr));
-		return false;
+		device = VK_NULL_HANDLE;
+		return true;
 	}
 
 	bool VulkanGpu::GetLogicalDevice(VulkanSurface* surface, VulkanExtension* extension)
@@ -557,13 +558,22 @@ namespace nkentseu {
 
 	bool VulkanSwapchain::Destroy(VulkanGpu* gpu)
 	{
+		if (gpu == nullptr || gpu->device == nullptr) return false;
+
 		for (usize i = 0; i < imageView.size(); i++) {
-			vkCheckErrorVoid(vkDestroyImageView(gpu->device, imageView[i], nullptr));
+			if (imageView[i] != nullptr) {
+				vkCheckErrorVoid(vkDestroyImageView(gpu->device, imageView[i], nullptr));
+				imageView[i] = VK_NULL_HANDLE;
+			}
 		}
+
 		imageView.clear();
 		swapchainImages.clear();
 
-		vkCheckErrorVoid(vkDestroySwapchainKHR(gpu->device, swapchain, nullptr));
+		if (swapchain != nullptr) {
+			vkCheckErrorVoid(vkDestroySwapchainKHR(gpu->device, swapchain, nullptr));
+			swapchain = VK_NULL_HANDLE;
+		}
 		swapchain = nullptr;
 		return true;
 	}
@@ -652,8 +662,9 @@ namespace nkentseu {
 
 	bool VulkanCommandPool::Destroy(VulkanGpu* gpu)
 	{
-		if (gpu == nullptr) return false;
+		if (gpu == nullptr || gpu->device == nullptr || commandPool == nullptr) return false;
 		vkCheckErrorVoid(vkDestroyCommandPool(gpu->device, commandPool, nullptr));
+		commandPool = VK_NULL_HANDLE;
 		return false;
 	}
 
@@ -679,9 +690,17 @@ namespace nkentseu {
 
 	bool VulkanSemaphore::Destroy(VulkanGpu* gpu)
 	{
-		if (gpu == nullptr) return false;
-		vkDestroySemaphore(gpu->device, submitSemaphore, nullptr);
-		vkDestroySemaphore(gpu->device, aquireSemaphore, nullptr);
+		if (gpu == nullptr || gpu->device == nullptr) return false;
+
+		if (submitSemaphore != nullptr) {
+			vkDestroySemaphore(gpu->device, submitSemaphore, nullptr);
+			submitSemaphore = VK_NULL_HANDLE;
+		}
+
+		if (aquireSemaphore != nullptr) {
+			vkDestroySemaphore(gpu->device, aquireSemaphore, nullptr);
+			aquireSemaphore = VK_NULL_HANDLE;
+		}
 		return false;
 	}
 
@@ -856,8 +875,9 @@ namespace nkentseu {
 
 	bool VulkanRenderPass::Destroy(VulkanGpu* gpu)
 	{
-		if (gpu == nullptr) return false;
+		if (gpu == nullptr || gpu->device == nullptr || renderPass == nullptr) return false;
 		vkCheckErrorVoid(vkDestroyRenderPass(gpu->device, renderPass, nullptr));
+		renderPass = VK_NULL_HANDLE;
 		return true;
 	}
 
@@ -896,8 +916,11 @@ namespace nkentseu {
 
 	bool VulkanFramebuffer::Destroy(VulkanGpu* gpu)
 	{
+		if (gpu == nullptr || gpu->device == nullptr) return false;
+
 		for (usize i = 0; i < framebuffer.size(); i++) {
 			vkCheckErrorVoid(vkDestroyFramebuffer(gpu->device, framebuffer[i], nullptr));
+			framebuffer[i] = VK_NULL_HANDLE;
 		}
 
 		framebuffer.clear();
@@ -906,14 +929,30 @@ namespace nkentseu {
 	}
 
 	// VulkanPipelineLayout
-	bool VulkanPipelineLayout::Create(VulkanGpu* gpu)
+	bool VulkanPipelineLayout::Create(VulkanGpu* gpu, VulkanSwapchain* swapchain)
 	{
 		if (gpu == nullptr) return false;
 		VulkanResult result;
 		bool first = true;
 
+		if (!CreateDescriptorSetLayout(gpu, swapchain)) {
+			return false;
+		}
+
+		if (createPool) {
+			if (!CreateDescriptorPool(gpu, swapchain)) {
+				return false;
+			}
+
+			if (!CreateDescriptorSets(gpu, swapchain)) {
+				return false;
+			}
+		}
+
 		VkPipelineLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		layoutInfo.setLayoutCount = 1;
+		layoutInfo.pSetLayouts = &descriptorSetLayout;
 
 		vkCheckError(first, result, vkCreatePipelineLayout(gpu->device, &layoutInfo, 0, &pipelineLayout), "cannot create pipeline layout");
 
@@ -926,72 +965,147 @@ namespace nkentseu {
 
 	bool VulkanPipelineLayout::Destroy(VulkanGpu* gpu)
 	{
-		if (gpu == nullptr) return false;
-		vkCheckErrorVoid(vkDestroyPipelineLayout(gpu->device, pipelineLayout, nullptr));
-		return true;
-	}
+		if (gpu == nullptr || gpu->device == nullptr) return false;
 
-	// vulkan buffer 
-	// usage for vertex is VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
-	// sharing for vertex is VK_SHARING_MODE_EXCLUSIVE
-	bool VulkanBuffer::Create(VulkanGpu* gpu, VulkanCommandPool* commandPool, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode)
-	{
-		if (gpu == nullptr) {
-			return false;
+		if (createPool) {
+			if (descriptorSets.size() > 0) {
+				VulkanResult result;
+				bool first = true;
+
+				vkCheckError(first, result, vkFreeDescriptorSets(gpu->device, descriptorPool, descriptorSets.size(), descriptorSets.data()), "cannot free descriptor sets");
+				descriptorSets.clear();
+			}
+
+			if (descriptorPool != VK_NULL_HANDLE) {
+				vkCheckErrorVoid(vkDestroyDescriptorPool(gpu->device, descriptorPool, nullptr));
+				descriptorPool = VK_NULL_HANDLE;
+			}
 		}
 
-		VkDeviceSize bufferSize = stride * leng;
+		if (descriptorSetLayout != VK_NULL_HANDLE) {
+			vkCheckErrorVoid(vkDestroyDescriptorSetLayout(gpu->device, descriptorSetLayout, nullptr));
+			descriptorSetLayout = VK_NULL_HANDLE;
+		}
+
+		if (pipelineLayout != VK_NULL_HANDLE) {
+			vkCheckErrorVoid(vkDestroyPipelineLayout(gpu->device, pipelineLayout, nullptr));
+			pipelineLayout = VK_NULL_HANDLE;
+		}
+		return true;
+	}
+	bool VulkanPipelineLayout::CreateDescriptorSetLayout(VulkanGpu* gpu, VulkanSwapchain* swapchain)
+	{
+		if (gpu == nullptr || swapchain == nullptr) return false;
 
 		VulkanResult result;
 		bool first = true;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+		VkDescriptorSetLayoutCreateInfo layoutDescriptorInfo{};
+		layoutDescriptorInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 
-		if (!CreateBuffer(gpu, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, sharingMode, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory)) {
-			return false;
+		if (layoutBindings.size() > 0) {
+			layoutDescriptorInfo.bindingCount = layoutBindings.size();
+			layoutDescriptorInfo.pBindings = layoutBindings.data();
 		}
-		
 
-		void* dataInternal;
-		vkCheckError(first, result, vkMapMemory(gpu->device, stagingBufferMemory, 0, bufferSize, 0, &dataInternal), "cannot map buffer memory");
+		vkCheckError(first, result, vkCreateDescriptorSetLayout(gpu->device, &layoutDescriptorInfo, nullptr, &descriptorSetLayout), "cannot create descriptor set layout");
+
+		return result.success;
+	}
+
+	bool VulkanPipelineLayout::CreateDescriptorPool(VulkanGpu* gpu, VulkanSwapchain* swapchain)
+	{
+		if (gpu == nullptr || swapchain == nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		VkDescriptorPoolSize poolSize{};
+		poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		poolSize.descriptorCount = static_cast<uint32_t>(swapchain->swapchainImages.size());
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		poolInfo.poolSizeCount = 1;
+		poolInfo.pPoolSizes = &poolSize;
+		poolInfo.maxSets = static_cast<uint32_t>(swapchain->swapchainImages.size());
+
+		vkCheckError(first, result, vkCreateDescriptorPool(gpu->device, &poolInfo, nullptr, &descriptorPool), "cannot create descriptor pool");
+
+		return result.success;
+	}
+
+	bool VulkanPipelineLayout::CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain)
+	{
+		if (gpu == nullptr || swapchain == nullptr || descriptorPool == nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		std::vector<VkDescriptorSetLayout> layouts(swapchain->swapchainImages.size(), descriptorSetLayout);
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.descriptorSetCount = static_cast<uint32>(swapchain->swapchainImages.size());
+		allocInfo.pSetLayouts = layouts.data();
+
+		descriptorSets.resize(swapchain->swapchainImages.size());
+		vkCheckError(first, result, vkAllocateDescriptorSets(gpu->device, &allocInfo, descriptorSets.data()), "cannot create descriptor sets");
+
+		return result.success;
+	}
+
+	// VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+	void VulkanPipelineLayout::AddDescriptorSetLayoutBinding(uint32 index, const UniformBufferAttribut& attributs, VkDescriptorType type, VkShaderStageFlags shaderStage)
+	{
+		if (index < layoutBindings.size()) {
+			// ubo
+			layoutBindings[index].binding = attributs.binding;
+			layoutBindings[index].descriptorType = type;
+			layoutBindings[index].descriptorCount = 1;
+			layoutBindings[index].stageFlags = shaderStage;// VK_SHADER_STAGE_VERTEX_BIT;
+			layoutBindings[index].pImmutableSamplers = nullptr; // Optionnel
+		}
+	}
+
+	bool VulkanPipelineLayout::IsValid()
+	{
+		return pipelineLayout != VK_NULL_HANDLE;
+	}
+
+	bool VulkanBuffer::WriteToBuffer(VulkanGpu* gpu, const void* data, usize size, VkDeviceSize offset, VkMemoryMapFlags flag)
+	{
+		if (gpu == nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		vkCheckError(first, result, vkMapMemory(gpu->device, bufferMemory, offset, size, flag, (void**) & mappedData), "cannot map buffer memory");
 
 		if (!result.success) {
 			return false;
 		}
+		memcpy(mappedData, data, size);
 
-		memcpy(dataInternal, data, (usize)bufferSize);
-		vkCheckErrorVoid(vkUnmapMemory(gpu->device, stagingBufferMemory));
-
-		if (VulkanStaticDebugInfo::success && !CreateBuffer(gpu, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, sharingMode, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory)) {
-			return false;
-		}
-
-		if (!CopyBuffer(gpu, commandPool, stagingBuffer, buffer, bufferSize)) {
-			return false;
-		}
-
-		vkCheckErrorVoid(vkDestroyBuffer(gpu->device, stagingBuffer, nullptr));
-		vkCheckErrorVoid(vkFreeMemory(gpu->device, stagingBufferMemory, nullptr));
-
-		if (VulkanStaticDebugInfo::success) {
-
-			Log_nts.Info("Create buffer is good");
-		}
-
-		return VulkanStaticDebugInfo::success;
+		vkCheckErrorVoid(vkUnmapMemory(gpu->device, bufferMemory));
+		return result.success;
 	}
 
 	bool VulkanBuffer::Destroy(VulkanGpu* gpu)
 	{
+		if (gpu == nullptr || gpu->device == nullptr) return false;
+
 		if (buffer != nullptr) {
 			vkCheckErrorVoid(vkDestroyBuffer(gpu->device, buffer, nullptr));
+			buffer = VK_NULL_HANDLE;
 		}
 
 		bool success = VulkanStaticDebugInfo::success;
 
 		if (bufferMemory != nullptr) {
 			vkCheckErrorVoid(vkFreeMemory(gpu->device, bufferMemory, nullptr));
+			bufferMemory = VK_NULL_HANDLE;
 		}
 
 		return success && VulkanStaticDebugInfo::success;
@@ -1109,6 +1223,39 @@ namespace nkentseu {
 		}
 		return result.success;
 	}
+
+	bool VulkanCommandBuffer::Create(VulkanGpu* gpu, VulkanSwapchain* swapchain, VulkanCommandPool* commandPool)
+	{
+		if (gpu == nullptr || swapchain == nullptr || commandPool == nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		commandBuffers.resize(swapchain->swapchainImages.size());
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = commandPool->commandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+
+		vkCheckError(first, result, vkAllocateCommandBuffers(gpu->device, &allocInfo, commandBuffers.data()), "cannot allocate command buffer");
+		return true;
+	}
+
+	bool VulkanCommandBuffer::Destroy(VulkanGpu* gpu, VulkanCommandPool* commandPool)
+	{
+		if (gpu == nullptr || gpu->device == nullptr || commandBuffers.size() == 0) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		vkCheckError(first, result, vkDeviceWaitIdle(gpu->device), "cannot wait device idle");
+		vkCheckErrorVoid(vkFreeCommandBuffers(gpu->device, commandPool->commandPool, 1, commandBuffers.data()));
+		commandBuffers.clear();
+		return true;
+	}
+
 }  //  nkentseu
 
 #endif

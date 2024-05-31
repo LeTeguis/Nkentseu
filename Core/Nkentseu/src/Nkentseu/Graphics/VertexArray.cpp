@@ -7,114 +7,51 @@
 #include "VertexArray.h"
 #include <Logger/Formatter.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-#include "Internal/Opengl/InternalVertexArray.h"
-#elif defined(NKENTSEU_GRAPHICS_API_VULKAN)
-#include "Internal/Vulkan/InternalVertexArray.h"
-#endif
+#include "Internal/Opengl/OpenglVertexArray.h"
+#include "Internal/Vulkan/VulkanVertexArray.h"
+
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "Context.h"
 
 namespace nkentseu {
-    
-    // Constructor
-    VertexArray::VertexArray(Context* context) : m_Context(context){
-        m_InternalVertexArray = Memory::Alloc<InternalVertexArray>(m_Context);
-    }
+#define NKENTSEU_CREATE_VERTEX_ARRAY_P1(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+															auto data = Memory::Alloc<class_>(context);	\
+															if (data != nullptr && data->Create(bufferLayout)) {	\
+																return data;	\
+															}	\
+															Log_nts.Debug("{0}", ((data == nullptr) ? "True" : "False"));	\
+															Log_nts.Debug("{0}", ((data->Create(bufferLayout)) ? "True" : "False"));	\
+															Memory::Reset(data);	\
+														}
+#define NKENTSEU_CREATE_VERTEX_ARRAY_P2(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+															auto data = Memory::Alloc<class_>(context);	\
+															if (data != nullptr && data->Create(vertexNumber)) {	\
+																return data;	\
+															}	\
+															Memory::Reset(data);	\
+														}
 
-    // Destructor
-    VertexArray::~VertexArray() {
-        // Ajoutez votre code de destructeur ici
-    }
-
-    Context* VertexArray::GetContext()
+	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context, const BufferLayout& bufferLayout)
     {
-        return nullptr;
+		if (context == nullptr) {
+			return nullptr;
+		}
+
+		NKENTSEU_CREATE_VERTEX_ARRAY_P1(GraphicsApiType::VulkanApi, VulkanVertexArray);
+		NKENTSEU_CREATE_VERTEX_ARRAY_P1(GraphicsApiType::OpenglApi, OpenglVertexArray);
+
+		return nullptr;
     }
 
-    bool VertexArray::SetContext(Context* context)
+	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context, uint32 vertexNumber)
     {
-        return false;
-    }
+		if (context == nullptr) {
+			return nullptr;
+		}
 
-    bool VertexArray::Create(const BufferLayout& bufferLayout)
-    {
-        if (m_InternalVertexArray == nullptr) {
-            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>(m_Context);
+		NKENTSEU_CREATE_VERTEX_ARRAY_P2(GraphicsApiType::VulkanApi, VulkanVertexArray);
+		NKENTSEU_CREATE_VERTEX_ARRAY_P2(GraphicsApiType::OpenglApi, OpenglVertexArray);
 
-            if (m_InternalVertexArray == nullptr) {
-                return false;
-            }
-        }
-        return m_InternalVertexArray->Create(bufferLayout);
-    }
-
-    bool VertexArray::Create(uint32 vertexNumber)
-    {
-        if (m_InternalVertexArray == nullptr) {
-            m_InternalVertexArray = Memory::Alloc<InternalVertexArray>(m_Context);
-
-            if (m_InternalVertexArray == nullptr) {
-                return false;
-            }
-        }
-        return m_InternalVertexArray->Create(vertexNumber);
-    }
-
-    bool VertexArray::Destroy()
-    {
-        if (m_InternalVertexArray == nullptr) return false;
-        return m_InternalVertexArray->Destroy();
-    }
-
-    bool VertexArray::SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer)
-    {
-        if (m_InternalVertexArray == nullptr) return false;
-        return m_InternalVertexArray->SetVertexBuffer(vertexBuffer);
-    }
-
-    Memory::Shared<VertexBuffer> VertexArray::GetVertexBuffer()
-    {
-        if (m_InternalVertexArray == nullptr || m_InternalVertexArray->GetVertexBuffer() == nullptr) return nullptr;
-        return m_InternalVertexArray->GetVertexBuffer();
-    }
-
-    InternalVertexBuffer* VertexArray::GetInternalVertexBuffer()
-    {
-        if (m_InternalVertexArray == nullptr || m_InternalVertexArray->GetInternalVertexBuffer() == nullptr) return nullptr;
-        return m_InternalVertexArray->GetInternalVertexBuffer();
-    }
-
-    uint32 VertexArray::GetVertexNumber()
-    {
-        if (m_InternalVertexArray == nullptr) {
-            return 0;
-        }
-        return m_InternalVertexArray->GetVertexNumber();
-    }
-
-    bool VertexArray::SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer)
-    {
-        if (m_InternalVertexArray == nullptr) return false;
-        return m_InternalVertexArray->SetIndexBuffer(indexBuffer);
-    }
-
-    Memory::Shared<IndexBuffer> VertexArray::GetIndexBuffer()
-    {
-        if (m_InternalVertexArray == nullptr || m_InternalVertexArray->GetIndexBuffer() == nullptr) return nullptr;
-        return m_InternalVertexArray->GetIndexBuffer();
-    }
-
-    InternalIndexBuffer* VertexArray::GetInternalIndexBuffer()
-    {
-        if (m_InternalVertexArray == nullptr || m_InternalVertexArray->GetInternalIndexBuffer() == nullptr) return nullptr;
-        return m_InternalVertexArray->GetInternalIndexBuffer();
-    }
-
-    InternalVertexArray* VertexArray::GetInternal()
-    {
-        if (m_InternalVertexArray == nullptr) return nullptr;
-
-        return m_InternalVertexArray.get();
+		return nullptr;
     }
 }  //  nkentseu

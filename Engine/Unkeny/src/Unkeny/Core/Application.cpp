@@ -10,6 +10,9 @@
 
 #include "Log.h"
 #include <Ntsm/Ntsm.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <Nkentseu/Core/Events.h>
 #include <Nkentseu/Graphics/Color.h>
@@ -29,7 +32,19 @@ namespace nkentseu {
         Vector3f color;
     };
 
-    float cubeVertices[] = {
+    /*struct UniformBufferObject {
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 proj = glm::mat4(1.0f);
+    };*/
+
+    struct UniformBufferObject {
+        matrix4f model = matrix4f::Identity();
+        matrix4f view = matrix4f::Identity();
+        matrix4f proj = matrix4f::Identity();
+    };
+
+    float cubeVertices1[] = {
         // Back face
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right    
@@ -108,6 +123,48 @@ namespace nkentseu {
         1, 2, 3 // second triangle
     };
 
+    const std::vector<Vertex> cubeVertices = {
+        // Face avant
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 0
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}}, // 1
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // 2
+        {{-0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // 3
+        // Face arrière
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // 4
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // 5
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, // 6
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.0f}}  // 7
+    };
+
+    /*const std::vector<Vertex> cubeVertices = {
+        // Face avant
+        {{-0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 0 (Gray color: R = 0.5, G = 0.5, B = 0.5)
+        {{ 0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 1
+        {{ 0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 2
+        {{-0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 3
+        // Face arrière
+        {{-0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}, // 4
+        {{ 0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}, // 5
+        {{ 0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}, // 6
+        {{-0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}} // 7
+    };*/
+
+    std::vector<uint32_t> cubeIndices = {
+        // Face avant
+        0, 1, 2, 2, 3, 0,
+        // Face arrière
+        4, 5, 6, 6, 7, 4,
+        // Face gauche
+        0, 3, 7, 7, 4, 0,
+        // Face droite
+        1, 2, 6, 6, 5, 1,
+        // Face supérieure
+        3, 2, 6, 6, 7, 3,
+        // Face inférieure
+        0, 1, 5, 5, 4, 0
+    };
+
+
     Memory::Shared<VertexBuffer> vertexBuffer = nullptr;
     Memory::Shared<IndexBuffer> indexBuffer = nullptr;
     Memory::Shared<VertexArray> vertexArray = nullptr;
@@ -135,21 +192,22 @@ namespace nkentseu {
             return false;
         }
 
-        m_Context = Memory::Alloc<Context>();
-        m_Renderer = Memory::Alloc<Renderer>();
-        ContextProperties propertie;
+        ContextProperties propertie(GraphicsApiType::VulkanApi);
+        //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
+
+        m_Context = Context::CreateInitialized(m_Window, propertie);
+        m_Renderer = Renderer::CreateInitialized(m_Context);
+
+        if (m_Renderer == nullptr) {
+            Log.Fatal();
+        }
 
         if (m_Context != nullptr) {
-            if (m_Context->Initialize(m_Window.get(), propertie)) {
-                Log.Debug("Api version {0}.{1}", m_Context->GetProperties().version.major, m_Context->GetProperties().version.minor);
-                if (m_Renderer != nullptr) {
-                    m_Renderer->Initialize(m_Context.get());
-                }
-            }
+            Log.Debug("Api version {0}.{1}", m_Context->GetProperties().version.major, m_Context->GetProperties().version.minor);
         }
-        
+
         EventTrack.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
-        
+
         Input.CreateAction("Saut", REGISTER_ACTION_SUBSCRIBER(Application::Saut));
         Input.AddCommand(ActionCommand("Saut", ActionCode(EventType::KeyboardInput, Keyboard::Space)));
 
@@ -166,11 +224,15 @@ namespace nkentseu {
             return;
         }
 
-        Context* context = m_Context == nullptr ? nullptr : m_Context.get();
-
-        if (m_Renderer == nullptr || m_Context == nullptr){
-            if (m_Context != nullptr) m_Context->Deinitialize();
-            if (m_Renderer != nullptr) m_Renderer->Deinitialize();
+        if (m_Renderer == nullptr || m_Context == nullptr) {
+            if (m_Context != nullptr) {
+                m_Context->Deinitialize();
+                Log.Debug();
+            }
+            if (m_Renderer != nullptr) {
+                m_Renderer->Deinitialize();
+                Log.Debug();
+            }
             m_Window->Close();
             return;
         }
@@ -182,94 +244,91 @@ namespace nkentseu {
         bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", 1));
         bufferLayout.CalculateOffsetsAndStride();
 
+        UniformBufferLayout uniformLayout;
+        uniformLayout.attributes.push_back(UniformBufferAttribut(sizeof(UniformBufferObject), 0, "ubo", ShaderType::Vertex));
+
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
+        shaderFiles[ShaderType::Vertex] = "Resources/shaders/ubo.vert.glsl";
+        shaderFiles[ShaderType::Fragment] = "Resources/shaders/ubo.frag.glsl";
+        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
+        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
         //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
         //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
         //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
         //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
-        Memory::Shared<Shader> shader = Memory::Alloc<Shader>(context, shaderFiles, bufferLayout);
 
-        shader->Create();
+        ShaderBufferLayout shaderLayout;
+        shaderLayout.vertexInput = bufferLayout;
+        shaderLayout.uniformBuffer = uniformLayout;
 
-        vertexBuffer = Memory::Alloc<VertexBuffer>();
-        if (vertexBuffer != nullptr) {
-            if (!vertexBuffer->Create<Vertex>(context, BufferDataUsage::StaticDraw, vertices_struct, bufferLayout)) {
-                Log.Error("Cannot create vertex buffer");
-            }
+        Memory::Shared<Shader> shader = Shader::Create(m_Context, shaderFiles, shaderLayout);
+        if (shader == nullptr) {
+            Log.Error("Cannot create shader");
+        }
+
+        vertexBuffer = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, cubeVertices, bufferLayout);
+        if (vertexBuffer == nullptr) {
+            Log.Error("Cannot create vertex buffer");
+        }
+
+        indexBuffer = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, cubeIndices);
+        if (indexBuffer == nullptr) {
+            Log.Error("Cannot create index buffer");
+        }
+
+        vertexArray = VertexArray::Create(m_Context, bufferLayout);
+        //vertexArray = VertexArray::Create(m_Context, 3);
+        if (vertexArray == nullptr) {
+            Log.Error("Cannot create vertex array");
         }
         else {
-            Log.Error("Cannot allocate memory for vertex buffer");
-        }
-
-        indexBuffer = Memory::Alloc<IndexBuffer>();
-        if (indexBuffer != nullptr) {
-            if (!indexBuffer->Create(context, BufferDataUsage::StaticDraw, DrawIndexType::UInt32, indices)) {
-                Log.Error("Cannot create index buffer");
-            }
-        }
-        else {
-            Log.Error("Cannot allocate memory for index buffer");
-        }
-
-        vertexArray = Memory::Alloc<VertexArray>(context);
-        if (vertexArray != nullptr) {
             vertexArray->SetVertexBuffer(vertexBuffer);
             vertexArray->SetIndexBuffer(indexBuffer);
-
-            if (!vertexArray->Create(bufferLayout)) {
-            //if (!vertexArray->Create(context, 3)) {
-                Log.Error("Cannot create vertex array");
-            }
-        }
-        else {
-            Log.Error("Cannot allocate memory for vertex array");
         }
 
         int32 numFrames = -1;
         float32 frameTime = 0;
+        float32 time = 0.0f;
+
+        Vector2f windowSize = m_Window->ConvertPixelToDpi(m_Window->GetSize());
 
         FPSTimer fps;
+        UniformBufferObject ubo{};
+        ubo.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
+        ubo.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), windowSize.width / (float32)windowSize.height, 0.1f, 10.0f);
+        ubo.proj[1][1] *= -1; 
+        m_Renderer->BindUniform("ubo", &ubo, sizeof(UniformBufferObject));
 
         while (m_Running) {
+            float64 delta = timer.Elapsed().seconds;
+            time += delta;
             fps.Update();
-            /*float64 delta = timer.Elapsed();
-            if (delta >= 1.0) {
-                int32 currency = (int32)(numFrames / delta);
-                int32 framerate = (1 > currency) ? 1 : currency;
-                frameTime = 1000.0 / framerate;
-                numFrames = -1;
-                timer.Reset();
 
-                std::string title = FORMATTER.Format("Running at {0} fps.", framerate);
-                m_Window->SetTitle(title);
-            }
-            ++numFrames;*/
             std::string title = FORMATTER.Format("Running at {0} fps. {1}", fps.GetFps(), fps.GetFrameTime());
             m_Window->SetTitle(title);
 
             EventTrack.Pick();
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
-
-            //m_Renderer->Clear(Color::RandomRGB());
             
             timer.Reset();
-            m_Renderer->Clear(Color::Black());
-            //Log.Debug("Clear time {0} ms", timer.Reset().milliSeconds);
 
-            m_Renderer->Prepare();
-            //Log.Debug("Prepare time {0} ms", timer.Reset().milliSeconds);
-            //m_Renderer->DrawMode(CullModeType::Back, m_PolygonMode);
+            //m_Renderer->Begin(Color::RandomRGB());
+            m_Renderer->Begin(Color::Black());
+
             m_Renderer->DrawMode(CullModeType::NoCull, m_PolygonMode);
-            //Log.Debug("DrawMode time {0} ms", timer.Reset().milliSeconds);
-            m_Renderer->UseShader(shader);
-            //Log.Debug("UseShader time {0} ms", timer.Reset().milliSeconds);
+            m_Renderer->BindShader(shader);
+            windowSize = m_Window->ConvertPixelToDpi(m_Window->GetSize());
+
+            ubo.model = matrix4f::Scaling(0.5f * Vector3f(1.0f, 1.0f, 1.0f)) * matrix4f::Identity();
+            //ubo.model = matrix4f::Translation(Vector3f(1.0f, 0.0f, 0.0f)) * matrix4f::Identity();
+            //ubo.model = matrix4f::Scaling(maths::Sin(time) * Vector3f(1.0f, 1.0f, 1.0f) * 2) * ubo.model;
+            ubo.model = matrix4f::Rotation(Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f)) * ubo.model;
+
+            m_Renderer->BindUniform("ubo", &ubo, sizeof(UniformBufferObject));
             m_Renderer->Draw(vertexArray, DrawVertexType::Triangles);
-            //Log.Debug("Draw time {0} ms", timer.Reset().milliSeconds);
-            m_Renderer->Finalize();
-            //Log.Debug("Finalize time {0} ms", timer.Reset().milliSeconds);
+
+            m_Renderer->End();
         }
 
         if (vertexArray != nullptr) {

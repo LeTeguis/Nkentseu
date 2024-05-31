@@ -26,6 +26,7 @@ BuildIntDir()
 group "External"
 	include "External/Libs/Stb"
 	include "External/Libs/Glad"
+	include "External/Libs/GLM"
 	--include "External/Libs/SPIRV-Cross"
 	--include "External/Libs/GLSlang"
 group ""

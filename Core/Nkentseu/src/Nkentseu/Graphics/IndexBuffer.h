@@ -12,22 +12,19 @@
 #include <System/Definitions/Memory.h>
 
 #include "ShaderInfo.h"
+#include "Context.h"
 
 namespace nkentseu {
     class InternalIndexBuffer;
-    class Context;
     
     class NKENTSEU_API IndexBuffer {
         public:
-            IndexBuffer();
-            ~IndexBuffer();
+            virtual Memory::Shared<Context> GetContext() = 0;
+            virtual bool Destroy() = 0;
+            virtual uint32 Leng() const = 0;
 
-            bool Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
-            bool Destroy();
-
-            InternalIndexBuffer* GetInternal();
-        private:
-            Memory::Shared<InternalIndexBuffer> m_Internal = null_pointer;
+            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
+            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng);
     };
 
 }  //  nkentseu

@@ -40,7 +40,7 @@ namespace nkentseu {
 
 	Vector3f::Vector3f(float32 v) : x(v), y(v), z(v) {}
 
-	Vector3f::Vector3f(float32* v) : x(v[0]), y(v[1]), z(v[2]) {}
+	Vector3f::Vector3f(const float32* v) : x(v[0]), y(v[1]), z(v[2]) {}
 
 	Vector3f::Vector3f(const Vector3f& v) : x(v.x), y(v.y), z(v.z) {}
 

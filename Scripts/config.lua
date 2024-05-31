@@ -42,6 +42,7 @@ VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 Externals = {}
 
+Externals["Glm"] = "%{wks.location}/External/Libs/GLM"
 Externals["Glad"] = "%{wks.location}/External/Libs/Glad"
 Externals["Stb"] = "%{wks.location}/External/Libs/Stb"
 --Externals["SPIRVCross"] = "%{wks.location}/External/libs/SPIRV-Cross/"
@@ -222,8 +223,7 @@ function defineGraphicApi()
 			graphicsapi
 		}
 
-        if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
-            print("bonjour")
+        --if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
             includedirs {
                 "%{Externals.Glad}/include"
             }
@@ -242,7 +242,7 @@ function defineGraphicApi()
                 links { "GL" }
 
             filter {}
-        elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
+        --elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             includedirs {
                 "%{Externals.VkInclude}/",
                 --"%{Externals.Glslang}",
@@ -268,13 +268,13 @@ function defineGraphicApi()
                 links {"vulkan"}
 
             filter {}
-        end
+        --end
 	end
 end
 
 function linksGraphicApi()
     if graphicsapi ~= "" then
-        if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
+        --if graphicsapi == "NKENTSEU_GRAPHICS_API_OPENGL" then
             links {
                 "Glad"
             }
@@ -288,7 +288,7 @@ function linksGraphicApi()
                 links { "GL" }
 
             filter {}
-        elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
+        --elseif graphicsapi == "NKENTSEU_GRAPHICS_API_VULKAN" then
             libdirs {
                 "%{Externals.VkLib}/",
                 --"GLSlang",
@@ -303,7 +303,7 @@ function linksGraphicApi()
 
             filter "system:linux"
                 links {"vulkan"}
-        end
+        --end
 	end
 end
 

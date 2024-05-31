@@ -9,6 +9,7 @@
 #ifdef NKENTSEU_GRAPHICS_API_DIRECTX11
 
 #include <Logger/Formatter.h>
+#include "InternalShader.h"
 
 namespace nkentseu {
     

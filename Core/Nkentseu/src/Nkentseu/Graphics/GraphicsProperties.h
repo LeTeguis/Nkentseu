@@ -70,6 +70,19 @@ namespace nkentseu {
         };
     };
 
+    struct NKENTSEU_API GraphicsApiType {
+        using ApiType = ulong;
+
+        enum : ApiType {
+            OpenglApi,
+            VulkanApi,
+            DirectX11Api,
+            DirectX12Api,
+            SoftwareApi,
+            MetalApi,
+        };
+    };
+
     struct NKENTSEU_API GraphicsPixelType {
         using PixelType = ulong;
 
@@ -134,7 +147,11 @@ namespace nkentseu {
     struct NKENTSEU_API ContextProperties {
         Vector2u offScreenSize;
         GraphicsPixelFormat pixelFormat;
-        Vector2i version = InitVersion();
+        Vector2i version = InitVersion(GraphicsApiType::VulkanApi);
+        GraphicsApiType::ApiType graphicsApi = GraphicsApiType::VulkanApi;
+
+        ContextProperties(const GraphicsApiType::ApiType api);
+        ContextProperties(const GraphicsApiType::ApiType api, const Vector2i& version);
 
         // ContextProperties
         ContextProperties& operator=(const ContextProperties& other);
@@ -148,7 +165,7 @@ namespace nkentseu {
 
         ContextProperties(const ContextProperties& properties);
 
-        static Vector2i InitVersion();
+        static Vector2i InitVersion(const GraphicsApiType::ApiType api);
     };
 } // namespace nkentseu
 

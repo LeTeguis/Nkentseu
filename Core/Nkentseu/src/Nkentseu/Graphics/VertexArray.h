@@ -14,39 +14,23 @@
 #include "ShaderInfo.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Context.h"
 
 namespace nkentseu {
-    class InternalVertexArray;
-    class InternalVertexBuffer;
-    class InternalIndexBuffer;
-    class Context;
-    
     class NKENTSEU_API VertexArray {
         public:
-            VertexArray(Context* context);
-            ~VertexArray();
+            virtual Memory::Shared<Context> GetContext() = 0;
+            virtual bool SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer) = 0;
+            virtual Memory::Shared<VertexBuffer> GetVertexBuffer() = 0;
+            virtual uint32 GetVertexLeng() = 0;
+            virtual bool SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer) = 0;
+            virtual Memory::Shared<IndexBuffer> GetIndexBuffer() = 0;
+            virtual uint32 GetIndexLeng() = 0;
+            virtual uint32 Leng() = 0;
+            virtual bool Destroy() = 0;
 
-            Context* GetContext();
-            bool SetContext(Context* context);
-
-            bool Create(const BufferLayout& bufferLayout);
-            bool Create(uint32 vertexNumber);
-            bool Destroy();
-
-            bool SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer);
-            Memory::Shared<VertexBuffer> GetVertexBuffer();
-            InternalVertexBuffer* GetInternalVertexBuffer();
-            uint32 GetVertexNumber();
-
-            bool SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer);
-            Memory::Shared<IndexBuffer> GetIndexBuffer();
-            InternalIndexBuffer* GetInternalIndexBuffer();
-
-            InternalVertexArray* GetInternal();
-
-        private:
-            Context* m_Context = nullptr;
-            Memory::Shared<InternalVertexArray> m_InternalVertexArray = null_pointer;
+            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, const BufferLayout& bufferLayout);
+            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, uint32 vertexNumber);
     };
 
 }  //  nkentseu

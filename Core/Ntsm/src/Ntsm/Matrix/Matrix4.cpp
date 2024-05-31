@@ -9,551 +9,1499 @@
 #include <cstring>
 
 namespace nkentseu {
+	//*********************************
+    // Constructeur par défaut
+    matrix4f::matrix4f() {
+        // Initialiser la matrice à l'identité
+        for (int i = 0; i < 16; ++i) {
+            data[i] = 0.0f;
+        }
+    }
 
-	Matrix4f::Matrix4f(float32 a) : xx(a), xy(float32(0)), xz(float32(0)), xw(float32(0)),
-		yx(float32(0)), yy(a), yz(float32(0)), yw(float32(0)),
-		zx(float32(0)), zy(float32(0)), zz(a), zw(float32(0)),
-		wx(float32(0)), wy(float32(0)), wz(float32(0)), ww(a) {}
+    matrix4f::matrix4f(const Vector3f& V0, const Vector3f& V1, const Vector3f& V2)
+    {
+        mat[0][0] = V0.x;
+        mat[0][1] = V0.y;
+        mat[0][2] = V0.z;
+        mat[0][3] = 0.0f;
 
-	Matrix4f::Matrix4f(float32* fv) : xx(fv[0]), xy(fv[1]), xz(fv[2]), xw(fv[3]),
-		yx(fv[4]), yy(fv[5]), yz(fv[6]), yw(fv[7]),
-		zx(fv[8]), zy(fv[9]), zz(fv[10]), zw(fv[11]),
-		wx(fv[12]), wy(fv[13]), wz(fv[14]), ww(fv[15]) {}
+        mat[1][0] = V1.x;
+        mat[1][1] = V1.y;
+        mat[1][2] = V1.z;
+        mat[1][3] = 0.0f;
 
-	Matrix4f::Matrix4f(float32 _00, float32 _01, float32 _02, float32 _03,
-		float32 _10, float32 _11, float32 _12, float32 _13,
-		float32 _20, float32 _21, float32 _22, float32 _23,
-		float32 _30, float32 _31, float32 _32, float32 _33) :
-		xx(_00), xy(_01), xz(_02), xw(_03),
-		yx(_10), yy(_11), yz(_12), yw(_13),
-		zx(_20), zy(_21), zz(_22), zw(_23),
-		wx(_30), wy(_31), wz(_32), ww(_33) {}
+        mat[2][0] = V2.x;
+        mat[2][1] = V2.y;
+        mat[2][2] = V2.z;
+        mat[2][3] = 0.0f;
 
-	Matrix4f::Matrix4f(Vector4f _right, Vector4f _up, Vector4f _forward, Vector4f _position) {
-		right(_right);
-		up(_up);
-		forward(_forward);
-		position(_position);
-	}
+        mat[3][0] = 0.0f;
+        mat[3][1] = 0.0f;
+        mat[3][2] = 0.0f;
+        mat[3][3] = 1.0f;
+    }
 
-	Matrix4f::Matrix4f(const Matrix4f& mat){
-		right(mat.ptr_right);
-		up(mat.ptr_up);
-		forward(mat.ptr_forward);
-		position(mat.ptr_position);
-	}
+    // Constructeur par copie
+    matrix4f::matrix4f(const matrix4f& other) {
+        std::memcpy(data, other.data, 16 * sizeof(float32));
+    }
 
-	Matrix4f::operator float32* () {
-		return &ptr[0];
-	}
+    // Constructeur avec une valeur initiale
+    matrix4f::matrix4f(float32 value) {
+        for (int i = 0; i < 16; ++i) {
+            data[i] = value;
+        }
+    }
 
-	bool operator==(const Matrix4f& a, const Matrix4f& b) {
-		for (int i = 0; i < 16; ++i) {
-			if (maths::Abs(a.ptr[i] - b.ptr[i]) > maths::MatrixEpsilon()) {
-				return false;
-			}
-		}
-		return true;
-	}
+    // Constructeur à partir d'un tableau de données
+    matrix4f::matrix4f(const float32* data) {
+        std::memcpy(this->data, data, 16 * sizeof(float32));
+    }
 
-	bool operator!=(const Matrix4f& a, const Matrix4f& b) {
-		return !(a == b);
-	}
+    matrix4f::matrix4f(float32 m00, float32 m01, float32 m02, float32 m03,
+        float32 m10, float32 m11, float32 m12, float32 m13,
+        float32 m20, float32 m21, float32 m22, float32 m23,
+        float32 m30, float32 m31, float32 m32, float32 m33) {
+        this->m00 = m00; this->m01 = m01; this->m02 = m02; this->m03 = m03;
+        this->m10 = m10; this->m11 = m11; this->m12 = m12; this->m13 = m13;
+        this->m20 = m20; this->m21 = m21; this->m22 = m22; this->m23 = m23;
+        this->m30 = m30; this->m31 = m31; this->m32 = m32; this->m33 = m33;
+    }
 
-	Matrix4f operator+(const Matrix4f& a, const Matrix4f& b) {
-		return Matrix4f(
-			a.xx + b.xx, a.xy + b.xy, a.xz + b.xz, a.xw + b.xw,
-			a.yx + b.yx, a.yy + b.yy, a.yz + b.yz, a.yw + b.yw,
-			a.zx + b.zx, a.zy + b.zy, a.zz + b.zz, a.zw + b.zw,
-			a.wx + b.wx, a.wy + b.wy, a.wz + b.wz, a.ww + b.ww
-		);
-	}
+    // Accesseurs aux éléments de la matrice
+    float32 matrix4f::Get(int row, int col) const {
+        return data[row * 4 + col];
+    }
 
-	Matrix4f operator*(const Matrix4f& m, float f) {
-		return Matrix4f(
-			m.xx * f, m.xy * f, m.xz * f, m.xw * f,
-			m.yx * f, m.yy * f, m.yz * f, m.yw * f,
-			m.zx * f, m.zy * f, m.zz * f, m.zw * f,
-			m.wx * f, m.wy * f, m.wz * f, m.ww * f
-		);
-	}
+    void matrix4f::Set(int row, int col, float32 value) {
+        data[row * 4 + col] = value;
+    }
 
-	Matrix4f operator*(const Matrix4f& a, const Matrix4f& b) {
-		return Matrix4f(
-			M4D(0, 0, a, b), M4D(1, 0, a, b), M4D(2, 0, a, b), M4D(3, 0, a, b),//Col0
-			M4D(0, 1, a, b), M4D(1, 1, a, b), M4D(2, 1, a, b), M4D(3, 1, a, b),//Col1
-			M4D(0, 2, a, b), M4D(1, 2, a, b), M4D(2, 2, a, b), M4D(3, 2, a, b),//Col2
-			M4D(0, 3, a, b), M4D(1, 3, a, b), M4D(2, 3, a, b), M4D(3, 3, a, b) //Col3
-		);
-	}
+    // Accesseurs pour une ligne entière de la matrice
+    float32* matrix4f::operator[](int row) {
+        return &data[row * 4];
+    }
 
-	/*Vector4f operator*(const Matrix4f& m, const Vector4f& v) {
-		return Vector4f(
-			M4V4D(0, v.x, v.y, v.z, v.w, m),
-			M4V4D(1, v.x, v.y, v.z, v.w, m),
-			M4V4D(2, v.x, v.y, v.z, v.w, m),
-			M4V4D(3, v.x, v.y, v.z, v.w, m)
-		);
-	}*/
+    const float32* matrix4f::operator[](int row) const {
+        return &data[row * 4];
+    }
 
-	Vector3f Matrix4f::TransformVector(const Vector3f& v) {
-		return Vector3f(
-			M4V4D(0, v.x, v.y, v.z, 0.0f, (*this)),
-			M4V4D(1, v.x, v.y, v.z, 0.0f, (*this)),
-			M4V4D(2, v.x, v.y, v.z, 0.0f, (*this))
-		);
-	}
+    // Accesseur pour toute la matrice
+    float32* matrix4f::Ptr() {
+        return data;
+    }
 
-	Vector3f Matrix4f::TransformPoint(const Vector3f& v) {
-		return Vector3f(
-			M4V4D(0, v.x, v.y, v.z, 1.0f, (*this)),
-			M4V4D(1, v.x, v.y, v.z, 1.0f, (*this)),
-			M4V4D(2, v.x, v.y, v.z, 1.0f, (*this))
-		);
-	}
+    const float32* matrix4f::Ptr() const {
+        return data;
+    }
 
-	Vector3f Matrix4f::TransformPoint(const Vector3f& v, float32& w) {
-		float32 _w = w;
-		w = M4V4D(3, v.x, v.y, v.z, _w, (*this));
-		return Vector3f(
-			M4V4D(0, v.x, v.y, v.z, _w, (*this)),
-			M4V4D(1, v.x, v.y, v.z, _w, (*this)),
-			M4V4D(2, v.x, v.y, v.z, _w, (*this))
-		);
-	}
+    // Opérateurs d'affectation
+    matrix4f& matrix4f::operator=(const matrix4f& other) {
+        std::memcpy(data, other.data, 16 * sizeof(float32));
+        return *this;
+    }
 
-	void Matrix4f::Transpose() {
-		M4SWAP(yx, xy);
-		M4SWAP(zx, xz);
-		M4SWAP(wx, xw);
-		M4SWAP(zy, yz);
-		M4SWAP(wy, yw);
-		M4SWAP(wz, zw);
-	}
+    matrix4f& matrix4f::operator=(const float32* otherData) {
+        std::memcpy(data, otherData, 16 * sizeof(float32));
+        return *this;
+    }
 
-	Matrix4f Matrix4f::Transposed() {
-		return Matrix4f(
-			xx, yx, zx, wx,
-			xy, yy, zy, wy,
-			xz, yz, zz, wz,
-			xw, yw, zw, ww
-		);
-	}
+    // Opérateurs d'égalité et d'inégalité
+    bool matrix4f::operator==(const matrix4f& other) const {
+        for (int i = 0; i < 16; ++i) {
+            if (data[i] != other.data[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	float32 Matrix4f::Determinant() {
-		return  ptr[0] * M4_3X3MINOR(ptr, 1, 2, 3, 1, 2, 3)
-			- ptr[4] * M4_3X3MINOR(ptr, 0, 2, 3, 1, 2, 3)
-			+ ptr[8] * M4_3X3MINOR(ptr, 0, 1, 3, 1, 2, 3)
-			- ptr[12] * M4_3X3MINOR(ptr, 0, 1, 2, 1, 2, 3);
-	}
+    bool matrix4f::operator!=(const matrix4f& other) const {
+        return !(*this == other);
+    }
 
-	Matrix4f Matrix4f::Adjugate() {
-		//Cof (M[i, j]) = Minor(M[i, j]] * pow(-1, i + j)
-		Matrix4f cofactor;
-		cofactor.ptr[0] = M4_3X3MINOR(ptr, 1, 2, 3, 1, 2, 3);
-		cofactor.ptr[1] = -M4_3X3MINOR(ptr, 1, 2, 3, 0, 2, 3);
-		cofactor.ptr[2] = M4_3X3MINOR(ptr, 1, 2, 3, 0, 1, 3);
-		cofactor.ptr[3] = -M4_3X3MINOR(ptr, 1, 2, 3, 0, 1, 2);
-		cofactor.ptr[4] = -M4_3X3MINOR(ptr, 0, 2, 3, 1, 2, 3);
-		cofactor.ptr[5] = M4_3X3MINOR(ptr, 0, 2, 3, 0, 2, 3);
-		cofactor.ptr[6] = -M4_3X3MINOR(ptr, 0, 2, 3, 0, 1, 3);
-		cofactor.ptr[7] = M4_3X3MINOR(ptr, 0, 2, 3, 0, 1, 2);
-		cofactor.ptr[8] = M4_3X3MINOR(ptr, 0, 1, 3, 1, 2, 3);
-		cofactor.ptr[9] = -M4_3X3MINOR(ptr, 0, 1, 3, 0, 2, 3);
-		cofactor.ptr[10] = M4_3X3MINOR(ptr, 0, 1, 3, 0, 1, 3);
-		cofactor.ptr[11] = -M4_3X3MINOR(ptr, 0, 1, 3, 0, 1, 2);
-		cofactor.ptr[12] = -M4_3X3MINOR(ptr, 0, 1, 2, 1, 2, 3);
-		cofactor.ptr[13] = M4_3X3MINOR(ptr, 0, 1, 2, 0, 2, 3);
-		cofactor.ptr[14] = -M4_3X3MINOR(ptr, 0, 1, 2, 0, 1, 3);
-		cofactor.ptr[15] = M4_3X3MINOR(ptr, 0, 1, 2, 0, 1, 2);
-		return cofactor.Transposed();
-	}
+    matrix4f& matrix4f::operator*=(const matrix4f& other) {
+        *this = *this * other;
+        return *this;
+    }
 
-	Matrix4f Matrix4f::Inverse() {
-		float32 det = Determinant();
-		if (det == 0.0f) {
-			return Matrix4f();
-		}
-		Matrix4f adj = Adjugate();
-		return adj * (1.0f / det);
-	}
+    matrix4f& matrix4f::operator*=(float32 scalar) {
+        for (int i = 0; i < 16; ++i) {
+            data[i] *= scalar;
+        }
+        return *this;
+    }
 
-	void Matrix4f::Invert() {
-		float32 det = Determinant();
-		if (det == 0.0f) {
-			*this = Matrix4f();
-			return;
-		}
-		*this = Adjugate() * (1.0f / det);
-	}
+    Vector4f matrix4f::operator*(const Vector4f& vector) const {
+        Vector4f result;
+        for (int i = 0; i < 4; ++i) {
+            result.ptr[i] = 0.0f;
+            for (int j = 0; j < 4; ++j) {
+                result.ptr[i] += data[i * 4 + j] * vector.ptr[j];
+            }
+        }
+        return result;
+    }
 
-	Matrix4f Matrix4f::Frustum(float32 l, float32 r, float32 b, float32 t, float32 n, float32 f) {
-		if (l == r || t == b || n == f) {
-			return Matrix4f();
-		}
-		return Matrix4f(
-			(2.0f * n) / (r - l), 0, 0, 0,
-			0, (2.0f * n) / (t - b), 0, 0,
-			(r + l) / (r - l), (t + b) / (t - b), (-(f + n)) / (f - n), -1,
-			0, 0, (-2 * f * n) / (f - n), 0
-		);
-	}
+    // Transposition de la matrice
+    matrix4f matrix4f::Transpose() const {
+        matrix4f result;
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                result.mat[j][i] = mat[i][j];
+            }
+        }
+        return result;
+    }
 
-	Matrix4f Matrix4f::Perspective(float32 fov, float32 aspect, float32 n, float32 f) {
-		float32 ymax = n * maths::Tan(fov * maths::Pi() / 360.0f);
-		float32 xmax = ymax * aspect;
-		return Frustum(-xmax, xmax, -ymax, ymax, n, f);
-	}
+    // Calcul du déterminant
+    float32 matrix4f::Determinant() const {
+        float32 det = 0.0f;
+        for (int i = 0; i < 4; ++i) {
+            float32 cofactor = data[i] * Cofactor3x3(0, i);
+            det += (i % 2 == 0 ? 1 : -1) * cofactor;
+        }
+        return det;
+    }
 
-	Matrix4f Matrix4f::Orthogonal(float32 l, float32 r, float32 b, float32 t, float32 n, float32 f) {
-		if (l == r || t == b || n == f) {
-			return Matrix4f(); // Error
-		}
-		return Matrix4f(
-			2.0f / (r - l), 0, 0, 0,
-			0, 2.0f / (t - b), 0, 0,
-			0, 0, -2.0f / (f - n), 0,
-			-((r + l) / (r - l)), -((t + b) / (t - b)), -((f + n) / (f - n)), 1
-		);
-	}
+    float32 matrix4f::Cofactor3x3(int row, int col) const {
+        float32 submatrix[9];
+        int index = 0;
+        for (int i = 0; i < 4; ++i) {
+            if (i == row) continue;
+            for (int j = 0; j < 4; ++j) {
+                if (j == col) continue;
+                submatrix[index++] = data[i * 4 + j];
+            }
+        }
+        return Determinant3x3(submatrix);
+    }
 
-	Matrix4f Matrix4f::LookAt(const Vector3f& position, const Vector3f& target, const Vector3f& up) {
-		Vector3f f = (target - position).Normalized() * -1.0f;
-		Vector3f r = Vector3f(up).Cross(f); // Right handed
+    float32 matrix4f::Determinant3x3(const float32 submatrix[9]) const {
+        return submatrix[0] * (submatrix[4] * submatrix[8] - submatrix[5] * submatrix[7])
+            - submatrix[1] * (submatrix[3] * submatrix[8] - submatrix[5] * submatrix[6])
+            + submatrix[2] * (submatrix[3] * submatrix[7] - submatrix[4] * submatrix[6]);
+    }
 
-		if (r == Vector3f(0, 0, 0)) {
-			return Matrix4f(); // Error
-		}
-		r.Normalize();
-		Vector3f u = f.Cross(r).Normalized(); // Right handed
-		Vector3f t = Vector3f(-r.Dot(position), -u.Dot(position), -f.Dot(position));
-		return Matrix4f(
-			// Transpose upper 3x3 matrix to invert it
-			r.x, u.x, f.x, 0,
-			r.y, u.y, f.y, 0,
-			r.z, u.z, f.z, 0,
-			t.x, t.y, t.z, 1
-		);
-	}
+    Vector3f matrix4f::TransformPoint(const Vector3f& point) const
+    {
+        Vector4f Unprojectedresult = Vector4f(point, 1.0f) * (*this);
+        if (Unprojectedresult.w == 0.0f || Unprojectedresult.w == 1.0f)
+        {
+            return Vector3f(Unprojectedresult.x, Unprojectedresult.y, Unprojectedresult.z);
+        }
+        else
+        {
+            return Vector3f(Unprojectedresult.x / Unprojectedresult.w,
+                Unprojectedresult.y / Unprojectedresult.w,
+                Unprojectedresult.z / Unprojectedresult.w);
+        }
+    }
 
-	std::string Matrix4f::ToStringRow(int i) {
-		std::stringstream ss;
-		if (i == 0)
-			ss << "[" << xx << ", " << xy << ", " << xz << ", " << xw << "]";
-		if (i == 1)
-			ss << "[" << yx << ", " << yy << ", " << yz << ", " << yw << "]";
-		if (i == 2)
-			ss << "[" << zx << ", " << zy << ", " << zz << ", " << zw << "]";
-		if (i == 3)
-			ss << "[" << wx << ", " << wy << ", " << wz << ", " << ww << "]";
-		return ss.str();
-	}
+    Vector3f matrix4f::TransformVector(const Vector3f& vector) const
+    {
+        Vector4f Unprojectedresult = Vector4f(vector, 0.0f) * (*this);
+        if (Unprojectedresult.w == 0.0f || Unprojectedresult.w == 1.0f)
+        {
+            return Vector3f(Unprojectedresult.x, Unprojectedresult.y, Unprojectedresult.z);
+        }
+        else
+        {
+            return Vector3f(Unprojectedresult.x / Unprojectedresult.w,
+                Unprojectedresult.y / Unprojectedresult.w,
+                Unprojectedresult.z / Unprojectedresult.w);
+        }
+    }
 
-	std::string Matrix4f::ToStringCol(int i) {
-		std::stringstream ss;
-		if (i == 0)
-			ss << "[" << xx << ", " << yx << ", " << zx << ", " << wx << "]";
-		if (i == 1)
-			ss << "[" << xy << ", " << yy << ", " << zy << ", " << wy << "]";
-		if (i == 2)
-			ss << "[" << xz << ", " << yz << ", " << zz << ", " << wz << "]";
-		if (i == 3)
-			ss << "[" << xw << ", " << yw << ", " << zw << ", " << ww << "]";
-		return ss.str();
-	}
+    Vector3f matrix4f::TransformNormal(const Vector3f& normal) const
+    {
+        Vector4f Unprojectedresult = Vector4f(normal, 0.0f) * (*this);
+        if (Unprojectedresult.w == 0.0f)
+        {
+            Unprojectedresult.w = 1.0f;
+        }
 
-	std::string Matrix4f::ToString() const {
-		std::stringstream ss;
-		ss << "Matrix4f";
-		ss << "[[" << xx << ", " << yx << ", " << zx << ", " << wx << "], ";
-		ss << "[" << xy << ", " << yy << ", " << zy << ", " << wy << "], ";
-		ss << "[" << xz << ", " << yz << ", " << zz << ", " << wz << "], ";
-		ss << "[" << xw << ", " << yw << ", " << zw << ", " << ww << "]]";
-		return ss.str();
-	}
+        Vector3f result(Unprojectedresult.x / Unprojectedresult.w, Unprojectedresult.y / Unprojectedresult.w, Unprojectedresult.z / Unprojectedresult.w);
 
-	std::ostream& operator<<(std::ostream& os, const Matrix4f& e) {
-		return os << e.ToString();
-	}
+        if (Unprojectedresult.w < 0.0f)
+        {
+            result = -result;
+        }
+        return result;
+    }
 
-	Matrix4f& Matrix4f::operator=(const Matrix4f& other) {
-		if (this != &other) {
-			memcpy(ptr, other.ptr, sizeof(float32) * 16);
-		}
-		return *this;
-	}
+    // Calcul de l'inverse de la matrice
+    matrix4f matrix4f::Inverse() const {
+        float64 result[4][4];
+        float64 tmp[12]; /* temp array for pairs */
+        float64 src[16]; /* array of transpose source matrix */
+        float64 det; /* determinant */
+        /* transpose matrix */
+        for (uint32 i = 0; i < 4; i++)
+        {
+            src[i + 0] = (*this)[i][0];
+            src[i + 4] = (*this)[i][1];
+            src[i + 8] = (*this)[i][2];
+            src[i + 12] = (*this)[i][3];
+        }
+        /* calculate pairs for first 8 elements (cofactors) */
+        tmp[0] = src[10] * src[15];
+        tmp[1] = src[11] * src[14];
+        tmp[2] = src[9] * src[15];
+        tmp[3] = src[11] * src[13];
+        tmp[4] = src[9] * src[14];
+        tmp[5] = src[10] * src[13];
+        tmp[6] = src[8] * src[15];
+        tmp[7] = src[11] * src[12];
+        tmp[8] = src[8] * src[14];
+        tmp[9] = src[10] * src[12];
+        tmp[10] = src[8] * src[13];
+        tmp[11] = src[9] * src[12];
+        /* calculate first 8 elements (cofactors) */
+        result[0][0] = tmp[0] * src[5] + tmp[3] * src[6] + tmp[4] * src[7];
+        result[0][0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[5] * src[7];
+        result[0][1] = tmp[1] * src[4] + tmp[6] * src[6] + tmp[9] * src[7];
+        result[0][1] -= tmp[0] * src[4] + tmp[7] * src[6] + tmp[8] * src[7];
+        result[0][2] = tmp[2] * src[4] + tmp[7] * src[5] + tmp[10] * src[7];
+        result[0][2] -= tmp[3] * src[4] + tmp[6] * src[5] + tmp[11] * src[7];
+        result[0][3] = tmp[5] * src[4] + tmp[8] * src[5] + tmp[11] * src[6];
+        result[0][3] -= tmp[4] * src[4] + tmp[9] * src[5] + tmp[10] * src[6];
+        result[1][0] = tmp[1] * src[1] + tmp[2] * src[2] + tmp[5] * src[3];
+        result[1][0] -= tmp[0] * src[1] + tmp[3] * src[2] + tmp[4] * src[3];
+        result[1][1] = tmp[0] * src[0] + tmp[7] * src[2] + tmp[8] * src[3];
+        result[1][1] -= tmp[1] * src[0] + tmp[6] * src[2] + tmp[9] * src[3];
+        result[1][2] = tmp[3] * src[0] + tmp[6] * src[1] + tmp[11] * src[3];
+        result[1][2] -= tmp[2] * src[0] + tmp[7] * src[1] + tmp[10] * src[3];
+        result[1][3] = tmp[4] * src[0] + tmp[9] * src[1] + tmp[10] * src[2];
+        result[1][3] -= tmp[5] * src[0] + tmp[8] * src[1] + tmp[11] * src[2];
+        /* calculate pairs for second 8 elements (cofactors) */
+        tmp[0] = src[2] * src[7];
+        tmp[1] = src[3] * src[6];
+        tmp[2] = src[1] * src[7];
+        tmp[3] = src[3] * src[5];
+        tmp[4] = src[1] * src[6];
+        tmp[5] = src[2] * src[5];
 
+        tmp[6] = src[0] * src[7];
+        tmp[7] = src[3] * src[4];
+        tmp[8] = src[0] * src[6];
+        tmp[9] = src[2] * src[4];
+        tmp[10] = src[0] * src[5];
+        tmp[11] = src[1] * src[4];
 
-	Matrix4d::Matrix4d(float64 a) : xx(a), xy(float64(0)), xz(float64(0)), xw(float64(0)),
-		yx(float64(0)), yy(a), yz(float64(0)), yw(float64(0)),
-		zx(float64(0)), zy(float64(0)), zz(a), zw(float64(0)),
-		wx(float64(0)), wy(float64(0)), wz(float64(0)), ww(a) {}
+        /* calculate second 8 elements (cofactors) */
+        result[2][0] = tmp[0] * src[13] + tmp[3] * src[14] + tmp[4] * src[15];
+        result[2][0] -= tmp[1] * src[13] + tmp[2] * src[14] + tmp[5] * src[15];
+        result[2][1] = tmp[1] * src[12] + tmp[6] * src[14] + tmp[9] * src[15];
+        result[2][1] -= tmp[0] * src[12] + tmp[7] * src[14] + tmp[8] * src[15];
+        result[2][2] = tmp[2] * src[12] + tmp[7] * src[13] + tmp[10] * src[15];
+        result[2][2] -= tmp[3] * src[12] + tmp[6] * src[13] + tmp[11] * src[15];
+        result[2][3] = tmp[5] * src[12] + tmp[8] * src[13] + tmp[11] * src[14];
+        result[2][3] -= tmp[4] * src[12] + tmp[9] * src[13] + tmp[10] * src[14];
+        result[3][0] = tmp[2] * src[10] + tmp[5] * src[11] + tmp[1] * src[9];
+        result[3][0] -= tmp[4] * src[11] + tmp[0] * src[9] + tmp[3] * src[10];
+        result[3][1] = tmp[8] * src[11] + tmp[0] * src[8] + tmp[7] * src[10];
+        result[3][1] -= tmp[6] * src[10] + tmp[9] * src[11] + tmp[1] * src[8];
+        result[3][2] = tmp[6] * src[9] + tmp[11] * src[11] + tmp[3] * src[8];
+        result[3][2] -= tmp[10] * src[11] + tmp[2] * src[8] + tmp[7] * src[9];
+        result[3][3] = tmp[10] * src[10] + tmp[4] * src[8] + tmp[9] * src[9];
+        result[3][3] -= tmp[8] * src[9] + tmp[11] * src[10] + tmp[5] * src[8];
 
-	Matrix4d::Matrix4d(float64* fv) : xx(fv[0]), xy(fv[1]), xz(fv[2]), xw(fv[3]),
-		yx(fv[4]), yy(fv[5]), yz(fv[6]), yw(fv[7]),
-		zx(fv[8]), zy(fv[9]), zz(fv[10]), zw(fv[11]),
-		wx(fv[12]), wy(fv[13]), wz(fv[14]), ww(fv[15]) {}
+        /* calculate determinant */
+        det = src[0] * result[0][0] + src[1] * result[0][1] + src[2] * result[0][2] + src[3] * result[0][3];
 
-	Matrix4d::Matrix4d(float64 _00, float64 _01, float64 _02, float64 _03,
-		float64 _10, float64 _11, float64 _12, float64 _13,
-		float64 _20, float64 _21, float64 _22, float64 _23,
-		float64 _30, float64 _31, float64 _32, float64 _33) :
-		xx(_00), xy(_01), xz(_02), xw(_03),
-		yx(_10), yy(_11), yz(_12), yw(_13),
-		zx(_20), zy(_21), zz(_22), zw(_23),
-		wx(_30), wy(_31), wz(_32), ww(_33) {}
+        /* calculate matrix inverse */
+        det = 1.0f / det;
 
-	Matrix4d::Matrix4d(Vector4d _right, Vector4d _up, Vector4d _forward, Vector4d _position) {
-		right(_right);
-		up(_up);
-		forward(_forward);
-		position(_position);
-	}
+        matrix4f finalResult;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 j = 0; j < 4; j++)
+            {
+                finalResult[i][j] = float32(result[i][j] * det);
+            }
+        }
+        return finalResult;
+    }
 
-	Matrix4d::Matrix4d(const Matrix4d& mat) {
-		right(mat.ptr_right);
-		up(mat.ptr_up);
-		forward(mat.ptr_forward);
-		position(mat.ptr_position);
-	}
+    float32 matrix4f::CompareMatrices(const matrix4f& left, const matrix4f& right)
+    {
+        float32 Sum = 0.0f;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                Sum += maths::Abs(left[i][i2] - right[i][i2]);
+            }
+        }
+        return Sum / 16.0f;
+    }
 
-	Matrix4d::operator float64* () {
-		return &ptr[0];
-	}
+    matrix4f matrix4f::Identity() {
+        matrix4f in;
+        in[0][0] = 1.0f;
+        in[1][1] = 1.0f;
+        in[2][2] = 1.0f;
+        in[3][3] = 1.0f;
+        return in;
+    }
 
-	bool operator==(const Matrix4d& a, const Matrix4d& b) {
-		for (int i = 0; i < 16; ++i) {
-			if (maths::Abs(a.ptr[i] - b.ptr[i]) > maths::MatrixEpsilon()) {
-				return false;
-			}
-		}
-		return true;
-	}
+    matrix4f matrix4f::Camera(const Vector3f& eye, const Vector3f& _look, const Vector3f& _up, const Vector3f& _right)
+    {
+        Vector3f look = Vector3f(_look).Normalized();
+        Vector3f up = Vector3f(_up).Normalized();
+        Vector3f right = Vector3f(_right).Normalized();
 
-	bool operator!=(const Matrix4d& a, const Matrix4d& b) {
-		return !(a == b);
-	}
+        matrix4f result;
+        result[0][0] = right.x;
+        result[1][0] = right.y;
+        result[2][0] = right.z;
+        result[3][0] = -right.Dot(eye);
 
-	Matrix4d operator+(const Matrix4d& a, const Matrix4d& b) {
-		return Matrix4d(
-			a.xx + b.xx, a.xy + b.xy, a.xz + b.xz, a.xw + b.xw,
-			a.yx + b.yx, a.yy + b.yy, a.yz + b.yz, a.yw + b.yw,
-			a.zx + b.zx, a.zy + b.zy, a.zz + b.zz, a.zw + b.zw,
-			a.wx + b.wx, a.wy + b.wy, a.wz + b.wz, a.ww + b.ww
-		);
-	}
+        result[0][1] = up.x;
+        result[1][1] = up.y;
+        result[2][1] = up.z;
+        result[3][1] = -up.Dot(eye);
 
-	Matrix4d operator*(const Matrix4d& m, float f) {
-		return Matrix4d(
-			m.xx * f, m.xy * f, m.xz * f, m.xw * f,
-			m.yx * f, m.yy * f, m.yz * f, m.yw * f,
-			m.zx * f, m.zy * f, m.zz * f, m.zw * f,
-			m.wx * f, m.wy * f, m.wz * f, m.ww * f
-		);
-	}
+        result[0][2] = look.x;
+        result[1][2] = look.y;
+        result[2][2] = look.z;
+        result[3][2] = -look.Dot(eye);
 
-	Matrix4d operator*(const Matrix4d& a, const Matrix4d& b) {
-		return Matrix4d(
-			M4D(0, 0, a, b), M4D(1, 0, a, b), M4D(2, 0, a, b), M4D(3, 0, a, b),//Col0
-			M4D(0, 1, a, b), M4D(1, 1, a, b), M4D(2, 1, a, b), M4D(3, 1, a, b),//Col1
-			M4D(0, 2, a, b), M4D(1, 2, a, b), M4D(2, 2, a, b), M4D(3, 2, a, b),//Col2
-			M4D(0, 3, a, b), M4D(1, 3, a, b), M4D(2, 3, a, b), M4D(3, 3, a, b) //Col3
-		);
-	}
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
 
-	Vector4d operator*(const Matrix4d& m, const Vector4d& v) {
-		return Vector4d(
-			M4V4D(0, v.x, v.y, v.z, v.w, m),
-			M4V4D(1, v.x, v.y, v.z, v.w, m),
-			M4V4D(2, v.x, v.y, v.z, v.w, m),
-			M4V4D(3, v.x, v.y, v.z, v.w, m)
-		);
-	}
+    matrix4f matrix4f::LookAt(const Vector3f& eye, const Vector3f& center, const Vector3f& up)
+    {
+        Vector3f xAxis, yAxis, zAxis;
+        zAxis = (eye - center).Normalized();
+        xAxis = Vector3f(up).Cross(zAxis).Normalized();
+        yAxis = Vector3f(zAxis).Cross(xAxis).Normalized();
 
-	Vector3d Matrix4d::TransformVector(const Vector3d& v) {
-		return Vector3d(
-			M4V4D(0, v.x, v.y, v.z, 0.0f, (*this)),
-			M4V4D(1, v.x, v.y, v.z, 0.0f, (*this)),
-			M4V4D(2, v.x, v.y, v.z, 0.0f, (*this))
-		);
-	}
+        matrix4f result;
+        result[0][0] = xAxis.x;
+        result[1][0] = xAxis.y;
+        result[2][0] = xAxis.z;
+        result[3][0] = -xAxis.Dot(eye);
 
-	Vector3d Matrix4d::TransformPoint(const Vector3d& v) {
-		return Vector3d(
-			M4V4D(0, v.x, v.y, v.z, 1.0f, (*this)),
-			M4V4D(1, v.x, v.y, v.z, 1.0f, (*this)),
-			M4V4D(2, v.x, v.y, v.z, 1.0f, (*this))
-		);
-	}
+        result[0][1] = yAxis.x;
+        result[1][1] = yAxis.y;
+        result[2][1] = yAxis.z;
+        result[3][1] = -yAxis.Dot(eye);
 
-	Vector3d Matrix4d::TransformPoint(const Vector3d& v, float64& w) {
-		float64 _w = w;
-		w = M4V4D(3, v.x, v.y, v.z, _w, (*this));
-		return Vector3d(
-			M4V4D(0, v.x, v.y, v.z, _w, (*this)),
-			M4V4D(1, v.x, v.y, v.z, _w, (*this)),
-			M4V4D(2, v.x, v.y, v.z, _w, (*this))
-		);
-	}
+        result[0][2] = zAxis.x;
+        result[1][2] = zAxis.y;
+        result[2][2] = zAxis.z;
+        result[3][2] = -zAxis.Dot(eye);
 
-	void Matrix4d::Transpose() {
-		M4SWAP(yx, xy);
-		M4SWAP(zx, xz);
-		M4SWAP(wx, xw);
-		M4SWAP(zy, yz);
-		M4SWAP(wy, yw);
-		M4SWAP(wz, zw);
-	}
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
 
-	Matrix4d Matrix4d::Transposed() {
-		return Matrix4d(
-			xx, yx, zx, wx,
-			xy, yy, zy, wy,
-			xz, yz, zz, wz,
-			xw, yw, zw, ww
-		);
-	}
+    matrix4f matrix4f::Orthogonal(float32 width, float32 height, float32 zNear, float32 zFar)
+    {
+        matrix4f result;
+        result[0][0] = 2.0f / width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
 
-	float64 Matrix4d::Determinant() {
-		return  ptr[0] * M4_3X3MINOR(ptr, 1, 2, 3, 1, 2, 3)
-			- ptr[4] * M4_3X3MINOR(ptr, 0, 2, 3, 1, 2, 3)
-			+ ptr[8] * M4_3X3MINOR(ptr, 0, 1, 3, 1, 2, 3)
-			- ptr[12] * M4_3X3MINOR(ptr, 0, 1, 2, 1, 2, 3);
-	}
+        result[0][1] = 0.0f;
+        result[1][1] = 2.0f / height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
 
-	Matrix4d Matrix4d::Adjugate() {
-		//Cof (M[i, j]) = Minor(M[i, j]] * pow(-1, i + j)
-		Matrix4d cofactor;
-		cofactor.ptr[0] = M4_3X3MINOR(ptr, 1, 2, 3, 1, 2, 3);
-		cofactor.ptr[1] = -M4_3X3MINOR(ptr, 1, 2, 3, 0, 2, 3);
-		cofactor.ptr[2] = M4_3X3MINOR(ptr, 1, 2, 3, 0, 1, 3);
-		cofactor.ptr[3] = -M4_3X3MINOR(ptr, 1, 2, 3, 0, 1, 2);
-		cofactor.ptr[4] = -M4_3X3MINOR(ptr, 0, 2, 3, 1, 2, 3);
-		cofactor.ptr[5] = M4_3X3MINOR(ptr, 0, 2, 3, 0, 2, 3);
-		cofactor.ptr[6] = -M4_3X3MINOR(ptr, 0, 2, 3, 0, 1, 3);
-		cofactor.ptr[7] = M4_3X3MINOR(ptr, 0, 2, 3, 0, 1, 2);
-		cofactor.ptr[8] = M4_3X3MINOR(ptr, 0, 1, 3, 1, 2, 3);
-		cofactor.ptr[9] = -M4_3X3MINOR(ptr, 0, 1, 3, 0, 2, 3);
-		cofactor.ptr[10] = M4_3X3MINOR(ptr, 0, 1, 3, 0, 1, 3);
-		cofactor.ptr[11] = -M4_3X3MINOR(ptr, 0, 1, 3, 0, 1, 2);
-		cofactor.ptr[12] = -M4_3X3MINOR(ptr, 0, 1, 2, 1, 2, 3);
-		cofactor.ptr[13] = M4_3X3MINOR(ptr, 0, 1, 2, 0, 2, 3);
-		cofactor.ptr[14] = -M4_3X3MINOR(ptr, 0, 1, 2, 0, 1, 3);
-		cofactor.ptr[15] = M4_3X3MINOR(ptr, 0, 1, 2, 0, 1, 2);
-		return cofactor.Transposed();
-	}
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = 1.0f / (zNear - zFar);
+        result[3][2] = zNear / (zNear - zFar);
 
-	Matrix4d Matrix4d::Inverse() {
-		float64 det = Determinant();
-		if (det == 0.0f) {
-			return Matrix4d();
-		}
-		Matrix4d adj = Adjugate();
-		return adj * (1.0f / det);
-	}
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
 
-	void Matrix4d::Invert() {
-		float64 det = Determinant();
-		if (det == 0.0f) {
-			*this = Matrix4d();
-			return;
-		}
-		*this = Adjugate() * (1.0f / det);
-	}
+    matrix4f matrix4f::Perspective(float32 width, float32 height, float32 zNear, float32 zFar)
+    {
+        matrix4f result;
+        result[0][0] = 2.0f * zNear / width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
 
-	Matrix4d Matrix4d::Frustum(float64 l, float64 r, float64 b, float64 t, float64 n, float64 f) {
-		if (l == r || t == b || n == f) {
-			return Matrix4d();
-		}
-		return Matrix4d(
-			(2.0f * n) / (r - l), 0, 0, 0,
-			0, (2.0f * n) / (t - b), 0, 0,
-			(r + l) / (r - l), (t + b) / (t - b), (-(f + n)) / (f - n), -1,
-			0, 0, (-2 * f * n) / (f - n), 0
-		);
-	}
+        result[0][1] = 0.0f;
+        result[1][1] = 2.0f * zNear / height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
 
-	Matrix4d Matrix4d::Perspective(float64 fov, float64 aspect, float64 n, float64 f) {
-		float64 ymax = n * maths::Tan(fov * maths::Pi() / 360.0);
-		float64 xmax = ymax * aspect;
-		return Frustum(-xmax, xmax, -ymax, ymax, n, f);
-	}
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = zFar / (zNear - zFar);
+        result[3][2] = zFar * zNear / (zNear - zFar);
 
-	Matrix4d Matrix4d::Orthogonal(float64 l, float64 r, float64 b, float64 t, float64 n, float64 f) {
-		if (l == r || t == b || n == f) {
-			return Matrix4d(); // Error
-		}
-		return Matrix4d(
-			2.0f / (r - l), 0, 0, 0,
-			0, 2.0f / (t - b), 0, 0,
-			0, 0, -2.0f / (f - n), 0,
-			-((r + l) / (r - l)), -((t + b) / (t - b)), -((f + n) / (f - n)), 1
-		);
-	}
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+        return result;
+    }
 
-	Matrix4d Matrix4d::LookAt(const Vector3d& position, const Vector3d& target, const Vector3d& up) {
-		Vector3d f = (target - position).Normalized() * -1.0f;
-		Vector3d r = Vector3d(up).Cross(f); // Right handed
+    matrix4f matrix4f::PerspectiveFov(float32 fov, float32 aspect, float32 zNear, float32 zFar)
+    {
+        float32 width = 1.0f / tanf(fov / 2.0f), height = aspect / tanf(fov / 2.0f);
 
-		if (r == Vector3d(0, 0, 0)) {
-			return Matrix4d(); // Error
-		}
-		r.Normalize();
-		Vector3d u = f.Cross(r).Normalized(); // Right handed
-		Vector3d t = Vector3d(-r.Dot(position), -u.Dot(position), -f.Dot(position));
-		return Matrix4d(
-			// Transpose upper 3x3 matrix to invert it
-			r.x, u.x, f.x, 0,
-			r.y, u.y, f.y, 0,
-			r.z, u.z, f.z, 0,
-			t.x, t.y, t.z, 1
-		);
-	}
+        matrix4f result;
+        result[0][0] = width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
 
-	std::string Matrix4d::ToStringRow(int i) {
-		std::stringstream ss;
-		if (i == 0)
-			ss << "[" << xx << ", " << xy << ", " << xz << ", " << xw << "]";
-		if (i == 1)
-			ss << "[" << yx << ", " << yy << ", " << yz << ", " << yw << "]";
-		if (i == 2)
-			ss << "[" << zx << ", " << zy << ", " << zz << ", " << zw << "]";
-		if (i == 3)
-			ss << "[" << wx << ", " << wy << ", " << wz << ", " << ww << "]";
-		return ss.str();
-	}
+        result[0][1] = 0.0f;
+        result[1][1] = height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
 
-	std::string Matrix4d::ToStringCol(int i) {
-		std::stringstream ss;
-		if (i == 0)
-			ss << "[" << xx << ", " << yx << ", " << zx << ", " << wx << "]";
-		if (i == 1)
-			ss << "[" << xy << ", " << yy << ", " << zy << ", " << wy << "]";
-		if (i == 2)
-			ss << "[" << xz << ", " << yz << ", " << zz << ", " << wz << "]";
-		if (i == 3)
-			ss << "[" << xw << ", " << yw << ", " << zw << ", " << ww << "]";
-		return ss.str();
-	}
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = zFar / (zNear - zFar);
+        result[3][2] = zFar * zNear / (zNear - zFar);
 
-	std::string Matrix4d::ToString() const {
-		std::stringstream ss;
-		ss << "Matrix4d";
-		ss << "[[" << xx << ", " << yx << ", " << zx << ", " << wx << "], ";
-		ss << "[" << xy << ", " << yy << ", " << zy << ", " << wy << "], ";
-		ss << "[" << xz << ", " << yz << ", " << zz << ", " << wz << "], ";
-		ss << "[" << xw << ", " << yw << ", " << zw << ", " << ww << "]]";
-		return ss.str();
-	}
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+        return result;
+    }
 
-	std::ostream& operator<<(std::ostream& os, const Matrix4d& e) {
-		return os << e.ToString();
-	}
+    matrix4f matrix4f::PerspectiveMultifov(float32 fovX, float32 fovY, float32 zNear, float32 zFar)
+    {
+        float32 width = 1.0f / tanf(fovX / 2.0f), height = 1.0f / tanf(fovY / 2.0f);
 
-	Matrix4d& Matrix4d::operator=(const Matrix4d& other) {
-		if (this != &other) {
-			memcpy(ptr, other.ptr, sizeof(float64) * 16);
-		}
-		return *this;
-	}
+        matrix4f result;
+        result[0][0] = width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = zFar / (zNear - zFar);
+        result[3][2] = zFar * zNear / (zNear - zFar);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+        return result;
+    }
+
+    matrix4f matrix4f::Rotation(const Vector3f& Axis, const Angle& angle)
+    {
+        float32 theta = angle.Rad();
+        float32 c = cosf(theta);
+        float32 s = sinf(theta);
+        float32 t = 1.0f - c;
+
+        Vector3f NormalizedAxis = Vector3f(Axis).Normalized();
+        float32 x = NormalizedAxis.x;
+        float32 y = NormalizedAxis.y;
+        float32 z = NormalizedAxis.z;
+
+        matrix4f result;
+        result[0][0] = 1 + t * (x * x - 1);
+        result[0][1] = z * s + t * x * y;
+        result[0][2] = -y * s + t * x * z;
+        result[0][3] = 0.0f;
+
+        result[1][0] = -z * s + t * x * y;
+        result[1][1] = 1 + t * (y * y - 1);
+        result[1][2] = x * s + t * y * z;
+        result[1][3] = 0.0f;
+
+        result[2][0] = y * s + t * x * z;
+        result[2][1] = -x * s + t * y * z;
+        result[2][2] = 1 + t * (z * z - 1);
+        result[2][3] = 0.0f;
+
+        result[3][0] = 0.0f;
+        result[3][1] = 0.0f;
+        result[3][2] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4f matrix4f::Rotation(float32 yaw, float32 pitch, float32 roll)
+    {
+        return RotationY(yaw) * RotationX(pitch) * RotationZ(roll);
+    }
+
+    matrix4f matrix4f::Rotation(const Vector3f& Axis, const Angle& angle, const Vector3f& Center)
+    {
+        return Translation(-Center) * Rotation(Axis, angle) * Translation(Center);
+    }
+
+    matrix4f matrix4f::RotationX(const Angle& angle)
+    {
+        float32 theta = angle.Rad();
+        float32 CosT = cosf(theta);
+        float32 SinT = sinf(theta);
+
+        matrix4f result = Identity();
+        result[1][1] = CosT;
+        result[1][2] = SinT;
+        result[2][1] = -SinT;
+        result[2][2] = CosT;
+        return result;
+    }
+
+    matrix4f matrix4f::RotationY(const Angle& angle)
+    {
+        float32 theta = angle.Rad();
+        float32 CosT = cosf(theta);
+        float32 SinT = sinf(theta);
+
+        matrix4f result = Identity();
+        result[0][0] = CosT;
+        result[0][2] = SinT;
+        result[2][0] = -SinT;
+        result[2][2] = CosT;
+        return result;
+    }
+
+    matrix4f matrix4f::RotationZ(const Angle& angle)
+    {
+        float32 theta = angle.Rad();
+        float32 CosT = cosf(theta);
+        float32 SinT = sinf(theta);
+
+        matrix4f result = Identity();
+        result[0][0] = CosT;
+        result[0][1] = SinT;
+        result[1][0] = -SinT;
+        result[1][1] = CosT;
+        return result;
+    }
+
+    matrix4f matrix4f::Scaling(const Vector3f& scaleFactors)
+    {
+        matrix4f result;
+        result[0][0] = scaleFactors.x;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = scaleFactors.y;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = scaleFactors.z;
+        result[3][2] = 0.0f;
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4f matrix4f::Translation(const Vector3f& pos)
+    {
+        matrix4f result;
+        result[0][0] = 1.0f;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = pos.x;
+
+        result[0][1] = 0.0f;
+        result[1][1] = 1.0f;
+        result[2][1] = 0.0f;
+        result[3][1] = pos.y;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = 1.0f;
+        result[3][2] = pos.z;
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4f matrix4f::Frustum(float32 left, float32 right, float32 bottom, float32 top, float32 zNear, float32 zFar) {
+        matrix4f result;
+
+        result.m00 = (2.0f * zNear) / (right - left);
+        result.m11 = (2.0f * zNear) / (top - bottom);
+        result.m20 = (right + left) / (right - left);
+        result.m21 = (top + bottom) / (top - bottom);
+        result.m22 = -(zFar + zNear) / (zFar - zNear);
+        result.m23 = -1.0f;
+        result.m32 = -(2.0f * zFar * zNear) / (zFar - zNear);
+
+        return result;
+    }
+
+    std::string matrix4f::ToStringRow(uint32 i) {
+        std::stringstream ss;
+
+        ss << "[";
+        for (uint32 i2 = 0; i2 < 4; i2++)
+        {
+            ss << mat[i][i2];
+        }
+        ss << "]";
+
+        return ss.str();
+    }
+
+    std::string matrix4f::ToStringCol(uint32 i) {
+        std::stringstream ss;
+
+        ss << "[";
+        for (uint32 i2 = 0; i2 < 4; i2++)
+        {
+            ss << mat[i2][i];
+        }
+        ss << "]";
+
+        return ss.str();
+    }
+
+    std::string matrix4f::ToString() const {
+        std::stringstream ss;
+        ss << "Matrix4f[";
+        for (uint32 i1 = 0; i1 < 4; i1++) {
+            ss << "[";
+            for (uint32 i2 = 0; i2 < 4; i2++) {
+                ss << mat[i1][i2];
+
+                if (i2 < 3) {
+                    ss << ", ";
+                }
+            }
+            ss << "]";
+
+            if (i1 < 3) {
+                ss << ", ";
+            }
+        }
+        return ss.str();
+    }
+
+    std::ostream& operator<<(std::ostream& os, const matrix4f& e) {
+        return os << e.ToString();
+    }
+
+    //*********************************
+// Constructeur par défaut
+    matrix4d::matrix4d() {
+        // Initialiser la matrice à l'identité
+        for (int i = 0; i < 16; ++i) {
+            data[i] = 0.0f;
+        }
+    }
+
+    matrix4d::matrix4d(const Vector3d& V0, const Vector3d& V1, const Vector3d& V2)
+    {
+        mat[0][0] = V0.x;
+        mat[0][1] = V0.y;
+        mat[0][2] = V0.z;
+        mat[0][3] = 0.0f;
+
+        mat[1][0] = V1.x;
+        mat[1][1] = V1.y;
+        mat[1][2] = V1.z;
+        mat[1][3] = 0.0f;
+
+        mat[2][0] = V2.x;
+        mat[2][1] = V2.y;
+        mat[2][2] = V2.z;
+        mat[2][3] = 0.0f;
+
+        mat[3][0] = 0.0f;
+        mat[3][1] = 0.0f;
+        mat[3][2] = 0.0f;
+        mat[3][3] = 1.0f;
+    }
+
+    // Constructeur par copie
+    matrix4d::matrix4d(const matrix4d& other) {
+        std::memcpy(data, other.data, 16 * sizeof(float64));
+    }
+
+    // Constructeur avec une valeur initiale
+    matrix4d::matrix4d(float64 value) {
+        for (int i = 0; i < 16; ++i) {
+            data[i] = value;
+        }
+    }
+
+    // Constructeur à partir d'un tableau de données
+    matrix4d::matrix4d(const float64* data) {
+        std::memcpy(this->data, data, 16 * sizeof(float64));
+    }
+
+    matrix4d::matrix4d(float64 m00, float64 m01, float64 m02, float64 m03,
+        float64 m10, float64 m11, float64 m12, float64 m13,
+        float64 m20, float64 m21, float64 m22, float64 m23,
+        float64 m30, float64 m31, float64 m32, float64 m33) {
+        this->m00 = m00; this->m01 = m01; this->m02 = m02; this->m03 = m03;
+        this->m10 = m10; this->m11 = m11; this->m12 = m12; this->m13 = m13;
+        this->m20 = m20; this->m21 = m21; this->m22 = m22; this->m23 = m23;
+        this->m30 = m30; this->m31 = m31; this->m32 = m32; this->m33 = m33;
+    }
+
+    // Accesseurs aux éléments de la matrice
+    float64 matrix4d::Get(int row, int col) const {
+        return data[row * 4 + col];
+    }
+
+    void matrix4d::Set(int row, int col, float64 value) {
+        data[row * 4 + col] = value;
+    }
+
+    // Accesseurs pour une ligne entière de la matrice
+    float64* matrix4d::operator[](int row) {
+        return &data[row * 4];
+    }
+
+    const float64* matrix4d::operator[](int row) const {
+        return &data[row * 4];
+    }
+
+    // Accesseur pour toute la matrice
+    float64* matrix4d::Ptr() {
+        return data;
+    }
+
+    const float64* matrix4d::Ptr() const {
+        return data;
+    }
+
+    // Opérateurs d'affectation
+    matrix4d& matrix4d::operator=(const matrix4d& other) {
+        std::memcpy(data, other.data, 16 * sizeof(float64));
+        return *this;
+    }
+
+    matrix4d& matrix4d::operator=(const float64* otherData) {
+        std::memcpy(data, otherData, 16 * sizeof(float64));
+        return *this;
+    }
+
+    // Opérateurs d'égalité et d'inégalité
+    bool matrix4d::operator==(const matrix4d& other) const {
+        for (int i = 0; i < 16; ++i) {
+            if (data[i] != other.data[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool matrix4d::operator!=(const matrix4d& other) const {
+        return !(*this == other);
+    }
+
+    matrix4d& matrix4d::operator*=(const matrix4d& other) {
+        *this = *this * other;
+        return *this;
+    }
+
+    matrix4d& matrix4d::operator*=(float64 scalar) {
+        for (int i = 0; i < 16; ++i) {
+            data[i] *= scalar;
+        }
+        return *this;
+    }
+
+    matrix4d operator*(const matrix4d& left, const matrix4d& right)
+    {
+        matrix4d result;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                float64 Total = 0.0f;
+                for (uint32 i3 = 0; i3 < 4; i3++)
+                {
+                    Total += left[i][i3] * right[i3][i2];
+                }
+                result[i][i2] = Total;
+            }
+        }
+        return result;
+    }
+
+    matrix4d operator*(const matrix4d& left, float64& right)
+    {
+        matrix4d result;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                result[i][i2] = left[i][i2] * right;
+            }
+        }
+        return result;
+    }
+
+    matrix4d operator*(float64& left, const matrix4d& right)
+    {
+        matrix4d result;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                result[i][i2] = right[i][i2] * left;
+            }
+        }
+        return result;
+    }
+
+    matrix4d operator+(const matrix4d& left, const matrix4d& right)
+    {
+        matrix4d result;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                result[i][i2] = left[i][i2] + right[i][i2];
+            }
+        }
+        return result;
+    }
+
+    matrix4d operator-(const matrix4d& left, const matrix4d& right)
+    {
+        matrix4d result;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                result[i][i2] = left[i][i2] - right[i][i2];
+            }
+        }
+        return result;
+    }
+
+    // Transposition de la matrice
+    matrix4d matrix4d::Transpose() const {
+        matrix4d result;
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                result.mat[j][i] = mat[i][j];
+            }
+        }
+        return result;
+    }
+
+    // Calcul du déterminant
+    float64 matrix4d::Determinant() const {
+        float64 det = 0.0f;
+        for (int i = 0; i < 4; ++i) {
+            float64 cofactor = data[i] * Cofactor3x3(0, i);
+            det += (i % 2 == 0 ? 1 : -1) * cofactor;
+        }
+        return det;
+    }
+
+    float64 matrix4d::Cofactor3x3(int row, int col) const {
+        float64 submatrix[9];
+        int index = 0;
+        for (int i = 0; i < 4; ++i) {
+            if (i == row) continue;
+            for (int j = 0; j < 4; ++j) {
+                if (j == col) continue;
+                submatrix[index++] = data[i * 4 + j];
+            }
+        }
+        return Determinant3x3(submatrix);
+    }
+
+    float64 matrix4d::Determinant3x3(const float64 submatrix[9]) const {
+        return submatrix[0] * (submatrix[4] * submatrix[8] - submatrix[5] * submatrix[7])
+            - submatrix[1] * (submatrix[3] * submatrix[8] - submatrix[5] * submatrix[6])
+            + submatrix[2] * (submatrix[3] * submatrix[7] - submatrix[4] * submatrix[6]);
+    }
+
+    Vector3d matrix4d::TransformPoint(const Vector3d& point) const
+    {
+        Vector4d Unprojectedresult = Vector4d(point, 1.0f) * (*this);
+        if (Unprojectedresult.w == 0.0f || Unprojectedresult.w == 1.0f)
+        {
+            return Vector3d(Unprojectedresult.x, Unprojectedresult.y, Unprojectedresult.z);
+        }
+        else
+        {
+            return Vector3d(Unprojectedresult.x / Unprojectedresult.w,
+                Unprojectedresult.y / Unprojectedresult.w,
+                Unprojectedresult.z / Unprojectedresult.w);
+        }
+    }
+
+    Vector3d matrix4d::TransformVector(const Vector3d& vector) const
+    {
+        Vector4d Unprojectedresult = Vector4d(vector, 0.0f) * (*this);
+        if (Unprojectedresult.w == 0.0f || Unprojectedresult.w == 1.0f)
+        {
+            return Vector3d(Unprojectedresult.x, Unprojectedresult.y, Unprojectedresult.z);
+        }
+        else
+        {
+            return Vector3d(Unprojectedresult.x / Unprojectedresult.w,
+                Unprojectedresult.y / Unprojectedresult.w,
+                Unprojectedresult.z / Unprojectedresult.w);
+        }
+    }
+
+    Vector3d matrix4d::TransformNormal(const Vector3d& normal) const
+    {
+        Vector4d Unprojectedresult = Vector4d(normal, 0.0f) * (*this);
+        if (Unprojectedresult.w == 0.0f)
+        {
+            Unprojectedresult.w = 1.0f;
+        }
+
+        Vector3d result(Unprojectedresult.x / Unprojectedresult.w, Unprojectedresult.y / Unprojectedresult.w, Unprojectedresult.z / Unprojectedresult.w);
+
+        if (Unprojectedresult.w < 0.0f)
+        {
+            result = -result;
+        }
+        return result;
+    }
+
+    // Calcul de l'inverse de la matrice
+    matrix4d matrix4d::Inverse() const {
+        float64 result[4][4];
+        float64 tmp[12]; /* temp array for pairs */
+        float64 src[16]; /* array of transpose source matrix */
+        float64 det; /* determinant */
+        /* transpose matrix */
+        for (uint32 i = 0; i < 4; i++)
+        {
+            src[i + 0] = (*this)[i][0];
+            src[i + 4] = (*this)[i][1];
+            src[i + 8] = (*this)[i][2];
+            src[i + 12] = (*this)[i][3];
+        }
+        /* calculate pairs for first 8 elements (cofactors) */
+        tmp[0] = src[10] * src[15];
+        tmp[1] = src[11] * src[14];
+        tmp[2] = src[9] * src[15];
+        tmp[3] = src[11] * src[13];
+        tmp[4] = src[9] * src[14];
+        tmp[5] = src[10] * src[13];
+        tmp[6] = src[8] * src[15];
+        tmp[7] = src[11] * src[12];
+        tmp[8] = src[8] * src[14];
+        tmp[9] = src[10] * src[12];
+        tmp[10] = src[8] * src[13];
+        tmp[11] = src[9] * src[12];
+        /* calculate first 8 elements (cofactors) */
+        result[0][0] = tmp[0] * src[5] + tmp[3] * src[6] + tmp[4] * src[7];
+        result[0][0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[5] * src[7];
+        result[0][1] = tmp[1] * src[4] + tmp[6] * src[6] + tmp[9] * src[7];
+        result[0][1] -= tmp[0] * src[4] + tmp[7] * src[6] + tmp[8] * src[7];
+        result[0][2] = tmp[2] * src[4] + tmp[7] * src[5] + tmp[10] * src[7];
+        result[0][2] -= tmp[3] * src[4] + tmp[6] * src[5] + tmp[11] * src[7];
+        result[0][3] = tmp[5] * src[4] + tmp[8] * src[5] + tmp[11] * src[6];
+        result[0][3] -= tmp[4] * src[4] + tmp[9] * src[5] + tmp[10] * src[6];
+        result[1][0] = tmp[1] * src[1] + tmp[2] * src[2] + tmp[5] * src[3];
+        result[1][0] -= tmp[0] * src[1] + tmp[3] * src[2] + tmp[4] * src[3];
+        result[1][1] = tmp[0] * src[0] + tmp[7] * src[2] + tmp[8] * src[3];
+        result[1][1] -= tmp[1] * src[0] + tmp[6] * src[2] + tmp[9] * src[3];
+        result[1][2] = tmp[3] * src[0] + tmp[6] * src[1] + tmp[11] * src[3];
+        result[1][2] -= tmp[2] * src[0] + tmp[7] * src[1] + tmp[10] * src[3];
+        result[1][3] = tmp[4] * src[0] + tmp[9] * src[1] + tmp[10] * src[2];
+        result[1][3] -= tmp[5] * src[0] + tmp[8] * src[1] + tmp[11] * src[2];
+        /* calculate pairs for second 8 elements (cofactors) */
+        tmp[0] = src[2] * src[7];
+        tmp[1] = src[3] * src[6];
+        tmp[2] = src[1] * src[7];
+        tmp[3] = src[3] * src[5];
+        tmp[4] = src[1] * src[6];
+        tmp[5] = src[2] * src[5];
+
+        tmp[6] = src[0] * src[7];
+        tmp[7] = src[3] * src[4];
+        tmp[8] = src[0] * src[6];
+        tmp[9] = src[2] * src[4];
+        tmp[10] = src[0] * src[5];
+        tmp[11] = src[1] * src[4];
+
+        /* calculate second 8 elements (cofactors) */
+        result[2][0] = tmp[0] * src[13] + tmp[3] * src[14] + tmp[4] * src[15];
+        result[2][0] -= tmp[1] * src[13] + tmp[2] * src[14] + tmp[5] * src[15];
+        result[2][1] = tmp[1] * src[12] + tmp[6] * src[14] + tmp[9] * src[15];
+        result[2][1] -= tmp[0] * src[12] + tmp[7] * src[14] + tmp[8] * src[15];
+        result[2][2] = tmp[2] * src[12] + tmp[7] * src[13] + tmp[10] * src[15];
+        result[2][2] -= tmp[3] * src[12] + tmp[6] * src[13] + tmp[11] * src[15];
+        result[2][3] = tmp[5] * src[12] + tmp[8] * src[13] + tmp[11] * src[14];
+        result[2][3] -= tmp[4] * src[12] + tmp[9] * src[13] + tmp[10] * src[14];
+        result[3][0] = tmp[2] * src[10] + tmp[5] * src[11] + tmp[1] * src[9];
+        result[3][0] -= tmp[4] * src[11] + tmp[0] * src[9] + tmp[3] * src[10];
+        result[3][1] = tmp[8] * src[11] + tmp[0] * src[8] + tmp[7] * src[10];
+        result[3][1] -= tmp[6] * src[10] + tmp[9] * src[11] + tmp[1] * src[8];
+        result[3][2] = tmp[6] * src[9] + tmp[11] * src[11] + tmp[3] * src[8];
+        result[3][2] -= tmp[10] * src[11] + tmp[2] * src[8] + tmp[7] * src[9];
+        result[3][3] = tmp[10] * src[10] + tmp[4] * src[8] + tmp[9] * src[9];
+        result[3][3] -= tmp[8] * src[9] + tmp[11] * src[10] + tmp[5] * src[8];
+
+        /* calculate determinant */
+        det = src[0] * result[0][0] + src[1] * result[0][1] + src[2] * result[0][2] + src[3] * result[0][3];
+
+        /* calculate matrix inverse */
+        det = 1.0f / det;
+
+        matrix4d finalResult;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 j = 0; j < 4; j++)
+            {
+                finalResult[i][j] = float64(result[i][j] * det);
+            }
+        }
+        return finalResult;
+    }
+
+    Vector4d matrix4d::operator*(const Vector4d& vector) const {
+        Vector4d result;
+        for (int i = 0; i < 4; ++i) {
+            result.ptr[i] = 0.0f;
+            for (int j = 0; j < 4; ++j) {
+                result.ptr[i] += data[i * 4 + j] * vector.ptr[j];
+            }
+        }
+        return result;
+    }
+
+    Vector4d operator*(const Vector4d& vector, const matrix4d& m) {
+        Vector4d result;
+        for (int i = 0; i < 4; ++i) {
+            result.ptr[i] = 0.0f;
+            for (int j = 0; j < 4; ++j) {
+                result.ptr[i] += vector.ptr[j] * m.data[j * 4 + i]; // Notez le changement ici
+            }
+        }
+        return result;
+    }
+
+    Vector4d operator*(const matrix4d& m, const Vector4d& vector) {
+        Vector4d result;
+        for (int i = 0; i < 4; ++i) {
+            result.ptr[i] = 0.0f;
+            for (int j = 0; j < 4; ++j) {
+                result.ptr[i] += m.data[i * 4 + j] * vector.ptr[j];
+            }
+        }
+        return result;
+    }
+
+    float64 matrix4d::CompareMatrices(const matrix4d& left, const matrix4d& right)
+    {
+        float64 Sum = 0.0f;
+        for (uint32 i = 0; i < 4; i++)
+        {
+            for (uint32 i2 = 0; i2 < 4; i2++)
+            {
+                Sum += maths::Abs(left[i][i2] - right[i][i2]);
+            }
+        }
+        return Sum / 16.0f;
+    }
+
+    matrix4d matrix4d::Identity() {
+        matrix4d in;
+        in[0][0] = 1.0f;
+        in[1][1] = 1.0f;
+        in[2][2] = 1.0f;
+        in[3][3] = 1.0f;
+        return in;
+    }
+
+    matrix4d matrix4d::Camera(const Vector3d& eye, const Vector3d& _look, const Vector3d& _up, const Vector3d& _right)
+    {
+        Vector3d look = Vector3d(_look).Normalized();
+        Vector3d up = Vector3d(_up).Normalized();
+        Vector3d right = Vector3d(_right).Normalized();
+
+        matrix4d result;
+        result[0][0] = right.x;
+        result[1][0] = right.y;
+        result[2][0] = right.z;
+        result[3][0] = -right.Dot(eye);
+
+        result[0][1] = up.x;
+        result[1][1] = up.y;
+        result[2][1] = up.z;
+        result[3][1] = -up.Dot(eye);
+
+        result[0][2] = look.x;
+        result[1][2] = look.y;
+        result[2][2] = look.z;
+        result[3][2] = -look.Dot(eye);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::LookAt(const Vector3d& eye, const Vector3d& center, const Vector3d& up)
+    {
+        Vector3d xAxis, yAxis, zAxis;
+        zAxis = (eye - center).Normalized();
+        xAxis = Vector3d(up).Cross(zAxis).Normalized();
+        yAxis = Vector3d(zAxis).Cross(xAxis).Normalized();
+
+        matrix4d result;
+        result[0][0] = xAxis.x;
+        result[1][0] = xAxis.y;
+        result[2][0] = xAxis.z;
+        result[3][0] = -xAxis.Dot(eye);
+
+        result[0][1] = yAxis.x;
+        result[1][1] = yAxis.y;
+        result[2][1] = yAxis.z;
+        result[3][1] = -yAxis.Dot(eye);
+
+        result[0][2] = zAxis.x;
+        result[1][2] = zAxis.y;
+        result[2][2] = zAxis.z;
+        result[3][2] = -zAxis.Dot(eye);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::Orthogonal(float64 width, float64 height, float64 zNear, float64 zFar)
+    {
+        matrix4d result;
+        result[0][0] = 2.0f / width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = 2.0f / height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = 1.0f / (zNear - zFar);
+        result[3][2] = zNear / (zNear - zFar);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::Perspective(float64 width, float64 height, float64 zNear, float64 zFar)
+    {
+        matrix4d result;
+        result[0][0] = 2.0f * zNear / width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = 2.0f * zNear / height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = zFar / (zNear - zFar);
+        result[3][2] = zFar * zNear / (zNear - zFar);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::PerspectiveFov(float64 fov, float64 aspect, float64 zNear, float64 zFar)
+    {
+        float64 width = 1.0f / tanf(fov / 2.0f), height = aspect / tanf(fov / 2.0f);
+
+        matrix4d result;
+        result[0][0] = width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = zFar / (zNear - zFar);
+        result[3][2] = zFar * zNear / (zNear - zFar);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::PerspectiveMultifov(float64 fovX, float64 fovY, float64 zNear, float64 zFar)
+    {
+        float64 width = 1.0f / tanf(fovX / 2.0f), height = 1.0f / tanf(fovY / 2.0f);
+
+        matrix4d result;
+        result[0][0] = width;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = height;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = zFar / (zNear - zFar);
+        result[3][2] = zFar * zNear / (zNear - zFar);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::Rotation(const Vector3d& Axis, const Angle& angle)
+    {
+        float64 theta = angle.Rad();
+        float64 c = cosf(theta);
+        float64 s = sinf(theta);
+        float64 t = 1.0f - c;
+
+        Vector3d NormalizedAxis = Vector3d(Axis).Normalized();
+        float64 x = NormalizedAxis.x;
+        float64 y = NormalizedAxis.y;
+        float64 z = NormalizedAxis.z;
+
+        matrix4d result;
+        result[0][0] = 1 + t * (x * x - 1);
+        result[0][1] = z * s + t * x * y;
+        result[0][2] = -y * s + t * x * z;
+        result[0][3] = 0.0f;
+
+        result[1][0] = -z * s + t * x * y;
+        result[1][1] = 1 + t * (y * y - 1);
+        result[1][2] = x * s + t * y * z;
+        result[1][3] = 0.0f;
+
+        result[2][0] = y * s + t * x * z;
+        result[2][1] = -x * s + t * y * z;
+        result[2][2] = 1 + t * (z * z - 1);
+        result[2][3] = 0.0f;
+
+        result[3][0] = 0.0f;
+        result[3][1] = 0.0f;
+        result[3][2] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::Rotation(float64 yaw, float64 pitch, float64 roll)
+    {
+        return RotationY(yaw) * RotationX(pitch) * RotationZ(roll);
+    }
+
+    matrix4d matrix4d::Rotation(const Vector3d& Axis, const Angle& angle, const Vector3d& Center)
+    {
+        return Translation(-Center) * Rotation(Axis, angle) * Translation(Center);
+    }
+
+    matrix4d matrix4d::RotationX(const Angle& angle)
+    {
+        float64 theta = angle.Rad();
+        float64 CosT = cosf(theta);
+        float64 SinT = sinf(theta);
+
+        matrix4d result = Identity();
+        result[1][1] = CosT;
+        result[1][2] = SinT;
+        result[2][1] = -SinT;
+        result[2][2] = CosT;
+        return result;
+    }
+
+    matrix4d matrix4d::RotationY(const Angle& angle)
+    {
+        float64 theta = angle.Rad();
+        float64 CosT = cosf(theta);
+        float64 SinT = sinf(theta);
+
+        matrix4d result = Identity();
+        result[0][0] = CosT;
+        result[0][2] = SinT;
+        result[2][0] = -SinT;
+        result[2][2] = CosT;
+        return result;
+    }
+
+    matrix4d matrix4d::RotationZ(const Angle& angle)
+    {
+        float64 theta = angle.Rad();
+        float64 CosT = cosf(theta);
+        float64 SinT = sinf(theta);
+
+        matrix4d result = Identity();
+        result[0][0] = CosT;
+        result[0][1] = SinT;
+        result[1][0] = -SinT;
+        result[1][1] = CosT;
+        return result;
+    }
+
+    matrix4d matrix4d::Scaling(const Vector3d& scaleFactors)
+    {
+        matrix4d result;
+        result[0][0] = scaleFactors.x;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = scaleFactors.y;
+        result[2][1] = 0.0f;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = scaleFactors.z;
+        result[3][2] = 0.0f;
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::Translation(const Vector3d& pos)
+    {
+        matrix4d result;
+        result[0][0] = 1.0f;
+        result[1][0] = 0.0f;
+        result[2][0] = 0.0f;
+        result[3][0] = pos.x;
+
+        result[0][1] = 0.0f;
+        result[1][1] = 1.0f;
+        result[2][1] = 0.0f;
+        result[3][1] = pos.y;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = 1.0f;
+        result[3][2] = pos.z;
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = 0.0f;
+        result[3][3] = 1.0f;
+        return result;
+    }
+
+    matrix4d matrix4d::Frustum(float64 left, float64 right, float64 bottom, float64 top, float64 zNear, float64 zFar) {
+        matrix4d result;
+
+        result.m00 = (2.0f * zNear) / (right - left);
+        result.m11 = (2.0f * zNear) / (top - bottom);
+        result.m20 = (right + left) / (right - left);
+        result.m21 = (top + bottom) / (top - bottom);
+        result.m22 = -(zFar + zNear) / (zFar - zNear);
+        result.m23 = -1.0f;
+        result.m32 = -(2.0f * zFar * zNear) / (zFar - zNear);
+
+        return result;
+    }
+
+    std::string matrix4d::ToStringRow(uint32 i) {
+        std::stringstream ss;
+
+        ss << "[";
+        for (uint32 i2 = 0; i2 < 4; i2++)
+        {
+            ss << mat[i][i2];
+        }
+        ss << "]";
+
+        return ss.str();
+    }
+
+    std::string matrix4d::ToStringCol(uint32 i) {
+        std::stringstream ss;
+
+        ss << "[";
+        for (uint32 i2 = 0; i2 < 4; i2++)
+        {
+            ss << mat[i2][i];
+        }
+        ss << "]";
+
+        return ss.str();
+    }
+
+    std::string matrix4d::ToString() const {
+        std::stringstream ss;
+        ss << "matrix4d[";
+        for (uint32 i1 = 0; i1 < 4; i1++) {
+            ss << "[";
+            for (uint32 i2 = 0; i2 < 4; i2++) {
+                ss << mat[i1][i2];
+
+                if (i2 < 3) {
+                    ss << ", ";
+                }
+            }
+            ss << "]";
+
+            if (i1 < 3) {
+                ss << ", ";
+            }
+        }
+        return ss.str();
+    }
+
+    std::ostream& operator<<(std::ostream& os, const matrix4d& e) {
+        return os << e.ToString();
+    }
 }    // namespace nkentseu

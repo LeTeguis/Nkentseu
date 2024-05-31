@@ -7,59 +7,48 @@
 #include "VertexBuffer.h"
 #include <Logger/Formatter.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-#include "Internal/Opengl/InternalVertexBuffer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_VULKAN)
-#include "Internal/Vulkan/InternalVertexBuffer.h"
-#endif
+#include "Internal/Vulkan/VulkanVertexBuffer.h"
+#include "Internal/Opengl/OpenglVertexBuffer.h"
+
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "Context.h"
 
 namespace nkentseu {
-    
-    // Constructor
-    VertexBuffer::VertexBuffer() {
-        // Ajoutez votre code de constructeur ici
-        m_Internal = Memory::Alloc<InternalVertexBuffer>();
-    }
+#define NKENTSEU_CREATE_VERTEX_BUFFER_P1(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+															auto data = Memory::Alloc<class_>(context);	\
+															if (data != nullptr && data->Create(bufferUsage, vertices, leng, bufferLayout)) {	\
+																return data;	\
+															}	\
+															Memory::Reset(data);	\
+														}
+#define NKENTSEU_CREATE_VERTEX_BUFFER_P2(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+															auto data = Memory::Alloc<class_>(context);	\
+															if (data != nullptr && data->Create(bufferUsage, vertices, bufferLayout)) {	\
+																return data;	\
+															}	\
+															Memory::Reset(data);	\
+														}
 
-    // Destructor
-    VertexBuffer::~VertexBuffer() {
-        // Ajoutez votre code de destructeur ici
-    }
-
-    bool VertexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
     {
-        if (m_Internal == nullptr) {
-            m_Internal = Memory::Alloc<InternalVertexBuffer>();
-            if (m_Internal == nullptr) {
-                return false;
-            }
-        }
-        return m_Internal->Create(context, bufferUsage, vertices, leng, bufferLayout);
+		if (context == nullptr) {
+			return nullptr;
+		}
+
+		NKENTSEU_CREATE_VERTEX_BUFFER_P1(GraphicsApiType::VulkanApi, VulkanVertexBuffer);
+		NKENTSEU_CREATE_VERTEX_BUFFER_P1(GraphicsApiType::OpenglApi, OpenglVertexBuffer);
+		return nullptr;
     }
 
-    bool VertexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
     {
-        if (m_Internal == nullptr) {
-            m_Internal = Memory::Alloc<InternalVertexBuffer>();
-            if (m_Internal == nullptr) {
-                return false;
-            }
-        }
-        return m_Internal->Create(context, bufferUsage, vertices, bufferLayout);
-    }
+		if (context == nullptr) {
+			return nullptr;
+		}
 
-    bool VertexBuffer::Destroy()
-    {
-        if (m_Internal == nullptr) return false;
-        
-        return m_Internal->Destroy();
-    }
+		NKENTSEU_CREATE_VERTEX_BUFFER_P2(GraphicsApiType::VulkanApi, VulkanVertexBuffer);
+		NKENTSEU_CREATE_VERTEX_BUFFER_P2(GraphicsApiType::OpenglApi, OpenglVertexBuffer);
 
-    InternalVertexBuffer* VertexBuffer::GetInternal()
-    {
-        if (m_Internal == nullptr) return nullptr;
-        return m_Internal.get();
+		return nullptr;
     }
 }  //  nkentseu

@@ -14,26 +14,15 @@
 #include <unordered_map>
 
 #include "ShaderInfo.h"
+#include "Context.h"
 
 namespace nkentseu {
-    class InternalShader;
-    class Context;
-    
     class NKENTSEU_API Shader {
         public:
-            Shader(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout = {});
-            ~Shader();
+            virtual Memory::Shared<Context> GetContext() = 0;
+            virtual bool Destroy() = 0;
 
-            bool Create();
-            bool Destroy();
-            void SetShaderFiles(Context* context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const BufferLayout& bufferLayout = {});
-
-            InternalShader* GetInternal();
-
-            std::string ToString() const;
-            friend std::string ToString(const Shader& shader);
-        private:
-            Memory::Shared<InternalShader> m_InternalShader = null_pointer;
+            static Memory::Shared<Shader> Create(Memory::Shared<Context> context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout);
     };
 
 }  //  nkentseu

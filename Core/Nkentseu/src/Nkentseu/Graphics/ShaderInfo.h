@@ -154,6 +154,8 @@ namespace nkentseu {
 
 		// Convertit une cha�ne de caract�res en code de type de buffer
 		static DrawIndexType::Code FromString(const std::string& indexTypeStr);
+
+		static usize SizeOf(DrawIndexType::Code indexType);
 	};
 
 	struct NKENTSEU_API ShaderData {
@@ -166,42 +168,6 @@ namespace nkentseu {
 		static ShaderData LoadShaderToMemoryData(const std::string& shaderFile);
 		static std::vector<ShaderData> LoadShaderToMemoryDatas(const std::string& shaderFile);
 		static const char* LoadShaderToMemoryChar(const std::string& shaderFile);
-	};
-
-	struct NKENTSEU_API PushConstantAttribut {
-		std::string name = "";
-		uint32 location;
-		ShaderDataType::Code type = ShaderDataType::NotDefine;
-		uint32 size = 0;
-		usize offset = 0;
-
-		PushConstantAttribut() = default;
-
-		PushConstantAttribut(ShaderDataType::Code type, const std::string& name);
-
-		uint32 GetComponentCount() const;
-		uint32 GetComponentSize() const;
-	};
-
-	struct NKENTSEU_API PushConstantLayout {
-		std::vector<PushConstantAttribut> attributes;
-		uint32 stride = 0;
-		uint32 componentCount = 0;
-
-		PushConstantLayout() = default;
-
-		PushConstantLayout(const std::initializer_list<PushConstantAttribut>& attributes);
-
-		void CalculateOffsetsAndStride();
-
-		const std::vector<PushConstantAttribut>& GetAttributes() const;
-
-		uint32 GetStride() const;
-
-		std::vector<PushConstantAttribut>::iterator begin();
-		std::vector<PushConstantAttribut>::iterator end();
-		std::vector<PushConstantAttribut>::const_iterator begin() const;
-		std::vector<PushConstantAttribut>::const_iterator end() const;
 	};
 
 	struct NKENTSEU_API BufferAttribute {
@@ -249,6 +215,44 @@ namespace nkentseu {
 		std::vector<BufferAttribute>::iterator end();
 		std::vector<BufferAttribute>::const_iterator begin() const;
 		std::vector<BufferAttribute>::const_iterator end() const;
+	};
+
+	using IndexBufferLayout = BufferLayout;
+	using PushConstantLayout = BufferLayout;
+
+	struct NKENTSEU_API UniformBufferAttribut {
+		usize size = 0;
+		uint32 binding = 0;
+		std::string name = "";
+		ShaderType::Code type = ShaderType::NotDefine;
+
+		// run time send
+		void* data = nullptr; // internal use
+		usize dataSize = 0;
+
+		// Constructeur par défaut
+		UniformBufferAttribut() = default;
+
+		// Constructeur avec paramètres
+		UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type);
+	};
+
+	struct NKENTSEU_API UniformBufferLayout {
+		std::vector<UniformBufferAttribut> attributes;
+
+		// Constructeur par défaut
+		UniformBufferLayout() = default;
+
+		// Constructeur avec std::initializer_list
+		UniformBufferLayout(const std::initializer_list<UniformBufferAttribut>& attributes);
+
+		const UniformBufferAttribut& GetAttribut(uint32 index);
+		const UniformBufferAttribut& GetAttribut(const std::string& name);
+	};
+
+	struct NKENTSEU_API ShaderBufferLayout {
+		BufferLayout vertexInput;
+		UniformBufferLayout uniformBuffer;
 	};
 
 	struct NKENTSEU_API VertexInputElement {

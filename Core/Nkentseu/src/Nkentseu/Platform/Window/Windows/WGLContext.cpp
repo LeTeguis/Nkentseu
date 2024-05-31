@@ -6,7 +6,7 @@
 #include "NkentseuPch/ntspch.h"
 #include "WGLContext.h"
 
-#if defined(NKENTSEU_PLATFORM_WINDOWS) && defined(NKENTSEU_GRAPHICS_API_OPENGL)
+#ifdef NKENTSEU_PLATFORM_WINDOWS
 
 #include "Nkentseu/Core/Window.h"
 #include "WindowInternal.h"
@@ -318,7 +318,7 @@ namespace nkentseu {
         HGLRC sharedContext = nullptr;
 
         if (contextProperties->version == Vector2i()) {
-            contextProperties->version = ContextProperties::InitVersion();
+            contextProperties->version = ContextProperties::InitVersion(GraphicsApiType::OpenglApi);
         }
 
         while (!context && contextProperties->version.major) {
@@ -493,6 +493,35 @@ namespace nkentseu {
 
         return DefWindowProc(window_handle, message, param_w, param_l);
     }
+    
+    bool NativeContext::IsSupportDAS()
+    {
+        const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+        if (extensions == nullptr)
+        {
+            return false;
+        }
+
+        bool hasVertexShader = false;
+        bool hasFragmentShader = false;
+
+        while (*extensions != '\0')
+        {
+            if (strcmp(extensions, "GL_ARB_vertex_shader") == 0)
+            {
+                hasVertexShader = true;
+            }
+            else if (strcmp(extensions, "GL_ARB_fragment_shader") == 0)
+            {
+                hasFragmentShader = true;
+            }
+
+            extensions += strlen(extensions) + 1;
+        }
+
+        return hasVertexShader && hasFragmentShader;
+    }
+
 }    // namespace nkentseu
 
 #endif

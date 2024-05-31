@@ -10,10 +10,8 @@
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-
 #include <Nkentseu/Core/NkentseuLogger.h>
-#include "InternalContext.h"
+#include "OpenglContext.h"
 #include "Nkentseu/Graphics/ShaderInfo.h"
 
 #include <glad/gl.h>
@@ -86,7 +84,5 @@ namespace nkentseu {
             static uint32 GetModuleType(ShaderType::Code code);
     };
 }  //  nkentseu
-
-#endif
 
 #endif  // __OPEN_G_L_UTILS_H__!

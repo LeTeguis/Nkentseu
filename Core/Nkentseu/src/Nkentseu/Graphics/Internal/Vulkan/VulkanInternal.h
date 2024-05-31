@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 #include <Nkentseu/Graphics/GraphicsProperties.h>
+#include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Ntsm/Vector/Vector3.h>
 
 namespace nkentseu {
@@ -34,9 +35,9 @@ namespace nkentseu {
         void Defined();
         bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 
-        std::vector<const char*> instanceExtension;
-        std::vector<const char*> deviceExtension;
-        std::vector<const char*> layers;
+        std::vector<const char*> instanceExtension = {};
+        std::vector<const char*> deviceExtension = {};
+        std::vector<const char*> layers = {};
     };
 
     struct NKENTSEU_API VulkanInstance {
@@ -69,14 +70,14 @@ namespace nkentseu {
 
     struct NKENTSEU_API VulkanQueue {
         VulkanQueueFamilyIndices queueFamily;
-        VkQueue graphicsQueue;
-        VkQueue presentQueue;
+        VkQueue graphicsQueue = nullptr;
+        VkQueue presentQueue = nullptr;
     };
 
     struct NKENTSEU_API VulkanSwapchainSupportDetails {
-        VkSurfaceCapabilitiesKHR        capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR>   presentMode;
+        VkSurfaceCapabilitiesKHR        capabilities = {};
+        std::vector<VkSurfaceFormatKHR> formats = {};
+        std::vector<VkPresentModeKHR>   presentMode = {};
 
         bool QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
     };
@@ -87,13 +88,13 @@ namespace nkentseu {
         bool GetLogicalDevice(VulkanSurface* surface, VulkanExtension* extension);
         bool IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface, VulkanExtension* extension);
 
-        std::vector<VkPhysicalDevice> gpus;
-        VkPhysicalDevice gpu;
-        VkPhysicalDeviceProperties properties;
+        std::vector<VkPhysicalDevice> gpus = {};
+        VkPhysicalDevice gpu = nullptr;
+        VkPhysicalDeviceProperties properties = {};
         VulkanQueue queue;
-        VkDevice device;
+        VkDevice device = nullptr;
 
-        std::vector<VkQueueFamilyProperties> queueProperties;
+        std::vector<VkQueueFamilyProperties> queueProperties = {};
         PFN_vkCmdSetPolygonModeEXT cmdSetPolygonModeEXT = nullptr;
     };
 
@@ -106,10 +107,10 @@ namespace nkentseu {
 
         VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
         VkSwapchainKHR swapchain = nullptr;
-        VkSurfaceFormatKHR surfaceFormat;
+        VkSurfaceFormatKHR surfaceFormat = {};
 
-        std::vector<VkImage> swapchainImages;
-        std::vector<VkImageView> imageView;
+        std::vector<VkImage> swapchainImages = {};
+        std::vector<VkImageView> imageView = {};
     };
 
     struct NKENTSEU_API VulkanCommandPool {
@@ -176,15 +177,30 @@ namespace nkentseu {
         bool Create(VulkanGpu* gpu, const Vector2u& size, VulkanRenderPass* renderPass, VulkanSwapchain* swapchain);
         bool Destroy(VulkanGpu* gpu);
 
-        std::vector<VkFramebuffer> framebuffer;
+        std::vector<VkFramebuffer> framebuffer = {};
         Vector2u size = {};
     };
 
     struct NKENTSEU_API VulkanPipelineLayout {
-        bool Create(VulkanGpu* gpu);
+        bool Create(VulkanGpu* gpu, VulkanSwapchain* swapchain);
         bool Destroy(VulkanGpu* gpu);
 
+        bool CreateDescriptorSetLayout(VulkanGpu* gpu, VulkanSwapchain* swapchain);
+        bool CreateDescriptorPool(VulkanGpu* gpu, VulkanSwapchain* swapchain);
+        bool CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain);
+
+        void AddDescriptorSetLayoutBinding(uint32 index, const UniformBufferAttribut& attributs, VkDescriptorType type, VkShaderStageFlags shaderStage);
+
+        bool IsValid();
+
+        std::vector<VkDescriptorSetLayoutBinding> layoutBindings{};
+
         VkPipelineLayout pipelineLayout = nullptr;
+        VkDescriptorSetLayout descriptorSetLayout = nullptr;
+        std::vector<VkDescriptorSet> descriptorSets = {};
+        VkDescriptorPool descriptorPool = nullptr;
+
+        bool createPool = false;
     };
 
     struct NKENTSEU_API VulkanDynamicMode {
@@ -195,15 +211,24 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanBuffer {
-        bool Create(VulkanGpu* gpu, VulkanCommandPool* commandPool, const void* data, usize leng, usize stride, VkBufferUsageFlagBits usage, VkSharingMode sharingMode);
+        bool WriteToBuffer(VulkanGpu* gpu, const void* data, usize size, VkDeviceSize offset = 0, VkMemoryMapFlags flag = 0);
         bool Destroy(VulkanGpu* gpu);
-        static int64 FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties);
 
-        bool CreateBuffer(VulkanGpu* gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-        bool CopyBuffer(VulkanGpu* gpu, VulkanCommandPool* commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+        static int64 FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties);
+        static bool CreateBuffer(VulkanGpu* gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+        static bool CopyBuffer(VulkanGpu* gpu, VulkanCommandPool* commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
         VkBuffer buffer = nullptr;
         VkDeviceMemory bufferMemory = nullptr;
+        void* mappedData = nullptr;
+        VkDeviceSize size = 0;
+    };
+
+    struct NKENTSEU_API VulkanCommandBuffer {
+        bool Create(VulkanGpu* gpu, VulkanSwapchain* swapchain, VulkanCommandPool* commandPool);
+        bool Destroy(VulkanGpu* gpu, VulkanCommandPool* commandPool);
+
+        std::vector<VkCommandBuffer> commandBuffers = {};
     };
     
 }  //  nkentseu

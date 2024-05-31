@@ -69,20 +69,20 @@ namespace nkentseu {
 
     Transform Transform::FromMat4(const Matrix4f& m) {
         Transform out;
-        out.position = Vector3f(m.ptr[12], m.ptr[13], m.ptr[14]);
+        out.position = Vector3f(m.data[12], m.data[13], m.data[14]);
         out.rotation = Quaternion::FromMat4(m);
         Matrix4f rotScaleMat(
-            m.ptr[0], m.ptr[1], m.ptr[2], 0,
-            m.ptr[4], m.ptr[5], m.ptr[6], 0,
-            m.ptr[8], m.ptr[9], m.ptr[10], 0,
+            m.data[0], m.data[1], m.data[2], 0,
+            m.data[4], m.data[5], m.data[6], 0,
+            m.data[8], m.data[9], m.data[10], 0,
             0, 0, 0, 1
         );
         Matrix4f invRotMat = out.rotation.Inverse().ToMat4();
         Matrix4f scaleSkewMat = rotScaleMat * invRotMat;
         out.scale = Vector3f(
-            scaleSkewMat.ptr[0],
-            scaleSkewMat.ptr[5],
-            scaleSkewMat.ptr[10]
+            scaleSkewMat.data[0],
+            scaleSkewMat.data[5],
+            scaleSkewMat.data[10]
         );
         return out;
     }

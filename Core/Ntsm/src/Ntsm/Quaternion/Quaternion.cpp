@@ -238,8 +238,8 @@ namespace nkentseu {
     }
 
     Quaternionf Quaternionf::FromMat4(const Matrix4f& m) {
-        Vector3f up = Vector3f(m.up().x, m.up().y, m.up().z).Normalized();
-        Vector3f forward = Vector3f(m.forward().x, m.forward().y, m.forward().z).Normalized();
+        Vector3f up = Vector3f(m.up.x, m.up.y, m.up.z).Normalized();
+        Vector3f forward = Vector3f(m.forward.x, m.forward.y, m.forward.z).Normalized();
         Vector3f right = up.Cross(forward);
         up = forward.Cross(right);
         return LookAt(forward, up);

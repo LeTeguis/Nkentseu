@@ -36,7 +36,7 @@ namespace nkentseu {
 		Vector3f(float32 x, float32 y);
 		Vector3f(float32 x, float32 y, float32 z);
 		Vector3f(float32 v);
-		Vector3f(float32* v);
+		Vector3f(const float32* v);
 		Vector3f(const Vector3f& v);
 		Vector3f(const Vector3i& v);
 		Vector3f(const Vector3u& v);

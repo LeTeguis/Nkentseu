@@ -20,7 +20,8 @@ project "Unkeny"
         "%{Internals.Nkentseu}/src",
         "%{Internals.Logger}/src",
         "%{Internals.NSystem}/src",
-        "%{Internals.Ntsm}/src"
+        "%{Internals.Ntsm}/src",
+        "%{Externals.Glm}",
     }
 
     links {
@@ -28,7 +29,8 @@ project "Unkeny"
         "Ntsm",
         "Logger",
         "NSystem",
-        "Stb"
+        "Stb",
+        "Glm"
     }
 
     defines {

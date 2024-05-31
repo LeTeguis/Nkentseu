@@ -10,7 +10,7 @@
 
 #include "System/System.h"
 
-#if defined(NKENTSEU_PLATFORM_WINDOWS) && defined(NKENTSEU_GRAPHICS_API_OPENGL)
+#if defined(NKENTSEU_PLATFORM_WINDOWS)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

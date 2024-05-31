@@ -6,173 +6,47 @@
 #include "NkentseuPch/ntspch.h"
 #include "Renderer.h"
 
-#ifdef NKENTSEU_GRAPHICS_API_SOFTWARE
-#include "Internal/Software/InternalRenderer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_OPENGL)
-#include "Internal/Opengl/InternalRenderer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_VULKAN)
-#include "Internal/Vulkan/InternalRenderer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_DIRECTX11)
-#include "Internal/DirectX11/InternalRenderer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_DIRECTX12)
-#include "Internal/DirectX12/InternalRenderer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_METAL)
-#include "Internal/Metal/InternalRenderer.h"
-#else
-#error "Plaform ("  + STR_PLATFORM + ") cannot supported this graphics context"
-#endif
-
 #include <Nkentseu/Platform/Internal/InternalMemory.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
 
+#include "Internal/Vulkan/VulkanRenderer.h"
+#include "Internal/Opengl/OpenglRenderer.h"
+
 #include "Shader.h"
-#include "Buffer.h"
 #include "VertexArray.h"
 
 namespace nkentseu {
 
-    Renderer::Renderer() : m_InternalRenderer(nullptr) {
-        if (m_InternalRenderer == nullptr) {
-            m_InternalRenderer = Memory::Alloc<InternalRenderer>();
-        }
-    }
+#define NKENTSEU_CREATE_RENDERER(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+													return Memory::Alloc<class_>(context);	\
+												}
 
-    Renderer::Renderer(Context* context)
-    {
-        Initialize(context);
-    }
+#define NKENTSEU_CREATE_RENDERER_INTIALIZE(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+																auto data = Memory::Alloc<class_>(context);	\
+																if (data != nullptr && data->Initialize()) {	\
+																	return data;	\
+																}	\
+																Memory::Reset(data);	\
+															}
 
-    Renderer::~Renderer(){
-    }
+	Memory::Shared<Renderer> Renderer::Create(Memory::Shared<Context> context)
+	{
+		if (context == nullptr) {
+			return nullptr;
+		}
 
-    bool Renderer::Initialize(Context* context)
-    {
-        if (m_InternalRenderer == nullptr) {
-            m_InternalRenderer = Memory::Alloc<InternalRenderer>();
-            if (m_InternalRenderer == nullptr) {
-                return false;
-            }
-        }
-        if (context == nullptr) {
-            return false;
-        }
+		NKENTSEU_CREATE_RENDERER(GraphicsApiType::VulkanApi, VulkanRenderer);
+		NKENTSEU_CREATE_RENDERER(GraphicsApiType::OpenglApi, OpenglRenderer);
+		return nullptr;
+	}
 
-        return m_IsInitialsed = m_InternalRenderer->Initialize(context);
-    }
-
-    bool Renderer::Deinitialize()
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Deinitialize();
-    }
-
-    bool Renderer::Clear(const Color& color)
-    {
-        if (!IsValideInternal()) {
-            return false;
-        }
-        return m_InternalRenderer->Clear(color);
-    }
-
-    bool Renderer::Clear(uint8 r, uint8 g, uint8 b, uint8 a)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Clear(r, g, b, a);
-    }
-
-    bool Renderer::UseShader(Memory::Shared<Shader> shader)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->UseShader(shader);
-    }
-
-    bool Renderer::UnuseShader()
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->UnuseShader();
-    }
-
-    bool Renderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->DrawMode(mode, contentMode);
-    }
-
-    bool Renderer::PolygonMode(PolygonModeType::Code mode)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->PolygonMode(mode);
-    }
-
-    bool Renderer::CullMode(CullModeType::Code mode)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->CullMode(mode);
-    }
-
-    bool Renderer::FrontFaceMode(FrontFaceType::Code mode)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->FrontFaceMode(mode);
-    }
-
-    bool Renderer::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->PrimitiveTopologyMode(mode);
-    }
-
-    bool Renderer::ScissorMode(const Vector2i& offset, const Vector2u& extend)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->ScissorMode(offset, extend);
-    }
-
-    bool Renderer::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->ViewportMode(position, size, depth);
-    }
-
-    bool Renderer::Draw(Memory::Shared<class VertexArray> vertexArray, DrawVertexType::Code drawVertex)
-    {
-        if (!IsValideInternal() || vertexArray == nullptr) return false;
-        return m_InternalRenderer->Draw(vertexArray, drawVertex);
-    }
-
-    bool Renderer::Prepare()
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Prepare();
-    }
-
-    bool Renderer::Finalize()
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Finalize();
-    }
-
-    bool Renderer::Present()
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Present();
-    }
-
-    bool Renderer::Swapbuffer()
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Swapbuffer();
-    }
-
-    bool Renderer::Resize(const Vector2u& size)
-    {
-        if (!IsValideInternal()) return false;
-        return m_InternalRenderer->Resize(size);
-    }
-
-    bool Renderer::IsValideInternal()
-    {
-        return !(m_InternalRenderer == nullptr  || !m_IsInitialsed);
-    }
-
+	Memory::Shared<Renderer> Renderer::CreateInitialized(Memory::Shared<Context> context)
+	{
+		if (context == nullptr) {
+			return nullptr;
+		}
+		NKENTSEU_CREATE_RENDERER_INTIALIZE(GraphicsApiType::VulkanApi, VulkanRenderer);
+		NKENTSEU_CREATE_RENDERER_INTIALIZE(GraphicsApiType::OpenglApi, OpenglRenderer);
+		return nullptr;
+	}
 }    // namespace nkentseu

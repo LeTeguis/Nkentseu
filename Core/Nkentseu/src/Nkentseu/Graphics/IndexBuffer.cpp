@@ -7,50 +7,46 @@
 #include "IndexBuffer.h"
 #include <Logger/Formatter.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
-#include "Internal/Opengl/InternalIndexBuffer.h"
-#elif defined(NKENTSEU_GRAPHICS_API_VULKAN)
-#include "Internal/Vulkan/InternalIndexBuffer.h"
-#endif
+#include "Internal/Opengl/OpenglIndexBuffer.h"
+#include "Internal/Vulkan/VulkanIndexBuffer.h"
 
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "Context.h"
 
 namespace nkentseu {
-    
-    // Constructor
-    IndexBuffer::IndexBuffer() {
-        // Ajoutez votre code de constructeur ici
-        m_Internal = Memory::Alloc<InternalIndexBuffer>();
-    }
+#define NKENTSEU_CREATE_INDEX_BUFFER_P1(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+															auto data = Memory::Alloc<class_>(context);	\
+															if (data != nullptr && data->Create(bufferUsage, indices)) {	\
+																return data;	\
+															}	\
+															Memory::Reset(data);	\
+														}
+#define NKENTSEU_CREATE_INDEX_BUFFER_P2(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
+															auto data = Memory::Alloc<class_>(context);	\
+															if (data != nullptr && data->Create(bufferUsage, indexType, indices, leng)) {	\
+																return data;	\
+															}	\
+															Memory::Reset(data);	\
+														}
 
-    // Destructor
-    IndexBuffer::~IndexBuffer() {
-        // Ajoutez votre code de destructeur ici
-    }
-
-    bool IndexBuffer::Create(Context* context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const std::vector<uint32>& indices, const BufferLayout& bufferLayout)
+    Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices)
     {
-        if (m_Internal == nullptr) {
-            m_Internal = Memory::Alloc<InternalIndexBuffer>();
-            if (m_Internal == nullptr) {
-                return false;
-            }
-        }
-        return m_Internal->Create(context, bufferUsage, indexType, indices, bufferLayout);
+		if (context == nullptr) {
+			return nullptr;
+		}
+		NKENTSEU_CREATE_INDEX_BUFFER_P1(GraphicsApiType::VulkanApi, VulkanIndexBuffer);
+		NKENTSEU_CREATE_INDEX_BUFFER_P1(GraphicsApiType::OpenglApi, OpenglIndexBuffer);
+		return nullptr;
     }
 
-    bool IndexBuffer::Destroy()
+    Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng)
     {
-        if (m_Internal == nullptr) return false;
-        return m_Internal->Destroy();
-    }
-
-    InternalIndexBuffer* IndexBuffer::GetInternal()
-    {
-        if (m_Internal == nullptr) return nullptr;
-
-        return m_Internal.get();
+		if (context == nullptr) {
+			return nullptr;
+		}
+		NKENTSEU_CREATE_INDEX_BUFFER_P2(GraphicsApiType::VulkanApi, VulkanIndexBuffer);
+		NKENTSEU_CREATE_INDEX_BUFFER_P2(GraphicsApiType::OpenglApi, OpenglIndexBuffer);
+		return nullptr;
     }
 
 }  //  nkentseu

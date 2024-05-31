@@ -195,69 +195,6 @@ namespace nkentseu {
         return shaderSource.c_str();
     }
 
-    PushConstantAttribut::PushConstantAttribut(ShaderDataType::Code type, const std::string& name)
-        : name(name), type(type), size(ShaderDataType::ComponentSize(type)), offset(0) {
-    }
-
-    uint32 PushConstantAttribut::GetComponentCount() const
-    {
-        return ShaderDataType::ComponentCount(type);
-    }
-
-    uint32 PushConstantAttribut::GetComponentSize() const
-    {
-        return ShaderDataType::ComponentSize(type);
-    }
-
-    PushConstantLayout::PushConstantLayout(const std::initializer_list<PushConstantAttribut>& attributes)
-        : attributes(attributes) {
-        CalculateOffsetsAndStride();
-    }
-
-    void PushConstantLayout::CalculateOffsetsAndStride()
-    {
-        usize offset = 0;
-        stride = 0;
-        componentCount = 0;
-        for (auto& attribute : attributes) {
-            attribute.offset = offset;  // Set offset for each attribute
-            offset += attribute.size;    // Update offset for the next attribute
-            stride += attribute.size;    // Accumulate size for total stride
-            componentCount += attribute.GetComponentCount();
-        }
-    }
-
-    const std::vector<PushConstantAttribut>& PushConstantLayout::GetAttributes() const
-    {
-        return attributes;
-    }
-
-    uint32 PushConstantLayout::GetStride() const
-    {
-        return stride;
-    }
-
-    std::vector<PushConstantAttribut>::iterator PushConstantLayout::begin()
-    {
-        return attributes.begin();
-    }
-
-    std::vector<PushConstantAttribut>::iterator PushConstantLayout::end()
-    {
-        return attributes.end();
-    }
-
-    std::vector<PushConstantAttribut>::const_iterator PushConstantLayout::begin() const
-    {
-        return attributes.begin();
-    }
-
-    std::vector<PushConstantAttribut>::const_iterator PushConstantLayout::end() const
-    {
-        return attributes.end();
-    }
-
-
     BufferAttribute::BufferAttribute(ShaderDataType::Code type, const std::string& name, uint32 location, bool normalized)
         : name(name), type(type), size(ShaderDataType::ComponentSize(type)), offset(0), normalized(normalized), location(location) {
     }
@@ -396,6 +333,17 @@ namespace nkentseu {
         return NotDefine; // Valeur par défaut
     }
 
+    usize DrawIndexType::SizeOf(DrawIndexType::Code indexType)
+    {
+        switch (indexType) {
+        case UInt8: return sizeof(uint8);
+        case UInt16: return sizeof(uint16);
+        case UInt32: return sizeof(uint32);
+        case UInt64: return sizeof(uint64);
+        default: return sizeof(uint32);
+        }
+    }
+
     std::string FrontFaceType::ToString(FrontFaceType::Code mode)
     {
         switch (mode) {
@@ -444,5 +392,30 @@ namespace nkentseu {
         if (mode == "TriangleStripWithAdjacency") return TriangleStripWithAdjacency;
         if (mode == "PathList") return PathList;
         return NotDefine; // Valeur par défaut
+    }
+
+    UniformBufferAttribut::UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type)
+        : size(size), binding(binding), name(name), type(type) {}
+
+    UniformBufferLayout::UniformBufferLayout(const std::initializer_list<UniformBufferAttribut>& attributes)
+        : attributes(attributes) {}
+
+    const UniformBufferAttribut& UniformBufferLayout::GetAttribut(uint32 index) {
+        static const UniformBufferAttribut uba;
+
+        if (index <= attributes.size()) return uba;
+        return attributes[index];
+    }
+
+    const UniformBufferAttribut& UniformBufferLayout::GetAttribut(const std::string& name) {
+        static const UniformBufferAttribut uba;
+
+        for (auto& attribut : attributes) {
+            if (attribut.name == name) {
+                return attribut;
+            }
+        }
+
+        return uba;
     }
 }  //  nkentseu

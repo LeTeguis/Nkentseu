@@ -11,46 +11,29 @@
 #include "System/System.h"
 #include <System/Nature/Base.h>
 #include <System/Definitions/Memory.h>
-
 #include "GraphicsProperties.h"
 
 namespace nkentseu {
-    class InternalContext;
     class Window;
 
     class NKENTSEU_API Context
     {
         public:
-            Context();
-            Context(class Window* window, const ContextProperties& contextProperties);
-            ~Context();
+            virtual bool Initialize() = 0;
+            virtual bool Deinitialize() = 0;
+            virtual bool IsInitialize() = 0;
 
-            bool SetWindow(class Window* window);
-            bool SetProperties(const ContextProperties& properties);
+            virtual bool EnableVSync() = 0;
+            virtual bool DisableVSync() = 0;
 
-            bool Initialize();
-            bool Initialize(class Window* window, const ContextProperties& contextProperties);
-            bool Deinitialize();
-            bool IsInitialize();
+            virtual const GraphicsInfos& GetGraphicsInfo() = 0;
+            virtual const ContextProperties& GetProperties() = 0;
 
-            bool EnableVSync();
-            bool DisableVSync();
+            virtual Memory::Shared<Window> GetWindow() = 0;
 
-            const GraphicsInfos& GetGraphicsInfo();
-
-            class Window* GetWindow();
-
-            virtual InternalContext* GetInternal();
-            const ContextProperties& GetProperties();
-
-            bool IsValidContext();
-        private:
-            Memory::Shared<InternalContext> m_InternalContext = null_pointer;
-            bool m_IsInitialized = false;
+            static Memory::Shared<Context> Create(Memory::Shared<Window> window, const ContextProperties& contextProperties);
+            static Memory::Shared<Context> CreateInitialized(Memory::Shared<Window> window, const ContextProperties& contextProperties);
     };
-
-#define IS_VALID_CONTEXT_PTR(context, return_type) if (context != nullptr && context->IsValidContext()) { Log_nts.Error("Invalid context"); return return_type;}
-#define IS_VALID_CONTEXT(context, return_type) if (context != nullptr && context.IsValidContext()) { Log_nts.Error("Invalid context"); return return_type;}
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_CONTEXT_H__

@@ -6,7 +6,6 @@
 #include "NkentseuPch/ntspch.h"
 #include "OpenGLUtils.h"
 
-#ifdef NKENTSEU_GRAPHICS_API_OPENGL
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
@@ -115,5 +114,3 @@ namespace nkentseu {
         return 0;
     }
 }  //  nkentseu
-
-#endif
