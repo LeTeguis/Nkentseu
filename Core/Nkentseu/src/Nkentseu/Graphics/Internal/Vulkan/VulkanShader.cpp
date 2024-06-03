@@ -74,6 +74,18 @@ namespace nkentseu {
             vertexInputState.pVertexAttributeDescriptions = attributeDescriptions.data();
         }
 
+        VkPipelineDepthStencilStateCreateInfo depthStencil{};
+        depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencil.depthTestEnable = VK_TRUE;
+        depthStencil.depthWriteEnable = VK_TRUE;
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthBoundsTestEnable = VK_FALSE;
+        depthStencil.minDepthBounds = 0.0f; // Optionnel
+        depthStencil.maxDepthBounds = 1.0f; // Optionnel
+        depthStencil.stencilTestEnable = VK_FALSE;
+        depthStencil.front = {}; // Optionnel
+        depthStencil.back = {}; // Optionnel
+
         std::vector<VkPipelineVertexInputStateCreateInfo> vertexInputStates;
         vertexInputStates.push_back(vertexInputState);
 
@@ -160,6 +172,7 @@ namespace nkentseu {
         pipelineInfo.pDynamicState = dynamicStateInfos.data();
         pipelineInfo.pMultisampleState = multiSamples.data();
         pipelineInfo.pInputAssemblyState = inputAssemblies.data();
+        pipelineInfo.pDepthStencilState = &depthStencil;
 
         vkCheckError(first, result, vkCreateGraphicsPipelines(m_Context->GetGpu()->device, 0, 1, &pipelineInfo, 0, &m_GraphicsPipeline), "cannot create graphics pipelines");
 

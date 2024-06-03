@@ -426,6 +426,257 @@ namespace nkentseu {
 		return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 	}
 
+	// Vulkan Image
+
+	bool VulkanImage::Create(VulkanGpu* gpu, const Vector2u& size, ImageType imageType, VkFormat format, VkSampleCountFlagBits samples) {
+		this->format = format;
+		this->size = size;
+		this->mipLevels = 1;
+		this->layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+		VkImageUsageFlags usage;
+		VkImageAspectFlags aspectMask;
+
+		if (imageType == ImageType::DEPTH) {
+			usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			FindDepthFormat(gpu, &this->format);
+		}
+		else {
+			usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+
+		CreateImage(gpu, imageType, samples, usage, aspectMask);
+		CreateMemory(gpu);
+		CreateImageView(gpu, aspectMask);
+
+		layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		if (imageType == ImageType::DEPTH) {
+			//TransitionImageLayout(gpu, pool->commandPool, gpu->queue.graphicsQueue, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+		}
+		return true;
+	}
+
+	// Destructor to clean up Vulkan resources
+	bool VulkanImage::Destroy(VulkanGpu* gpu) {
+
+		if (gpu == nullptr) return false;
+		vkCheckErrorVoid(vkDestroyImageView(gpu->device, imageView, nullptr));
+		vkCheckErrorVoid(vkDestroyImage(gpu->device, image, nullptr));
+		vkCheckErrorVoid(vkFreeMemory(gpu->device, memory, nullptr));
+	}
+
+	// Initialize Vulkan image resources
+	bool VulkanImage::CreateImage(VulkanGpu* gpu, ImageType imageType, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageAspectFlags aspectMask) {
+		if (gpu == nullptr) return false;
+		VulkanResult result;
+		bool first = true;
+
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = size.width;
+		imageInfo.extent.height = size.height;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = mipLevels;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = format;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = usage;
+		imageInfo.samples = samples;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		vkCheckError(first, result, vkCreateImage(gpu->device, &imageInfo, nullptr, &image), "failed to create image!");
+		return result.success;
+	}
+
+	bool VulkanImage::CreateMemory(VulkanGpu* gpu) {
+		if (gpu == nullptr) return false;
+		VulkanResult result;
+		bool first = true;
+
+		VkMemoryRequirements memRequirements;
+		vkCheckErrorVoid(vkGetImageMemoryRequirements(gpu->device, image, &memRequirements));
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = FindMemoryType(gpu->gpu, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		vkCheckError(first, result, vkAllocateMemory(gpu->device, &allocInfo, nullptr, &memory), "failed to allocate image memory!");
+
+		vkCheckError(first, result, vkBindImageMemory(gpu->device, image, memory, 0), "failed to bind image memory");
+		return result.success;
+	}
+
+	bool VulkanImage::CreateImageView(VulkanGpu* gpu, VkImageAspectFlags aspectMask) {
+		if (gpu == nullptr) return false;
+		VulkanResult result;
+		bool first = true;
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = image;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = format;
+		viewInfo.subresourceRange.aspectMask = aspectMask;
+		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.levelCount = mipLevels;
+		viewInfo.subresourceRange.baseArrayLayer = 0;
+		viewInfo.subresourceRange.layerCount = 1;
+
+		vkCheckError(first, result, vkCreateImageView(gpu->device, &viewInfo, nullptr, &imageView), "failed to create image view!");
+		return result.success;
+	}
+
+	bool VulkanImage::FindSupportedFormat(VulkanGpu* gpu, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat* format)
+	{
+		if (gpu == nullptr) return false;
+
+		for (VkFormat format_ : candidates) {
+			VkFormatProperties props;
+			vkCheckErrorVoid(vkGetPhysicalDeviceFormatProperties(gpu->gpu, format_, &props));
+
+			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+				*format = format_;
+				return true;
+			}
+			else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+				*format = format_;
+				return true;
+			}
+		}
+		Log_nts.Error("failed to find supported format!");
+		return false;
+	}
+
+	bool VulkanImage::FindDepthFormat(VulkanGpu* gpu, VkFormat* format)
+	{
+		return FindSupportedFormat(gpu, { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+			VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, format);
+	}
+
+	// Transition image layout to a specific stage
+	void VulkanImage::TransitionImageLayout(VulkanGpu* gpu, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout oldLayout, VkImageLayout newLayout) {
+		VkCommandBuffer commandBuffer = BeginSingleTimeCommands(gpu, commandPool);
+
+		VkImageMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = mipLevels;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+
+		if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			if (HasStencilComponent(format)) {
+				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+		}
+		else {
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+
+		VkPipelineStageFlags sourceStage;
+		VkPipelineStageFlags destinationStage;
+
+		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else {
+			throw std::invalid_argument("unsupported layout transition!");
+		}
+
+		vkCheckErrorVoid(vkCmdPipelineBarrier(
+			commandBuffer,
+			sourceStage, destinationStage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		));
+
+		EndSingleTimeCommands(gpu, commandBuffer, commandPool, graphicsQueue);
+
+		layout = newLayout;
+	}
+
+	// Helper methods
+	uint32 VulkanImage::FindMemoryType(VkPhysicalDevice physicalDevice, uint32 typeFilter, VkMemoryPropertyFlags properties) {
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkCheckErrorVoid(vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties));
+
+		for (uint32 i = 0; i < memProperties.memoryTypeCount; i++) {
+			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+
+		Log_nts.Error("failed to find suitable memory type!");
+		return 0;
+	}
+
+	VkCommandBuffer VulkanImage::BeginSingleTimeCommands(VulkanGpu* gpu, VkCommandPool commandPool) {
+		VulkanResult result;
+		bool first = true;
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = commandPool;
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer;
+		vkCheckError(first, result, vkAllocateCommandBuffers(gpu->device, &allocInfo, &commandBuffer), "failed to allocate command buffer");
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkCheckError(first, result, vkBeginCommandBuffer(commandBuffer, &beginInfo), "failed to begin command buffer");
+
+		return commandBuffer;
+	}
+
+	void VulkanImage::EndSingleTimeCommands(VulkanGpu* gpu, VkCommandBuffer commandBuffer, VkCommandPool commandPool, VkQueue graphicsQueue) {
+		VulkanResult result;
+		bool first = true;
+
+		vkCheckError(first, result, vkEndCommandBuffer(commandBuffer), "failed to end command buffer");
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		vkCheckError(first, result, vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE), "failed to submit queue");
+		vkCheckError(first, result, vkQueueWaitIdle(graphicsQueue), "failed to wait idle");
+
+		vkCheckErrorVoid(vkFreeCommandBuffers(gpu->device, commandPool, 1, &commandBuffer));
+	}
+
+	bool VulkanImage::HasStencilComponent(VkFormat format) {
+		return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+	}
+
 	// VulkanSwapchain
 	bool VulkanSwapchain::Create(VulkanGpu* gpu, VulkanSurface* surface, const Vector2u& size, const ContextProperties& contextProperties) {
 		if (gpu == nullptr || surface == nullptr) return false;
@@ -547,7 +798,7 @@ namespace nkentseu {
 			vkCheckError(first, result, vkCreateImageView(gpu->device, &viewInfo, 0, &imageView[index]), "cannot create image view number {0}", index);
 		}
 		
-		if (result.success) {
+		if (result.success && depthImage.Create(gpu, size, VulkanImage::ImageType::DEPTH)) {
 			Log_nts.Info("Create swapchain is good");
 		}
 
@@ -557,6 +808,8 @@ namespace nkentseu {
 	bool VulkanSwapchain::Destroy(VulkanGpu* gpu)
 	{
 		if (gpu == nullptr || gpu->device == nullptr) return false;
+
+		depthImage.Destroy(gpu);
 
 		for (usize i = 0; i < imageView.size(); i++) {
 			if (imageView[i] != nullptr) {
@@ -818,26 +1071,42 @@ namespace nkentseu {
 		VulkanResult result;
 		bool first = true;
 
-		VkAttachmentDescription attachment = {};
-		attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		attachment.format = swapchain->surfaceFormat.format;
-		attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		VkAttachmentDescription colorAttachment = {};
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.format = swapchain->surfaceFormat.format;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+		VkAttachmentDescription depthAttachment = {};
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		VulkanImage::FindDepthFormat(gpu, &depthAttachment.format);
+		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
 		VkAttachmentReference colorAttachmentRef = {};
 		colorAttachmentRef.attachment = 0;
 		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+		VkAttachmentReference depthAttachmentRef{};
+		depthAttachmentRef.attachment = 1;
+		depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 		VkSubpassDescription subpassDescription = {};
 		subpassDescription.colorAttachmentCount = 1;
 		subpassDescription.pColorAttachments = &colorAttachmentRef;
+		subpassDescription.pDepthStencilAttachment = &depthAttachmentRef;
 
 		std::vector<VkAttachmentDescription> attachments;
-		attachments.push_back(attachment);
+		attachments.push_back(colorAttachment);
+		attachments.push_back(depthAttachment);
 
 		std::vector<VkSubpassDescription> subpassDescriptions;
 		subpassDescriptions.push_back(subpassDescription);
@@ -891,16 +1160,21 @@ namespace nkentseu {
 
 		framebuffer.resize(swapchain->swapchainImages.size());
 
+		std::vector<VkImageView> attachments = {};
+		attachments.resize(2);
+		attachments[1] = swapchain->depthImage.imageView;
+
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.width = this->size.width;
 		framebufferInfo.height = this->size.height;
 		framebufferInfo.renderPass = renderPass->renderPass;
 		framebufferInfo.layers = 1;
-		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.attachmentCount = attachments.size();
 
 		for (uint32 index = 0; index < swapchain->swapchainImages.size(); index++) {
-			framebufferInfo.pAttachments = &swapchain->imageView[index];
+			attachments[0] = swapchain->imageView[index];
+			framebufferInfo.pAttachments = attachments.data();
 
 			vkCheckError(first, result, vkCreateFramebuffer(gpu->device, &framebufferInfo, 0, &framebuffer[index]), "cannot create frame buffer number {0}", index);
 		}

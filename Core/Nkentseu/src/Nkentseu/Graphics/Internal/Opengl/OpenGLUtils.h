@@ -83,6 +83,14 @@ namespace nkentseu {
             static uint32 IndexType(DrawIndexType::Code drawIndex);
             static uint32 GetModuleType(ShaderType::Code code);
     };
+
+    struct NKENTSEU_API OpenglBuffer {
+        bool Create(uint32 shaderID, const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset);
+        bool Destroy();
+        bool WriteToBuffer(void* data, usize size, uint32 index);
+
+        uint32 uniform;
+    };
 }  //  nkentseu
 
 #endif  // __OPEN_G_L_UTILS_H__!

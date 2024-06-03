@@ -16,11 +16,9 @@
 namespace nkentseu {
 #define NKENTSEU_CREATE_VERTEX_ARRAY_P1(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
 															auto data = Memory::Alloc<class_>(context);	\
-															if (data != nullptr && data->Create(bufferLayout)) {	\
+															if (data != nullptr && data->Create()) {	\
 																return data;	\
 															}	\
-															Log_nts.Debug("{0}", ((data == nullptr) ? "True" : "False"));	\
-															Log_nts.Debug("{0}", ((data->Create(bufferLayout)) ? "True" : "False"));	\
 															Memory::Reset(data);	\
 														}
 #define NKENTSEU_CREATE_VERTEX_ARRAY_P2(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
@@ -31,7 +29,7 @@ namespace nkentseu {
 															Memory::Reset(data);	\
 														}
 
-	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context, const BufferLayout& bufferLayout)
+	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context)
     {
 		if (context == nullptr) {
 			return nullptr;

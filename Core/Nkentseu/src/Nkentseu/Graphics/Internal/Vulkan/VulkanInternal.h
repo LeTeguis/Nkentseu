@@ -96,6 +96,37 @@ namespace nkentseu {
         PFN_vkCmdSetPolygonModeEXT cmdSetPolygonModeEXT = nullptr;
     };
 
+    struct NKENTSEU_API VulkanImage {
+        // Enum to specify image type (depth or color)
+        enum class ImageType {
+            DEPTH,
+            COLOR
+        };
+
+        // Constructor that takes device, width, height, format, and image type
+        bool Create(VulkanGpu* gpu, const Vector2u& size, ImageType imageType, VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
+        bool Destroy(VulkanGpu* gpu);
+        bool CreateImage(VulkanGpu* gpu, ImageType imageType, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageAspectFlags aspectMask);
+        bool CreateMemory(VulkanGpu* gpu);
+        bool CreateImageView(VulkanGpu* gpu, VkImageAspectFlags aspectMask);
+        static bool FindSupportedFormat(VulkanGpu* gpu, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat* format);
+        static bool FindDepthFormat(VulkanGpu* gpu, VkFormat* format);
+        void TransitionImageLayout(VulkanGpu* gpu, VkCommandPool commandPool, VkQueue graphicsQueue, VkImageLayout oldLayout, VkImageLayout newLayout);
+        uint32 FindMemoryType(VkPhysicalDevice physicalDevice, uint32 typeFilter, VkMemoryPropertyFlags properties);
+        VkCommandBuffer BeginSingleTimeCommands(VulkanGpu* gpu, VkCommandPool commandPool);
+        void EndSingleTimeCommands(VulkanGpu* gpu, VkCommandBuffer commandBuffer, VkCommandPool commandPool, VkQueue graphicsQueue);
+        bool HasStencilComponent(VkFormat format);
+
+        // Private members
+        VkImage image;
+        VkImageView imageView;
+        VkDeviceMemory memory;
+        VkFormat format;
+        Vector2u size = {};
+        uint32_t mipLevels;
+        VkImageLayout layout;
+    };
+
     struct NKENTSEU_API VulkanSwapchain {
         bool Create(VulkanGpu* gpu, VulkanSurface* surface, const Vector2u& size, const ContextProperties& contextProperties);
         bool Destroy(VulkanGpu* gpu);
@@ -109,6 +140,7 @@ namespace nkentseu {
 
         std::vector<VkImage> swapchainImages = {};
         std::vector<VkImageView> imageView = {};
+        VulkanImage depthImage = {};
     };
 
     struct NKENTSEU_API VulkanCommandPool {

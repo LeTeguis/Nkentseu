@@ -394,11 +394,11 @@ namespace nkentseu {
         return NotDefine; // Valeur par défaut
     }
 
-    UniformBufferAttribut::UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type)
-        : size(size), binding(binding), name(name), type(type) {}
+    UniformBufferAttribut::UniformBufferAttribut(usize size, usize instance, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype)
+        : size(size), instance(instance), binding(binding), name(name), type(type), uType(utype) {}
 
-    UniformBufferLayout::UniformBufferLayout(const std::initializer_list<UniformBufferAttribut>& attributes)
-        : attributes(attributes) {}
+    UniformBufferAttribut::UniformBufferAttribut(usize size, usize instance, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, BufferDataUsage::Code usage)
+        : size(size), instance(instance), binding(binding), name(name), type(type), usage(usage), uType(utype) {}
 
     const UniformBufferAttribut& UniformBufferLayout::GetAttribut(uint32 index) {
         static const UniformBufferAttribut uba;

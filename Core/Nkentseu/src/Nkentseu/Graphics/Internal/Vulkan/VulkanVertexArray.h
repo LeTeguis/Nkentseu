@@ -26,7 +26,7 @@ namespace nkentseu {
 
             Memory::Shared<Context> GetContext() override;
 
-            bool Create(const BufferLayout& bufferLayout);
+            bool Create();
             bool Create(uint32 vertexNumber);
 
             bool Destroy() override;
@@ -43,7 +43,6 @@ namespace nkentseu {
         private:
             uint32 m_VertexNumber = 0;
             Memory::Shared<Context> m_Context = nullptr;
-            BufferLayout m_Layout;
 
             Memory::Shared<VulkanVertexBuffer> m_VertexBuffer = nullptr;
             Memory::Shared<VulkanIndexBuffer> m_IndexBuffer = nullptr;

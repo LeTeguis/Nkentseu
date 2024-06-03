@@ -192,7 +192,7 @@ namespace nkentseu {
             return false;
         }
 
-        ContextProperties propertie(GraphicsApiType::OpenglApi);
+        ContextProperties propertie(GraphicsApiType::VulkanApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);
@@ -245,7 +245,7 @@ namespace nkentseu {
         bufferLayout.CalculateOffsetsAndStride();
 
         UniformBufferLayout uniformLayout;
-        uniformLayout.attributes.push_back(UniformBufferAttribut(sizeof(UniformBufferObject), 0, "ubo", ShaderType::Vertex));
+        uniformLayout.attributes.push_back(UniformBufferAttribut(sizeof(UniformBufferObject), 1, 0, "ubo", ShaderType::Vertex, UniformBufferType::Static));
 
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
         shaderFiles[ShaderType::Vertex] = "Resources/shaders/ubo.vert.glsl";
@@ -276,7 +276,7 @@ namespace nkentseu {
             Log.Error("Cannot create index buffer");
         }
 
-        vertexArray = VertexArray::Create(m_Context, bufferLayout);
+        vertexArray = VertexArray::Create(m_Context);
         //vertexArray = VertexArray::Create(m_Context, 3);
         if (vertexArray == nullptr) {
             Log.Error("Cannot create vertex array");
@@ -296,7 +296,9 @@ namespace nkentseu {
         UniformBufferObject ubo{};
         ubo.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), windowSize.width / (float32)windowSize.height, 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1; 
+        if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+            ubo.proj[1][1] *= -1;
+        }
         m_Renderer->BindUniform("ubo", &ubo, sizeof(UniformBufferObject));
 
         while (m_Running) {
@@ -320,7 +322,7 @@ namespace nkentseu {
             m_Renderer->BindShader(shader);
             windowSize = m_Window->ConvertPixelToDpi(m_Window->GetSize());
 
-            ubo.model = matrix4f::Scaling(0.5f * Vector3f(1.0f, 1.0f, 1.0f)) * matrix4f::Identity();
+            ubo.model = matrix4f::Scaling(0.25f * Vector3f(1.0f, 1.0f, 1.0f)) * matrix4f::Identity();
             //ubo.model = matrix4f::Translation(Vector3f(1.0f, 0.0f, 0.0f)) * matrix4f::Identity();
             //ubo.model = matrix4f::Scaling(maths::Sin(time) * Vector3f(1.0f, 1.0f, 1.0f) * 2) * ubo.model;
             ubo.model = matrix4f::Rotation(Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f)) * ubo.model;

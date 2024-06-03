@@ -65,6 +65,7 @@ namespace nkentseu {
         }
 
         m_BufferUsage = bufferUsage;
+        m_BufferLayout = bufferLayout;
 
         glCheckError(first, result, glBufferData(GL_ARRAY_BUFFER, bufferLayout.stride * leng, vertices, GLConvert::UsageType(m_BufferUsage)), "cannot set vertex buffer data");
         
@@ -115,6 +116,60 @@ namespace nkentseu {
     uint32 OpenglVertexBuffer::GetBuffer() const
     {
         return m_VertexBufferObject;
+    }
+
+    const BufferLayout& OpenglVertexBuffer::GetBufferLayaout()
+    {
+        return m_BufferLayout;
+    }
+
+    bool OpenglVertexBuffer::AttachToVAO()
+    {
+        if (m_VertexBufferObject == 0) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+
+        if (!Bind()) {
+            return false;
+        }
+
+        for (auto& attribut : m_BufferLayout) {
+            uint32 type = GLConvert::ShaderType(attribut.type);
+            uint32 normalized = attribut.normalized ? GL_TRUE : GL_FALSE;
+            uint32 count = attribut.GetComponentCount();
+            uint32 offset = attribut.offset;
+            uint32 location = attribut.location;
+
+            glCheckError(first, result, glEnableVertexAttribArray(location), "cannot enable vertex atribut array");
+            if (!result.success) {
+                Log_nts.Debug();
+                return false;
+            }
+
+            if (attribut.type == ShaderDataType::Float || attribut.type == ShaderDataType::Float2 || attribut.type == ShaderDataType::Float3 || attribut.type == ShaderDataType::Float4) {
+                glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (const void*)offset), "cannot set vertex attribut pointer");
+            }
+            else if (attribut.type == ShaderDataType::Mat3 || attribut.type == ShaderDataType::Mat4) {
+                for (uint8_t i = 0; i < count; i++) {
+                    glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (const void*)(attribut.offset + sizeof(float) * count * i)), "cannot set vertex attribut pointer");
+                    glCheckError(first, result, glVertexAttribDivisor(location, 1), "cannot set vertex attribut pointer");
+                }
+            }
+            else if (attribut.type == ShaderDataType::NotDefine) {
+                continue;
+            }
+            else {
+                glCheckError(first, result, glVertexAttribIPointer(location, count, type, m_BufferLayout.stride, (const void*)offset), "cannot set vertex attribut pointer");
+            }
+
+            if (!result.success) {
+                Log_nts.Debug();
+                return false;
+            }
+        }
+        return Unbind();
     }
 
 }  //  nkentseu

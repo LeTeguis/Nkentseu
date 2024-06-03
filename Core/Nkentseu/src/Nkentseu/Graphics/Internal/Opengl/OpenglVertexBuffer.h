@@ -35,8 +35,12 @@ namespace nkentseu {
 
             bool Bind();
             bool Unbind();
+
             uint32 GetBuffer() const;
+            const BufferLayout& GetBufferLayaout();
+            bool AttachToVAO();
         private:
+            BufferLayout m_BufferLayout;
             uint32 m_VertexBufferObject = 0;
             BufferDataUsage::Code m_BufferUsage; 
             Memory::Shared<Context> m_Context;

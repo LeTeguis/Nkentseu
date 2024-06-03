@@ -35,13 +35,11 @@ namespace nkentseu {
             uint32 Leng() override;
             bool Destroy() override;
 
-            bool Create(const BufferLayout& bufferLayout);
+            bool Create();
             bool Create(uint32 vertexNumber);
 
             bool Bind();
             bool Unbind();
-
-            const BufferLayout& GetBufferLayout();
 
             GLuint GetBuffer();
             //uint32 
@@ -49,7 +47,6 @@ namespace nkentseu {
             GLuint m_VertexArrayObject = 0; // VAO
             Memory::Shared<OpenglVertexBuffer> m_VertexBuffer;
             Memory::Shared<OpenglIndexBuffer> m_IndexBuffer;
-            BufferLayout m_BufferLayout;
             uint32 m_VertexNumber = 0;
 
             Memory::Shared<Context> m_Context;

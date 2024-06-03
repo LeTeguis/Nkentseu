@@ -93,11 +93,15 @@ namespace nkentseu {
 
         vkCheckError(first, result, vkBeginCommandBuffer(m_CurrentCommandBuffer, &beginInfo), "cannot start command buffer");
 
-        VkClearValue clearValue = {};
-        clearValue.color = { m_PreviousColor.Rf(), m_PreviousColor.Gf(), m_PreviousColor.Bf(), m_PreviousColor.Af() };
+        VkClearValue clearColor = {};
+        clearColor.color = { m_PreviousColor.Rf(), m_PreviousColor.Gf(), m_PreviousColor.Bf(), m_PreviousColor.Af() };
+
+        VkClearValue clearDepth = {};
+        clearDepth.depthStencil = { 1.0f, 0 };
 
         std::vector<VkClearValue> clearValues;
-        clearValues.push_back(clearValue);
+        clearValues.push_back(clearColor);
+        clearValues.push_back(clearDepth);
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

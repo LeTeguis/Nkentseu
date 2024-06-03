@@ -26,8 +26,8 @@ namespace nkentseu {
             bool Destroy() override;
             uint32 Leng() const override;
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices, const BufferLayout& bufferLayout = {});
-            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
+            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng);
             
             bool Bind();
             bool Unbind();

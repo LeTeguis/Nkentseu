@@ -13,34 +13,10 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 proj;
 } ubo;
 
-// Fonction pour vérifier si une matrice est nulle
-bool isMatrixNull(mat4 matrix) {
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            if (matrix[i][j] != 0.0) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
 void main()
 {
-    mat4 model = mat4(1.0f);
-    mat4 view = mat4(1.0f);
-    mat4 proj = mat4(1.0f);
-
-    if (!isMatrixNull(ubo.proj)) {
-        proj = ubo.proj;
-    }
-    if (!isMatrixNull(ubo.view)) {
-        view = ubo.view;
-    }
-    if (!isMatrixNull(ubo.model)) {
-        model = ubo.model;
-    }
-    
-    gl_Position = proj * view * model * vec4(position, 1.0);
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(position, 1.0);
+    //gl_Position = vec4(position, 1.0);
     ourColor = color;
 }

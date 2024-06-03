@@ -31,9 +31,8 @@ namespace nkentseu {
         return m_Context;
     }
 
-    bool VulkanVertexArray::Create(const BufferLayout& bufferLayout) {
+    bool VulkanVertexArray::Create() {
         if (m_Context == nullptr) return false;
-        m_Layout = bufferLayout;
         return true;
     }
 

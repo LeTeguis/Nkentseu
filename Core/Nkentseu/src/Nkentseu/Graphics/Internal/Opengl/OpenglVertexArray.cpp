@@ -31,7 +31,7 @@ namespace nkentseu {
         return m_Context;
     }
 
-    bool OpenglVertexArray::Create(const BufferLayout& bufferLayout)
+    bool OpenglVertexArray::Create()
     {
         if (m_VertexArrayObject != 0 || m_Context == nullptr) {
             return false;
@@ -143,11 +143,6 @@ namespace nkentseu {
         return result.success;
     }
 
-    const BufferLayout& OpenglVertexArray::GetBufferLayout()
-    {
-        return m_BufferLayout;
-    }
-
     GLuint OpenglVertexArray::GetBuffer()
     {
         return m_VertexArrayObject;
@@ -159,58 +154,16 @@ namespace nkentseu {
             return false;
         }
 
-        OpenGLResult result;
-        bool first = true;
-
         if (!Bind()) {
             return false;
         }
 
-        if (m_VertexBuffer == nullptr) {
-            return false;
+        bool success = true;
+
+        if (m_VertexBuffer != nullptr) {
+            success = m_VertexBuffer->AttachToVAO();
         }
 
-        if (m_VertexBuffer == nullptr || !m_VertexBuffer->Bind()) {
-            Unbind();
-            return false;
-        }
-
-        if (m_IndexBuffer != nullptr) {
-            if (m_IndexBuffer != nullptr) {
-                m_IndexBuffer->Bind();
-            }
-        }
-
-        for (auto& attribut : m_BufferLayout) {
-            uint32 type = GLConvert::ShaderType(attribut.type);
-            uint32 normalized = attribut.normalized ? GL_TRUE : GL_FALSE;
-            uint32 count = attribut.GetComponentCount();
-            uint32 offset = attribut.offset;
-            uint32 location = attribut.location;
-
-            glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (void*)offset), "cannot set vertex attribut pointer");
-            if (!result.success) {
-                Log_nts.Debug();
-                return false;
-            }
-
-            glCheckError(first, result, glEnableVertexAttribArray(location), "cannot enable vertex atribut array");
-            if (!result.success) {
-                Log_nts.Debug();
-                return false;
-            }
-        }
-
-        if (m_IndexBuffer != nullptr) {
-            if (m_IndexBuffer != nullptr) {
-                m_IndexBuffer->Unbind();
-            }
-        }
-
-        if (m_VertexBuffer == nullptr || !m_VertexBuffer->Unbind()) {
-            return false;
-        }
-        m_VertexNumber = m_VertexBuffer->Leng();
-        return Unbind();
+        return Unbind() && success;
     }
 }  //  nkentseu

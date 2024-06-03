@@ -220,11 +220,21 @@ namespace nkentseu {
 	using IndexBufferLayout = BufferLayout;
 	using PushConstantLayout = BufferLayout;
 
+	struct NKENTSEU_API UniformBufferType {
+		using Code = uint64;
+		enum : Code {
+			NotDefine, Static, Dynamic
+		};
+	};
+
 	struct NKENTSEU_API UniformBufferAttribut {
 		usize size = 0;
+		usize instance = 0;
 		uint32 binding = 0;
 		std::string name = "";
 		ShaderType::Code type = ShaderType::NotDefine;
+		BufferDataUsage::Code usage = BufferDataUsage::StaticDraw;
+		UniformBufferType::Code uType = UniformBufferType::Static;
 
 		// run time send
 		void* data = nullptr; // internal use
@@ -234,7 +244,8 @@ namespace nkentseu {
 		UniformBufferAttribut() = default;
 
 		// Constructeur avec paramètres
-		UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type);
+		UniformBufferAttribut(usize size, usize instance, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype);
+		UniformBufferAttribut(usize size, usize instance, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, BufferDataUsage::Code usage);
 	};
 
 	struct NKENTSEU_API UniformBufferLayout {

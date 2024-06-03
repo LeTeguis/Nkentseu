@@ -29,7 +29,7 @@ namespace nkentseu {
             virtual uint32 Leng() = 0;
             virtual bool Destroy() = 0;
 
-            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, const BufferLayout& bufferLayout);
+            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context);
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, uint32 vertexNumber);
     };
 

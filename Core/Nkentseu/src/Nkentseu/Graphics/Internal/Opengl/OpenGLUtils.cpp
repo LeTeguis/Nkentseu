@@ -113,4 +113,36 @@ namespace nkentseu {
         if (code == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER;
         return 0;
     }
+
+    bool OpenglBuffer::Create(uint32 shaderID, const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset)
+    {
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glGenBuffers(1, &uniform), "cannot gen buffer");
+        glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, uniform), "cannot bind buffer");
+        glCheckError(first, result, glBufferData(GL_UNIFORM_BUFFER, size, NULL, GLConvert::UsageType(usage)), "cannot set buffer data");
+        glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, 0), "cannot unbind buffer");
+
+        glCheckError(first, result, glBindBufferRange(GL_UNIFORM_BUFFER, binding, uniform, offset, size), "cannot bind buffer range");
+        return result.success;
+    }
+
+    bool OpenglBuffer::Destroy()
+    {
+        return false;
+    }
+
+    bool OpenglBuffer::WriteToBuffer(void* data, usize size, uint32 index)
+    {
+        OpenGLResult result;
+        bool first = true;
+
+        usize offset = index * size;
+
+        glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, uniform), "cannot bind buffer");
+        glCheckError(first, result, glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data), "cannot set sub data");
+        glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, 0), "cannot unbind buffer");
+        return result.success;
+    }
 }  //  nkentseu

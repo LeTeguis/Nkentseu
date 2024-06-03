@@ -9,12 +9,14 @@
 #pragma once
 
 #include <System/System.h>
+#include <unordered_map>
 
 #include <System/Definitions/Memory.h>
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/Shader.h>
 #include <Nkentseu/Graphics/Context.h>
 #include "OpenglContext.h"
+#include "OpenGLUtils.h"
 
 namespace nkentseu {
     class NKENTSEU_API OpenglShader : public Shader {
@@ -30,12 +32,15 @@ namespace nkentseu {
 
             bool Bind() const;
             bool Unbind() const;
+
+            bool UseUniform(const std::string& name, void* data, usize size, uint32 index);
         private:
             uint32 m_Programme = 0;
             Memory::Shared<OpenglContext> m_Context = nullptr;
             ShaderBufferLayout m_Layout;
 
             std::vector<uint32> m_Modules;
+            std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;
 
         private:
             uint32 MakeModule(const std::string& filepath, ShaderType::Code code);
