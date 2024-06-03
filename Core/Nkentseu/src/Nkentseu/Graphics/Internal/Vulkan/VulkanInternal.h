@@ -241,8 +241,11 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanBuffer {
-        bool WriteToBuffer(VulkanGpu* gpu, const void* data, usize size, VkDeviceSize offset = 0, VkMemoryMapFlags flag = 0);
+        bool WriteToBuffer(const void* data, usize size, usize offset);
         bool Destroy(VulkanGpu* gpu);
+        bool Mapped(VulkanGpu* gpu, usize size, usize offset = 0, VkMemoryMapFlags flag = 0);
+        bool UnMapped(VulkanGpu* gpu);
+        bool Flush(VulkanGpu* gpu, usize size, usize offset = 0);
 
         static int64 FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties);
         static bool CreateBuffer(VulkanGpu* gpu, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
@@ -252,6 +255,16 @@ namespace nkentseu {
         VkDeviceMemory bufferMemory = nullptr;
         void* mappedData = nullptr;
         VkDeviceSize size = 0;
+    };
+
+    struct NKENTSEU_API VulkanUniformBuffer {
+        bool Create(VulkanGpu* gpu, const std::string& name, usize size, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType, uint32 instance = 1);
+        bool Destroy(VulkanGpu* gpu);
+
+        std::vector<VulkanBuffer> uniformBuffers;
+        std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+        std::vector<VkDescriptorBufferInfo> descriptorBufferInfos;
+        VkBufferUsageFlags usage;
     };
 
     struct NKENTSEU_API VulkanCommandBuffer {

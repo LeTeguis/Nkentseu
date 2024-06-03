@@ -39,6 +39,7 @@ namespace nkentseu {
             bool Unbind(VkCommandBuffer commandBuffer) const;
 
             bool UseUniform(VkCommandBuffer commandBuffer, const std::string& name, void* data, usize size);
+            bool BindDescriptorsSet(VkCommandBuffer commandBuffer);
         private:
             Memory::Shared<VulkanContext> m_Context = nullptr;
             VkPipeline m_GraphicsPipeline = nullptr;
@@ -51,7 +52,9 @@ namespace nkentseu {
             std::unordered_map<ShaderType::Code, VkShaderModule> m_Modules;
             ShaderBufferLayout m_ShaderLayout = {};
 
-            std::unordered_map<std::string, VulkanBuffer> m_UniformBuffers;
+            std::unordered_map<std::string, VulkanUniformBuffer> m_UniformBuffers;
+            void CreateUniform();
+            void DestroyUniform();
 
             // shader info
             std::vector<VkVertexInputBindingDescription> bindingDescriptions = {};

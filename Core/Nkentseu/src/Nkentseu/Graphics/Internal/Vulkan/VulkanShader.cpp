@@ -180,19 +180,7 @@ namespace nkentseu {
             return false;
         }
 
-        if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
-            VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-            for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
-                m_UniformBuffers[attribut.name] = {};
-
-                if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), attribut.size, usage, sharingMode, propertyFlags, m_UniformBuffers[attribut.name].buffer, m_UniformBuffers[attribut.name].bufferMemory)){
-                    Log_nts.Error("Cannot create uniforme buffer : name = {0}", attribut.name);
-                }
-            }
-        }
+        CreateUniform();
 
         Log_nts.Info("Create gaphics pipeline is good");
 
@@ -205,6 +193,8 @@ namespace nkentseu {
         for (auto& [name, buffer] : m_UniformBuffers) {
             buffer.Destroy(m_Context->GetGpu());
         }
+
+        DestroyUniform();
 
         bindingDescriptions.clear();
         attributeDescriptions.clear();
@@ -299,42 +289,75 @@ namespace nkentseu {
         // Vérifier si le contexte est valide
         if (m_Context == nullptr || data == nullptr || size == 0) return false;
 
-        // Rechercher le tampon uniforme correspondant au nom donné
         auto it = m_UniformBuffers.find(name);
         if (it == m_UniformBuffers.end()) {
-            // Le tampon uniforme avec ce nom n'a pas été trouvé
             return false;
         }
 
-        // Obtenir le tampon uniforme correspondant
-        VulkanBuffer& uniformBuffer = it->second;
+        //usize offset = index * size;
+        usize offset = 0;
+        bool success = true;
+        auto& uniforms = it->second;
 
-        // Mettre à jour les données du tampon uniforme avec les données fournies
-        uniformBuffer.WriteToBuffer(m_Context->GetGpu(), data, size);
-
-        // Mettre à jour le descripteur d'ensemble si nécessaire
-        if (m_PipelineLayout.createPool) {
-            VkDescriptorSet descriptorSet = m_PipelineLayout.descriptorSets[m_Context->currentImageIndex];
-
-            VkDescriptorBufferInfo bufferInfo = {};
-            bufferInfo.buffer = uniformBuffer.buffer;
-            bufferInfo.offset = 0;
-            bufferInfo.range = size; // La taille du tampon uniforme
-
-            VkWriteDescriptorSet descriptorWrite = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-            descriptorWrite.dstSet = descriptorSet;
-            descriptorWrite.dstBinding = 0; // L'index de la liaison dans le descripteur d'ensemble
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo = &bufferInfo;
-
-            vkUpdateDescriptorSets(m_Context->GetGpu()->device, 1, &descriptorWrite, 0, nullptr);
-            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.pipelineLayout, 0, 1, &descriptorSet, 0, 0));
-            //Log_nts.Debug();
+        for (auto& uniform : uniforms.uniformBuffers) {
+            uniform.Mapped(m_Context->GetGpu(), size, offset);
+            success = uniform.WriteToBuffer(data, size, offset);
+            success = uniform.Flush(m_Context->GetGpu(), size, offset);
+            uniform.UnMapped(m_Context->GetGpu());
         }
 
-        return true;
+        return success;
+    }
+
+    bool VulkanShader::BindDescriptorsSet(VkCommandBuffer commandBuffer)
+    {
+        if (commandBuffer == nullptr) return false;
+        if (m_PipelineLayout.createPool) {
+            VkDescriptorSet descriptorSet = m_PipelineLayout.descriptorSets[m_Context->currentImageIndex];
+            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.pipelineLayout, 0, 1, &descriptorSet, 0, 0));
+            return true;
+        }
+        return false;
+    }
+
+    void VulkanShader::CreateUniform()
+    {
+        if (m_ShaderLayout.uniformBuffer.attributes.size() > 0 && m_PipelineLayout.createPool) {
+            VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+            VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uint32 imageCount = m_Context->GetSwapchain()->swapchainImages.size();
+            std::vector<VkWriteDescriptorSet> descriptorWrites;
+
+            for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
+                m_UniformBuffers[attribut.name] = {};
+
+                if (!m_UniformBuffers[attribut.name].Create(m_Context->GetGpu(), attribut.name, attribut.size, usage, m_PipelineLayout.descriptorSets, descriptorType)) {
+                    Log_nts.Error("Cannot create uniforme buffer : name = {0}", attribut.name);
+                }
+                else {
+                    for (auto wds : m_UniformBuffers[attribut.name].writeDescriptorSets) {
+                        descriptorWrites.push_back(wds);
+                    }
+                }
+            }
+
+            if (descriptorWrites.size() > 0) {
+                vkUpdateDescriptorSets(m_Context->GetGpu()->device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+            }
+        }
+    }
+
+    void VulkanShader::DestroyUniform()
+    {
+        if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
+            for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
+                m_UniformBuffers[attribut.name] = {};
+
+                if (!m_UniformBuffers[attribut.name].Destroy(m_Context->GetGpu())) {
+                    Log_nts.Error("Cannot destroy uniforme buffer : name = {0}", attribut.name);
+                }
+            }
+        }
     }
 
     bool VulkanShader::DefineVertexInput()
@@ -423,6 +446,7 @@ namespace nkentseu {
         if (m_Context != nullptr && m_PipelineLayout.createPool) {
             m_PipelineLayout.CreateDescriptorPool(m_Context->GetGpu(), m_Context->GetSwapchain());
             m_PipelineLayout.CreateDescriptorSets(m_Context->GetGpu(), m_Context->GetSwapchain());
+            CreateUniform();
         }
         return true;
     }
@@ -430,6 +454,7 @@ namespace nkentseu {
     bool VulkanShader::CleanUp(bool force)
     {
         if (m_Context != nullptr && m_PipelineLayout.createPool) {
+            DestroyUniform();
             if (m_PipelineLayout.descriptorSets.size() > 0) {
                 VulkanResult result;
                 bool first = true;

@@ -197,26 +197,21 @@ namespace nkentseu {
         Memory::Shared<VulkanVertexBuffer> vertexBuffer = Memory::SharedCast<VulkanVertexBuffer>(vao->GetVertexBuffer());
         Memory::Shared<VulkanIndexBuffer> indexBuffer = Memory::SharedCast<VulkanIndexBuffer>(vao->GetIndexBuffer());
 
-        if ((vertexBuffer == nullptr || vertexBuffer->GetBuffer() == nullptr) && vao->Leng() == 0) {
+        if (vertexBuffer != nullptr && vertexBuffer->GetBuffer() != nullptr) {
+            VkBuffer vertexBuffers[] = { vertexBuffer->GetBuffer()->buffer };
+            VkDeviceSize offsets[] = { 0 };
+            vkCheckErrorVoid(vkCmdBindVertexBuffers(m_CurrentCommandBuffer, 0, 1, vertexBuffers, offsets));
+        }
+        else if (vao->Leng() == 0){
             return false;
         }
 
-        if (indexBuffer == nullptr) {
-            uint32 count = vao->Leng();
+        m_CurrentShader->BindDescriptorsSet(m_CurrentCommandBuffer);
 
-            if (vertexBuffer != nullptr && vertexBuffer->GetBuffer() != nullptr) {
-                count = vertexBuffer->Leng();
-                VkBuffer vertexBuffers[] = { vertexBuffer->GetBuffer()->buffer };
-                VkDeviceSize offsets[] = { 0 };
-                vkCheckErrorVoid(vkCmdBindVertexBuffers(m_CurrentCommandBuffer, 0, 1, vertexBuffers, offsets));
-            }
-            vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, count, 1, 0, 0));
+        if (indexBuffer == nullptr) {
+            vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, vao->Leng(), 1, 0, 0));
         }
         else {
-            VkBuffer vertexBuffers[] = { vertexBuffer->GetBuffer()->buffer };
-            VkDeviceSize offsets[] = { 0 };
-
-            vkCmdBindVertexBuffers(m_CurrentCommandBuffer, 0, 1, vertexBuffers, offsets);
             vkCmdBindIndexBuffer(m_CurrentCommandBuffer, indexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdDrawIndexed(m_CurrentCommandBuffer, indexBuffer->Leng(), 1, 0, 0, 0);
         }

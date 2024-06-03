@@ -1346,22 +1346,19 @@ namespace nkentseu {
 		return pipelineLayout != VK_NULL_HANDLE;
 	}
 
-	bool VulkanBuffer::WriteToBuffer(VulkanGpu* gpu, const void* data, usize size, VkDeviceSize offset, VkMemoryMapFlags flag)
+	bool VulkanBuffer::WriteToBuffer(const void* data, usize size, usize offset)
 	{
-		if (gpu == nullptr) return false;
+		if (mappedData == nullptr) return false;
 
-		VulkanResult result;
-		bool first = true;
-
-		vkCheckError(first, result, vkMapMemory(gpu->device, bufferMemory, offset, size, flag, (void**) & mappedData), "cannot map buffer memory");
-
-		if (!result.success) {
-			return false;
+		if (size == VK_WHOLE_SIZE) {
+			memcpy(mappedData, data, this->size);
 		}
-		memcpy(mappedData, data, size);
-
-		vkCheckErrorVoid(vkUnmapMemory(gpu->device, bufferMemory));
-		return result.success;
+		else {
+			char* memOffset = (char*)mappedData;
+			memOffset += offset;
+			memcpy(memOffset, data, size);
+		}
+		return true;
 	}
 
 	bool VulkanBuffer::Destroy(VulkanGpu* gpu)
@@ -1381,6 +1378,42 @@ namespace nkentseu {
 		}
 
 		return success && VulkanStaticDebugInfo::success;
+	}
+
+	bool VulkanBuffer::Mapped(VulkanGpu* gpu, usize size, usize offset, VkMemoryMapFlags flag)
+	{
+		if (gpu == nullptr || bufferMemory == nullptr || buffer == nullptr || mappedData != nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		vkCheckError(first, result, vkMapMemory(gpu->device, bufferMemory, offset, size, flag, (void**)&mappedData), "cannot map buffer memory");
+		return result.success;
+	}
+
+	bool VulkanBuffer::UnMapped(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr || bufferMemory == nullptr || buffer == nullptr || mappedData == nullptr || mappedData == nullptr) return false;
+		vkCheckErrorVoid(vkUnmapMemory(gpu->device, bufferMemory));
+		mappedData = nullptr;
+		return VulkanStaticDebugInfo::success;
+	}
+
+	bool VulkanBuffer::Flush(VulkanGpu* gpu, usize size, usize offset)
+	{
+		if (gpu == nullptr || bufferMemory == nullptr || buffer == nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		VkMappedMemoryRange mappedRange = {};
+		mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+		mappedRange.memory = bufferMemory;
+		mappedRange.offset = offset;
+		mappedRange.size = size;
+
+		vkCheckError(first, result, vkFlushMappedMemoryRanges(gpu->device, 1, &mappedRange), "cannot flush buffer memory");
+		return result.success;
 	}
 
 	int64 VulkanBuffer::FindMemoryType(VulkanGpu* gpu, uint32 typeFilter, VkMemoryPropertyFlags properties)
@@ -1496,6 +1529,54 @@ namespace nkentseu {
 		return result.success;
 	}
 
+	// uniform buffer
+
+	bool VulkanUniformBuffer::Create(VulkanGpu* gpu, const std::string& name, usize size, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType, uint32 instance)
+	{
+		if (gpu == nullptr) return false;
+		this->usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
+		VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+		uniformBuffers.resize(descriptorSets.size());
+		writeDescriptorSets.resize(descriptorSets.size());
+		descriptorBufferInfos.resize(descriptorSets.size());
+		uint32 index = 0;
+		bool success = true;
+
+		for (auto& uniform : uniformBuffers) {
+			if (!VulkanBuffer::CreateBuffer(gpu, size * instance, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
+				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", name, index);
+				success = false;
+			}
+			else {
+				descriptorBufferInfos[index].buffer = uniform.buffer;
+				descriptorBufferInfos[index].offset = 0;
+				descriptorBufferInfos[index].range = size; // La taille du tampon uniforme
+
+				writeDescriptorSets[index].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				writeDescriptorSets[index].dstSet = descriptorSets[index];
+				writeDescriptorSets[index].dstBinding = 0; // L'index de la liaison dans le descripteur d'ensemble
+				writeDescriptorSets[index].dstArrayElement = 0;
+				writeDescriptorSets[index].descriptorType = descriptorType;
+				writeDescriptorSets[index].descriptorCount = 1;
+				writeDescriptorSets[index].pBufferInfo = &descriptorBufferInfos[index];
+			}
+			index++;
+		}
+		return success;
+	}
+
+	bool VulkanUniformBuffer::Destroy(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr) return false;
+		for (auto& buffer : uniformBuffers) {
+			buffer.Destroy(gpu);
+		}
+		return true;
+	}
+
+	// command buffer
 	bool VulkanCommandBuffer::Create(VulkanGpu* gpu, VulkanSwapchain* swapchain, VulkanCommandPool* commandPool)
 	{
 		if (gpu == nullptr || swapchain == nullptr || commandPool == nullptr) return false;
