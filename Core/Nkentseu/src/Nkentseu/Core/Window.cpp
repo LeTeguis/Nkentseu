@@ -94,6 +94,18 @@ namespace nkentseu {
 		ValidateObject(m_WindowInternal, true, Vector2(), ConvertPixelToDpi, pixel);
 	}
 
+	float32 Window::GetDpiAspect()
+	{
+		Vector2f size = ConvertPixelToDpi(GetSize());
+		return size.width / size.height;
+	}
+
+	float32 Window::GetAspect()
+	{
+		Vector2f size = GetSize();
+		return size.width / size.height;
+	}
+
 	Vector2u Window::CurrentDisplaySize() const {
 		ValidateObject(m_WindowInternal, true, Vector2u(), CurrentDisplaySize);
 	}

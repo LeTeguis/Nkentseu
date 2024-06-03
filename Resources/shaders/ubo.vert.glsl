@@ -7,16 +7,19 @@ layout (location=1) in vec3 color;
 
 layout (location=0) out vec3 ourColor;
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(binding = 0) uniform ObjectBuffer {
     mat4 model;
+} objectBuffer;
+
+layout(binding = 1) uniform CameraBuffer {
     mat4 view;
     mat4 proj;
-} ubo;
+} cameraBuffer;
 
 
 void main()
 {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(position, 1.0);
+    gl_Position = cameraBuffer.proj * cameraBuffer.view * objectBuffer.model * vec4(position, 1.0);
     //gl_Position = vec4(position, 1.0);
     ourColor = color;
 }

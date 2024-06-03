@@ -1329,16 +1329,9 @@ namespace nkentseu {
 	}
 
 	// VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-	void VulkanPipelineLayout::AddDescriptorSetLayoutBinding(uint32 index, const UniformBufferAttribut& attributs, VkDescriptorType type, VkShaderStageFlags shaderStage)
+	void VulkanPipelineLayout::Add(uint32 binding, VkDescriptorType type, VkShaderStageFlags shaderStage)
 	{
-		if (index < layoutBindings.size()) {
-			// ubo
-			layoutBindings[index].binding = attributs.binding;
-			layoutBindings[index].descriptorType = type;
-			layoutBindings[index].descriptorCount = 1;
-			layoutBindings[index].stageFlags = shaderStage;// VK_SHADER_STAGE_VERTEX_BIT;
-			layoutBindings[index].pImmutableSamplers = nullptr; // Optionnel
-		}
+		layoutBindings.push_back({ binding, type, 1, shaderStage, nullptr });
 	}
 
 	bool VulkanPipelineLayout::IsValid()
@@ -1531,7 +1524,7 @@ namespace nkentseu {
 
 	// uniform buffer
 
-	bool VulkanUniformBuffer::Create(VulkanGpu* gpu, const std::string& name, usize size, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType, uint32 instance)
+	bool VulkanUniformBuffer::Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType)
 	{
 		if (gpu == nullptr) return false;
 		this->usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
@@ -1545,18 +1538,18 @@ namespace nkentseu {
 		bool success = true;
 
 		for (auto& uniform : uniformBuffers) {
-			if (!VulkanBuffer::CreateBuffer(gpu, size * instance, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
-				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", name, index);
+			if (!VulkanBuffer::CreateBuffer(gpu, uba.size * uba.instance, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
+				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", uba.name, index);
 				success = false;
 			}
 			else {
 				descriptorBufferInfos[index].buffer = uniform.buffer;
 				descriptorBufferInfos[index].offset = 0;
-				descriptorBufferInfos[index].range = size; // La taille du tampon uniforme
+				descriptorBufferInfos[index].range = uba.size; // La taille du tampon uniforme
 
 				writeDescriptorSets[index].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptorSets[index].dstSet = descriptorSets[index];
-				writeDescriptorSets[index].dstBinding = 0; // L'index de la liaison dans le descripteur d'ensemble
+				writeDescriptorSets[index].dstBinding = uba.binding; // L'index de la liaison dans le descripteur d'ensemble
 				writeDescriptorSets[index].dstArrayElement = 0;
 				writeDescriptorSets[index].descriptorType = descriptorType;
 				writeDescriptorSets[index].descriptorCount = 1;
@@ -1570,9 +1563,16 @@ namespace nkentseu {
 	bool VulkanUniformBuffer::Destroy(VulkanGpu* gpu)
 	{
 		if (gpu == nullptr) return false;
+		if (descriptorBufferInfos.size() <= 0) return true;
+
 		for (auto& buffer : uniformBuffers) {
 			buffer.Destroy(gpu);
 		}
+		
+		uniformBuffers.clear();
+		writeDescriptorSets.clear();
+		descriptorBufferInfos.clear();
+
 		return true;
 	}
 

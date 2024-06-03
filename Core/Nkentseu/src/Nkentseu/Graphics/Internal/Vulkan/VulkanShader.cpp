@@ -49,9 +49,8 @@ namespace nkentseu {
 
         m_PipelineLayout.createPool = false;
         if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
-            m_PipelineLayout.layoutBindings.resize(m_ShaderLayout.uniformBuffer.attributes.size());
             for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
-                m_PipelineLayout.AddDescriptorSetLayoutBinding(0, attribut, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+                m_PipelineLayout.Add(attribut.binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
             }
             m_PipelineLayout.createPool = true;
         }
@@ -331,7 +330,7 @@ namespace nkentseu {
             for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
                 m_UniformBuffers[attribut.name] = {};
 
-                if (!m_UniformBuffers[attribut.name].Create(m_Context->GetGpu(), attribut.name, attribut.size, usage, m_PipelineLayout.descriptorSets, descriptorType)) {
+                if (!m_UniformBuffers[attribut.name].Create(m_Context->GetGpu(), attribut, usage, m_PipelineLayout.descriptorSets, descriptorType)) {
                     Log_nts.Error("Cannot create uniforme buffer : name = {0}", attribut.name);
                 }
                 else {
@@ -351,12 +350,11 @@ namespace nkentseu {
     {
         if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
             for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
-                m_UniformBuffers[attribut.name] = {};
-
                 if (!m_UniformBuffers[attribut.name].Destroy(m_Context->GetGpu())) {
                     Log_nts.Error("Cannot destroy uniforme buffer : name = {0}", attribut.name);
                 }
             }
+            m_UniformBuffers.clear();
         }
     }
 

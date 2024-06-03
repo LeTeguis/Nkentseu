@@ -39,8 +39,10 @@ namespace nkentseu {
         virtual void SetSize(const Vector2u& size);
 
         virtual float32 GetDpiScale() const;
-
         Vector2 ConvertPixelToDpi(const Vector2& pixel) const;
+
+        float32 GetDpiAspect();
+        float32 GetAspect();
 
         virtual Vector2u CurrentDisplaySize() const;
         virtual Vector2i CurrentDisplayPosition() const;

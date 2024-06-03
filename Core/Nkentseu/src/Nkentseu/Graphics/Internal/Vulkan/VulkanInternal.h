@@ -219,7 +219,7 @@ namespace nkentseu {
         bool CreateDescriptorPool(VulkanGpu* gpu, VulkanSwapchain* swapchain);
         bool CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain);
 
-        void AddDescriptorSetLayoutBinding(uint32 index, const UniformBufferAttribut& attributs, VkDescriptorType type, VkShaderStageFlags shaderStage);
+        void Add(uint32 binding, VkDescriptorType type, VkShaderStageFlags shaderStage);
 
         bool IsValid();
 
@@ -258,7 +258,7 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanUniformBuffer {
-        bool Create(VulkanGpu* gpu, const std::string& name, usize size, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType, uint32 instance = 1);
+        bool Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType);
         bool Destroy(VulkanGpu* gpu);
 
         std::vector<VulkanBuffer> uniformBuffers;
