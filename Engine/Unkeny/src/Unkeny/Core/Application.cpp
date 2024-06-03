@@ -192,7 +192,7 @@ namespace nkentseu {
             return false;
         }
 
-        ContextProperties propertie(GraphicsApiType::VulkanApi);
+        ContextProperties propertie(GraphicsApiType::OpenglApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);

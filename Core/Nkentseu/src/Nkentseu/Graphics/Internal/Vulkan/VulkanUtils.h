@@ -10,8 +10,6 @@
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
-
 #include <vulkan/vulkan.hpp>
 #include <string>
 #include <Logger/Formatter.h>
@@ -76,7 +74,5 @@ namespace nkentseu {
 #define vkCheckError(first, presult, result, format, ... ) VulkanStaticDebugInfo::SetInfo(__FILE__, __LINE__, __FUNCTION__); presult = (presult.success || first) ? vkCheckError_(result, format, ##__VA_ARGS__) : presult; first = false
 #define vkCheckErrorVoid(function) VulkanStaticDebugInfo::SetInfo(__FILE__, __LINE__, __FUNCTION__); function
 }  //  nkentseu
-
-#endif
 
 #endif  // __VULKAN_UTILS_H__!

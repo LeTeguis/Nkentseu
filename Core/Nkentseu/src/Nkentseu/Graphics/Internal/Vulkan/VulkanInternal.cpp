@@ -6,8 +6,6 @@
 #include "NkentseuPch/ntspch.h"
 #include "VulkanInternal.h"
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
-
 /*
 #if defined(XWIN_WIN32)
 #elif defined(XWIN_COCOA)
@@ -1257,5 +1255,3 @@ namespace nkentseu {
 	}
 
 }  //  nkentseu
-
-#endif

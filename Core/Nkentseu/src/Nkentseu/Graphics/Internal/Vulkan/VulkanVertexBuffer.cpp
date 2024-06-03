@@ -6,7 +6,6 @@
 #include "NkentseuPch/ntspch.h"
 #include "VulkanVertexBuffer.h"
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <Logger/Formatter.h>
 #include "Nkentseu/Graphics/Context.h"
 #include "VulkanContext.h"
@@ -100,5 +99,3 @@ namespace nkentseu {
     }
 
 }  //  nkentseu
-
-#endif

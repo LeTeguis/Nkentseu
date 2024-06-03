@@ -10,8 +10,6 @@
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
-
 #include <System/Definitions/Memory.h>
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/Color.h>
@@ -79,7 +77,5 @@ namespace nkentseu {
     };
 
 }  //  nkentseu
-
-#endif
 
 #endif  // __INTERNAL_RENDERER_H__!

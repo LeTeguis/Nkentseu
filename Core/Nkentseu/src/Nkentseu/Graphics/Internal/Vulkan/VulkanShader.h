@@ -10,7 +10,6 @@
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <System/Definitions/Memory.h>
 #include <unordered_map>
 #include "Nkentseu/Graphics/ShaderInfo.h"
@@ -75,5 +74,3 @@ namespace nkentseu {
 }  //  nkentseu
 
 #endif  // __INTERNAL_SHADER_H__!
-
-#endif

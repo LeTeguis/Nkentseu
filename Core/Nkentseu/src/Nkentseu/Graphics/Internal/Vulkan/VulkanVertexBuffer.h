@@ -10,7 +10,6 @@
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/VertexBuffer.h"
 #include "VulkanInternal.h"
@@ -46,6 +45,5 @@ namespace nkentseu {
     };
 
 }  //  nkentseu
-#endif
 
 #endif  // __INTERNAL_VERTEX_BUFFER_H__!

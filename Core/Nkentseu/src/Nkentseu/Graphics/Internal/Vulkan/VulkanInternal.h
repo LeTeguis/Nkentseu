@@ -10,8 +10,6 @@
 
 #include <System/System.h>
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
-
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 //#define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
@@ -232,7 +230,5 @@ namespace nkentseu {
     };
     
 }  //  nkentseu
-
-#endif
 
 #endif  // __VULKAN_INTERNAL_H__!

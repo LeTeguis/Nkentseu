@@ -6,7 +6,6 @@
 #include "NkentseuPch/ntspch.h"
 #include "VulkanShader.h"
 
-#ifdef NKENTSEU_GRAPHICS_API_VULKAN
 #include <Logger/Formatter.h>
 #include <fstream>
 #include <sstream>
@@ -493,5 +492,3 @@ namespace nkentseu {
         return true;
     }
 }  //  nkentseu
-
-#endif
