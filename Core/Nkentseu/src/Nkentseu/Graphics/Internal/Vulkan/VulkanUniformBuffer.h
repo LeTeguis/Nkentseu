@@ -26,8 +26,8 @@ namespace nkentseu {
             //bool SetCommandBuffer(VkCommandBuffer commandBuffer);
             Memory::Shared<Context> GetContext() override;
             bool Bind(const std::string& name, void* data, usize size) override;
-            bool Bind(const std::string& name, void* data, usize size, usize offset) override;
-
+            bool Bind(const std::string& name, void* data, usize size, uint32 index) override;
+            bool Send(uint32 index = 0) override;
             bool Destroy() override;
         private:
             Memory::Shared<VulkanContext> m_Context;
@@ -37,6 +37,8 @@ namespace nkentseu {
 
             std::unordered_map<std::string, VulkanUBO> m_UniformBuffers;
             std::vector<VkDescriptorSet> m_DescriptorSets = {};
+
+            uint32 m_OffsetDynamicCount = 0;
 
             bool CreateDescriptorSets();
             bool Recreate(bool force);

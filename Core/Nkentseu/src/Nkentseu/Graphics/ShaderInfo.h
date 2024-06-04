@@ -12,6 +12,7 @@
 #include <System/Nature/Base.h>
 
 #include <string>
+#include <unordered_map>
 
 namespace nkentseu {
 	struct NKENTSEU_API ShaderType {
@@ -244,12 +245,13 @@ namespace nkentseu {
 		UniformBufferAttribut() = default;
 
 		// Constructeur avec paramètres
-		UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, usize instance = 1);
-		UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, BufferDataUsage::Code usage, usize instance = 1);
+		//UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, usize instance = 1);
+		UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, usize instance = 1, BufferDataUsage::Code usage = BufferDataUsage::StaticDraw);
 	};
 
 	struct NKENTSEU_API UniformBufferLayout {
-		std::vector<UniformBufferAttribut> attributes;
+		std::unordered_map<std::string, UniformBufferAttribut> attributes;
+		uint32 sizes = 0;
 
 		// Constructeur par défaut
 		UniformBufferLayout() = default;
@@ -259,6 +261,8 @@ namespace nkentseu {
 
 		const UniformBufferAttribut& GetAttribut(uint32 index);
 		const UniformBufferAttribut& GetAttribut(const std::string& name);
+
+		void AddAttribut(const UniformBufferAttribut& attribut);
 	};
 
 	struct NKENTSEU_API ShaderBufferLayout {

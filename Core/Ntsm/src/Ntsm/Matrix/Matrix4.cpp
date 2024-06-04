@@ -509,14 +509,14 @@ namespace nkentseu {
         return result;
     }
 
-    matrix4f matrix4f::Rotation(const Vector3f& Axis, const Angle& angle)
+    matrix4f matrix4f::Rotation(const Vector3f& axis, const Angle& angle)
     {
         float32 theta = angle.Rad();
         float32 c = cosf(theta);
         float32 s = sinf(theta);
         float32 t = 1.0f - c;
 
-        Vector3f NormalizedAxis = Vector3f(Axis).Normalized();
+        Vector3f NormalizedAxis = Vector3f(axis).Normalized();
         float32 x = NormalizedAxis.x;
         float32 y = NormalizedAxis.y;
         float32 z = NormalizedAxis.z;
@@ -549,9 +549,9 @@ namespace nkentseu {
         return RotationY(yaw) * RotationX(pitch) * RotationZ(roll);
     }
 
-    matrix4f matrix4f::Rotation(const Vector3f& Axis, const Angle& angle, const Vector3f& Center)
+    matrix4f matrix4f::Rotation(const Vector3f& axis, const Angle& angle, const Vector3f& center)
     {
-        return Translation(-Center) * Rotation(Axis, angle) * Translation(Center);
+        return Translation(-center) * Rotation(axis, angle) * Translation(center);
     }
 
     matrix4f matrix4f::RotationX(const Angle& angle)
@@ -658,6 +658,46 @@ namespace nkentseu {
         result.m32 = -(2.0f * zFar * zNear) / (zFar - zNear);
 
         return result;
+    }
+
+    matrix4f matrix4f::Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle)
+    {
+        return Rotation(axis, angle) * mat;
+    }
+
+    matrix4f matrix4f::Rotation(const matrix4f mat, float32 yaw, float32 pitch, float32 roll)
+    {
+        return Rotation(yaw, pitch, roll) * mat;
+    }
+
+    matrix4f matrix4f::Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle, const Vector3f& center)
+    {
+        return Rotation(axis, angle, center) * mat;
+    }
+
+    matrix4f matrix4f::RotationX(const matrix4f mat, const Angle& angle)
+    {
+        return RotationX(angle) * mat;
+    }
+
+    matrix4f matrix4f::RotationY(const matrix4f mat, const Angle& angle)
+    {
+        return RotationY(angle) * mat;
+    }
+
+    matrix4f matrix4f::RotationZ(const matrix4f mat, const Angle& angle)
+    {
+        return RotationZ(angle) * mat;
+    }
+
+    matrix4f matrix4f::Scaling(const matrix4f mat, const Vector3f& scaleFactors)
+    {
+        return Scaling(scaleFactors) * mat;
+    }
+
+    matrix4f matrix4f::Translation(const matrix4f mat, const Vector3f& pos)
+    {
+        return Translation(pos) * mat;
     }
 
     std::string matrix4f::ToStringRow(uint32 i) {

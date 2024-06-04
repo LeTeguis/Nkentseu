@@ -163,15 +163,25 @@ namespace nkentseu {
         static matrix4f Perspective(float32 width, float32 height, float32 zNear, float32 zFar);
         static matrix4f PerspectiveFov(float32 fov, float32 aspect, float32 zNear, float32 zFar);
         static matrix4f PerspectiveMultifov(float32 fovX, float32 fovY, float32 zNear, float32 zFar);
-        static matrix4f Rotation(const Vector3f& Axis, const Angle& angle);
+
+        static matrix4f Rotation(const Vector3f& axis, const Angle& angle);
         static matrix4f Rotation(float32 yaw, float32 pitch, float32 roll);
-        static matrix4f Rotation(const Vector3f& Axis, const Angle& angle, const Vector3f& Center);
+        static matrix4f Rotation(const Vector3f& axis, const Angle& angle, const Vector3f& Center);
         static matrix4f RotationX(const Angle& angle);
         static matrix4f RotationY(const Angle& angle);
         static matrix4f RotationZ(const Angle& angle);
         static matrix4f Scaling(const Vector3f& scaleFactors);
         static matrix4f Translation(const Vector3f& pos);
 		static matrix4f Frustum(float32 left, float32 right, float32 bottom, float32 top, float32 zNear, float32 zFar);
+
+        static matrix4f Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle);
+        static matrix4f Rotation(const matrix4f mat, float32 yaw, float32 pitch, float32 roll);
+        static matrix4f Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle, const Vector3f& center);
+        static matrix4f RotationX(const matrix4f mat, const Angle& angle);
+        static matrix4f RotationY(const matrix4f mat, const Angle& angle);
+        static matrix4f RotationZ(const matrix4f mat, const Angle& angle);
+        static matrix4f Scaling(const matrix4f mat, const Vector3f& scaleFactors);
+        static matrix4f Translation(const matrix4f mat, const Vector3f& pos);
 
 		std::string ToStringRow(uint32 i);
 		std::string ToStringCol(uint32 i);

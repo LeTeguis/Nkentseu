@@ -207,8 +207,8 @@ namespace nkentseu {
             return false;
         }
 
-        //ContextProperties propertie(GraphicsApiType::VulkanApi);
-        ContextProperties propertie(GraphicsApiType::OpenglApi);
+        ContextProperties propertie(GraphicsApiType::VulkanApi);
+        //ContextProperties propertie(GraphicsApiType::OpenglApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);
@@ -261,8 +261,8 @@ namespace nkentseu {
         bufferLayout.CalculateOffsetsAndStride();
 
         UniformBufferLayout uniformLayout;
-        uniformLayout.attributes.push_back(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Static));
-        uniformLayout.attributes.push_back(UniformBufferAttribut(sizeof(CameraBuffer), 1, "cameraBuffer", ShaderType::Vertex, UniformBufferType::Static));
+        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
+        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CameraBuffer), 1, "cameraBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
 
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
         shaderFiles[ShaderType::Vertex] = "Resources/shaders/ubo.vert.glsl";
@@ -287,6 +287,18 @@ namespace nkentseu {
         if (uniformBuffer == nullptr) {
             Log.Error("Cannot create uniform buffer");
         }
+
+        /*std::vector<Memory::Shared<UniformBuffer>> ulist;
+
+        for (uint32 i = 0; i < 10; i++) {
+            Memory::Shared<UniformBuffer> ub = UniformBuffer::Create(m_Context, shader, uniformLayout);
+            if (ub == nullptr) {
+                Log.Error("Cannot create uniform buffer");
+            }
+            else {
+                ulist.push_back(ub);
+            }
+        }*/
 
         vertexBuffer = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, cubeVertices, bufferLayout);
         if (vertexBuffer == nullptr) {
@@ -344,29 +356,55 @@ namespace nkentseu {
                 shader->Bind();
             }
 
-            {
-                // update camera buffer
-                cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
-                cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
-                if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
-                    cameraBuffer.proj[1][1] *= -1;
-                }
-                uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
-            }
-
             for (uint32 index = 0; index < 10; index++) {
-                {
-                    // update model
-                    objectBuffer.model = matrix4f::Translation(cubePositions[index] * 0.25) * matrix4f::Identity();
-                    //objectBuffer.model = matrix4f::Scaling(0.25f * Vector3f(1.0f, 1.0f, 1.0f)) * matrix4f::Identity();
-                    objectBuffer.model = matrix4f::Scaling(0.25f * Vector3f(1.0f, 1.0f, 1.0f)) * objectBuffer.model;
-                    //objectBuffer.model = matrix4f::Translation(cubePositions[i]) * objectBuffer.model;
-                    //objectBuffer.model = matrix4f::Rotation(Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f)) * objectBuffer.model;
-                    objectBuffer.model = matrix4f::Rotation(Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f)) * objectBuffer.model;
+                /* {
+                    if (index < ulist.size()) {
+                        cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
+                        cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
+                        if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+                            cameraBuffer.proj[1][1] *= -1;
+                        }
+                        ulist[index]->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
 
-                    uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
+                        objectBuffer.model = matrix4f::Translation(matrix4f::Identity(), cubePositions[index] * 0.25);
+                        //objectBuffer.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
+                        objectBuffer.model = matrix4f::Scaling(objectBuffer.model, 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
+                        //objectBuffer.model = matrix4f::Translation(objectBuffer.model, cubePositions[i]);
+                        //objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
+                        objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
+
+                        //uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer), sizeof(ObjectBuffer) * index);
+                        ulist[index]->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
+                    }
+                }*/
+                if (uniformBuffer != nullptr) {
+                    {
+                        // update camera buffer
+                        cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
+                        cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
+                        if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+                            cameraBuffer.proj[1][1] *= -1;
+                        }
+                        uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+                        //uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer), index);
+                    }
+                    {
+                        // update model
+                        objectBuffer.model = matrix4f::Translation(matrix4f::Identity(), cubePositions[index] * 0.25);
+                        //objectBuffer.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
+                        objectBuffer.model = matrix4f::Scaling(objectBuffer.model, 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
+                        //objectBuffer.model = matrix4f::Translation(objectBuffer.model, cubePositions[i]);
+                        //objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
+                        objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
+
+                        //uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer), index);
+                        uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
+                    }
+                    //uniformBuffer->Send(index);
                 }
-                if (vertexArray != nullptr) vertexArray->Draw(DrawVertexType::Triangles);
+                if (vertexArray != nullptr) {
+                    vertexArray->Draw(DrawVertexType::Triangles);
+                }
             }
 
             m_Renderer->End();
@@ -387,6 +425,10 @@ namespace nkentseu {
         if (uniformBuffer != nullptr) {
             uniformBuffer->Destroy();
         }
+
+        /*for (auto& ubo : ulist) {
+            ubo->Destroy();
+        }*/
 
         shader->Destroy();
         m_Renderer->Deinitialize();

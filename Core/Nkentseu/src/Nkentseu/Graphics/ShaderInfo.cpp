@@ -394,28 +394,41 @@ namespace nkentseu {
         return NotDefine; // Valeur par défaut
     }
 
-    UniformBufferAttribut::UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, usize instance)
-        : size(size), instance(instance), binding(binding), name(name), type(type), uType(utype) {}
+    //UniformBufferAttribut::UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, usize instance) : size(size), instance(instance), binding(binding), name(name), type(type), uType(utype) {}
 
-    UniformBufferAttribut::UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, BufferDataUsage::Code usage, usize instance)
+    UniformBufferAttribut::UniformBufferAttribut(usize size, uint32 binding, const std::string& name, ShaderType::Code type, UniformBufferType::Code utype, usize instance, BufferDataUsage::Code usage)
         : size(size), instance(instance), binding(binding), name(name), type(type), usage(usage), uType(utype) {}
 
     const UniformBufferAttribut& UniformBufferLayout::GetAttribut(uint32 index) {
         static const UniformBufferAttribut uba;
 
         if (index <= attributes.size()) return uba;
-        return attributes[index];
+        uint32 i = 0;
+
+        for (auto& [name_, attribut] : attributes) {
+            if (i == index) {
+                return attribut;
+            }
+            i++;
+        }
+
+        return uba;
     }
 
     const UniformBufferAttribut& UniformBufferLayout::GetAttribut(const std::string& name) {
         static const UniformBufferAttribut uba;
 
-        for (auto& attribut : attributes) {
-            if (attribut.name == name) {
+        for (auto& [name_, attribut] : attributes) {
+            if (name_ == name) {
                 return attribut;
             }
         }
 
         return uba;
+    }
+
+    void UniformBufferLayout::AddAttribut(const UniformBufferAttribut& attribut) {
+        attributes[attribut.name] = attribut;
+        sizes += attribut.size;
     }
 }  //  nkentseu

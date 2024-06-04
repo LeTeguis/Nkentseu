@@ -21,9 +21,9 @@ namespace nkentseu {
     bool OpenglUniformBuffer::Create()
     {
         bool success = true;
-        for (auto& ubo : m_BufferLayout.attributes) {
-            m_UniformBuffers[ubo.name] = {};
-            if (!m_UniformBuffers[ubo.name].Create(ubo.name, ubo.size, ubo.usage, ubo.binding, 0)) {
+        for (auto& [name, ubo] : m_BufferLayout.attributes) {
+            m_UniformBuffers[name] = {};
+            if (!m_UniformBuffers[name].Create(name, ubo.size, ubo.usage, ubo.binding, 0)) {
                 success = false;
             }
             //m_UniformBuffers[ubo.name].Create(shader, ubo.name, ubo.size, ubo.usage, ubo.binding, ubo.offset);
@@ -34,9 +34,9 @@ namespace nkentseu {
     bool OpenglUniformBuffer::Destroy()
     {
         bool success = true;
-        for (auto& ubo : m_BufferLayout.attributes) {
-            m_UniformBuffers[ubo.name] = {};
-            if (!m_UniformBuffers[ubo.name].Destroy()) {
+        for (auto& [name, ubo] : m_BufferLayout.attributes) {
+            m_UniformBuffers[name] = {};
+            if (!m_UniformBuffers[name].Destroy()) {
                 success = false;
             }
         }
@@ -67,7 +67,7 @@ namespace nkentseu {
         }
     }
 
-    bool OpenglUniformBuffer::Bind(const std::string& name, void* data, usize size, usize offset)
+    bool OpenglUniformBuffer::Bind(const std::string& name, void* data, usize size, uint32 index)
     {
         if (m_Context == nullptr || data == nullptr || size == 0) return false;
 
@@ -81,8 +81,14 @@ namespace nkentseu {
         OpenglBuffer& uniformBuffer = it->second;
 
         if (uniformBuffer.uniform != 0) {
-            uniformBuffer.WriteToBuffer(data, size, offset);
+            uniformBuffer.WriteToBuffer(data, size, 0);
         }
+    }
+
+    bool OpenglUniformBuffer::Send(uint32 index)
+    {
+        if (m_Context == nullptr) return false;
+        return true;
     }
 
 }  //  nkentseu

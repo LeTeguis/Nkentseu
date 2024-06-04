@@ -1208,16 +1208,10 @@ namespace nkentseu {
 		VulkanResult result;
 		bool first = true;
 
-		/*VkDescriptorPoolSize poolSize{};
-		poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSize.descriptorCount = static_cast<uint32_t>(swapchain->swapchainImages.size());*/
-
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 		poolInfo.poolSizeCount = poolSizes.size();
-		//poolInfo.poolSizeCount = 1;
-		//poolInfo.pPoolSizes = &poolSize;
 		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets = static_cast<uint32_t>(swapchain->swapchainImages.size());
 
@@ -1240,9 +1234,7 @@ namespace nkentseu {
 	void VulkanDescriptorPool::Add(VkDescriptorType dType, uint32 count)
 	{
 		VkDescriptorPoolSize poolSize{};
-		//poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		poolSize.type = dType;
-		//poolSize.descriptorCount = static_cast<uint32_t>(swapchain->swapchainImages.size());
 		poolSize.descriptorCount = count;
 	}
 
@@ -1305,26 +1297,6 @@ namespace nkentseu {
 
 		return result.success;
 	}
-
-	/*bool VulkanPipelineLayout::CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain, VulkanDescriptorPool* descriptorPool)
-	{
-		if (gpu == nullptr || swapchain == nullptr  || descriptorPool == nullptr ) return false;
-
-		VulkanResult result;
-		bool first = true;
-
-		std::vector<VkDescriptorSetLayout> layouts(swapchain->swapchainImages.size(), descriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool->descriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32>(swapchain->swapchainImages.size());
-		allocInfo.pSetLayouts = layouts.data();
-
-		descriptorSets.resize(swapchain->swapchainImages.size());
-		vkCheckError(first, result, vkAllocateDescriptorSets(gpu->device, &allocInfo, descriptorSets.data()), "cannot create descriptor sets");
-
-		return result.success;
-	}*/
 
 	// VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
 	void VulkanPipelineLayout::Add(uint32 binding, VkDescriptorType type, VkShaderStageFlags shaderStage)
@@ -1535,9 +1507,11 @@ namespace nkentseu {
 		descriptorBufferInfos.resize(descriptorSets.size());
 		uint32 index = 0;
 		bool success = true;
+		uint32 size = uba.instance > 1 && uba.uType == UniformBufferType::Dynamic ? uba.instance + 1 : uba.instance;
+		size *= uba.size;
 
 		for (auto& uniform : uniformBuffers) {
-			if (!VulkanBuffer::CreateBuffer(gpu, uba.size * uba.instance, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
+			if (!VulkanBuffer::CreateBuffer(gpu, size, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
 				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", uba.name, index);
 				success = false;
 			}

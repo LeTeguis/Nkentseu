@@ -48,7 +48,7 @@ namespace nkentseu {
         }
 
         if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
-            for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
+            for (auto& [name, attribut] : m_ShaderLayout.uniformBuffer.attributes) {
                 VkDescriptorType dtype = (attribut.uType == UniformBufferType::Static) ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
                 m_PipelineLayout.Add(attribut.binding, dtype, VK_SHADER_STAGE_VERTEX_BIT);
             }

@@ -180,24 +180,6 @@ namespace nkentseu {
         }
         return true;
     }
-    
-    /*bool OpenglShader::UseUniform(const std::string& name, void* data, usize size, uint32 index)
-    {// Vérifier si le contexte est valide
-        if (m_Context == nullptr || data == nullptr || size == 0) return false;
-
-        // Rechercher le tampon uniforme correspondant au nom donné
-        auto it = m_UniformBuffers.find(name);
-        if (it == m_UniformBuffers.end()) {
-            // Le tampon uniforme avec ce nom n'a pas été trouvé
-            return false;
-        }
-
-        OpenglBuffer& uniformBuffer = it->second;
-
-        if (uniformBuffer.uniform != 0) {
-            uniformBuffer.WriteToBuffer(data, size, index);
-        }
-    }*/
 
     uint32 OpenglShader::MakeModule(const std::string& filepath, ShaderType::Code code)
     {

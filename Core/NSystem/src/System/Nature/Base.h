@@ -90,6 +90,11 @@ namespace nkentseu{
     }
 
     template <typename T>
+    T AlignUp(T value, T alignment) {
+        return (value + alignment - 1) & ~(alignment - 1);
+    }
+
+    template <typename T>
     std::string ToString(const T& t) {
         std::stringstream ss;
         ss << t;
