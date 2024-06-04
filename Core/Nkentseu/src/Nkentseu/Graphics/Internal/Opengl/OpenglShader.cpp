@@ -63,11 +63,12 @@ namespace nkentseu {
 
     bool OpenglShader::Destroy()
     {
-        if (m_Context == nullptr || m_Programme != 0) {
-            if (Unbind()) {
-                m_Programme = 0;
-                return true;
-            }
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+        if (Unbind()) {
+            m_Programme = 0;
+            return true;
         }
         return false;
     }
@@ -77,27 +78,110 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool OpenglShader::Bind() const {
-        if (m_Context == nullptr || m_Programme != 0) {
-            OpenGLResult result;
-            bool first = true;
-            glCheckError(first, result, glUseProgram(m_Programme), "cannot bind shader program");
-            return true;
+    bool OpenglShader::Bind() {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
         }
-        return false;
+        OpenGLResult result;
+        bool first = true;
+        glCheckError(first, result, glUseProgram(m_Programme), "cannot bind shader program");
+        return result.success;
     }
 
-    bool OpenglShader::Unbind() const {
-        if (m_Context == nullptr || m_Programme != 0) {
-            OpenGLResult result;
-            bool first = true;
-            glCheckError(first, result, glUseProgram(0), "cannot unbind shader program");
-            return true;
+    bool OpenglShader::Unbind() {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
         }
-        return false;
+        OpenGLResult result;
+        bool first = true;
+        glCheckError(first, result, glUseProgram(0), "cannot unbind shader program");
+        return result.success;
+    }
+
+    bool OpenglShader::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
+    {
+        return PolygonMode(contentMode) && CullMode(mode);
+    }
+
+    bool OpenglShader::PolygonMode(PolygonModeType::Code mode)
+    {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+        glCheckError(first, result, glPolygonMode(GLConvert::CullModeType(CullModeType::FrontBack), GLConvert::PolygonModeType(mode)), "cannot change polygon mode");
+        return result.success;
+    }
+
+    bool OpenglShader::CullMode(CullModeType::Code mode)
+    {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+
+        static bool cullFaceIsEnable = false;
+        OpenGLResult result;
+        bool first = true;
+
+        if (mode != CullModeType::NoCull) {
+            if (!cullFaceIsEnable) {
+                glCheckError(first, result, glEnable(GL_CULL_FACE), "cannot enable cull face mode");
+                cullFaceIsEnable = true;
+            }
+            glCheckError(first, result, glCullFace(GLConvert::CullModeType(mode)), "cannot change  cull face mode");
+        }
+        else {
+            if (cullFaceIsEnable) {
+                glCheckError(first, result, glDisable(GL_CULL_FACE), "cannot disable cull face mode");
+                cullFaceIsEnable = false;
+            }
+        }
+        return result.success;
+    }
+
+    bool OpenglShader::FrontFaceMode(FrontFaceType::Code mode)
+    {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+
+        if (mode == FrontFaceType::Clockwise) {
+            glCheckError(first, result, glFrontFace(GL_CW), "cannot set front face clock wise");
+        }
+        else if (mode == FrontFaceType::CounterClockwise) {
+            glCheckError(first, result, glFrontFace(GL_CCW), "cannot set front face cunter clock wise");
+        }
+        return result.success;
+    }
+
+    bool OpenglShader::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
+    {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    bool OpenglShader::ScissorMode(const Vector2i& offset, const Vector2u& extend)
+    {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    bool OpenglShader::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
+    {
+        if (m_Context == nullptr || m_Programme == 0) {
+            return false;
+        }
+        return true;
     }
     
-    bool OpenglShader::UseUniform(const std::string& name, void* data, usize size, uint32 index)
+    /*bool OpenglShader::UseUniform(const std::string& name, void* data, usize size, uint32 index)
     {// Vérifier si le contexte est valide
         if (m_Context == nullptr || data == nullptr || size == 0) return false;
 
@@ -113,7 +197,7 @@ namespace nkentseu {
         if (uniformBuffer.uniform != 0) {
             uniformBuffer.WriteToBuffer(data, size, index);
         }
-    }
+    }*/
 
     uint32 OpenglShader::MakeModule(const std::string& filepath, ShaderType::Code code)
     {
@@ -187,11 +271,11 @@ namespace nkentseu {
 
         m_Modules.clear();
 
-        for (auto& ubo : m_Layout.uniformBuffer.attributes) {
+        /*for (auto& ubo : m_Layout.uniformBuffer.attributes) {
             m_UniformBuffers[ubo.name] = {};
-            m_UniformBuffers[ubo.name].Create(shader, ubo.name, ubo.size, ubo.usage, ubo.binding, 0);
+            m_UniformBuffers[ubo.name].Create(ubo.name, ubo.size, ubo.usage, ubo.binding, 0);
             //m_UniformBuffers[ubo.name].Create(shader, ubo.name, ubo.size, ubo.usage, ubo.binding, ubo.offset);
-        }
+        }*/
 
         return shader;
     }

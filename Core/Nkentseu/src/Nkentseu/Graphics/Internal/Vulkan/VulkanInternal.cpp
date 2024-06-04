@@ -1200,6 +1200,52 @@ namespace nkentseu {
 		return true;
 	}
 
+	// vulkan descriptor pool
+
+	bool VulkanDescriptorPool::Create(VulkanGpu* gpu, VulkanSwapchain* swapchain) {
+		if (gpu == nullptr || swapchain == nullptr) return false;
+
+		VulkanResult result;
+		bool first = true;
+
+		/*VkDescriptorPoolSize poolSize{};
+		poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		poolSize.descriptorCount = static_cast<uint32_t>(swapchain->swapchainImages.size());*/
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		poolInfo.poolSizeCount = poolSizes.size();
+		//poolInfo.poolSizeCount = 1;
+		//poolInfo.pPoolSizes = &poolSize;
+		poolInfo.pPoolSizes = poolSizes.data();
+		poolInfo.maxSets = static_cast<uint32_t>(swapchain->swapchainImages.size());
+
+		vkCheckError(first, result, vkCreateDescriptorPool(gpu->device, &poolInfo, nullptr, &descriptorPool), "cannot create descriptor pool");
+
+		return result.success;
+	}
+
+	bool VulkanDescriptorPool::Destroy(VulkanGpu* gpu)
+	{
+		if (gpu == nullptr) return false;
+
+		if (descriptorPool != VK_NULL_HANDLE) {
+			vkCheckErrorVoid(vkDestroyDescriptorPool(gpu->device, descriptorPool, nullptr));
+			descriptorPool = VK_NULL_HANDLE;
+		}
+		return VulkanStaticDebugInfo::success;
+	}
+
+	void VulkanDescriptorPool::Add(VkDescriptorType dType, uint32 count)
+	{
+		VkDescriptorPoolSize poolSize{};
+		//poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		poolSize.type = dType;
+		//poolSize.descriptorCount = static_cast<uint32_t>(swapchain->swapchainImages.size());
+		poolSize.descriptorCount = count;
+	}
+
 	// VulkanPipelineLayout
 	bool VulkanPipelineLayout::Create(VulkanGpu* gpu, VulkanSwapchain* swapchain)
 	{
@@ -1209,16 +1255,6 @@ namespace nkentseu {
 
 		if (!CreateDescriptorSetLayout(gpu, swapchain)) {
 			return false;
-		}
-
-		if (createPool) {
-			if (!CreateDescriptorPool(gpu, swapchain)) {
-				return false;
-			}
-
-			if (!CreateDescriptorSets(gpu, swapchain)) {
-				return false;
-			}
 		}
 
 		VkPipelineLayoutCreateInfo layoutInfo = {};
@@ -1238,21 +1274,6 @@ namespace nkentseu {
 	bool VulkanPipelineLayout::Destroy(VulkanGpu* gpu)
 	{
 		if (gpu == nullptr || gpu->device == nullptr) return false;
-
-		if (createPool) {
-			if (descriptorSets.size() > 0) {
-				VulkanResult result;
-				bool first = true;
-
-				vkCheckError(first, result, vkFreeDescriptorSets(gpu->device, descriptorPool, descriptorSets.size(), descriptorSets.data()), "cannot free descriptor sets");
-				descriptorSets.clear();
-			}
-
-			if (descriptorPool != VK_NULL_HANDLE) {
-				vkCheckErrorVoid(vkDestroyDescriptorPool(gpu->device, descriptorPool, nullptr));
-				descriptorPool = VK_NULL_HANDLE;
-			}
-		}
 
 		if (descriptorSetLayout != VK_NULL_HANDLE) {
 			vkCheckErrorVoid(vkDestroyDescriptorSetLayout(gpu->device, descriptorSetLayout, nullptr));
@@ -1285,32 +1306,9 @@ namespace nkentseu {
 		return result.success;
 	}
 
-	bool VulkanPipelineLayout::CreateDescriptorPool(VulkanGpu* gpu, VulkanSwapchain* swapchain)
+	/*bool VulkanPipelineLayout::CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain, VulkanDescriptorPool* descriptorPool)
 	{
-		if (gpu == nullptr || swapchain == nullptr) return false;
-
-		VulkanResult result;
-		bool first = true;
-
-		VkDescriptorPoolSize poolSize{};
-		poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSize.descriptorCount = static_cast<uint32_t>(swapchain->swapchainImages.size());
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		poolInfo.poolSizeCount = 1;
-		poolInfo.pPoolSizes = &poolSize;
-		poolInfo.maxSets = static_cast<uint32_t>(swapchain->swapchainImages.size());
-
-		vkCheckError(first, result, vkCreateDescriptorPool(gpu->device, &poolInfo, nullptr, &descriptorPool), "cannot create descriptor pool");
-
-		return result.success;
-	}
-
-	bool VulkanPipelineLayout::CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain)
-	{
-		if (gpu == nullptr || swapchain == nullptr || descriptorPool == nullptr) return false;
+		if (gpu == nullptr || swapchain == nullptr  || descriptorPool == nullptr ) return false;
 
 		VulkanResult result;
 		bool first = true;
@@ -1318,7 +1316,7 @@ namespace nkentseu {
 		std::vector<VkDescriptorSetLayout> layouts(swapchain->swapchainImages.size(), descriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.descriptorPool = descriptorPool->descriptorPool;
 		allocInfo.descriptorSetCount = static_cast<uint32>(swapchain->swapchainImages.size());
 		allocInfo.pSetLayouts = layouts.data();
 
@@ -1326,7 +1324,7 @@ namespace nkentseu {
 		vkCheckError(first, result, vkAllocateDescriptorSets(gpu->device, &allocInfo, descriptorSets.data()), "cannot create descriptor sets");
 
 		return result.success;
-	}
+	}*/
 
 	// VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
 	void VulkanPipelineLayout::Add(uint32 binding, VkDescriptorType type, VkShaderStageFlags shaderStage)
@@ -1339,6 +1337,7 @@ namespace nkentseu {
 		return pipelineLayout != VK_NULL_HANDLE;
 	}
 
+	// vulkan buffer
 	bool VulkanBuffer::WriteToBuffer(const void* data, usize size, usize offset)
 	{
 		if (mappedData == nullptr) return false;
@@ -1524,7 +1523,7 @@ namespace nkentseu {
 
 	// uniform buffer
 
-	bool VulkanUniformBuffer::Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType)
+	bool VulkanUBO::Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType)
 	{
 		if (gpu == nullptr) return false;
 		this->usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
@@ -1560,10 +1559,11 @@ namespace nkentseu {
 		return success;
 	}
 
-	bool VulkanUniformBuffer::Destroy(VulkanGpu* gpu)
+	bool VulkanUBO::Destroy(VulkanGpu* gpu)
 	{
 		if (gpu == nullptr) return false;
-		if (descriptorBufferInfos.size() <= 0) return true;
+
+		if (uniformBuffers.size() <= 0) return true;
 
 		for (auto& buffer : uniformBuffers) {
 			buffer.Destroy(gpu);

@@ -16,7 +16,7 @@
 #include "VulkanVertexBuffer.h"
 #include "VulkanIndexBuffer.h"
 #include "VulkanVertexArray.h"
-#include "VulkanVertexArray.h"
+#include "VulkanUtils.h"
 
 namespace nkentseu {
     VulkanVertexArray::VulkanVertexArray(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
@@ -91,4 +91,28 @@ namespace nkentseu {
         return m_VertexBuffer->Leng() == 0 ? m_VertexNumber : m_VertexBuffer->Leng();
     }
 
+    bool VulkanVertexArray::Draw(DrawVertexType::Code drawVertex) {
+        if (m_Context == nullptr || drawVertex == DrawVertexType::NotDefine) {
+            return false;
+        }
+
+        if (m_VertexBuffer != nullptr && m_VertexBuffer->GetBuffer() != nullptr) {
+            VkBuffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
+            VkDeviceSize offsets[] = { 0 };
+            vkCheckErrorVoid(vkCmdBindVertexBuffers(m_Context->GetCurrentCommandBuffer(), 0, 1, vertexBuffers, offsets));
+        }
+        else if (Leng() == 0) {
+            return false;
+        }
+
+        if (m_IndexBuffer == nullptr) {
+            vkCheckErrorVoid(vkCmdDraw(m_Context->GetCurrentCommandBuffer(), Leng(), 1, 0, 0));
+        }
+        else {
+            vkCmdBindIndexBuffer(m_Context->GetCurrentCommandBuffer(), m_IndexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), m_IndexBuffer->Leng(), 1, 0, 0, 0);
+        }
+
+        return true;
+    }
 }  //  nkentseu

@@ -121,6 +121,42 @@ namespace nkentseu {
         return true;
     }
 
+    bool OpenglVertexArray::Draw(DrawVertexType::Code drawVertex)
+    {
+        if (m_Context == nullptr || m_VertexArrayObject == 0) return false;
+
+        if (!Bind()) {
+            return false;
+        }
+
+        if (m_VertexBuffer != nullptr && !m_VertexBuffer->Bind() && Leng() == 0) {
+            Unbind();
+            return false;
+        }
+
+        if (m_IndexBuffer != nullptr && !m_IndexBuffer->Bind()) {
+            Unbind();
+            return false;
+        }
+
+        uint32 vertexType = GLConvert::VertexType(drawVertex);
+        uint32 vertices_per_type = GLConvert::VerticesPerType(vertexType);
+
+        OpenGLResult result;
+        bool first = true;
+
+        if (m_IndexBuffer != nullptr) {
+            uint32 indexType = GLConvert::IndexType(m_IndexBuffer->GetIndexType());
+            glCheckError(first, result, glDrawElements(vertexType, m_IndexBuffer->Leng(), indexType, 0), "cannot draw elements");
+        }
+        else {
+            Log_nts.Debug();
+            glCheckError(first, result, glDrawArrays(vertexType, 0, Leng()), "cannot draw arrays");
+        }
+
+        return Unbind() && result.success;
+    }
+
     bool OpenglVertexArray::Bind()
     {
         if (m_Context == nullptr || m_VertexArrayObject == 0) return false;

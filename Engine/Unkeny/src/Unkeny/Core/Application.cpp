@@ -207,6 +207,7 @@ namespace nkentseu {
             return false;
         }
 
+        //ContextProperties propertie(GraphicsApiType::VulkanApi);
         ContextProperties propertie(GraphicsApiType::OpenglApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
@@ -282,6 +283,11 @@ namespace nkentseu {
             Log.Error("Cannot create shader");
         }
 
+        Memory::Shared<UniformBuffer> uniformBuffer = UniformBuffer::Create(m_Context, shader, uniformLayout);
+        if (uniformBuffer == nullptr) {
+            Log.Error("Cannot create uniform buffer");
+        }
+
         vertexBuffer = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, cubeVertices, bufferLayout);
         if (vertexBuffer == nullptr) {
             Log.Error("Cannot create vertex buffer");
@@ -317,9 +323,6 @@ namespace nkentseu {
             cameraBuffer.proj[1][1] *= -1;
         }
 
-        m_Renderer->BindUniform("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
-        m_Renderer->BindUniform("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
-
         while (m_Running) {
             float64 delta = timer.Elapsed().seconds;
             time += delta;
@@ -334,11 +337,12 @@ namespace nkentseu {
             
             timer.Reset();
 
-            //m_Renderer->Begin(Color::RandomRGB());
             m_Renderer->Begin(Color::Black());
 
-            m_Renderer->DrawMode(CullModeType::NoCull, m_PolygonMode);
-            m_Renderer->BindShader(shader);
+            if (shader != nullptr) {
+                shader->DrawMode(CullModeType::NoCull, m_PolygonMode);
+                shader->Bind();
+            }
 
             {
                 // update camera buffer
@@ -347,7 +351,7 @@ namespace nkentseu {
                 if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
                     cameraBuffer.proj[1][1] *= -1;
                 }
-                m_Renderer->BindUniform("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+                uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
             }
 
             for (uint32 index = 0; index < 10; index++) {
@@ -360,9 +364,9 @@ namespace nkentseu {
                     //objectBuffer.model = matrix4f::Rotation(Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f)) * objectBuffer.model;
                     objectBuffer.model = matrix4f::Rotation(Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f)) * objectBuffer.model;
 
-                    m_Renderer->BindUniform("objectBuffer", &objectBuffer, sizeof(objectBuffer));
+                    uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
                 }
-                m_Renderer->Draw(vertexArray, DrawVertexType::Triangles);
+                if (vertexArray != nullptr) vertexArray->Draw(DrawVertexType::Triangles);
             }
 
             m_Renderer->End();
@@ -378,6 +382,10 @@ namespace nkentseu {
 
         if (vertexBuffer != nullptr) {
             vertexBuffer->Destroy();
+        }
+
+        if (uniformBuffer != nullptr) {
+            uniformBuffer->Destroy();
         }
 
         shader->Destroy();

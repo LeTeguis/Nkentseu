@@ -30,17 +30,26 @@ namespace nkentseu {
 
             bool Compile();
 
-            bool Bind() const;
-            bool Unbind() const;
+            bool Bind() override;
+            bool Unbind() override;
 
-            bool UseUniform(const std::string& name, void* data, usize size, uint32 index);
+            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) override;
+
+            bool PolygonMode(PolygonModeType::Code mode) override;
+            bool CullMode(CullModeType::Code mode) override;
+            bool FrontFaceMode(FrontFaceType::Code mode) override;
+            bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
+            bool ScissorMode(const Vector2i& offset, const Vector2u& extend) override;
+            bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) override;
+
+            //bool UseUniform(const std::string& name, void* data, usize size, uint32 index);
         private:
             uint32 m_Programme = 0;
             Memory::Shared<OpenglContext> m_Context = nullptr;
             ShaderBufferLayout m_Layout;
 
             std::vector<uint32> m_Modules;
-            std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;
+            //std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;
 
         private:
             uint32 MakeModule(const std::string& filepath, ShaderType::Code code);

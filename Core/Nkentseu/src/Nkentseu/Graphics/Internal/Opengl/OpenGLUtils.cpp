@@ -114,7 +114,7 @@ namespace nkentseu {
         return 0;
     }
 
-    bool OpenglBuffer::Create(uint32 shaderID, const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset)
+    bool OpenglBuffer::Create(const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset)
     {
         OpenGLResult result;
         bool first = true;
@@ -133,15 +133,13 @@ namespace nkentseu {
         return false;
     }
 
-    bool OpenglBuffer::WriteToBuffer(void* data, usize size, uint32 index)
+    bool OpenglBuffer::WriteToBuffer(void* data, usize size, usize offset)
     {
         OpenGLResult result;
         bool first = true;
 
-        usize offset = index * size;
-
         glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, uniform), "cannot bind buffer");
-        glCheckError(first, result, glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data), "cannot set sub data");
+        glCheckError(first, result, glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data), "cannot set sub data");
         glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, 0), "cannot unbind buffer");
         return result.success;
     }

@@ -23,9 +23,9 @@
 #include "Nkentseu/Core/Window.h"
 #include <Nkentseu/Event/EventFilter.h>
 #include <Nkentseu/Event/EventBroker.h>
+#include "VulkanUniformBuffer.h"
 
 namespace nkentseu {
-    //VulkanRenderer::VulkanRenderer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<VulkanContext, Context>(context)) {
     VulkanRenderer::VulkanRenderer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
     }
 
@@ -85,13 +85,12 @@ namespace nkentseu {
                 return false;
             }
         }
-        m_CurrentCommandBuffer = m_Context->m_CommandBuffer.commandBuffers[m_Context->currentImageIndex];
 
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkCheckError(first, result, vkBeginCommandBuffer(m_CurrentCommandBuffer, &beginInfo), "cannot start command buffer");
+        vkCheckError(first, result, vkBeginCommandBuffer(m_Context->GetCurrentCommandBuffer(), &beginInfo), "cannot start command buffer");
 
         VkClearValue clearColor = {};
         clearColor.color = { m_PreviousColor.Rf(), m_PreviousColor.Gf(), m_PreviousColor.Bf(), m_PreviousColor.Af() };
@@ -111,7 +110,7 @@ namespace nkentseu {
         renderPassBeginInfo.pClearValues = clearValues.data();
         renderPassBeginInfo.clearValueCount = clearValues.size();
 
-        vkCheckErrorVoid(vkCmdBeginRenderPass(m_CurrentCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE));
+        vkCheckErrorVoid(vkCmdBeginRenderPass(m_Context->GetCurrentCommandBuffer(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE));
 
         m_IsPrepare = result.success;
         m_ClearColor = false;
@@ -126,17 +125,19 @@ namespace nkentseu {
         VulkanResult result;
         bool first = true;
 
-        vkCheckErrorVoid(vkCmdEndRenderPass(m_CurrentCommandBuffer));
+        vkCheckErrorVoid(vkCmdEndRenderPass(m_Context->GetCurrentCommandBuffer()));
 
-        vkCheckError(first, result, vkEndCommandBuffer(m_CurrentCommandBuffer), "cannot finish command buffer");
+        vkCheckError(first, result, vkEndCommandBuffer(m_Context->GetCurrentCommandBuffer()), "cannot finish command buffer");
 
         VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pWaitDstStageMask = &waitStage;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_CurrentCommandBuffer;
+        submitInfo.pCommandBuffers = &commandBuffer;
         submitInfo.pSignalSemaphores = &m_Context->m_Semaphore.submitSemaphore;
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = &m_Context->m_Semaphore.aquireSemaphore;
@@ -166,7 +167,7 @@ namespace nkentseu {
             }
 
             if (exited) {
-                if (m_CurrentCommandBuffer != nullptr) {
+                if (m_Context->GetCurrentCommandBuffer() != nullptr) {
                     vkCheckError(first, result, vkDeviceWaitIdle(m_Context->m_Gpu.device), "cannot wait device idle");
                 }
                 return false;
@@ -181,154 +182,6 @@ namespace nkentseu {
             m_Context->currentImageIndex = 0;
         }
         return false;
-    }
-
-    bool VulkanRenderer::Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex) {
-        if (!CanRender() || m_CurrentShader == nullptr || drawVertex == DrawVertexType::NotDefine) {
-            return false;
-        }
-
-        Memory::Shared<VulkanVertexArray> vao = Memory::SharedCast<VulkanVertexArray>(vertexArray);
-
-        if (vao == nullptr) {
-            return false;
-        }
-
-        Memory::Shared<VulkanVertexBuffer> vertexBuffer = Memory::SharedCast<VulkanVertexBuffer>(vao->GetVertexBuffer());
-        Memory::Shared<VulkanIndexBuffer> indexBuffer = Memory::SharedCast<VulkanIndexBuffer>(vao->GetIndexBuffer());
-
-        if (vertexBuffer != nullptr && vertexBuffer->GetBuffer() != nullptr) {
-            VkBuffer vertexBuffers[] = { vertexBuffer->GetBuffer()->buffer };
-            VkDeviceSize offsets[] = { 0 };
-            vkCheckErrorVoid(vkCmdBindVertexBuffers(m_CurrentCommandBuffer, 0, 1, vertexBuffers, offsets));
-        }
-        else if (vao->Leng() == 0){
-            return false;
-        }
-
-        m_CurrentShader->BindDescriptorsSet(m_CurrentCommandBuffer);
-
-        if (indexBuffer == nullptr) {
-            vkCheckErrorVoid(vkCmdDraw(m_CurrentCommandBuffer, vao->Leng(), 1, 0, 0));
-        }
-        else {
-            vkCmdBindIndexBuffer(m_CurrentCommandBuffer, indexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(m_CurrentCommandBuffer, indexBuffer->Leng(), 1, 0, 0, 0);
-        }
-
-        return true;
-    }
-    bool VulkanRenderer::BindShader(Memory::Shared<Shader> shader)
-    {
-        if (m_Context == nullptr || !m_IsPrepare) return false;
-        if (m_CurrentCommandBuffer == nullptr || shader == nullptr) return false;
-        Memory::Shared<VulkanShader> sh = Memory::SharedCast<VulkanShader>(shader);
-
-        if (sh != m_CurrentShader) {
-            m_CurrentShader = sh;
-        }
-
-        return m_CurrentShader->Bind(m_CurrentCommandBuffer, m_DynamicMode);
-    }
-
-    bool VulkanRenderer::UnbindShader()
-    {
-        if (m_Context == nullptr || !m_IsPrepare || m_CurrentCommandBuffer == nullptr) return false;
-
-        m_CurrentShader = nullptr;
-
-        return true;
-    }
-
-    bool VulkanRenderer::BindUniform(const std::string& name, void* data, usize size)
-    {
-        if (!CanRender() || m_CurrentShader == nullptr || m_CurrentCommandBuffer == nullptr) return false;
-        return m_CurrentShader->UseUniform(m_CurrentCommandBuffer, name, data, size);
-    }
-
-    bool VulkanRenderer::UnbindUniform(const std::string& name)
-    {
-        if (!CanRender() || m_CurrentShader == nullptr || m_CurrentCommandBuffer == nullptr) return false;
-        return true;
-    }
-
-    bool VulkanRenderer::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) {
-        if (!CanRender()) {
-            return false;
-        }
-        m_DynamicMode.cullMode = VulkanConvert::CullModeType(mode);
-        m_DynamicMode.polygoneMode = VulkanConvert::PolygonModeType(contentMode);
-        return true;
-    }
-
-    bool VulkanRenderer::PolygonMode(PolygonModeType::Code mode)
-    {
-        if (!CanRender()) {
-            return false;
-        }
-
-        if (m_Context->m_Gpu.cmdSetPolygonModeEXT != nullptr) {
-            vkCheckErrorVoid(m_Context->m_Gpu.cmdSetPolygonModeEXT(m_CurrentCommandBuffer, VulkanConvert::PolygonModeType(mode)));
-        }
-        return VulkanStaticDebugInfo::success;
-    }
-
-    bool VulkanRenderer::CullMode(CullModeType::Code mode)
-    {
-        if (!CanRender()) {
-            return false;
-        }
-        vkCheckErrorVoid(vkCmdSetCullMode(m_CurrentCommandBuffer, VulkanConvert::CullModeType(mode)));
-        return VulkanStaticDebugInfo::success;
-    }
-
-    bool VulkanRenderer::FrontFaceMode(FrontFaceType::Code mode)
-    {
-        if (!CanRender()) {
-            return false;
-        }
-        vkCheckErrorVoid(vkCmdSetFrontFace(m_CurrentCommandBuffer, VulkanConvert::FrontFaceType(mode)));
-        return VulkanStaticDebugInfo::success;
-    }
-
-    bool VulkanRenderer::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
-    {
-        if (!CanRender()) {
-            return false;
-        }
-        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_CurrentCommandBuffer, VulkanConvert::PrimitiveTopologyType(mode)));
-        return VulkanStaticDebugInfo::success;
-    }
-
-    bool VulkanRenderer::ScissorMode(const Vector2i& offset, const Vector2u& extend)
-    {
-        if (!CanRender()) {
-            return false;
-        }
-
-        VkRect2D scissor = {};
-        scissor.extent = { extend.width, extend.height };
-        scissor.offset = { offset.width, offset.height };
-
-        vkCheckErrorVoid(vkCmdSetScissor(m_CurrentCommandBuffer, 0, 1, &scissor));
-        return VulkanStaticDebugInfo::success;
-    }
-
-    bool VulkanRenderer::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
-    {
-        if (!CanRender()) {
-            return false;
-        }
-        VkViewport viewport = {};
-        viewport.x = position.x;
-        viewport.y = position.y;
-        viewport.width = size.width;
-        viewport.height = size.height;
-        viewport.maxDepth = depth.x;
-        viewport.minDepth = depth.y;
-
-        vkCheckErrorVoid(vkCmdSetViewport(m_CurrentCommandBuffer, 0, 1, &viewport));
-        return VulkanStaticDebugInfo::success;
     }
 
     bool VulkanRenderer::CanRender()

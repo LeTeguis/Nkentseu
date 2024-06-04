@@ -211,13 +211,19 @@ namespace nkentseu {
         Vector2u size = {};
     };
 
+    struct NKENTSEU_API VulkanDescriptorPool {
+        bool Create(VulkanGpu* gpu, VulkanSwapchain* swapchain);
+        bool Destroy(VulkanGpu* gpu);
+        void Add(VkDescriptorType dType, uint32 count);
+        VkDescriptorPool descriptorPool = nullptr;
+        std::vector<VkDescriptorPoolSize> poolSizes;
+    };
+
     struct NKENTSEU_API VulkanPipelineLayout {
         bool Create(VulkanGpu* gpu, VulkanSwapchain* swapchain);
         bool Destroy(VulkanGpu* gpu);
 
         bool CreateDescriptorSetLayout(VulkanGpu* gpu, VulkanSwapchain* swapchain);
-        bool CreateDescriptorPool(VulkanGpu* gpu, VulkanSwapchain* swapchain);
-        bool CreateDescriptorSets(VulkanGpu* gpu, VulkanSwapchain* swapchain);
 
         void Add(uint32 binding, VkDescriptorType type, VkShaderStageFlags shaderStage);
 
@@ -227,10 +233,6 @@ namespace nkentseu {
 
         VkPipelineLayout pipelineLayout = nullptr;
         VkDescriptorSetLayout descriptorSetLayout = nullptr;
-        std::vector<VkDescriptorSet> descriptorSets = {};
-        VkDescriptorPool descriptorPool = nullptr;
-
-        bool createPool = false;
     };
 
     struct NKENTSEU_API VulkanDynamicMode {
@@ -257,7 +259,7 @@ namespace nkentseu {
         VkDeviceSize size = 0;
     };
 
-    struct NKENTSEU_API VulkanUniformBuffer {
+    struct NKENTSEU_API VulkanUBO {
         bool Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType);
         bool Destroy(VulkanGpu* gpu);
 

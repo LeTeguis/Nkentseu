@@ -85,9 +85,9 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API OpenglBuffer {
-        bool Create(uint32 shaderID, const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset);
+        bool Create(const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset);
         bool Destroy();
-        bool WriteToBuffer(void* data, usize size, uint32 index);
+        bool WriteToBuffer(void* data, usize size, usize offset = 0);
 
         uint32 uniform;
     };

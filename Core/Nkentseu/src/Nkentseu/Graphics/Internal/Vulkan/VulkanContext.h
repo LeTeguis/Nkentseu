@@ -49,6 +49,7 @@ namespace nkentseu {
             VulkanSemaphore* GetSemaphore();
             VulkanRenderPass* GetRenderPass();
             VulkanFramebuffer* GetFramebuffer();
+            VkCommandBuffer GetCurrentCommandBuffer();
 
             Vector2u GetFrameBufferSize();
 

@@ -47,12 +47,11 @@ namespace nkentseu {
             return false;
         }
 
-        m_PipelineLayout.createPool = false;
         if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
             for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
-                m_PipelineLayout.Add(attribut.binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+                VkDescriptorType dtype = (attribut.uType == UniformBufferType::Static) ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                m_PipelineLayout.Add(attribut.binding, dtype, VK_SHADER_STAGE_VERTEX_BIT);
             }
-            m_PipelineLayout.createPool = true;
         }
 
         if (!m_PipelineLayout.Create(m_Context->GetGpu(), m_Context->GetSwapchain())) {
@@ -179,7 +178,7 @@ namespace nkentseu {
             return false;
         }
 
-        CreateUniform();
+        //CreateUniform();
 
         Log_nts.Info("Create gaphics pipeline is good");
 
@@ -188,12 +187,6 @@ namespace nkentseu {
 
     bool VulkanShader::Destroy() {
         if (m_Context == nullptr) return false;
-
-        for (auto& [name, buffer] : m_UniformBuffers) {
-            buffer.Destroy(m_Context->GetGpu());
-        }
-
-        DestroyUniform();
 
         bindingDescriptions.clear();
         attributeDescriptions.clear();
@@ -245,8 +238,10 @@ namespace nkentseu {
         return shaderModule;
     }
 
-    bool VulkanShader::Bind(VkCommandBuffer commandBuffer, const VulkanDynamicMode& dynamicMode) const {
+    bool VulkanShader::Bind() {
         if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
+        if (commandBuffer == nullptr) return false;
 
         Vector2u size = m_Context->GetFrameBufferSize();
 
@@ -260,102 +255,93 @@ namespace nkentseu {
 
         vkCheckErrorVoid(vkCmdSetScissor(commandBuffer, 0, 1, &scissor));
         vkCheckErrorVoid(vkCmdSetViewport(commandBuffer, 0, 1, &viewport));
-        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(commandBuffer, dynamicMode.primitiveTopology));
-        vkCheckErrorVoid(vkCmdSetFrontFace(commandBuffer, dynamicMode.frontFace));
-        vkCheckErrorVoid(vkCmdSetCullMode(commandBuffer, dynamicMode.cullMode));
+        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(commandBuffer, m_DynamicMode.primitiveTopology));
+        vkCheckErrorVoid(vkCmdSetFrontFace(commandBuffer, m_DynamicMode.frontFace));
+        vkCheckErrorVoid(vkCmdSetCullMode(commandBuffer, m_DynamicMode.cullMode));
 
         if (m_Context->GetGpu()->cmdSetPolygonModeEXT != nullptr) {
-            vkCheckErrorVoid(m_Context->GetGpu()->cmdSetPolygonModeEXT(commandBuffer, dynamicMode.polygoneMode));
+            vkCheckErrorVoid(m_Context->GetGpu()->cmdSetPolygonModeEXT(commandBuffer, m_DynamicMode.polygoneMode));
         }
 
         vkCheckErrorVoid(vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline));
 
-        /*if (m_PipelineLayout.createPool) {
-            VkDescriptorSet descriptorSet = m_PipelineLayout.descriptorSets[m_Context->currentImageIndex];
-            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.pipelineLayout, 0, 1, &descriptorSet, 0, 0));
-        }*/
-
         return VulkanStaticDebugInfo::success;
     }
 
-    bool VulkanShader::Unbind(VkCommandBuffer commandBuffer) const {
+    bool VulkanShader::Unbind() {
         if (m_Context == nullptr) return false;
-        VkPipeline nullPipeline = VK_NULL_HANDLE;
         return true;
     }
 
-    bool VulkanShader::UseUniform(VkCommandBuffer commandBuffer, const std::string& name, void* data, usize size) {
-        // Vérifier si le contexte est valide
-        if (m_Context == nullptr || data == nullptr || size == 0) return false;
-
-        auto it = m_UniformBuffers.find(name);
-        if (it == m_UniformBuffers.end()) {
-            return false;
-        }
-
-        //usize offset = index * size;
-        usize offset = 0;
-        bool success = true;
-        auto& uniforms = it->second;
-
-        for (auto& uniform : uniforms.uniformBuffers) {
-            uniform.Mapped(m_Context->GetGpu(), size, offset);
-            success = uniform.WriteToBuffer(data, size, offset);
-            success = uniform.Flush(m_Context->GetGpu(), size, offset);
-            uniform.UnMapped(m_Context->GetGpu());
-        }
-
-        return success;
+    bool VulkanShader::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) {
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+        m_DynamicMode.cullMode = VulkanConvert::CullModeType(mode);
+        m_DynamicMode.polygoneMode = VulkanConvert::PolygonModeType(contentMode);
+        return true;
     }
 
-    bool VulkanShader::BindDescriptorsSet(VkCommandBuffer commandBuffer)
+    bool VulkanShader::PolygonMode(PolygonModeType::Code mode)
     {
-        if (commandBuffer == nullptr) return false;
-        if (m_PipelineLayout.createPool) {
-            VkDescriptorSet descriptorSet = m_PipelineLayout.descriptorSets[m_Context->currentImageIndex];
-            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout.pipelineLayout, 0, 1, &descriptorSet, 0, 0));
-            return true;
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+
+        if (m_Context->GetGpu()->cmdSetPolygonModeEXT != nullptr) {
+            vkCheckErrorVoid(m_Context->GetGpu()->cmdSetPolygonModeEXT(m_Context->GetCurrentCommandBuffer(), VulkanConvert::PolygonModeType(mode)));
         }
-        return false;
+        return VulkanStaticDebugInfo::success;
     }
 
-    void VulkanShader::CreateUniform()
+    bool VulkanShader::CullMode(CullModeType::Code mode)
     {
-        if (m_ShaderLayout.uniformBuffer.attributes.size() > 0 && m_PipelineLayout.createPool) {
-            VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            uint32 imageCount = m_Context->GetSwapchain()->swapchainImages.size();
-            std::vector<VkWriteDescriptorSet> descriptorWrites;
-
-            for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
-                m_UniformBuffers[attribut.name] = {};
-
-                if (!m_UniformBuffers[attribut.name].Create(m_Context->GetGpu(), attribut, usage, m_PipelineLayout.descriptorSets, descriptorType)) {
-                    Log_nts.Error("Cannot create uniforme buffer : name = {0}", attribut.name);
-                }
-                else {
-                    for (auto wds : m_UniformBuffers[attribut.name].writeDescriptorSets) {
-                        descriptorWrites.push_back(wds);
-                    }
-                }
-            }
-
-            if (descriptorWrites.size() > 0) {
-                vkUpdateDescriptorSets(m_Context->GetGpu()->device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-            }
-        }
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+        vkCheckErrorVoid(vkCmdSetCullMode(m_Context->GetCurrentCommandBuffer(), VulkanConvert::CullModeType(mode)));
+        return VulkanStaticDebugInfo::success;
     }
 
-    void VulkanShader::DestroyUniform()
+    bool VulkanShader::FrontFaceMode(FrontFaceType::Code mode)
     {
-        if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
-            for (auto& attribut : m_ShaderLayout.uniformBuffer.attributes) {
-                if (!m_UniformBuffers[attribut.name].Destroy(m_Context->GetGpu())) {
-                    Log_nts.Error("Cannot destroy uniforme buffer : name = {0}", attribut.name);
-                }
-            }
-            m_UniformBuffers.clear();
-        }
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+        vkCheckErrorVoid(vkCmdSetFrontFace(m_Context->GetCurrentCommandBuffer(), VulkanConvert::FrontFaceType(mode)));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool VulkanShader::PrimitiveTopologyMode(PrimitiveTopologyType::Code mode)
+    {
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), VulkanConvert::PrimitiveTopologyType(mode)));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool VulkanShader::ScissorMode(const Vector2i& offset, const Vector2u& extend)
+    {
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+
+        VkRect2D scissor = {};
+        scissor.extent = { extend.width, extend.height };
+        scissor.offset = { offset.width, offset.height };
+
+        vkCheckErrorVoid(vkCmdSetScissor(m_Context->GetCurrentCommandBuffer(), 0, 1, &scissor));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    bool VulkanShader::ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth)
+    {
+        if (m_Context == nullptr || m_GraphicsPipeline == nullptr) return false;
+
+        VkViewport viewport = {};
+        viewport.x = position.x;
+        viewport.y = position.y;
+        viewport.width = size.width;
+        viewport.height = size.height;
+        viewport.maxDepth = depth.x;
+        viewport.minDepth = depth.y;
+
+        vkCheckErrorVoid(vkCmdSetViewport(m_Context->GetCurrentCommandBuffer(), 0, 1, &viewport));
+        return VulkanStaticDebugInfo::success;
+    }
+
+    VulkanPipelineLayout* VulkanShader::GetPipelineLayout()
+    {
+        return &m_PipelineLayout;
     }
 
     bool VulkanShader::DefineVertexInput()
@@ -441,30 +427,14 @@ namespace nkentseu {
 
     bool VulkanShader::Recreate(bool force)
     {
-        if (m_Context != nullptr && m_PipelineLayout.createPool) {
-            m_PipelineLayout.CreateDescriptorPool(m_Context->GetGpu(), m_Context->GetSwapchain());
-            m_PipelineLayout.CreateDescriptorSets(m_Context->GetGpu(), m_Context->GetSwapchain());
-            CreateUniform();
+        if (m_Context != nullptr) {
         }
         return true;
     }
 
     bool VulkanShader::CleanUp(bool force)
     {
-        if (m_Context != nullptr && m_PipelineLayout.createPool) {
-            DestroyUniform();
-            if (m_PipelineLayout.descriptorSets.size() > 0) {
-                VulkanResult result;
-                bool first = true;
-
-                vkCheckError(first, result, vkFreeDescriptorSets(m_Context->GetGpu()->device, m_PipelineLayout.descriptorPool, m_PipelineLayout.descriptorSets.size(), m_PipelineLayout.descriptorSets.data()), "cannot free descriptor sets");
-                m_PipelineLayout.descriptorSets.clear();
-            }
-
-            if (m_PipelineLayout.descriptorPool != VK_NULL_HANDLE) {
-                vkCheckErrorVoid(vkDestroyDescriptorPool(m_Context->GetGpu()->device, m_PipelineLayout.descriptorPool, nullptr));
-                m_PipelineLayout.descriptorPool = VK_NULL_HANDLE;
-            }
+        if (m_Context != nullptr) {
         }
         return true;
     }

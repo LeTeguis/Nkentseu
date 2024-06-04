@@ -28,6 +28,7 @@ namespace nkentseu {
             virtual uint32 GetIndexLeng() = 0;
             virtual uint32 Leng() = 0;
             virtual bool Destroy() = 0;
+            virtual bool Draw(DrawVertexType::Code drawVertex) = 0;
 
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context);
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, uint32 vertexNumber);

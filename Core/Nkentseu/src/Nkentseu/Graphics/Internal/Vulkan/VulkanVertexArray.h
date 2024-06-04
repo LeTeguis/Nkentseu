@@ -40,9 +40,11 @@ namespace nkentseu {
             uint32 GetIndexLeng() override;
 
             uint32 Leng() override;
+
+            bool Draw(DrawVertexType::Code drawVertex) override;
         private:
             uint32 m_VertexNumber = 0;
-            Memory::Shared<Context> m_Context = nullptr;
+            Memory::Shared<VulkanContext> m_Context = nullptr;
 
             Memory::Shared<VulkanVertexBuffer> m_VertexBuffer = nullptr;
             Memory::Shared<VulkanIndexBuffer> m_IndexBuffer = nullptr;

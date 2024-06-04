@@ -42,24 +42,8 @@ namespace nkentseu {
             bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) override;
             bool End() override;
 
-            bool BindShader(Memory::Shared<Shader> shader) override;
-            bool UnbindShader() override;
-            bool BindUniform(const std::string& name, void* data, usize size) override;
-            bool UnbindUniform(const std::string& name) override;
-
-            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) override;
-
-            bool PolygonMode(PolygonModeType::Code mode) override;
-            bool CullMode(CullModeType::Code mode) override;
-            bool FrontFaceMode(FrontFaceType::Code mode) override;
-            bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
-            bool ScissorMode(const Vector2i& offset, const Vector2u& extend) override;
-            bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) override;
-
-            bool Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex) override;
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
-            Memory::Shared<OpenglShader> m_CurrentShader = nullptr;
             bool m_IsPrepare = false;
 
         private:

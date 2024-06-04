@@ -54,7 +54,6 @@ namespace nkentseu {
 
     bool VulkanContext::Deinitialize()
     {
-        //m_PipelineLayout.Destroy(&m_Gpu);
         m_Framebuffer.Destroy(&m_Gpu);
         m_CommandBuffer.Destroy(&m_Gpu, &m_CommandPool);
         m_RenderPass.Destroy(&m_Gpu);
@@ -125,6 +124,11 @@ namespace nkentseu {
     VulkanFramebuffer* VulkanContext::GetFramebuffer()
     {
         return &m_Framebuffer;
+    }
+
+    VkCommandBuffer VulkanContext::GetCurrentCommandBuffer()
+    {
+        return m_CommandBuffer.commandBuffers[currentImageIndex];
     }
 
     Vector2u VulkanContext::GetFrameBufferSize() {

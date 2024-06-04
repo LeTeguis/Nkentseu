@@ -34,6 +34,7 @@ namespace nkentseu {
             uint32 GetIndexLeng() override;
             uint32 Leng() override;
             bool Destroy() override;
+            bool Draw(DrawVertexType::Code drawVertex) override;
 
             bool Create();
             bool Create(uint32 vertexNumber);

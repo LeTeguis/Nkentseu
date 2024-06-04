@@ -35,11 +35,22 @@ namespace nkentseu {
 
             bool LoadFromFile(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout);
 
-            bool Bind(VkCommandBuffer commandBuffer, const VulkanDynamicMode& dynamicMode) const;
-            bool Unbind(VkCommandBuffer commandBuffer) const;
+            bool Bind() override;
+            bool Unbind() override;
 
-            bool UseUniform(VkCommandBuffer commandBuffer, const std::string& name, void* data, usize size);
-            bool BindDescriptorsSet(VkCommandBuffer commandBuffer);
+            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) override;
+
+            bool PolygonMode(PolygonModeType::Code mode) override;
+            bool CullMode(CullModeType::Code mode) override;
+            bool FrontFaceMode(FrontFaceType::Code mode) override;
+            bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
+            bool ScissorMode(const Vector2i& offset, const Vector2u& extend) override;
+            bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) override;
+
+            //bool UseUniform(VkCommandBuffer commandBuffer, const std::string& name, void* data, usize size);
+            //bool BindDescriptorsSet(VkCommandBuffer commandBuffer);
+
+            VulkanPipelineLayout* GetPipelineLayout();
         private:
             Memory::Shared<VulkanContext> m_Context = nullptr;
             VkPipeline m_GraphicsPipeline = nullptr;
@@ -48,14 +59,10 @@ namespace nkentseu {
             VkViewport m_ViewPort = {};
 
             VulkanPipelineLayout m_PipelineLayout;
+            VulkanDynamicMode m_DynamicMode;
 
             std::unordered_map<ShaderType::Code, VkShaderModule> m_Modules;
             ShaderBufferLayout m_ShaderLayout = {};
-
-            std::unordered_map<std::string, VulkanUniformBuffer> m_UniformBuffers;
-            void CreateUniform();
-            void DestroyUniform();
-
             // shader info
             std::vector<VkVertexInputBindingDescription> bindingDescriptions = {};
             std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {};

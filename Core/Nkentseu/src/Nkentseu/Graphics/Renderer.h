@@ -14,6 +14,7 @@
 #include "Color.h"
 #include <Ntsm/Vector/Vector2.h>
 #include "Nkentseu/Graphics/ShaderInfo.h"
+#include "UniformBuffer.h"
 
 namespace nkentseu {
     class VertexArray;
@@ -29,22 +30,6 @@ namespace nkentseu {
             virtual bool Begin(const Color& color) = 0;
             virtual bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) = 0;
             virtual bool End() = 0;
-
-            virtual bool BindShader(Memory::Shared<Shader> shader) = 0;
-            virtual bool UnbindShader() = 0;
-            virtual bool BindUniform(const std::string& name, void* data, usize size) = 0;
-            virtual bool UnbindUniform(const std::string& name) = 0;
-
-            virtual bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) = 0;
-
-            virtual bool PolygonMode(PolygonModeType::Code mode) = 0;
-            virtual bool CullMode(CullModeType::Code mode) = 0;
-            virtual bool FrontFaceMode(FrontFaceType::Code mode) = 0;
-            virtual bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) = 0;
-            virtual bool ScissorMode(const Vector2i& offset, const Vector2u& extend) = 0;
-            virtual bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) = 0;
-
-            virtual bool Draw(Memory::Shared<VertexArray> vertexArray, DrawVertexType::Code drawVertex) = 0;
 
             static Memory::Shared<Renderer> Create(Memory::Shared<Context> context);
             static Memory::Shared<Renderer> CreateInitialized(Memory::Shared<Context> context);
