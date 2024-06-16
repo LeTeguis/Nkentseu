@@ -23,13 +23,6 @@ namespace nkentseu {
                 float32 m20, m21, m22, m23;
                 float32 m30, m31, m32, m33;
             };
-
-			struct {
-				Vector3f right;
-				Vector3f up;
-				Vector3f forward;
-				Vector3f position;
-			};
         };
 
 		matrix4f();
@@ -53,7 +46,7 @@ namespace nkentseu {
 		bool operator!=(const matrix4f& other) const;
 		matrix4f& operator*=(const matrix4f& other);
 		matrix4f& operator*=(float32 scalar);
-		Vector4f operator*(const Vector4f& vector) const;
+		//Vector4f operator*(const Vector4f& vector) const;
 
 		friend matrix4f operator*(const matrix4f& left, const matrix4f& right)
         {
@@ -65,9 +58,11 @@ namespace nkentseu {
                     float32 Total = 0.0f;
                     for (uint32 i3 = 0; i3 < 4; i3++)
                     {
-                        Total += left[i][i3] * right[i3][i2];
+                        //Total += left[i][i3] * right[i3][i2];
+                        Total += left[i3][i] * right[i2][i3];
                     }
-                    result[i][i2] = Total;
+                    //result[i][i2] = Total;
+                    result[i2][i] = Total;
                 }
             }
             return result;
@@ -104,7 +99,8 @@ namespace nkentseu {
 			for (int i = 0; i < 4; ++i) {
 				result.ptr[i] = 0.0f;
 				for (int j = 0; j < 4; ++j) {
-					result.ptr[i] += vector.ptr[j] * m.data[j * 4 + i]; // Notez le changement ici
+					//result.ptr[i] += vector.ptr[j] * m.data[j * 4 + i]; // Notez le changement ici
+					result.ptr[i] += vector.ptr[j] * m.data[i * 4 + j]; // Notez le changement ici
 				}
 			}
 			return result;
@@ -115,7 +111,8 @@ namespace nkentseu {
 			for (int i = 0; i < 4; ++i) {
 				result.ptr[i] = 0.0f;
 				for (int j = 0; j < 4; ++j) {
-					result.ptr[i] += m.data[i * 4 + j] * vector.ptr[j];
+					//result.ptr[i] += m.data[i * 4 + j] * vector.ptr[j];
+					result.ptr[i] += m.data[j * 4 + i] * vector.ptr[j];
 				}
 			}
 			return result;
@@ -155,17 +152,28 @@ namespace nkentseu {
         Vector3f TransformVector(const Vector3f& vector) const;
         Vector3f TransformNormal(const Vector3f& normal) const;
         matrix4f Inverse() const;
+
+        Vector3f Forward() const;
+		Vector3f Up() const;
+		Vector3f Right() const;
+		Vector3f Position() const;
+
+        void Forward(const Vector3f& forward);
+		void Up(const Vector3f& up);
+		void Right(const Vector3f& right);
+		void Position(const Vector3f& position);
+
         static float32 CompareMatrices(const matrix4f& left, const matrix4f& right);
         static matrix4f Identity();
         static matrix4f Camera(const Vector3f& eye, const Vector3f& _look, const Vector3f& _up, const Vector3f& _right);
         static matrix4f LookAt(const Vector3f& eye, const Vector3f& center, const Vector3f& up);
         static matrix4f Orthogonal(float32 width, float32 height, float32 zNear, float32 zFar);
         static matrix4f Perspective(float32 width, float32 height, float32 zNear, float32 zFar);
-        static matrix4f PerspectiveFov(float32 fov, float32 aspect, float32 zNear, float32 zFar);
-        static matrix4f PerspectiveMultifov(float32 fovX, float32 fovY, float32 zNear, float32 zFar);
+        static matrix4f PerspectiveFov(const Angle& fov, float32 aspect, float32 zNear, float32 zFar);
+        static matrix4f PerspectiveMultifov(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar);
 
         static matrix4f Rotation(const Vector3f& axis, const Angle& angle);
-        static matrix4f Rotation(float32 yaw, float32 pitch, float32 roll);
+        static matrix4f Rotation(const Angle& pitch, const Angle& yaw, const Angle& roll);
         static matrix4f Rotation(const Vector3f& axis, const Angle& angle, const Vector3f& Center);
         static matrix4f RotationX(const Angle& angle);
         static matrix4f RotationY(const Angle& angle);
@@ -175,7 +183,7 @@ namespace nkentseu {
 		static matrix4f Frustum(float32 left, float32 right, float32 bottom, float32 top, float32 zNear, float32 zFar);
 
         static matrix4f Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle);
-        static matrix4f Rotation(const matrix4f mat, float32 yaw, float32 pitch, float32 roll);
+        static matrix4f Rotation(const matrix4f mat, const Angle& pitch, const Angle& yaw, const Angle& roll);
         static matrix4f Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle, const Vector3f& center);
         static matrix4f RotationX(const matrix4f mat, const Angle& angle);
         static matrix4f RotationY(const matrix4f mat, const Angle& angle);
@@ -183,9 +191,17 @@ namespace nkentseu {
         static matrix4f Scaling(const matrix4f mat, const Vector3f& scaleFactors);
         static matrix4f Translation(const matrix4f mat, const Vector3f& pos);
 
-		std::string ToStringRow(uint32 i);
-		std::string ToStringCol(uint32 i);
+        static matrix4f FromEuler(const Vector3f& angle);
+        static matrix4f FromEuler(const Angle& yaw, const Angle& pitch, const Angle& roll);
+
+		std::string ToStringRow(uint32 i) const ;
+		std::string ToStringCol(uint32 i) const ;
 		std::string ToString() const;
+		
+		friend std::string ToString(const matrix4f& mat) {
+			return mat.ToString();
+		}
+
 		friend std::ostream& operator<<(std::ostream& os, const matrix4f& e);
     };
 
@@ -276,6 +292,20 @@ namespace nkentseu {
 	using matrice4 = matrix4f;
 	using Mat4 = matrix4f;
 	using mat4 = matrix4f;
+
+	namespace maths {
+		enum class NKENTSEU_API Direction {
+			Forward, Back, Left, Right, Up, Bottom
+		};
+
+		matrix4f NKENTSEU_API translate(const matrix4f& mat, const Vector3f& target);
+		matrix4f NKENTSEU_API translate(const matrix4f& mat, const Vector3f& direction, float32 distance);
+		matrix4f NKENTSEU_API translate(const matrix4f& mat, Direction direction, float32 distance);
+
+		matrix4f NKENTSEU_API transpose(const matrix4f& mat);
+		matrix4f NKENTSEU_API inverse(const matrix4f& mat);
+		matrix4f NKENTSEU_API inverse(const matrix4f& mat);
+	}
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_MATRIX4_H__

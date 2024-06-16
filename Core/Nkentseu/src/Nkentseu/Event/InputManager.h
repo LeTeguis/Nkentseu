@@ -49,6 +49,9 @@ namespace nkentseu {
         inline Vector2i MousePosition();
         inline int32 MouseX();
         inline int32 MouseY();
+        inline Vector2i MouseDelta();
+        inline int32 MouseXDelta();
+        inline int32 MouseYDelta();
 
         inline ButtonState::Code MouseButton(Mouse::Button button);
 
@@ -144,6 +147,7 @@ namespace nkentseu {
         ActionManager m_ActionManager;
 
         Vector2i m_MousePosition;
+        Vector2i m_MouseDelta;
         std::unordered_map<Mouse::Button, float32> m_MouseAxis;
         std::unordered_map<Mouse::Button, ButtonState::Code> m_Mouse;
         std::unordered_map<Mouse::Button, bool> m_MouseDown;

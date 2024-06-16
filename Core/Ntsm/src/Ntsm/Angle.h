@@ -53,23 +53,23 @@ namespace nkentseu {
 
 		// Pre-increment and decrement (optional)
 		Angle& operator++() { // Pre-increment
-			m_Degree += 1.0f;
+			m_Degree = Clamp(this->m_Degree + 1);
 			return *this;
 		}
 		Angle& operator--() { // Pre-decrement
-			m_Degree -= 1.0f;
+			m_Degree = Clamp(this->m_Degree - 1);
 			return *this;
 		}
 
 		// Post-increment and decrement
 		Angle operator++(int) { // Post-increment
 			Angle temp = *this;
-			m_Degree += 1.0f;
+			m_Degree = Clamp(this->m_Degree + 1);
 			return temp;
 		}
 		Angle operator--(int) { // Post-decrement
 			Angle temp = *this;
-			m_Degree -= 1.0f;
+			m_Degree = Clamp(this->m_Degree - 1);
 			return temp;
 		}
 
@@ -96,7 +96,7 @@ namespace nkentseu {
 		}
 
 		Angle& operator *=(float32 deg) {
-			m_Degree *= deg;
+			this->m_Degree = Clamp(this->m_Degree * deg);
 			return *this;
 		}
 
@@ -121,6 +121,7 @@ namespace nkentseu {
 		static Angle FromRadian(float32 rad);
 	private:
 		float32 m_Degree;
+		float32 Clamp(float32 deg);
     };
 } // namespace nkentseu
 

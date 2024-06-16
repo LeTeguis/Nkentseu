@@ -19,72 +19,66 @@
 
 namespace nkentseu {
     class WindowInternal;
+    struct WindowData;
 
     class NKENTSEU_API Window {
     public:
-        Window();
-        Window(const WindowProperties& properties);
-        NTSErrorCode Initialize(const WindowProperties& properties);
-        ~Window();
 
-        virtual std::string GetTitle() const;
-        virtual void SetTitle(std::string title);
+        static Memory::Shared<Window> Create(const WindowProperties& properties);
 
-        virtual Vector2i GetPosition() const;
-        virtual void SetPosition(int32 x, int32 y);
-        virtual void SetPosition(const Vector2i& pos);
+        virtual std::string GetTitle() const = 0;
+        virtual void SetTitle(std::string title) = 0;
 
-        virtual Vector2u GetSize();
-        virtual void SetSize(uint32 width, uint32 height);
-        virtual void SetSize(const Vector2u& size);
+        virtual Vector2i GetPosition() const = 0;
+        virtual void SetPosition(int32 x, int32 y) = 0;
+        virtual void SetPosition(const Vector2i& pos) = 0;
 
-        virtual float32 GetDpiScale() const;
-        Vector2 ConvertPixelToDpi(const Vector2& pixel) const;
+        virtual Vector2u GetSize() = 0;
+        virtual void SetSize(uint32 width, uint32 height) = 0;
+        virtual void SetSize(const Vector2u& size) = 0;
 
-        float32 GetDpiAspect();
-        float32 GetAspect();
+        virtual float32 GetDpiScale() const = 0;
+        virtual Vector2 ConvertPixelToDpi(const Vector2& pixel) const = 0;
 
-        virtual Vector2u CurrentDisplaySize() const;
-        virtual Vector2i CurrentDisplayPosition() const;
+        virtual float32 GetDpiAspect() = 0;
+        virtual float32 GetAspect() = 0;
 
-        virtual void ShowMouse(bool show);
-        virtual void SetMouseCursorGrabbed(bool grabbed);
-        virtual void SetMouseCursor(const WindowCursor& cursor);
+        virtual Vector2u CurrentDisplaySize() const = 0;
+        virtual Vector2i CurrentDisplayPosition() const = 0;
 
-        virtual bool IsMouseInside();
+        virtual void ShowMouse(bool show) = 0;
+        virtual void SetMouseCursorGrabbed(bool grabbed) = 0;
+        virtual void SetMouseCursor(const WindowCursor& cursor) = 0;
 
-        virtual Color GetBackgroundColor();
-        virtual void SetBackgroundColor(const Color& color);
+        virtual bool IsMouseInside() = 0;
 
-        virtual void Minimize();
-        virtual void Maximize();
+        virtual Color GetBackgroundColor() = 0;
+        virtual void SetBackgroundColor(const Color& color) = 0;
 
-        virtual void Close();
-        virtual bool IsClosed();
-        virtual bool IsOpen();
+        virtual void Minimize() = 0;
+        virtual void Maximize() = 0;
 
-        virtual void Show();
-        virtual void Hide();
+        virtual void Close() = 0;
+        virtual bool IsClosed() = 0;
+        virtual bool IsOpen() = 0;
 
-        virtual void SetIcon(const Vector2u& size, const uint8* pixels);
+        virtual void Show() = 0;
+        virtual void Hide() = 0;
 
-        virtual const WindowProperties& GetProperties();
+        virtual void SetIcon(const Vector2u& size, const uint8* pixels) = 0;
 
-        virtual uint64 ID();
+        virtual const WindowProperties& GetProperties() = 0;
 
-        virtual void Clear(const Color& color);
-        virtual void Swapbuffer();
+        virtual uint64 ID() = 0;
 
-        virtual void SetAlwaysOnTop(bool alwaysOnTop);
-        virtual void AcceptDragAndDrop(bool accept);
-        virtual void SetOpacity(float32 opacity);
+        virtual void Clear(const Color& color) = 0;
+        virtual void Swapbuffer() = 0;
 
-        virtual WindowInternal* GetInternal();
+        virtual void SetAlwaysOnTop(bool alwaysOnTop) = 0;
+        virtual void AcceptDragAndDrop(bool accept) = 0;
+        virtual void SetOpacity(float32 opacity) = 0;
 
-    private:
-        Memory::Shared<WindowInternal> m_WindowInternal = null_pointer;
-        bool m_IsInitialized = false;
-        //WindowInternalInfo m_WindowInternalInfo;
+        virtual WindowData* GetData() = 0;
     };
 } // namespace nkentseu
 

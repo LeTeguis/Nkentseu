@@ -30,6 +30,8 @@ namespace nkentseu {
         Transform Mix(const Transform& b, float32 t);
 
         Matrix4f ToMat4();
+        Matrix4f mat4();
+        static Transform mat4(const Matrix4f& m);
 
         static Transform FromMat4(const Matrix4f& m);
 

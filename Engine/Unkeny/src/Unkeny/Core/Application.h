@@ -44,6 +44,8 @@ namespace nkentseu {
         virtual bool OnWindowResizedEvent(class WindowResizedEvent& event);
         virtual bool OnWindowMovedEvent(class WindowMovedEvent& event);
         virtual bool OnMouseInputEvent(class MouseInputEvent& event);
+        virtual bool OnMouseMoved(class MouseMovedEvent& event);
+        virtual bool OnMouseScroll(class MouseWheelEvent& event);
 
         void Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released);
         void Course(const std::string& name, const AxisCode& axisCode, float32 value);

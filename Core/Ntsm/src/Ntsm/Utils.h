@@ -25,6 +25,7 @@ namespace nkentseu {
 		static Angle ASin(float32 x);
 		static float32 Tan(const Angle& angle);
 		static Angle ATan(float32 x);
+		static Angle ATan(float32 x, float32 y);
 		static float32 FMod(float32 x, float32 y);
 		static float32 Floor(float32 x);
 		static float32 Ceil(float32 x);
@@ -74,6 +75,12 @@ namespace nkentseu {
 				}
 			}
 			return max_;
+		}
+
+		template<typename T> static T  Clamp(T value, T min, T max) {
+			if (value < min) return min;
+			if (value > max) return max;
+			return value;
 		}
 
 		static const float64 Pi();

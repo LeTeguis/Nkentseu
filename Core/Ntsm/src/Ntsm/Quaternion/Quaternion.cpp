@@ -11,15 +11,41 @@ namespace nkentseu {
     Quaternionf::Quaternionf() : x(0), y(0), z(0), w(1) {}
     Quaternionf::Quaternionf(float32 _x, float32 _y, float32 _z, float32 _w) : x(_x), y(_y), z(_z), w(_w) {}
     Quaternionf::Quaternionf(const Quaternionf& quat) : quat(quat.quat) {}
+    Quaternionf::Quaternionf(const matrix4f& m)
+    {
+        Vector3f up = m.Up().Normalized();
+        Vector3f forward = m.Forward().Normalized();
+        Vector3f right = up.Cross(forward);
+        up = forward.Cross(right);
+        *this = LookAt(forward, up);
+    }
     Quaternionf& Quaternionf::operator=(const Quaternionf& quat) {
         this->quat = quat.quat;
         return *this;
     }
 
+    Vector3f Quaternionf::forward() const
+    {
+        return Vector3f();
+    }
+
+    Vector3f Quaternionf::up() const
+    {
+        return Vector3f();
+    }
+
+    Vector3f Quaternionf::right() const
+    {
+        return Vector3f();
+    }
+
     Quaternionf Quaternionf::AngleAxis(const Angle& angle, const Vector3f& axis) {
-        Vector3f norm = Vector3f(axis).Normalized();
-        float32 s = maths::Sin(angle * 0.5f);
-        return Quaternionf(norm.x * s, norm.y * s, norm.z * s, maths::Cos(0.5f * angle));
+        float32 d = Vector3f(axis).Len();
+        if (d == 0.0f) return Identity();
+        d = 1.0f / d;
+        float32 l_sin = (float32)maths::Sin(angle * 0.5f);
+        float32 l_cos = (float32)maths::Cos(angle * 0.5f);
+        return Quaternionf(d * axis.pitch * l_sin, d * axis.yaw * l_sin, d * axis.roll * l_sin, l_cos).Normalized();
     }
 
     Quaternionf Quaternionf::FromTo(const Vector3f& from, const Vector3f& to) {
@@ -45,11 +71,40 @@ namespace nkentseu {
     }
 
     Vector3f Quaternionf::GetAxis() {
+        // Normalize the quaternion
+        Quaternionf normalizedQuat = Normalized();
+
+        // Calculate the rotation angle
+        Angle angle = 2.0f * maths::ACos(Angle::FromRadian(normalizedQuat.w));
+
+        // Calculate the rotation axis (if not zero rotation)
+        if (maths::Abs(angle.Rad()) > 0.00001f) {
+            return normalizedQuat.vector() / maths::Sin(angle * 0.5f);
+        }
+        else {
+            // Rotation angle is zero, axis is undefined
+            // You can handle this as needed (e.g., return an arbitrary unit vector)
+            return Vector3f(0.0f, 0.0f, 1.0f); // Positive x-axis
+        }
         // return quat.xyz().Normalized();
-        return vector().Normalized();
+        //return vector().Normalized();
     }
 
-    Angle Quaternionf::GetAngle() {
+    Vector3f Quaternionf::GetAxis() const
+    {
+        Quaternionf normalizedQuat = Quaternionf(*this).Normalized();
+
+        Angle angle = 2.0f * maths::ACos(Angle::FromRadian(normalizedQuat.w));
+
+        if (maths::Abs(angle.Rad()) > 0.00001f) {
+            return normalizedQuat.vector() / maths::Sin(angle * 0.5f);
+        }
+        else {
+            return Vector3f(0.0f, 0.0f, 1.0f); // Positive x-axis
+        }
+    }
+
+    Angle Quaternionf::GetAngle() const {
         Angle angle = maths::ACos(w) * 2.0f;
         return angle;
     }
@@ -142,13 +197,6 @@ namespace nkentseu {
         );
     }
 
-    /*Quaternionf operator*(const Quaternionf& Q1, const Quaternionf& Q2) {
-        Quaternionf result;
-        result.scalar = Q2.scalar * Q1.scalar - Vector3f(Q2.vector).Dot(Q1.vector);
-        result.vector = (Q1.vector * Q2.scalar) + (Q2.vector * Q1.scalar) + Vector3f(Q2.vector).Cross(Q1.vector);
-        return result;
-    }*/
-
     Vector3f operator*(const Quaternionf& q, const Vector3f& v) {
         return q.vector() * 2.0f * q.vector().Dot(v) + v * (q.scalar() * q.scalar() - q.vector().Dot(q.vector())) + q.vector().Cross(v) * 2.0f * q.scalar();
     }
@@ -157,16 +205,17 @@ namespace nkentseu {
         return q.vector() * 2.0f * q.vector().Dot(v) + v * (q.scalar() * q.scalar() - q.vector().Dot(q.vector())) + q.vector().Cross(v) * 2.0f * q.scalar();
     }
 
-    /*Vector3f operator*(const Vector3f& v, const Quaternionf& q) {
-        return v * 2.0f * Vector3f(v).Dot(q.vector) + q.vector * (q.scalar * q.scalar - Vector3f(v).Dot(v)) + Vector3f(v).Cross(q.vector) * 2.0f * q.scalar;
-    }*/
+    Quaternionf Quaternionf::Interpolation(const Quaternionf& to, float32 t)
+    {
+        Quaternionf bb(to);
+        if (Dot(to) < 0.0f) {
+            bb = -to;
+        }
+        return Slerp(bb, t);
+    }
 
     Quaternionf Quaternionf::Interpolation(const Quaternionf& a, const Quaternionf& b, float32 t) {
-        Quaternionf bb(b);
-        if (Quaternionf(a).Dot(b) < 0.0f) {
-            bb = -b;
-        }
-        return Quaternionf(a).Slerp(b, t);
+        return Quaternionf(a).Interpolation(b, t);
     }
 
     Quaternionf Quaternionf::Mix(const Quaternionf& to, float32 t) {
@@ -223,26 +272,117 @@ namespace nkentseu {
 
     Quaternionf Quaternionf::LookAt(const Vector3f& position, const Vector3f& target, const Vector3f& up)
     {
-        return LookAt((position - target).Normalized(), target, up);
+        return LookAt((position - target).Normalized(), up);
     }
 
-    Matrix4f Quaternionf::ToMat4() {
-        Vector3f r = (*this) * Vector3f(1, 0, 0);
-        Vector3f u = (*this) * Vector3f(0, 1, 0);
-        Vector3f f = (*this) * Vector3f(0, 0, 1);
-        return Matrix4f(r.x, r.y, r.z, 0,
-            u.x, u.y, u.z, 0,
-            f.x, f.y, f.z, 0,
-            0, 0, 0, 1
-        );
+    Matrix4f Quaternionf::ToMat4() const {
+
+        float32 xx = x * x;
+        float32 xy = x * y;
+        float32 xz = x * z;
+        float32 yy = y * y;
+        float32 yz = y * z;
+        float32 zz = z * z;
+        float32 wx = w * x;
+        float32 wy = w * y;
+        float32 wz = w * z;
+
+        Matrix4f matrix;
+        matrix.m00 = 1.0f - 2.0f * (yy + zz);
+        matrix.m01 = 2.0f * (xy - wz);
+        matrix.m02 = 2.0f * (xz + wy);
+        matrix.m03 = 0.0f;
+        matrix.m10 = 2.0f * (xy + wz);
+        matrix.m11 = 1.0f - 2.0f * (xx + zz);
+        matrix.m12 = 2.0f * (yz - wx);
+        matrix.m13 = 0.0f;
+        matrix.m20 = 2.0f * (xz - wy);
+        matrix.m21 = 2.0f * (yz + wx);
+        matrix.m22 = 1.0f - 2.0f * (xx + yy);
+        matrix.m23 = 0.0f;
+        matrix.m30 = 0.0f;
+        matrix.m31 = 0.0f;
+        matrix.m32 = 0.0f;
+        matrix.m33 = 1.0f;
+
+        return matrix;
     }
 
     Quaternionf Quaternionf::FromMat4(const Matrix4f& m) {
-        Vector3f up = Vector3f(m.up.x, m.up.y, m.up.z).Normalized();
-        Vector3f forward = Vector3f(m.forward.x, m.forward.y, m.forward.z).Normalized();
-        Vector3f right = up.Cross(forward);
-        up = forward.Cross(right);
-        return LookAt(forward, up);
+        return Quaternionf(m);
+    }
+
+    Quaternionf Quaternionf::FromEuler(const Vector3f& angle)
+    {
+        return FromEuler(Angle(angle.pitch), Angle(angle.yaw), Angle(angle.roll));
+    }
+
+    Quaternionf Quaternionf::FromEuler(const Angle& pitch, const Angle& yaw, const Angle& roll)
+    {
+        Angle pitch_ = pitch * 0.5f;
+        Angle yaw_ = yaw * 0.5f;
+        Angle roll_ = roll * 0.5f;
+
+        Quaternionf quat;
+
+        Vector3f cos;
+        cos.pitch = (float32)maths::Cos(pitch_);
+        cos.yaw = (float32)maths::Cos(yaw_);
+        cos.roll = (float32)maths::Cos(roll_);
+
+        Vector3f sin;
+        sin.pitch = (float32)maths::Sin(pitch_);
+        sin.yaw = (float32)maths::Sin(yaw_);
+        sin.roll = (float32)maths::Sin(roll_);
+
+        quat.w = cos.pitch * cos.yaw * cos.roll + sin.pitch * sin.yaw * sin.roll;
+        quat.x = sin.pitch * cos.yaw * cos.roll - cos.pitch * sin.yaw * sin.roll;
+        quat.y = cos.pitch * sin.yaw * cos.roll + sin.pitch * cos.yaw * sin.roll;
+        quat.z = cos.pitch * cos.yaw * sin.roll - sin.pitch * sin.yaw * cos.roll;
+
+        return quat;
+    }
+
+    Quaternionf Quaternionf::Identity()
+    {
+        return Quaternionf(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+
+    Vector3f Quaternionf::EulerAngle() const
+    {
+        int32 pole = GimbalPole();
+
+        Angle yaw(0.0f);
+        Angle roll(0.0f);
+        Angle pitch(0.0f);
+
+        if (pole == 0) {
+            yaw = maths::ATan(2.0f * (y * w + x * z), 1.0f - 2.0f * (y * y + x * x));
+            roll = maths::ATan(2.0f * (w * z + y * x), 1.0f - 2.0f * (x * x + z * z));
+            pitch = maths::ASin(maths::Clamp<float32>(2.0f * (w * x - z * y), -1.0f, 1.0f));
+        }
+        else {
+            roll = Angle::FromRadian((float32)pole * 2.0f * maths::ATan(y, w).Rad());
+            pitch = Angle::FromRadian(((float32)pole * maths::Pi() * 0.5f));
+        }
+
+        return Vector3f(pitch.Deg(), yaw.Deg(), roll.Deg());
+    }
+
+    int32 Quaternionf::GimbalPole() const
+    {
+        float32 t = y * x + z * w;
+        return t > 0.499f ? 1 : (t < -0.499f ? -1 : 0);
+    }
+
+    Vector3f Quaternionf::Transform(const Vector3f& v) {
+        Quaternionf q(*this);
+
+        q = q.Conjugate();
+        q = (q * Quaternionf(v.x, v.y, v.z, 0.0f)) * (*this);
+        // q = ((*this) * Quaternionf(v.x, v.y, v.z, 0.0f)) * q;
+
+        return Vector3f(q.x, q.y, q.z);
     }
 
 }    // namespace nkentseu

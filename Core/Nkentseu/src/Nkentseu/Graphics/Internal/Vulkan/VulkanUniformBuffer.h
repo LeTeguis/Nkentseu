@@ -27,7 +27,7 @@ namespace nkentseu {
             Memory::Shared<Context> GetContext() override;
             bool Bind(const std::string& name, void* data, usize size) override;
             bool Bind(const std::string& name, void* data, usize size, uint32 index) override;
-            bool Send(uint32 index = 0) override;
+            bool Flush() override;
             bool Destroy() override;
         private:
             Memory::Shared<VulkanContext> m_Context;
@@ -39,6 +39,7 @@ namespace nkentseu {
             std::vector<VkDescriptorSet> m_DescriptorSets = {};
 
             uint32 m_OffsetDynamicCount = 0;
+            usize m_DynamicAlignment = 0;
 
             bool CreateDescriptorSets();
             bool Recreate(bool force);

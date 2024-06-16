@@ -29,7 +29,7 @@ namespace nkentseu {
             Memory::Shared<Context> GetContext() override;
             bool Bind(const std::string& name, void* data, usize size) override;
             bool Bind(const std::string& name, void* data, usize size, uint32 index) override;
-            bool Send(uint32 index = 0) override;
+            bool Flush() override;
         private:
             Memory::Shared<OpenglContext> m_Context;
             UniformBufferLayout m_BufferLayout;

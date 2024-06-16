@@ -54,6 +54,22 @@ namespace nkentseu {
 
 	using Rect = Rectangle; // Alias pour la classe Rectangle
 
+
+	template <typename T>
+	class NKENTSEU_API RectT {
+		union {
+			struct { T x; T y; T width; T height; };
+			struct { Vector2T<T> position; Vector2T<T> size; };
+		};
+
+		RectT() : position(T(0), T(0)), size(T(0), T(0)){}
+		RectT(const Vector2T<T>& pos, const Vector2T<T>& size) : position(pos), size(size){}
+		RectT(const RectT& rect) : position(rect.pos), size(rect.size){}
+	};
+
+	using IntRect = RectT<int32>;
+	using FloatRect = RectT<float32>;
+
 } // namespace nkentseu
 
 #endif  // __NKENTSEU_RECTANGLE_H__ // Fin de la définition de la classe Rectangle

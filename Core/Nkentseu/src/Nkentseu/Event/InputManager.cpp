@@ -22,6 +22,21 @@ namespace nkentseu {
     int32 InputManager::MouseX() { return m_MousePosition.x; }
     int32 InputManager::MouseY() { return m_MousePosition.y; }
 
+    Vector2i InputManager::MouseDelta()
+    {
+        return m_MouseDelta;
+    }
+
+    int32 InputManager::MouseXDelta()
+    {
+        return m_MouseDelta.x;
+    }
+
+    int32 InputManager::MouseYDelta()
+    {
+        return m_MouseDelta.y;
+    }
+
     ButtonState::Code InputManager::MouseButton(Mouse::Button button) {
         if (Mouse::Buttons::IsButton(button)) return m_Mouse[button];
         return ButtonState::NotDefine;
@@ -237,7 +252,7 @@ namespace nkentseu {
     InputManager::InputManager() {
         if (!s_initialize) {
             s_initialize = true;
-            EventTrack.AddObserver(REGISTER_CLIENT_EVENT(InputManager::OnEvent));
+            EventTraker.AddObserver(REGISTER_CLIENT_EVENT(InputManager::OnEvent));
             m_Clock.Reset();
 
             for (uint64 i = Keyboard::FirstCode; i <= Keyboard::LastCode; i++) {
@@ -255,6 +270,8 @@ namespace nkentseu {
     }
 
     void InputManager::OnEvent(Event& event) {
+        m_MouseDelta.x = m_MouseDelta.y = 0;
+
         EventBroker broker(event);
 
         broker.Route<KeyboardEvent>(REGISTER_CLIENT_EVENT(InputManager::OnKeyboardEvent));
@@ -308,6 +325,7 @@ namespace nkentseu {
         m_MouseDown[event.GetButton()] = event.GetState() == ButtonState::Pressed;
         m_MouseUp[event.GetButton()] = event.GetState() == ButtonState::Released;
         m_Mouse[event.GetButton()] = event.GetState();
+        //m_MouseDelta = event.GetPosition() - m_MousePosition;
         m_MousePosition = event.GetPosition();
 
         if (event.GetState() == ButtonState::Released && m_MouseAxis.find(event.GetButton()) == m_MouseAxis.end()) {
@@ -318,6 +336,7 @@ namespace nkentseu {
 
     bool InputManager::OnMouseMovedEvent(MouseMovedEvent& event)
     {
+        m_MouseDelta = event.GetSpeed();
         return true;
     }
 

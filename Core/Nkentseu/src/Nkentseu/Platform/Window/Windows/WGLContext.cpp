@@ -9,7 +9,7 @@
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 
 #include "Nkentseu/Core/Window.h"
-#include "WindowInternal.h"
+#include "Win32Window.h"
 
 #include <Nkentseu/Platform/PlatformState.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
@@ -63,7 +63,8 @@ namespace nkentseu {
             bool isOffscreen = false;
 
             if (IsValide(m_Window)) {
-                m_WindowHandle = m_Window->GetInternal()->GetWindowDisplay()->windowHandle;
+                //m_WindowHandle = m_Window->GetInternal()->GetWindowDisplay()->windowHandle;
+                m_WindowHandle = m_Window->GetData()->windowHandle;
                 title = m_Window->GetTitle();
                 isOffscreen = false;
             }
@@ -160,7 +161,8 @@ namespace nkentseu {
 
     bool NativeContext::IsValide(class Window* window)
     {
-        return !(window == nullptr || window->GetInternal() == nullptr || window->GetInternal()->GetWindowDisplay() == nullptr || window->GetInternal()->GetWindowDisplay()->windowHandle == nullptr);
+        //return !(window == nullptr || window->GetInternal() == nullptr || window->GetInternal()->GetWindowDisplay() == nullptr || window->GetInternal()->GetWindowDisplay()->windowHandle == nullptr);
+        return !(window == nullptr || window->GetData() == nullptr || window->GetData()->windowHandle == nullptr);
     }
 
     DWORD NativeContext::GetFlag(uint32 flags)

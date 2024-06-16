@@ -263,10 +263,22 @@ namespace nkentseu {
         bool Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType);
         bool Destroy(VulkanGpu* gpu);
 
+        bool Binds(VulkanGpu* gpu, void* data, usize size, uint32 instanceIndex);
+        bool Bind(VulkanGpu* gpu, void* data, usize size, uint32 index, uint32 instanceIndex);
+
+        static void* AlignedAlloc(size_t size, size_t alignment);
+
+        static void AlignedFree(void* data);
+
         std::vector<VulkanBuffer> uniformBuffers;
         std::vector<VkWriteDescriptorSet> writeDescriptorSets;
         std::vector<VkDescriptorBufferInfo> descriptorBufferInfos;
         VkBufferUsageFlags usage;
+        UniformBufferAttribut uniformBufferAttribut;
+        uint32 dynamicAlignment = 0;
+
+        uint32 currentOffset = 0;
+        void* dataModel = nullptr;
     };
 
     struct NKENTSEU_API VulkanCommandBuffer {

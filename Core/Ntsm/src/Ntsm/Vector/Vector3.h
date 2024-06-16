@@ -23,9 +23,9 @@ namespace nkentseu {
 	public:
 		union {
 			struct {
-				union { float32 x; float32 u; float32 r; }; // cordinate (x, y, z), texture (u, v, w), size (r, g, b)
-				union { float32 y; float32 v; float32 g; };
-				union { float32 z; float32 t; float32 b; };
+				union { float32 x; float32 u; float32 r; float32 pitch; }; // cordinate (x, y, z), texture (u, v, w), size (r, g, b)
+				union { float32 y; float32 v; float32 g; float32 yaw; };
+				union { float32 z; float32 t; float32 b; float32 roll; };
 			};
 			float32 ptr[3];
 		};
@@ -172,8 +172,10 @@ namespace nkentseu {
 		}
 
 		friend bool operator==(const Vector3f& l, const Vector3f& r) {
-			Vector3f diff(l - r);
-			return diff.LenSq() < maths::VectorEpsilon();
+			//Vector3f diff(l - r);
+			//return diff.LenSq() < maths::VectorEpsilon();
+			return l.x == r.x && l.y == r.y && l.z == r.z;
+			//return diff.LenSq() == 0;
 		}
 
 		friend bool operator!=(const Vector3f& l, const Vector3f& r) {
@@ -709,6 +711,29 @@ namespace nkentseu {
 		static Vector3u FromXYZ(const Vector2u& xy, uint32 z) { return Vector3u(xy.x, xy.y, z); }
 		static Vector3u FromXZY(const Vector2u& xz, uint32 y) { return Vector3u(xz.x, y, xz.y); }
 		static Vector3u FromYZX(const Vector2u& yz, uint32 x) { return Vector3u(x, yz.x, yz.y); }
+	};
+
+	template<typename T>
+	class NKENTSEU_API Vector3T {
+	public:
+		union {
+			struct {
+				T x; T y; T z;
+			};
+			T vec[3];
+		};
+
+		Vector3T() {}
+		Vector3T(T value) : x(value), y(value), z(value) {}
+		Vector3T(T x, T y, T z) : x(x), y(y), z(z) {}
+		Vector3T(const T& x, const T& y, const T& z) : x(x), y(y), z(z) {}
+
+		Vector3T(const Vector3T& vec) : x(vec.x), y(vec.y), z(vec.z) {}
+		Vector3T& operator=(const Vector3T& vec) {
+			this->x = vec.x;
+			this->y = vec.y;
+			this->z = vec.z;
+		}
 	};
 
 	using Vec3 = Vector3f;

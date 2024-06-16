@@ -40,8 +40,12 @@ namespace nkentseu {
         return Angle::FromRadian(atanf(x));
     }
 
+    Angle maths::ATan(float32 x, float32 y) {
+        return Angle::FromRadian(atan2f(x, y));
+    }
+
     float32 maths::FMod(float32 x, float32 y) {
-        return fmodf(x, y);
+        return (float32)fmod(x, y);
     }
 
     float32 maths::Floor(float32 x) {
@@ -117,7 +121,7 @@ namespace nkentseu {
     }
     const float64 maths::Epsilon()
     {
-        return float64(0.0001220703125f);
+        return float64(0.000001220703125f);
     }
     const float64 maths::VectorEpsilon()
     {

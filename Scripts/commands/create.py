@@ -20,6 +20,7 @@ import configuration as conf
 import manager as man
 
 import user.profil as profil
+from gen import GenerateProject
 
 def help_command():
     """Affiche l'aide de la commande `create`."""
@@ -383,7 +384,7 @@ def main():
     # Générer le fichier en fonction des propriétés définies
     if generateFile(generatorProperties):
         print("Le fichier a été généré avec succès.")
-        return 0
+        return GenerateProject()
     print("Une erreur s'est produite lors de la génération du fichier.")
     return 4
 

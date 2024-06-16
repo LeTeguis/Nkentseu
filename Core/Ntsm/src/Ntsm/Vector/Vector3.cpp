@@ -112,7 +112,8 @@ namespace nkentseu {
 
 	void Vector3f::Normalize() {
 		float32 lenSq = x * x + y * y + z * z;
-		if (lenSq < maths::VectorEpsilon()) {
+		//if (lenSq < maths::VectorEpsilon()) {
+		if (lenSq == 0.0f) {
 			return;
 		}
 		float32 invLen = 1.0f / maths::Sqrt(lenSq);

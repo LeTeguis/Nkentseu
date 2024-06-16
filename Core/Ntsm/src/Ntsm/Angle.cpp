@@ -10,7 +10,7 @@
 namespace nkentseu {
 
 	Angle::Angle() : m_Degree(0.0) {}
-	Angle::Angle(float32 degree) : m_Degree(degree){}
+	Angle::Angle(float32 degree) : m_Degree(Clamp(degree)){}
 
 	Angle::Angle(const Angle& angle) : m_Degree(angle.m_Degree)
 	{
@@ -33,11 +33,11 @@ namespace nkentseu {
 	}
 
 	void Angle::Deg(float32 deg) {
-		m_Degree = deg;
+		m_Degree = Clamp(deg);
 	}
 
 	void Angle::Rad(float32 rad) {
-		m_Degree = 180.0f * rad / maths::Pi();
+		m_Degree = Clamp(180.0f * rad / maths::Pi());
 	}
 
 	Angle::operator float32 () {
@@ -65,22 +65,22 @@ namespace nkentseu {
 	}
 
 	Angle& Angle::operator+=(const Angle& other) {
-		this->m_Degree += other.m_Degree;
+		this->m_Degree = Clamp(this->m_Degree + other.m_Degree);
 		return *this;
 	}
 
 	Angle& Angle::operator-=(const Angle& other) {
-		this->m_Degree -= other.m_Degree;
+		this->m_Degree = Clamp(this->m_Degree - other.m_Degree);
 		return *this;
 	}
 
 	Angle& Angle::operator*=(const Angle& other) {
-		this->m_Degree *= other.m_Degree;
+		this->m_Degree = Clamp(this->m_Degree * other.m_Degree);
 		return *this;
 	}
 
 	Angle& Angle::operator/=(const Angle& other) {
-		this->m_Degree /= other.m_Degree;
+		this->m_Degree = Clamp(this->m_Degree / other.m_Degree);
 		return *this;
 	}
 
@@ -98,6 +98,19 @@ namespace nkentseu {
 
 	Angle Angle::FromRadian(float32 rad) {
 		return Angle(180.0f * rad / maths::Pi());
+	}
+
+	float32 Angle::Clamp(float32 deg)
+	{
+		while (deg < -180) {
+			deg += 360;
+		}
+
+		while (deg > 180) {
+			deg -= 360;
+		}
+
+		return deg;
 	}
 
 }    // namespace nkentseu

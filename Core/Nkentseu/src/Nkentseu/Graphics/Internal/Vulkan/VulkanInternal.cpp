@@ -22,7 +22,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
-#include "Nkentseu/Platform/Window/Windows/WindowInternal.h"
+#include "Nkentseu/Platform/Window/Windows/Win32Window.h"
 #elif defined(NKENTSEU_PLATFORM_LINUX_XLIB)
 #define VK_USE_PLATFORM_XLIB_KHR
 #include <vulkan/vulkan_xlib.h>
@@ -173,18 +173,22 @@ namespace nkentseu {
 	bool VulkanSurface::Create(Window* window, VulkanInstance* instance)
 	{
 		if (window == nullptr || instance == nullptr) return false;
-		if (window->GetInternal() == nullptr || window->GetInternal()->GetWindowDisplay() == nullptr) return false;
+		//if (window->GetInternal() == nullptr || window->GetInternal()->GetWindowDisplay() == nullptr) return false;
+		if (window->GetData() == nullptr || window->GetData()->windowHandle == nullptr) return false;
 		VulkanResult result;
 		bool first = true;
-		WindowInternal* internal = window->GetInternal();
+		//WindowInternal* internal = window->GetData();
+		//WindowInternal* internal = window->GetInternal();
 
 #ifdef NKENTSEU_PLATFORM_WINDOWS
 		VkWin32SurfaceCreateInfoKHR surfaceInfo = {};
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.pNext = nullptr;
 		surfaceInfo.flags = 0;
-		surfaceInfo.hwnd = (HWND)internal->GetWindowDisplay()->windowHandle;
-		surfaceInfo.hinstance = internal->GetWindowDisplay()->instanceHandle;
+		//surfaceInfo.hwnd = (HWND)internal->GetWindowDisplay()->windowHandle;
+		surfaceInfo.hwnd = (HWND)window->GetData()->windowHandle;
+		//surfaceInfo.hinstance = internal->GetWindowDisplay()->instanceHandle;
+		surfaceInfo.hinstance = window->GetData()->instanceHandle;
 
 		vkCheckError(first, result, vkCreateWin32SurfaceKHR(static_cast<VkInstance>(instance->instance), &surfaceInfo, 0, &surface), "Cannot create vulkan surface windows");
 
@@ -465,6 +469,7 @@ namespace nkentseu {
 		vkCheckErrorVoid(vkDestroyImageView(gpu->device, imageView, nullptr));
 		vkCheckErrorVoid(vkDestroyImage(gpu->device, image, nullptr));
 		vkCheckErrorVoid(vkFreeMemory(gpu->device, memory, nullptr));
+		return true;
 	}
 
 	// Initialize Vulkan image resources
@@ -1498,6 +1503,8 @@ namespace nkentseu {
 	bool VulkanUBO::Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType)
 	{
 		if (gpu == nullptr) return false;
+		uniformBufferAttribut = uba;
+
 		this->usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
 		VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -1507,22 +1514,38 @@ namespace nkentseu {
 		descriptorBufferInfos.resize(descriptorSets.size());
 		uint32 index = 0;
 		bool success = true;
-		uint32 size = uba.instance > 1 && uba.uType == UniformBufferType::Dynamic ? uba.instance + 1 : uba.instance;
-		size *= uba.size;
+		//uint32 size = uba.instance > 1 && uba.uType == UniformBufferType::Dynamic ? uba.instance + 1 : uba.instance;
+		//size *= uba.size;
+
+		uint32 size = uniformBufferAttribut.size;
+		uint32 range = size;
+		dynamicAlignment = 0;
+
+		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
+			uint32 minUboAlignment = gpu->properties.limits.minUniformBufferOffsetAlignment;
+
+			if (minUboAlignment > 0) {
+				dynamicAlignment = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
+			}
+			range = dynamicAlignment;
+			size = dynamicAlignment * uniformBufferAttribut.instance;
+		}
 
 		for (auto& uniform : uniformBuffers) {
 			if (!VulkanBuffer::CreateBuffer(gpu, size, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
-				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", uba.name, index);
+				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", uniformBufferAttribut.name, index);
 				success = false;
 			}
 			else {
 				descriptorBufferInfos[index].buffer = uniform.buffer;
 				descriptorBufferInfos[index].offset = 0;
-				descriptorBufferInfos[index].range = uba.size; // La taille du tampon uniforme
+				//descriptorBufferInfos[index].offset = dynamicAlignment;
+				//descriptorBufferInfos[index].range = uba.size; // La taille du tampon uniforme
+				descriptorBufferInfos[index].range = range; // La taille du tampon uniforme
 
 				writeDescriptorSets[index].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptorSets[index].dstSet = descriptorSets[index];
-				writeDescriptorSets[index].dstBinding = uba.binding; // L'index de la liaison dans le descripteur d'ensemble
+				writeDescriptorSets[index].dstBinding = uniformBufferAttribut.binding; // L'index de la liaison dans le descripteur d'ensemble
 				writeDescriptorSets[index].dstArrayElement = 0;
 				writeDescriptorSets[index].descriptorType = descriptorType;
 				writeDescriptorSets[index].descriptorCount = 1;
@@ -1530,6 +1553,7 @@ namespace nkentseu {
 			}
 			index++;
 		}
+
 		return success;
 	}
 
@@ -1548,6 +1572,71 @@ namespace nkentseu {
 		descriptorBufferInfos.clear();
 
 		return true;
+	}
+
+	bool VulkanUBO::Binds(VulkanGpu* gpu, void* data, usize size, uint32 instanceIndex)
+	{
+		if (gpu == nullptr) return false;
+
+		bool success = false;
+
+		currentOffset = 0;
+		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
+			currentOffset = instanceIndex * dynamicAlignment;
+		}
+
+		for (auto& uniform : uniformBuffers) {
+			uniform.Mapped(gpu, size, 0);
+			success = uniform.WriteToBuffer(data, size, currentOffset);
+			success = uniform.Flush(gpu, size, 0);
+			uniform.UnMapped(gpu);
+		}
+
+		return success;
+	}
+
+	bool VulkanUBO::Bind(VulkanGpu* gpu, void* data, usize size, uint32 index, uint32 instanceIndex)
+	{
+		if (gpu == nullptr) return false;
+
+		bool success = false;
+
+		currentOffset = 0;
+
+		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
+			currentOffset = instanceIndex * dynamicAlignment;
+		}
+
+		auto& uniform = uniformBuffers[index];
+
+		uniform.Mapped(gpu, size, 0);
+		success = uniform.WriteToBuffer(data, size, currentOffset);
+		success = uniform.Flush(gpu, size, 0);
+		uniform.UnMapped(gpu);
+
+		return success;
+	}
+
+	void* VulkanUBO::AlignedAlloc(size_t size, size_t alignment)
+	{
+		void* data = nullptr;
+#if defined(_MSC_VER) || defined(__MINGW32__)
+		data = _aligned_malloc(size, alignment);
+#else
+		int res = posix_memalign(&data, alignment, size);
+		if (res != 0)
+			data = nullptr;
+#endif
+		return data;
+	}
+
+	void VulkanUBO::AlignedFree(void* data)
+	{
+#if	defined(_MSC_VER) || defined(__MINGW32__)
+		_aligned_free(data);
+#else
+		free(data);
+#endif
 	}
 
 	// command buffer

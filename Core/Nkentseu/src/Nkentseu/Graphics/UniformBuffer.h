@@ -21,7 +21,7 @@ namespace nkentseu {
             virtual Memory::Shared<Context> GetContext() = 0;
             virtual bool Bind(const std::string& name, void* data, usize size) = 0;
             virtual bool Bind(const std::string& name, void* data, usize size, uint32 index) = 0;
-            virtual bool Send(uint32 index = 0) = 0;
+            virtual bool Flush() = 0;
             //virtual bool Bind(const std::string& name, void* data, usize size, uint32 instance) = 0;
             virtual bool Destroy() = 0;
 

@@ -60,11 +60,34 @@ namespace nkentseu {
         Vector3f p = position;
         // Create matrix
         return Matrix4f(
-            x.x, x.y, x.z, 0, // X basis (& Scale)
-            y.x, y.y, y.z, 0, // Y basis (& scale)
-            z.x, z.y, z.z, 0, // Z basis (& scale)
-            p.x, p.y, p.z, 1  // Position
+            x.x, y.x, z.x, p.x, // X basis (& Scale)
+            x.y, y.y, z.y, p.y, // Y basis (& scale)
+            x.x, y.z, z.z, p.z, // Z basis (& scale)
+            0.0f, 0.0f, 0.0f, 1.0f  // Position
         );
+    }
+
+    Matrix4f Transform::mat4()
+    {
+        matrix4f scale = matrix4f::Scaling(this->scale);
+        matrix4f rot = rotation.mat4() * scale;
+        matrix4f translate = matrix4f::Translation(this->position) * rot;
+        return translate;
+    }
+    // t*s*r     s = t_*t*s*r*r_
+    Transform Transform::mat4(const Matrix4f& m)
+    {
+        Transform transform;
+        transform.rotation = Quaternionf(m);
+        transform.position = m.Position();
+
+        matrix4f tanslate = matrix4f::Translation(transform.position).Inverse();
+        matrix4f rotation = transform.rotation.Inverse().mat4();
+        matrix4f scale = tanslate * (m * rotation);
+
+        transform.scale = Vector3f(scale.m00, scale.m11, scale.m22);
+
+        return transform;
     }
 
     Transform Transform::FromMat4(const Matrix4f& m) {

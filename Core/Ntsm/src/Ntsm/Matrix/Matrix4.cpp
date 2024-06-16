@@ -20,25 +20,25 @@ namespace nkentseu {
 
     matrix4f::matrix4f(const Vector3f& V0, const Vector3f& V1, const Vector3f& V2)
     {
-        mat[0][0] = V0.x;
-        mat[0][1] = V0.y;
-        mat[0][2] = V0.z;
-        mat[0][3] = 0.0f;
+        m00 = V0.x;
+        m01 = V0.y;
+        m02 = V0.z;
+        m03 = 0.0f;
 
-        mat[1][0] = V1.x;
-        mat[1][1] = V1.y;
-        mat[1][2] = V1.z;
-        mat[1][3] = 0.0f;
+        m10 = V1.x;
+        m11 = V1.y;
+        m12 = V1.z;
+        m13 = 0.0f;
 
-        mat[2][0] = V2.x;
-        mat[2][1] = V2.y;
-        mat[2][2] = V2.z;
-        mat[2][3] = 0.0f;
+        m20 = V2.x;
+        m21 = V2.y;
+        m22 = V2.z;
+        m23 = 0.0f;
 
-        mat[3][0] = 0.0f;
-        mat[3][1] = 0.0f;
-        mat[3][2] = 0.0f;
-        mat[3][3] = 1.0f;
+        m30 = 0.0f;
+        m31 = 0.0f;
+        m32 = 0.0f;
+        m33 = 1.0f;
     }
 
     // Constructeur par copie
@@ -132,7 +132,7 @@ namespace nkentseu {
         return *this;
     }
 
-    Vector4f matrix4f::operator*(const Vector4f& vector) const {
+    /*Vector4f matrix4f::operator*(const Vector4f& vector) const {
         Vector4f result;
         for (int i = 0; i < 4; ++i) {
             result.ptr[i] = 0.0f;
@@ -141,7 +141,7 @@ namespace nkentseu {
             }
         }
         return result;
-    }
+    }*/
 
     // Transposition de la matrice
     matrix4f matrix4f::Transpose() const {
@@ -185,48 +185,33 @@ namespace nkentseu {
 
     Vector3f matrix4f::TransformPoint(const Vector3f& point) const
     {
-        Vector4f Unprojectedresult = Vector4f(point, 1.0f) * (*this);
-        if (Unprojectedresult.w == 0.0f || Unprojectedresult.w == 1.0f)
-        {
-            return Vector3f(Unprojectedresult.x, Unprojectedresult.y, Unprojectedresult.z);
-        }
-        else
-        {
-            return Vector3f(Unprojectedresult.x / Unprojectedresult.w,
-                Unprojectedresult.y / Unprojectedresult.w,
-                Unprojectedresult.z / Unprojectedresult.w);
-        }
+        Vector4f transformed_point(point.x, point.y, point.z, 1.0f);
+        Vector4f result = (*this) * transformed_point;
+
+        if (result.w == 0.0f || result.w == 1.0f) return result.xyz();
+        return result.xyz() / result.w;
+
     }
 
     Vector3f matrix4f::TransformVector(const Vector3f& vector) const
     {
-        Vector4f Unprojectedresult = Vector4f(vector, 0.0f) * (*this);
-        if (Unprojectedresult.w == 0.0f || Unprojectedresult.w == 1.0f)
-        {
-            return Vector3f(Unprojectedresult.x, Unprojectedresult.y, Unprojectedresult.z);
-        }
-        else
-        {
-            return Vector3f(Unprojectedresult.x / Unprojectedresult.w,
-                Unprojectedresult.y / Unprojectedresult.w,
-                Unprojectedresult.z / Unprojectedresult.w);
-        }
+        Vector4f transformed_vector(vector.x, vector.y, vector.z, 0.0f);
+        Vector4f result = (*this) * transformed_vector;
+
+        if (result.w == 0.0f || result.w == 1.0f) return result.xyz();
+        return result.xyz() / result.w;
     }
 
     Vector3f matrix4f::TransformNormal(const Vector3f& normal) const
     {
-        Vector4f Unprojectedresult = Vector4f(normal, 0.0f) * (*this);
-        if (Unprojectedresult.w == 0.0f)
-        {
-            Unprojectedresult.w = 1.0f;
-        }
+        Vector4f transformed_normal(normal.x, normal.y, normal.z, 0.0f);
+        transformed_normal = transformed_normal * (*this);
 
-        Vector3f result(Unprojectedresult.x / Unprojectedresult.w, Unprojectedresult.y / Unprojectedresult.w, Unprojectedresult.z / Unprojectedresult.w);
+        if (transformed_normal.w == 0.0f) return transformed_normal.w = 1.0f;
+        if (transformed_normal.w < 0.0f) return transformed_normal.w = -1.0f;
 
-        if (Unprojectedresult.w < 0.0f)
-        {
-            result = -result;
-        }
+        Vector3f result = transformed_normal.xyz() / transformed_normal.w;
+
         return result;
     }
 
@@ -236,6 +221,7 @@ namespace nkentseu {
         float64 tmp[12]; /* temp array for pairs */
         float64 src[16]; /* array of transpose source matrix */
         float64 det; /* determinant */
+
         /* transpose matrix */
         for (uint32 i = 0; i < 4; i++)
         {
@@ -257,6 +243,7 @@ namespace nkentseu {
         tmp[9] = src[10] * src[12];
         tmp[10] = src[8] * src[13];
         tmp[11] = src[9] * src[12];
+
         /* calculate first 8 elements (cofactors) */
         result[0][0] = tmp[0] * src[5] + tmp[3] * src[6] + tmp[4] * src[7];
         result[0][0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[5] * src[7];
@@ -274,6 +261,7 @@ namespace nkentseu {
         result[1][2] -= tmp[2] * src[0] + tmp[7] * src[1] + tmp[10] * src[3];
         result[1][3] = tmp[4] * src[0] + tmp[9] * src[1] + tmp[10] * src[2];
         result[1][3] -= tmp[5] * src[0] + tmp[8] * src[1] + tmp[11] * src[2];
+
         /* calculate pairs for second 8 elements (cofactors) */
         tmp[0] = src[2] * src[7];
         tmp[1] = src[3] * src[6];
@@ -324,6 +312,46 @@ namespace nkentseu {
         return finalResult;
     }
 
+    Vector3f matrix4f::Forward() const {
+        return Vector3f(m02, m12, m22);
+    }
+
+    Vector3f matrix4f::Up() const {
+        return Vector3f(m01, m11, m21);
+    }
+
+    Vector3f matrix4f::Right() const {
+        return Vector3f(m00, m10, m20);
+    }
+
+    Vector3f matrix4f::Position() const {
+        return Vector3f(m03, m13, m23);
+    }
+
+    void matrix4f::Forward(const Vector3f& forward) {
+        m02 = forward.x;
+        m12 = forward.y;
+        m22 = forward.z;
+    }
+
+    void matrix4f::Up(const Vector3f& up) {
+        m01 = up.x;
+        m11 = up.y;
+        m22 = up.z;
+    }
+
+    void matrix4f::Right(const Vector3f& right) {
+        m00 = right.x;
+        m10 = right.y;
+        m20 = right.z;
+    }
+
+    void matrix4f::Position(const Vector3f& position) {
+        m03 = position.x;
+        m13 = position.y;
+        m23 = position.z;
+    }
+
     float32 matrix4f::CompareMatrices(const matrix4f& left, const matrix4f& right)
     {
         float32 Sum = 0.0f;
@@ -339,39 +367,32 @@ namespace nkentseu {
 
     matrix4f matrix4f::Identity() {
         matrix4f in;
-        in[0][0] = 1.0f;
-        in[1][1] = 1.0f;
-        in[2][2] = 1.0f;
-        in[3][3] = 1.0f;
+        in.m00 = 1.0f;
+        in.m11 = 1.0f;
+        in.m22 = 1.0f;
+        in.m33 = 1.0f;
         return in;
     }
 
-    matrix4f matrix4f::Camera(const Vector3f& eye, const Vector3f& _look, const Vector3f& _up, const Vector3f& _right)
+    matrix4f matrix4f::Camera(const Vector3f& eye, const Vector3f& look, const Vector3f& up, const Vector3f& right)
     {
-        Vector3f look = Vector3f(_look).Normalized();
-        Vector3f up = Vector3f(_up).Normalized();
-        Vector3f right = Vector3f(_right).Normalized();
+        Vector3f look_ = Vector3f(look).Normalized();
+        Vector3f up_ = Vector3f(up).Normalized();
+        Vector3f right_ = Vector3f(right).Normalized();
 
         matrix4f result;
-        result[0][0] = right.x;
-        result[1][0] = right.y;
-        result[2][0] = right.z;
-        result[3][0] = -right.Dot(eye);
+        result.Right(right_);
+        result.m30 = -right_.Dot(eye);
 
-        result[0][1] = up.x;
-        result[1][1] = up.y;
-        result[2][1] = up.z;
-        result[3][1] = -up.Dot(eye);
+        result.Up(up_);
+        result.m31 = -up_.Dot(eye);
 
-        result[0][2] = look.x;
-        result[1][2] = look.y;
-        result[2][2] = look.z;
-        result[3][2] = -look.Dot(eye);
+        result.Forward(look_);
+        result.m32 = -look_.Dot(eye);
 
-        result[0][3] = 0.0f;
-        result[1][3] = 0.0f;
-        result[2][3] = 0.0f;
-        result[3][3] = 1.0f;
+        result.Position(Vector3f());
+        result.m33 = 1.0f;
+
         return result;
     }
 
@@ -383,6 +404,19 @@ namespace nkentseu {
         yAxis = Vector3f(zAxis).Cross(xAxis).Normalized();
 
         matrix4f result;
+        result.Right(xAxis);
+        result.m30 = -xAxis.Dot(eye);
+
+        result.Up(yAxis);
+        result.m31 = -yAxis.Dot(eye);
+
+        result.Forward(zAxis);
+        result.m32 = -zAxis.Dot(eye);
+
+        result.Position(Vector3f());
+        result.m33 = 1.0f;
+
+        /*matrix4f result;
         result[0][0] = xAxis.x;
         result[1][0] = xAxis.y;
         result[2][0] = xAxis.z;
@@ -401,7 +435,7 @@ namespace nkentseu {
         result[0][3] = 0.0f;
         result[1][3] = 0.0f;
         result[2][3] = 0.0f;
-        result[3][3] = 1.0f;
+        result[3][3] = 1.0f;*/
         return result;
     }
 
@@ -433,79 +467,81 @@ namespace nkentseu {
     matrix4f matrix4f::Perspective(float32 width, float32 height, float32 zNear, float32 zFar)
     {
         matrix4f result;
-        result[0][0] = 2.0f * zNear / width;
-        result[1][0] = 0.0f;
-        result[2][0] = 0.0f;
-        result[3][0] = 0.0f;
+        result.m00 = 2.0f * zNear / width;
+        result.m10 = 0.0f;
+        result.m20 = 0.0f;
+        result.m30 = 0.0f;
 
-        result[0][1] = 0.0f;
-        result[1][1] = 2.0f * zNear / height;
-        result[2][1] = 0.0f;
-        result[3][1] = 0.0f;
+        result.m01 = 0.0f;
+        result.m11 = 2.0f * zNear / height;
+        result.m21 = 0.0f;
+        result.m31 = 0.0f;
 
-        result[0][2] = 0.0f;
-        result[1][2] = 0.0f;
-        result[2][2] = zFar / (zNear - zFar);
-        result[3][2] = zFar * zNear / (zNear - zFar);
+        result.m02 = 0.0f;
+        result.m12 = 0.0f;
+        result.m22 = zFar / (zNear - zFar);
+        result.m32 = zFar * zNear / (zNear - zFar);
 
-        result[0][3] = 0.0f;
-        result[1][3] = 0.0f;
-        result[2][3] = -1.0f;
-        result[3][3] = 0.0f;
+        result.m03 = 0.0f;
+        result.m13 = 0.0f;
+        result.m23 = -1.0f;
+        result.m33 = 0.0f;
         return result;
     }
 
-    matrix4f matrix4f::PerspectiveFov(float32 fov, float32 aspect, float32 zNear, float32 zFar)
+    matrix4f matrix4f::PerspectiveFov(const Angle& fov, float32 aspect, float32 zNear, float32 zFar)
     {
-        float32 width = 1.0f / tanf(fov / 2.0f), height = aspect / tanf(fov / 2.0f);
+        float32 width = 1.0f / maths::Tan(fov  * 0.5f), height = aspect / maths::Tan(fov * 0.5f);
 
         matrix4f result;
-        result[0][0] = width;
-        result[1][0] = 0.0f;
-        result[2][0] = 0.0f;
-        result[3][0] = 0.0f;
+        result.m00 = width;
+        result.m10 = 0.0f;
+        result.m20 = 0.0f;
+        result.m30 = 0.0f;
 
-        result[0][1] = 0.0f;
-        result[1][1] = height;
-        result[2][1] = 0.0f;
-        result[3][1] = 0.0f;
+        result.m01 = 0.0f;
+        result.m11 = height;
+        result.m21 = 0.0f;
+        result.m31 = 0.0f;
 
-        result[0][2] = 0.0f;
-        result[1][2] = 0.0f;
-        result[2][2] = zFar / (zNear - zFar);
-        result[3][2] = zFar * zNear / (zNear - zFar);
+        result.m02 = 0.0f;
+        result.m12 = 0.0f;
+        result.m22 = zFar / (zNear - zFar);
+        result.m32 = zFar * zNear / (zNear - zFar);
 
-        result[0][3] = 0.0f;
-        result[1][3] = 0.0f;
-        result[2][3] = -1.0f;
-        result[3][3] = 0.0f;
+        result.m03 = 0.0f;
+        result.m13 = 0.0f;
+        result.m23 = -1.0f;
+        result.m33 = 0.0f;
         return result;
     }
 
-    matrix4f matrix4f::PerspectiveMultifov(float32 fovX, float32 fovY, float32 zNear, float32 zFar)
+    matrix4f matrix4f::PerspectiveMultifov(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar)
     {
-        float32 width = 1.0f / tanf(fovX / 2.0f), height = 1.0f / tanf(fovY / 2.0f);
+        float32 width = 1.0f / maths::Tan(fovX * 0.5f), height = 1.0f / maths::Tan(fovY * 0.5f);
 
         matrix4f result;
-        result[0][0] = width;
-        result[1][0] = 0.0f;
-        result[2][0] = 0.0f;
-        result[3][0] = 0.0f;
 
-        result[0][1] = 0.0f;
-        result[1][1] = height;
-        result[2][1] = 0.0f;
-        result[3][1] = 0.0f;
+        result.m00 = width;
+        result.m10 = 0.0f;
+        result.m20 = 0.0f;
+        result.m30 = 0.0f;
 
-        result[0][2] = 0.0f;
-        result[1][2] = 0.0f;
-        result[2][2] = zFar / (zNear - zFar);
-        result[3][2] = zFar * zNear / (zNear - zFar);
+        result.m01 = 0.0f;
+        result.m11 = height;
+        result.m21 = 0.0f;
+        result.m31 = 0.0f;
 
-        result[0][3] = 0.0f;
-        result[1][3] = 0.0f;
-        result[2][3] = -1.0f;
-        result[3][3] = 0.0f;
+        result.m02 = 0.0f;
+        result.m12 = 0.0f;
+        result.m22 = zFar / (zNear - zFar);
+        result.m32 = zFar * zNear / (zNear - zFar);
+
+        result.m03 = 0.0f;
+        result.m13 = 0.0f;
+        result.m23 = -1.0f;
+        result.m33 = 0.0f;
+
         return result;
     }
 
@@ -522,29 +558,31 @@ namespace nkentseu {
         float32 z = NormalizedAxis.z;
 
         matrix4f result;
-        result[0][0] = 1 + t * (x * x - 1);
-        result[0][1] = z * s + t * x * y;
-        result[0][2] = -y * s + t * x * z;
-        result[0][3] = 0.0f;
 
-        result[1][0] = -z * s + t * x * y;
-        result[1][1] = 1 + t * (y * y - 1);
-        result[1][2] = x * s + t * y * z;
-        result[1][3] = 0.0f;
+        result.m00 = 1 + t * (x * x - 1);
+        result.m01 = z * s + t * x * y;
+        result.m02 = -y * s + t * x * z;
+        result.m03 = 0.0f;
 
-        result[2][0] = y * s + t * x * z;
-        result[2][1] = -x * s + t * y * z;
-        result[2][2] = 1 + t * (z * z - 1);
-        result[2][3] = 0.0f;
+        result.m10 = -z * s + t * x * y;
+        result.m11 = 1 + t * (y * y - 1);
+        result.m12 = x * s + t * y * z;
+        result.m13 = 0.0f;
 
-        result[3][0] = 0.0f;
-        result[3][1] = 0.0f;
-        result[3][2] = 0.0f;
-        result[3][3] = 1.0f;
+        result.m20 = y * s + t * x * z;
+        result.m21 = -x * s + t * y * z;
+        result.m22 = 1 + t * (z * z - 1);
+        result.m23 = 0.0f;
+
+        result.m30 = 0.0f;
+        result.m31 = 0.0f;
+        result.m32 = 0.0f;
+        result.m33 = 1.0f;
+
         return result;
     }
 
-    matrix4f matrix4f::Rotation(float32 yaw, float32 pitch, float32 roll)
+    matrix4f matrix4f::Rotation(const Angle& pitch, const Angle& yaw, const Angle& roll)
     {
         return RotationY(yaw) * RotationX(pitch) * RotationZ(roll);
     }
@@ -561,10 +599,13 @@ namespace nkentseu {
         float32 SinT = sinf(theta);
 
         matrix4f result = Identity();
-        result[1][1] = CosT;
-        result[1][2] = SinT;
-        result[2][1] = -SinT;
-        result[2][2] = CosT;
+
+        result.m11 = CosT;
+        result.m12 = SinT;
+
+        result.m21 = -SinT;
+        result.m22 = CosT;
+
         return result;
     }
 
@@ -575,10 +616,13 @@ namespace nkentseu {
         float32 SinT = sinf(theta);
 
         matrix4f result = Identity();
-        result[0][0] = CosT;
-        result[0][2] = SinT;
-        result[2][0] = -SinT;
-        result[2][2] = CosT;
+
+        result.m00 = CosT;
+        result.m02 = SinT;
+
+        result.m20 = -SinT;
+        result.m22 = CosT;
+
         return result;
     }
 
@@ -589,60 +633,67 @@ namespace nkentseu {
         float32 SinT = sinf(theta);
 
         matrix4f result = Identity();
-        result[0][0] = CosT;
-        result[0][1] = SinT;
-        result[1][0] = -SinT;
-        result[1][1] = CosT;
+
+        result.m00 = CosT;
+        result.m01 = SinT;
+
+        result.m10 = -SinT;
+        result.m11 = CosT;
+
         return result;
     }
 
     matrix4f matrix4f::Scaling(const Vector3f& scaleFactors)
     {
         matrix4f result;
-        result[0][0] = scaleFactors.x;
-        result[1][0] = 0.0f;
-        result[2][0] = 0.0f;
-        result[3][0] = 0.0f;
 
-        result[0][1] = 0.0f;
-        result[1][1] = scaleFactors.y;
-        result[2][1] = 0.0f;
-        result[3][1] = 0.0f;
+        result.m00 = scaleFactors.x;
+        result.m10 = 0.0f;
+        result.m20 = 0.0f;
+        result.m30 = 0.0f;
 
-        result[0][2] = 0.0f;
-        result[1][2] = 0.0f;
-        result[2][2] = scaleFactors.z;
-        result[3][2] = 0.0f;
+        result.m01 = 0.0f;
+        result.m11 = scaleFactors.y;
+        result.m21 = 0.0f;
+        result.m31 = 0.0f;
 
-        result[0][3] = 0.0f;
-        result[1][3] = 0.0f;
-        result[2][3] = 0.0f;
-        result[3][3] = 1.0f;
+        result.m02 = 0.0f;
+        result.m12 = 0.0f;
+        result.m22 = scaleFactors.z;
+        result.m32 = 0.0f;
+
+        result.m03 = 0.0f;
+        result.m13 = 0.0f;
+        result.m23 = 0.0f;
+        result.m33 = 1.0f;
+
         return result;
     }
 
     matrix4f matrix4f::Translation(const Vector3f& pos)
     {
         matrix4f result;
-        result[0][0] = 1.0f;
-        result[1][0] = 0.0f;
-        result[2][0] = 0.0f;
-        result[3][0] = pos.x;
 
-        result[0][1] = 0.0f;
-        result[1][1] = 1.0f;
-        result[2][1] = 0.0f;
-        result[3][1] = pos.y;
+        result.m00 = 1.0f;
+        result.m10 = 0.0f;
+        result.m20 = 0.0f;
+        result.m30 = pos.x;
 
-        result[0][2] = 0.0f;
-        result[1][2] = 0.0f;
-        result[2][2] = 1.0f;
-        result[3][2] = pos.z;
+        result.m01 = 0.0f;
+        result.m11 = 1.0f;
+        result.m21 = 0.0f;
+        result.m31 = pos.y;
 
-        result[0][3] = 0.0f;
-        result[1][3] = 0.0f;
-        result[2][3] = 0.0f;
-        result[3][3] = 1.0f;
+        result.m02 = 0.0f;
+        result.m12 = 0.0f;
+        result.m22 = 1.0f;
+        result.m32 = pos.z;
+
+        result.m03 = 0.0f;
+        result.m13 = 0.0f;
+        result.m23 = 0.0f;
+        result.m33 = 1.0f;
+
         return result;
     }
 
@@ -665,9 +716,9 @@ namespace nkentseu {
         return Rotation(axis, angle) * mat;
     }
 
-    matrix4f matrix4f::Rotation(const matrix4f mat, float32 yaw, float32 pitch, float32 roll)
+    matrix4f matrix4f::Rotation(const matrix4f mat, const Angle& pitch, const Angle& yaw, const Angle& roll)
     {
-        return Rotation(yaw, pitch, roll) * mat;
+        return Rotation(pitch, yaw, roll) * mat;
     }
 
     matrix4f matrix4f::Rotation(const matrix4f mat, const Vector3f& axis, const Angle& angle, const Vector3f& center)
@@ -700,26 +751,66 @@ namespace nkentseu {
         return Translation(pos) * mat;
     }
 
-    std::string matrix4f::ToStringRow(uint32 i) {
-        std::stringstream ss;
-
-        ss << "[";
-        for (uint32 i2 = 0; i2 < 4; i2++)
-        {
-            ss << mat[i][i2];
-        }
-        ss << "]";
-
-        return ss.str();
+    matrix4f matrix4f::FromEuler(const Vector3f& angle)
+    {
+        return FromEuler(angle.yaw, angle.pitch, angle.roll);
     }
 
-    std::string matrix4f::ToStringCol(uint32 i) {
+    matrix4f matrix4f::FromEuler(const Angle& yaw, const Angle& pitch, const Angle& roll)
+    {
+        float32 tmp_ch = maths::Cos(yaw);
+        float32 tmp_sh = maths::Sin(yaw);
+        float32 tmp_cp = maths::Cos(pitch);
+        float32 tmp_sp = maths::Sin(pitch);
+        float32 tmp_cb = maths::Cos(roll);
+        float32 tmp_sb = maths::Sin(roll);
+
+        matrix4f result;
+        result.m00 = tmp_ch * tmp_cb + tmp_sh * tmp_sp * tmp_sb;
+        result.m01 = tmp_sb * tmp_cp;
+        result.m02 = -tmp_sh * tmp_cb + tmp_ch * tmp_sp * tmp_sb;
+        result.m03 = static_cast<float32>(0);
+        result.m10 = -tmp_ch * tmp_sb + tmp_sh * tmp_sp * tmp_cb;
+        result.m11 = tmp_cb * tmp_cp;
+        result.m12 = tmp_sb * tmp_sh + tmp_ch * tmp_sp * tmp_cb;
+        result.m13 = static_cast<float32>(0);
+        result.m20 = tmp_sh * tmp_cp;
+        result.m21 = -tmp_sp;
+        result.m22 = tmp_ch * tmp_cp;
+        result.m23 = static_cast<float32>(0);
+        result.m30 = static_cast<float32>(0);
+        result.m31 = static_cast<float32>(0);
+        result.m32 = static_cast<float32>(0);
+        result.m33 = static_cast<float32>(1);
+        return result;
+    }
+
+    std::string matrix4f::ToStringRow(uint32 i) const {
         std::stringstream ss;
 
         ss << "[";
         for (uint32 i2 = 0; i2 < 4; i2++)
         {
             ss << mat[i2][i];
+            if (i2 < 3) {
+                ss << ", ";
+            }
+        }
+        ss << "]";
+
+        return ss.str();
+    }
+
+    std::string matrix4f::ToStringCol(uint32 i) const {
+        std::stringstream ss;
+
+        ss << "[";
+        for (uint32 i2 = 0; i2 < 4; i2++)
+        {
+            ss << mat[i][i2];
+            if (i2 < 3) {
+                ss << ", ";
+            }
         }
         ss << "]";
 
@@ -730,7 +821,7 @@ namespace nkentseu {
         std::stringstream ss;
         ss << "Matrix4f[";
         for (uint32 i1 = 0; i1 < 4; i1++) {
-            ss << "[";
+            /*ss << "[";
             for (uint32 i2 = 0; i2 < 4; i2++) {
                 ss << mat[i1][i2];
 
@@ -738,12 +829,17 @@ namespace nkentseu {
                     ss << ", ";
                 }
             }
-            ss << "]";
+            ss << "]\n";
 
             if (i1 < 3) {
                 ss << ", ";
+            }*/
+            ss << ToStringRow(i1);
+            if (i1 < 3) {
+                ss << "\n, ";
             }
         }
+        ss << "]";
         return ss.str();
     }
 

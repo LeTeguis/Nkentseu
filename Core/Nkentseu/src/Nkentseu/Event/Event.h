@@ -91,6 +91,12 @@ namespace nkentseu {
             return static_cast<T&>(*this);
         }
 
+        // Template method for casting Event to specific event type
+        template<typename T>
+        T& Cast() {
+            return static_cast<T&>(*this);
+        }
+
         // Methods related to window association (not shown for brevity)
         uint64 GetWindow() const;
 
@@ -103,6 +109,7 @@ namespace nkentseu {
     };
 
     using EventObserver = std::function<void(Event&)>;
+    using EventObserverRef = std::function<void(const Event&)>;
 } // namespace nkentseu
 
 #endif  // __NKENTSEU_EVENT_H__

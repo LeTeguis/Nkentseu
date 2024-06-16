@@ -15,36 +15,35 @@ namespace nkentseu {
     FPSTimer::~FPSTimer(){
     }
 
-    void FPSTimer::Update() {
-        //std::lock_guard<std::mutex> lock(mutex);  // Acquire lock before accessing shared data
-        float64 delta = m_Timer.Elapsed().seconds;
+    void FPSTimer::Update(float64 delta) {
+        m_NumFrame++;
+        m_AccumulateTime += delta;
 
-        if (delta >= 1.0) {
-            m_FrameRate = maths::Max<float64>(1, m_CurrentFrame / delta);
-            m_CurrentFrame = 0;
-            m_FrameTime = 1000.0 / (float64)m_FrameRate;
-            m_Timer.Reset();
-        }
+        if (m_AccumulateTime < 1.0) return;
 
-        m_CurrentFrame++;
+        m_CurrentFps = maths::Max<uint32>(1, m_NumFrame / m_AccumulateTime);
+        m_TimeFps = 1000.0 / (float64)m_CurrentFps;
+
+        m_AccumulateTime = 0.0;
+        m_NumFrame = 0;
     }
 
-    float32 FPSTimer::GetFrameTime()
+    float64 FPSTimer::GetFrameTime()
     {
         //std::lock_guard<std::mutex> lock(mutex);
-        return m_FrameTime;
+        return m_TimeFps;
     }
 
     uint32 FPSTimer::GetCurrentFrame()
     {
         //std::lock_guard<std::mutex> lock(mutex);
-        return m_CurrentFrame;
+        return m_NumFrame;
     }
 
     uint32 FPSTimer::GetFrameRate()
     {
         //std::lock_guard<std::mutex> lock(mutex);
-        return m_FrameRate;
+        return m_CurrentFps;
     }
 
     uint32 FPSTimer::GetFps()

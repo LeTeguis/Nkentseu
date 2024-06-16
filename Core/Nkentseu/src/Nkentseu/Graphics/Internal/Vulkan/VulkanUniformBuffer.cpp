@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-06-03 at 08:33:11 PM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-06-03 at 08:33:11 PM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -76,7 +76,9 @@ namespace nkentseu {
             if (descriptorWrites.size() > 0) {
                 vkUpdateDescriptorSets(m_Context->GetGpu()->device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
             }
+            return success;
         }
+        return false;
     }
 
     Memory::Shared<Context> VulkanUniformBuffer::GetContext()
@@ -93,23 +95,9 @@ namespace nkentseu {
             return false;
         }
 
-        //usize offset = index * size;
-        usize offset = 0;
-        bool success = true;
         auto& uniforms = it->second;
 
-        for (auto& uniform : uniforms.uniformBuffers) {
-            uniform.Mapped(m_Context->GetGpu(), size, offset);
-            success = uniform.WriteToBuffer(data, size, offset);
-            success = uniform.Flush(m_Context->GetGpu(), size, offset);
-            uniform.UnMapped(m_Context->GetGpu());
-        }
-        Log_nts.Debug("max = {0}", m_Context->GetGpu()->properties.limits.minUniformBufferOffsetAlignment);
-
-        VkDescriptorSet descriptorSet = m_DescriptorSets[m_Context->currentImageIndex];
-        VkPipelineLayout pipelineLayout = m_Shader->GetPipelineLayout()->pipelineLayout;
-        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
-        vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, 0));
+        uniforms.Binds(m_Context->GetGpu(), data, size, 0);
         return false;
     }
 
@@ -125,55 +113,29 @@ namespace nkentseu {
         //usize offset = index * size;
         bool success = true;
         auto& uniforms = it->second;
-        //uint32 offset = m_BufferLayout.attributes[name].size * index;
-        uint32 offset = m_BufferLayout.attributes[name].size * index;
-        //auto& uniform = uniforms.uniformBuffers[m_Context->currentImageIndex];
-
-        for (auto& uniform : uniforms.uniformBuffers) {
-            uniform.Mapped(m_Context->GetGpu(), size, offset);
-            success = uniform.WriteToBuffer(data, size, offset);
-            success = uniform.Flush(m_Context->GetGpu(), size, offset);
-            uniform.UnMapped(m_Context->GetGpu());
-        }
-
-        VkDescriptorSet descriptorSet = m_DescriptorSets[m_Context->currentImageIndex];
-        VkPipelineLayout pipelineLayout = m_Shader->GetPipelineLayout()->pipelineLayout;
-        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
-
-        uint32 deviceSize = m_Context->GetGpu()->properties.limits.minUniformBufferOffsetAlignment;
-        uint32 dOffset = AlignUp<uint32>(offset, deviceSize);
-        //uint32 dOffset = m_BufferLayout.sizes * index;
-        uint32 odc = m_OffsetDynamicCount;
-        VkPipelineBindPoint pbp = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-        // calcul de l'alignement
-        usize minUboAlignment = m_Context->GetGpu()->properties.limits.minUniformBufferOffsetAlignment;
-        usize dynamicAlignment = m_BufferLayout.attributes[name].size;
-        if (minUboAlignment > 0) {
-            dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-        }
-
-        usize bufferSize = index * dynamicAlignment;
-        usize data = AlignUp<usize>(bufferSize, dynamicAlignment);
-
-        vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, odc, &dOffset));//*/
+        //uniforms.Binds(m_Context->GetGpu(), data, size, index);
+        uniforms.Bind(m_Context->GetGpu(), data, size, m_Context->currentImageIndex, index);
         return false;
     }
 
-    bool VulkanUniformBuffer::Send(uint32 index)
+    bool VulkanUniformBuffer::Flush()
     {
         if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr) return false;
-        /*VkDescriptorSet descriptorSet = m_DescriptorSets[m_Context->currentImageIndex];
-        VkPipelineLayout pipelineLayout = m_Shader->GetPipelineLayout()->pipelineLayout;
-        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
 
-        //uint32 dOffset = m_BufferLayout.sizes * index;
-        uint32 deviceSize = m_Context->GetGpu()->properties.limits.minUniformBufferOffsetAlignment;
-        uint32 dOffset = AlignUp<uint32>(m_BufferLayout.sizes * index, deviceSize);
         uint32 odc = m_OffsetDynamicCount;
         VkPipelineBindPoint pbp = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        VkDescriptorSet descriptorSet = m_DescriptorSets[m_Context->currentImageIndex];
+        VkPipelineLayout pipelineLayout = m_Shader->GetPipelineLayout()->pipelineLayout;
+        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
+        std::vector<uint32> dynamicOffsets = {};
 
-        vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, odc, &dOffset));*/
+        for (auto& [nom, uniform] : m_UniformBuffers) {
+            if (uniform.dynamicAlignment != 0) {
+                dynamicOffsets.push_back(uniform.currentOffset);
+            }
+        }
+
+        vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, dynamicOffsets.size(), dynamicOffsets.data()));
         return false;
     }
 

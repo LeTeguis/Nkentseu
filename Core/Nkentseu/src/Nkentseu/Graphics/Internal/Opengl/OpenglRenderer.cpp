@@ -65,7 +65,7 @@ namespace nkentseu {
             makecurrent = m_Context->GetNative()->MakeCurrent();
         }
 
-        EventTrack.AddObserver(REGISTER_CLIENT_EVENT(OpenglRenderer::OnEvent));
+        EventTraker.AddObserver(REGISTER_CLIENT_EVENT(OpenglRenderer::OnEvent));
         return makecurrent;
     }
 
@@ -78,7 +78,7 @@ namespace nkentseu {
         if (m_Context->GetNative()->IsCurrent()) {
             makecurrent = m_Context->GetNative()->UnmakeCurrent();
         }
-        EventTrack.RemoveObserver(REGISTER_CLIENT_EVENT(OpenglRenderer::OnEvent));
+        EventTraker.RemoveObserver(REGISTER_CLIENT_EVENT(OpenglRenderer::OnEvent));
         return false;
     }
 
@@ -107,8 +107,16 @@ namespace nkentseu {
     bool OpenglRenderer::Begin(const Color& color)
     {
         m_IsPrepare = false;
-        if (!CanRender() || !m_Context->GetNative()->IsCurrent()) {
+        if (!CanRender()) {
             return false;
+        }
+
+        if (!m_Context->IsCurrent()) {
+            m_Context->MakeCurrent();
+
+            if (!m_Context->IsCurrent()) {
+                return false;
+            }
         }
 
         OpenGLResult result;

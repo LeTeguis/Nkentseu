@@ -25,6 +25,9 @@
 #include <Nkentseu/Graphics/Shader.h>
 #include <Nkentseu/Core/FPSTimer.h>
 
+#include "Unkeny/Graphics/CameraEditor.h"
+#include <Unkeny/Graphics/Camera.h>
+
 
 namespace nkentseu {
     struct Vertex {
@@ -180,9 +183,19 @@ namespace nkentseu {
            Vector3f(-1.3f, 1.0f, -1.5f)
     };
 
+    Vector3f cameraSens = Vector3f(0.0f);
+
     Memory::Shared<VertexBuffer> vertexBuffer = nullptr;
     Memory::Shared<IndexBuffer> indexBuffer = nullptr;
     Memory::Shared<VertexArray> vertexArray = nullptr;
+
+    Memory::Shared<VertexBuffer> vertexBuffer2 = nullptr;
+    Memory::Shared<IndexBuffer> indexBuffer2 = nullptr;
+    Memory::Shared<VertexArray> vertexArray2 = nullptr;
+    Vector2f mouseDelta;
+    CameraEditor camera;
+    Camera camera2;
+    CameraMovement movementCamera = CameraMovement::FORWARD;
 
     Application::Application() : m_Running(false) {
     }
@@ -197,7 +210,8 @@ namespace nkentseu {
         windowProperty.size.width = 1000;
         windowProperty.size.height = 600;
 
-        m_Window = Memory::Alloc<Window>(windowProperty);
+        //m_Window = Memory::Alloc<Window>(windowProperty);
+        m_Window = Window::Create(windowProperty);
         NTSErrorCode error = ErrorMessaging.PopError();
 
         if (m_Window == nullptr || (error != NTSErrorCode::NoError && error != NTSErrorCode::Window_StayInWindowMode)) {
@@ -222,7 +236,8 @@ namespace nkentseu {
             Log.Debug("Api version {0}.{1}", m_Context->GetProperties().version.major, m_Context->GetProperties().version.minor);
         }
 
-        EventTrack.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
+        //Events.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
+        EventTraker.AddObserver(EVENT_BIND_HANDLER(Application::OnEvent));
 
         Input.CreateAction("Saut", REGISTER_ACTION_SUBSCRIBER(Application::Saut));
         Input.AddCommand(ActionCommand("Saut", ActionCode(EventType::KeyboardInput, Keyboard::Space)));
@@ -261,7 +276,7 @@ namespace nkentseu {
         bufferLayout.CalculateOffsetsAndStride();
 
         UniformBufferLayout uniformLayout;
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
+        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
         uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CameraBuffer), 1, "cameraBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
 
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
@@ -320,6 +335,26 @@ namespace nkentseu {
             vertexArray->SetIndexBuffer(indexBuffer);
         }
 
+        vertexBuffer2 = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, vertices_struct, bufferLayout);
+        if (vertexBuffer2 == nullptr) {
+            Log.Error("Cannot create vertex buffer");
+        }
+
+        indexBuffer2 = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, indices);
+        if (indexBuffer2 == nullptr) {
+            Log.Error("Cannot create index buffer");
+        }
+
+        vertexArray2 = VertexArray::Create(m_Context);
+        //vertexArray = VertexArray::Create(m_Context, 3);
+        if (vertexArray2 == nullptr) {
+            Log.Error("Cannot create vertex array");
+        }
+        else {
+            vertexArray2->SetVertexBuffer(vertexBuffer2);
+            vertexArray2->SetIndexBuffer(indexBuffer2);
+        }
+
         int32 numFrames = -1;
         float32 frameTime = 0;
         float32 time = 0.0f;
@@ -328,26 +363,91 @@ namespace nkentseu {
 
         ObjectBuffer objectBuffer{};
 
+        //camera.SetPosition(Vector3f(-14.0f, 0.0f, -6.0f));
+        camera.SetPosition(Vector3f(0.0f, 0.0f, 7.0f));
+        //camera.SetOrientation(2.0f, 2.0f, 2.0f);
+        //camera.SetOrientation(0.0f, 180.0f, 0.0f);
+        camera.SetOrientation(0.0f, 0.0f, 0.0f);
+        //camera.SetFov(Angle(45.0f).Rad());
+        camera.SetAspectRatio(m_Window->GetDpiAspect());
+        //camera.SetClippingPlanes(0.1f, 100.0f);
+
         CameraBuffer cameraBuffer{};
-        cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
-        cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
+        //cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
+        cameraBuffer.view = camera.GetView();
+        //cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
+        cameraBuffer.proj = camera.GetProjection();
         if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
             cameraBuffer.proj[1][1] *= -1;
         }
 
         while (m_Running) {
-            float64 delta = timer.Elapsed().seconds;
+            //float64 delta = timer.Elapsed().seconds;
+            float64 delta = timer.Reset().seconds;
             time += delta;
-            fps.Update();
+            fps.Update(delta);
 
-            std::string title = FORMATTER.Format("Running at {0} fps. {1}", fps.GetFps(), fps.GetFrameTime());
+            std::string title = FORMATTER.Format("Running at {0} fps. {1}, position {2}, oriantation {3}", fps.GetFps(), fps.GetFrameTime(), camera.GetPosition(), camera.GetOrientation());
             m_Window->SetTitle(title);
 
-            EventTrack.Pick();
+            EventTraker.Loop();
+
+            float32 cameraSpeed = 2.5f * delta;
+            float32 cameraRotationSpeed = 15.0f * delta;
+
+            if (Input.IsKeyDown(Keyboard::Up)) {
+                //camera.Move(Vector3(0, 0, cameraSpeed));
+                camera.Move(camera.Forward() * cameraSpeed);
+                movementCamera = CameraMovement::FORWARD;
+                camera2.ProcessKeyboard(movementCamera, delta);
+            } else if (Input.IsKeyDown(Keyboard::Down)) {
+                //camera.Move(Vector3(0, 0, -cameraSpeed));
+                camera.Move(camera.Backward() * cameraSpeed);
+                movementCamera = CameraMovement::BACKWARD;
+                camera2.ProcessKeyboard(movementCamera, delta);
+            }
+
+            if (Input.IsKeyDown(Keyboard::Left)) {
+                //camera.Move(Vector3(-cameraSpeed, 0, 0));
+                camera.Move(camera.Left() * cameraSpeed);
+                movementCamera = CameraMovement::LEFT;
+                camera2.ProcessKeyboard(movementCamera, delta);
+            } else if (Input.IsKeyDown(Keyboard::Right)) {
+                //camera.Move(Vector3(cameraSpeed, 0, 0));
+                camera.Move(camera.Right() * cameraSpeed);
+                movementCamera = CameraMovement::RIGHT;
+                camera2.ProcessKeyboard(movementCamera, delta);
+            } 
+
+            if (Input.IsKeyDown(Keyboard::Z)) {
+                //camera.Move(Vector3(0, cameraSpeed, 0));
+                camera.Move(camera.Up() * cameraSpeed);
+                movementCamera = CameraMovement::UP;
+                camera2.ProcessKeyboard(movementCamera, delta);
+            } else if (Input.IsKeyDown(Keyboard::S)) {
+                //camera.Move(Vector3(0, -cameraSpeed, 0));
+                camera.Move(camera.Down() * cameraSpeed);
+                movementCamera = CameraMovement::DOWN;
+                camera2.ProcessKeyboard(movementCamera, delta);
+            }
+
+            if (Input.IsKeyDown(Keyboard::Y)) {
+                camera.Rotate(Vector3(0, cameraRotationSpeed, 0));
+            } else if (Input.IsKeyDown(Keyboard::H)) {
+                camera.Rotate(Vector3(0, -cameraRotationSpeed, 0));
+            }
+
+            if (Input.IsKeyDown(Keyboard::G)) {
+                camera.Rotate(Vector3(cameraRotationSpeed, 0, 0));
+            } else if (Input.IsKeyDown(Keyboard::J)) {
+                camera.Rotate(Vector3(-cameraRotationSpeed, 0, 0));
+            }
+
+            //camera.Rotate(mouseDelta.x, mouseDelta.y, 0);
+            camera.SetFov(camera2.Zoom);
+
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
-            
-            timer.Reset();
 
             m_Renderer->Begin(Color::Black());
 
@@ -356,58 +456,50 @@ namespace nkentseu {
                 shader->Bind();
             }
 
+            if (uniformBuffer != nullptr) {
+                // l'activer uniquement si on modifier la fenetre ou le viewport
+                //cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
+                //cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
+                //camera.SetAspectRatio(m_Window->GetDpiAspect());
+                //cameraBuffer.view = camera.GetView();
+                //cameraBuffer.proj = camera.GetProjection();
+                cameraBuffer.view = camera.GetView();// .Transpose();
+                cameraBuffer.proj = matrix4f::PerspectiveFov(camera2.zoom(), m_Window->GetDpiAspect(), 0.1f, 100.0f);// .Transpose();
+                if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+                    cameraBuffer.proj[1][1] *= -1;
+                }
+                uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+            }
+
             for (uint32 index = 0; index < 10; index++) {
-                /* {
-                    if (index < ulist.size()) {
-                        cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
-                        cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
-                        if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
-                            cameraBuffer.proj[1][1] *= -1;
-                        }
-                        ulist[index]->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
-
-                        objectBuffer.model = matrix4f::Translation(matrix4f::Identity(), cubePositions[index] * 0.25);
-                        //objectBuffer.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
-                        objectBuffer.model = matrix4f::Scaling(objectBuffer.model, 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
-                        //objectBuffer.model = matrix4f::Translation(objectBuffer.model, cubePositions[i]);
-                        //objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
-                        objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
-
-                        //uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer), sizeof(ObjectBuffer) * index);
-                        ulist[index]->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
-                    }
-                }*/
+                ObjectBuffer objb;
                 if (uniformBuffer != nullptr) {
                     {
-                        // update camera buffer
-                        cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
-                        cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
-                        if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
-                            cameraBuffer.proj[1][1] *= -1;
-                        }
-                        uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
-                        //uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer), index);
-                    }
-                    {
                         // update model
-                        objectBuffer.model = matrix4f::Translation(matrix4f::Identity(), cubePositions[index] * 0.25);
+                        //objb.model = matrix4f::Translation(matrix4f::Identity(), cubePositions[index] * 0.25);
                         //objectBuffer.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
-                        objectBuffer.model = matrix4f::Scaling(objectBuffer.model, 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
+                        objb.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
+                        objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)time * Angle(90.0f));
+                        objb.model = matrix4f::Translation(objb.model, cubePositions[index] * 0.25);
                         //objectBuffer.model = matrix4f::Translation(objectBuffer.model, cubePositions[i]);
                         //objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
-                        objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
+                        //objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)time * Angle(90.0f));
 
-                        //uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer), index);
-                        uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
+                        uniformBuffer->Bind("objectBuffer", &objb, sizeof(ObjectBuffer), index);
+                        //uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
                     }
-                    //uniformBuffer->Send(index);
+                    uniformBuffer->Flush();
                 }
-                if (vertexArray != nullptr) {
+                if (index < 5 && vertexArray != nullptr) {
                     vertexArray->Draw(DrawVertexType::Triangles);
+                }
+                if (index >= 5 && vertexArray2 != nullptr) {
+                    vertexArray2->Draw(DrawVertexType::Triangles);
                 }
             }
 
             m_Renderer->End();
+            mouseDelta = Vector2f();
         }
 
         if (vertexArray != nullptr) {
@@ -420,6 +512,18 @@ namespace nkentseu {
 
         if (vertexBuffer != nullptr) {
             vertexBuffer->Destroy();
+        }
+
+        if (vertexArray2 != nullptr) {
+            vertexArray2->Destroy();
+        }
+
+        if (indexBuffer2 != nullptr) {
+            indexBuffer2->Destroy();
+        }
+
+        if (vertexBuffer2 != nullptr) {
+            vertexBuffer2->Destroy();
         }
 
         if (uniformBuffer != nullptr) {
@@ -446,6 +550,8 @@ namespace nkentseu {
         broker.Route<WindowResizedEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowResizedEvent));
         broker.Route<WindowMovedEvent>(REGISTER_CLIENT_EVENT(Application::OnWindowMovedEvent));
         broker.Route<MouseInputEvent>(REGISTER_CLIENT_EVENT(Application::OnMouseInputEvent));
+        broker.Route<MouseMovedEvent>(REGISTER_CLIENT_EVENT(Application::OnMouseMoved));
+        broker.Route<MouseWheelEvent>(REGISTER_CLIENT_EVENT(Application::OnMouseScroll));
     }
 
     bool Application::OnWindowStatusEvent(WindowStatusEvent& event)
@@ -474,6 +580,9 @@ namespace nkentseu {
                 m_PolygonMode = PolygonModeType::Fill;
             }
         }
+
+        if (event.GetState() == ButtonState::Pressed) {
+        }
         return false;
     }
 
@@ -495,6 +604,21 @@ namespace nkentseu {
     bool Application::OnMouseInputEvent(MouseInputEvent& event)
     {
         Log.Debug("{0}", event);
+        return false;
+    }
+
+    bool Application::OnMouseMoved(MouseMovedEvent& event)
+    {
+        mouseDelta = event.GetSpeed();
+        mouseDelta.Normalize();
+
+        camera2.ProcessMouseMovement(mouseDelta.x, -mouseDelta.y);
+        return false;
+    }
+
+    bool Application::OnMouseScroll(MouseWheelEvent& event)
+    {
+        camera2.ProcessMouseScroll(event.GetDelta());
         return false;
     }
 

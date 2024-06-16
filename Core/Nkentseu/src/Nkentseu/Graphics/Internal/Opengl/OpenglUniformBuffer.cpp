@@ -85,7 +85,7 @@ namespace nkentseu {
         }
     }
 
-    bool OpenglUniformBuffer::Send(uint32 index)
+    bool OpenglUniformBuffer::Flush()
     {
         if (m_Context == nullptr) return false;
         return true;

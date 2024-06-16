@@ -133,7 +133,7 @@ namespace nkentseu {
         }
         else {
             if (cullFaceIsEnable) {
-                glCheckError(first, result, glDisable(GL_CULL_FACE), "cannot disable cull face mode");
+                //glCheckError(first, result, glDisable(GL_CULL_FACE), "cannot disable cull face mode");
                 cullFaceIsEnable = false;
             }
         }

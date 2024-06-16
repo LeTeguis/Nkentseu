@@ -41,7 +41,6 @@ namespace nkentseu {
             bool Begin(const Color& color) override;
             bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) override;
             bool End() override;
-
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
             bool m_IsPrepare = false;

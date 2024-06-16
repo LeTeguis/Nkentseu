@@ -22,6 +22,24 @@ namespace nkentseu {
 															} else { \
 																o->methode(__VA_ARGS__); \
 															}
+
+	/*class NKENTSEU_API MemoryAllocator {
+		template<typename T, typename... Args>
+		void* Alloc(Args&&... args) = 0;
+
+		template<typename T, typename... Args>
+		void* AllocUnique(Args&&... args) = 0;
+
+		template<typename T, typename... Args>
+		void* Reset(Args&&... args) = 0;
+
+		template<typename T, typename... Args>
+		void* ResetUnique(Args&&... args) = 0;
+
+		template<typename T, typename... Args>
+		void* Alloc(Args&&... args) = 0;
+	};*/
+
     class NKENTSEU_API Memory
     {
         public:

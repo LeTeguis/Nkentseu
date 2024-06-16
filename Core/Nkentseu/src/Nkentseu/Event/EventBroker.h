@@ -25,6 +25,7 @@ namespace nkentseu {
     public:
         // **Constructor:**
         // Takes a reference to an Event object.
+        //EventBroker(Event& event) : m_Event(event) {}
         EventBroker(Event& event) : m_Event(event) {}
 
         // **RouteEvent method:**

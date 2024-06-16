@@ -17,23 +17,18 @@ namespace nkentseu {
     class NKENTSEU_API FPSTimer {
     private:
 
-
-        float32 m_FrameTime = 0;
-        uint32 m_CurrentFrame = 0;
-        uint32 m_FrameRate = 0;
-
-        Timer m_Timer;
-
-        // Mutex to protect shared data
-        // std::mutex mutex;
+        float64 m_AccumulateTime = 0.0;
+        uint32 m_NumFrame = 0;
+        float64 m_CurrentFps = 0.0;
+        float64 m_TimeFps = 0.0;
 
     public:
         FPSTimer();
         ~FPSTimer();
 
-        void Update();
+        void Update(float64 delta);
 
-        float32 GetFrameTime();
+        float64 GetFrameTime();
         uint32 GetCurrentFrame();
         uint32 GetFrameRate();
         uint32 GetFps();

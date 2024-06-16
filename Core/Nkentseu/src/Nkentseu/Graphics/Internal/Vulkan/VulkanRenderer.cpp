@@ -50,13 +50,13 @@ namespace nkentseu {
         Vector2u size = m_Context->GetFrameBufferSize();
         m_ViewportSize = { size.width, size.height };
 
-        EventTrack.AddObserver(REGISTER_CLIENT_EVENT(VulkanRenderer::OnEvent));
+        EventTraker.AddObserver(REGISTER_CLIENT_EVENT(VulkanRenderer::OnEvent));
 
         return true;
     }
 
     bool VulkanRenderer::Deinitialize() {
-        EventTrack.RemoveObserver(REGISTER_CLIENT_EVENT(VulkanRenderer::OnEvent));
+        EventTraker.RemoveObserver(REGISTER_CLIENT_EVENT(VulkanRenderer::OnEvent));
         return true;
     }
 

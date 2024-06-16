@@ -15,30 +15,21 @@
 #include <System/Definitions/Memory.h>
 
 namespace nkentseu {
-    
-    class NKENTSEU_API EventFilter {
+
+    class NKENTSEU_API EventListener {
     public:
-        static EventFilter& Instance();
+        static EventListener& Instance();
 
-        void AddObserver(EventObserver observer);
-        void RemoveObserver(const EventObserver& observer);
+        virtual void AddObserver(EventObserver observer) = 0;
 
-        void Pick();
-        bool Pick(Event** event);
-        //bool Pick(Event* event);
-        Event* Picks();
-        void TriggerEvent(Event* event);
+        virtual void RemoveObserver(const EventObserver& observer) = 0;
 
-        Vector2i GetMousePosition() const;
-        Vector2i GetMousePositionGlobal() const;
-        void SetMousePosition(int32 x, int32 y);
-        void SetMousePosition(const Vector2i& pos);
-
-    private:
-        bool m_IsPick = false;
+        virtual void Loop() = 0;
+        virtual bool ProcessQueue() = 0;
+        virtual Event& Front() = 0;
     };
 
-    #define EventTrack       EventFilter::Instance()
+    #define EventTraker           EventListener::Instance()
     
 } // namespace nkentseu
 

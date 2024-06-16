@@ -12,7 +12,8 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
     windowProperty.title = "Window Test";
     windowProperty.size = Vector2u(1000, 600);
 
-    Memory::Shared<nkentseu::Window> window = Memory::Alloc<nkentseu::Window>(windowProperty);
+    //Memory::Shared<nkentseu::Window> window = Memory::Alloc<nkentseu::Window>(windowProperty);
+    Memory::Shared<nkentseu::Window> window = Window::Create(windowProperty);
 
     NTSErrorCode error = ErrorMessaging.PopError();
 
@@ -28,11 +29,10 @@ nkentseu::int32 Main(const nkentseu::ARGV& argv) {
     bool running = true;
 
     while (running) {
-        Event* event;
-        
-        while (EventTrack.Pick(&event)) {
-            if (event->IsA<WindowStatusEvent>()) {
-                WindowStatusEvent& status = event->GetProperties<WindowStatusEvent>();
+        while (EventTraker.ProcessQueue()) {
+            Log_nts.Debug("{0}", EventTraker.Front());
+            if (EventTraker.Front().IsA<WindowStatusEvent>()) {
+                WindowStatusEvent& status = EventTraker.Front().Cast<WindowStatusEvent>();
 
                 if (status.GetState() == WindowState::Closed) {
                     running = false;
