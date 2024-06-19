@@ -94,6 +94,7 @@ namespace nkentseu {
         if (drawVertex == DrawVertexType::Triangles) return GL_TRIANGLES;
         return 0;
     }
+
     uint32 GLConvert::IndexType(DrawIndexType::Code drawIndex)
     {
         if (drawIndex == DrawIndexType::UInt8) return GL_UNSIGNED_INT;
@@ -102,15 +103,25 @@ namespace nkentseu {
         if (drawIndex == DrawIndexType::UInt64) return GL_UNSIGNED_INT;
         return 0;
     }
+
     uint32 GLConvert::GetModuleType(ShaderType::Code code)
     {
         if (code == ShaderType::Vertex) return GL_VERTEX_SHADER;
-        if (code == ShaderType::Fragment) return GL_FRAGMENT_SHADER;
+        if (code == ShaderType::Fragment || code == ShaderType::Pixel) return GL_FRAGMENT_SHADER;
         if (code == ShaderType::Compute) return GL_COMPUTE_SHADER;
         if (code == ShaderType::Geometry) return GL_GEOMETRY_SHADER;
-        //if (code == ShaderType::Pixel) return GL_PIXEL_SHADER;
         if (code == ShaderType::TesControl) return GL_TESS_CONTROL_SHADER;
         if (code == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER;
+        return 0;
+    }
+
+    uint32 GLConvert::GetModernModuleType(ShaderType::Code shaderType) {
+        if (shaderType == ShaderType::Vertex) return GL_VERTEX_SHADER_BIT;
+        if (shaderType == ShaderType::Fragment || shaderType == ShaderType::Pixel) return GL_FRAGMENT_SHADER_BIT;
+        if (shaderType == ShaderType::Geometry) return GL_GEOMETRY_SHADER_BIT;
+        if (shaderType == ShaderType::TesControl) return GL_TESS_CONTROL_SHADER_BIT;
+        if (shaderType == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER_BIT;
+        if (shaderType == ShaderType::Compute) return GL_COMPUTE_SHADER_BIT;
         return 0;
     }
 

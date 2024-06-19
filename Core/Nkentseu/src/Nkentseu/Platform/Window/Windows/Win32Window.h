@@ -25,22 +25,22 @@ namespace nkentseu {
             std::string GetTitle() const override;
             void SetTitle(std::string title) override;
 
-            Vector2i GetPosition() const override;
+            maths::Vector2i GetPosition() const override;
             void SetPosition(int32 x, int32 y) override;
-            void SetPosition(const Vector2i& pos) override;
+            void SetPosition(const maths::Vector2i& pos) override;
 
-            Vector2u GetSize() override;
+            maths::Vector2u GetSize() override;
             void SetSize(uint32 width, uint32 height) override;
-            void SetSize(const Vector2u& size) override;
+            void SetSize(const maths::Vector2u& size) override;
 
             float32 GetDpiScale() const override;
-            Vector2 ConvertPixelToDpi(const Vector2& pixel) const override;
+            maths::Vector2 ConvertPixelToDpi(const maths::Vector2& pixel) const override;
 
             float32 GetDpiAspect() override;
             float32 GetAspect() override;
 
-            Vector2u CurrentDisplaySize() const override;
-            Vector2i CurrentDisplayPosition() const override;
+            maths::Vector2u CurrentDisplaySize() const override;
+            maths::Vector2i CurrentDisplayPosition() const override;
 
             void ShowMouse(bool show) override;
             void SetMouseCursorGrabbed(bool grabbed) override;
@@ -61,7 +61,7 @@ namespace nkentseu {
             void Show() override;
             void Hide() override;
 
-            void SetIcon(const Vector2u& size, const uint8* pixels) override;
+            void SetIcon(const maths::Vector2u& size, const uint8* pixels) override;
 
             const WindowProperties& GetProperties() override;
             WindowProperties& GetProps();
@@ -98,8 +98,8 @@ namespace nkentseu {
             DWORD GetWindowExStyleInternal(const WindowProperties& props);
 
             // Ajuster la taille de la fenêtre
-            RECT UpdateWindowExtension(const Vector2i& position, const Vector2u& size, DWORD style, DWORD styleEx);
-            void InitWindowPosition(const Vector2i& position, const Vector2u& size, WindowPositionType positionType);
+            RECT UpdateWindowExtension(const maths::Vector2i& position, const maths::Vector2u& size, DWORD style, DWORD styleEx);
+            void InitWindowPosition(const maths::Vector2i& position, const maths::Vector2u& size, WindowPositionType positionType);
 
             // Méthode pour capturer le curseur
             void GrabWindowCursor(bool grabbed);

@@ -40,6 +40,8 @@
 #include "VulkanUtils.h"
 
 namespace nkentseu {
+	using namespace maths;
+
 	// Vulkan Debug information
 	static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity, VkDebugUtilsMessageTypeFlagsEXT msgFlags, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 

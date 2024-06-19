@@ -26,14 +26,14 @@ namespace nkentseu {
         // Transform
         // 
         // Window Size
-        Vector2u size = Vector2u(640, 480);
+        maths::Vector2u size = maths::Vector2u(640, 480);
         // Window minimum Size
-        Vector2u minSize = Vector2u(0, 0);
+        maths::Vector2u minSize = maths::Vector2u(0, 0);
         // Window maximum Size
-        Vector2u maxSize = Vector2u(0xFFFF, 0xFFFF);
+        maths::Vector2u maxSize = maths::Vector2u(0xFFFF, 0xFFFF);
 
         // Window position based on Top Left
-        Vector2i position = Vector2i(0, 0);
+        maths::Vector2i position = maths::Vector2i(0, 0);
         // Should this window be centered on creation?
         WindowPositionType positionType = WindowPositionType::CenteredPosition;
 
@@ -79,8 +79,8 @@ namespace nkentseu {
         // Is this window a modal?
         bool modal = false;
 
-        Vector2u applicationVersion = Vector2u(1, 0);
-        Vector2u engineVersion = Vector2u(1, 0);
+        maths::Vector2u applicationVersion = maths::Vector2u(1, 0);
+        maths::Vector2u engineVersion = maths::Vector2u(1, 0);
 
         // App Data
         // 

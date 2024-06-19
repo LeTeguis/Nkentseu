@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-15 at 04:56:08 PM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-15 at 04:56:08 PM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -39,15 +39,14 @@ namespace nkentseu {
             bool CullMode(CullModeType::Code mode) override;
             bool FrontFaceMode(FrontFaceType::Code mode) override;
             bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
-            bool ScissorMode(const Vector2i& offset, const Vector2u& extend) override;
-            bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) override;
+            bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) override;
+            bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) override;
         private:
             uint32 m_Programme = 0;
             Memory::Shared<OpenglContext> m_Context = nullptr;
             ShaderBufferLayout m_Layout;
 
-            std::vector<uint32> m_Modules;
-            //std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;
+            std::unordered_map<uint32, uint32> m_Modules;
 
         private:
             uint32 MakeModule(const std::string& filepath, ShaderType::Code code);
@@ -56,6 +55,7 @@ namespace nkentseu {
             std::string LoadShader(const std::string& shaderFile);
     };
 
+    //std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;
 }  //  nkentseu
 
 #endif  // __INTERNAL_SHADER_H__!

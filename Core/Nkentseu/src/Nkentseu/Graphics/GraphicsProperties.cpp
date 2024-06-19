@@ -8,6 +8,8 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
+    using namespace maths;
+
     std::string GraphicsInfos::ToString() const
     {
         return FORMATTER.Format("*temporary*\nRenderer: {0}\nVendor: {1}\nVersion: {2}\nSharing Langage Version: {3}\nExtension: {4}\nProfile Mask: {5}\n\n", renderer, vendor, version, langageVersion, extension, profilMask);

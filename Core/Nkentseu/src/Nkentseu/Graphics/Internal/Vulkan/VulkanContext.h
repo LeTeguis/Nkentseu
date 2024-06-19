@@ -51,7 +51,7 @@ namespace nkentseu {
             VulkanFramebuffer* GetFramebuffer();
             VkCommandBuffer GetCurrentCommandBuffer();
 
-            Vector2u GetFrameBufferSize();
+            maths::Vector2u GetFrameBufferSize();
 
             bool AddCleanUpCallback(CleanUpCallBackFn func);
             bool RemoveCleanUpCallback(CleanUpCallBackFn func);
@@ -65,7 +65,6 @@ namespace nkentseu {
             uint32 currentImageIndex = 0;
             bool renderThisFrame = false;
         private:
-            friend class VulkanRenderer;
 
             Memory::Shared<Window> m_Window;
             ContextProperties m_ContextProperties;
@@ -84,7 +83,7 @@ namespace nkentseu {
             bool m_IsInitialize = false;
             bool m_CanUse = false;
             
-            Vector2u m_WindowSize = {};
+            maths::Vector2u m_WindowSize = {};
 
             std::vector<RerecreateCallBackFn> m_RecreateList;
             std::vector<CleanUpCallBackFn> m_CleanList;

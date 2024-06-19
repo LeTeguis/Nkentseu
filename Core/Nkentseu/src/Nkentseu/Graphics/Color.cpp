@@ -10,12 +10,16 @@
 #include <Ntsm/Random.h>
 
 namespace nkentseu {
+	using namespace maths;
+
+	//const Color Color::Black = Color(0, 0, 0);
+
 	/*const Color& Color::Transparent = Color::RGBAf(0.0f, 0.0f, 0.0f, 1.0f);
 	const Color& Color::Blue = Color::RGBf(0.0f, 0.0f, 1.0f);
 	const Color& Color::Green = Color::RGBf(0.0f, 1.0f, 0.0f);
-	const Color& Color::Red = Color::RGBf(1.0f, 0.0f, 0.0f);
-	const Color& Color::Black = Color::RGBf(0.0f, 0.0f, 0.0f);
-	const Color& Color::White = Color::RGBf(1.0f, 1.0f, 1.0f);
+	const Color& Color::Red = Color::RGBf(1.0f, 0.0f, 0.0f);*/
+	//const Color& Color::Black = Color::RGBf(0.0f, 0.0f, 0.0f);
+	/*const Color& Color::White = Color::RGBf(1.0f, 1.0f, 1.0f);
 	const Color& Color::Yellow = Color::RGBf(1.0f, 1.0f, 0.0f);
 	const Color& Color::Purple = Color::RGBf(0.5f, 0.0f, 0.5f);
 	const Color& Color::Cyan = Color::RGBf(0.0f, 1.0f, 1.0f);

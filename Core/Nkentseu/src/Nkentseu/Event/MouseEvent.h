@@ -20,7 +20,7 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::MouseInput)
         EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
     public:
-        MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2i& position, const Vector2i& globalPosition);
+        MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const maths::Vector2i& position, const maths::Vector2i& globalPosition);
         MouseInputEvent(const MouseInputEvent& e);
         virtual std::string ToString() const override;
 
@@ -28,15 +28,15 @@ namespace nkentseu {
         ButtonState::Code GetState() const;
         ModifierState GetModifierState() const;
         bool IsDoubleCliked() const;
-        Vector2i GetPosition() const;
-        Vector2i GetGlobalPosition() const;
+        maths::Vector2i GetPosition() const;
+        maths::Vector2i GetGlobalPosition() const;
     private:
         Mouse::Button m_Button;
         ButtonState::Code m_ButtonState;
         ModifierState m_ModifierState;
         bool m_IsDoubleClicked;
-        Vector2i m_Position;
-        Vector2i m_GlobalPosition;
+        maths::Vector2i m_Position;
+        maths::Vector2i m_GlobalPosition;
     };
 
     class NKENTSEU_API MouseMovedEvent : public Event
@@ -45,20 +45,20 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::MouseMoved)
         EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
     public:
-        MouseMovedEvent(uint64 win, const Vector2i& position, const Vector2i& globalPosition, const Vector2i& speed);
+        MouseMovedEvent(uint64 win, const maths::Vector2i& position, const maths::Vector2i& globalPosition, const maths::Vector2i& speed);
         MouseMovedEvent(const MouseMovedEvent& e);
         virtual std::string ToString() const override;
         
         AxisState::Code GetVerticalAxisState() const;
         AxisState::Code GetHorizontalAxisState() const;
         AxisDirection::Code GetAxisDirection() const;
-        Vector2i GetPosition() const;
-        Vector2i GetGlobalPosition() const;
-        Vector2i GetSpeed() const;
+        maths::Vector2i GetPosition() const;
+        maths::Vector2i GetGlobalPosition() const;
+        maths::Vector2i GetSpeed() const;
     private:
-        Vector2i m_Position;
-        Vector2i m_Speed;
-        Vector2i m_GlobalPosition;
+        maths::Vector2i m_Position;
+        maths::Vector2i m_Speed;
+        maths::Vector2i m_GlobalPosition;
     };
 
     class NKENTSEU_API MouseWheelEvent : public Event
@@ -67,19 +67,19 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::MouseWheel)
         EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
     public:
-        MouseWheelEvent(uint64 win, Mouse::Wheel wheel, float32 delta, ModifierState modifierState, const Vector2i& position);
+        MouseWheelEvent(uint64 win, Mouse::Wheel wheel, float32 delta, ModifierState modifierState, const maths::Vector2i& position);
         MouseWheelEvent(const MouseWheelEvent& e);
         virtual std::string ToString() const override;
 
         ModifierState GetModifierState() const;
-        Vector2i GetPosition() const;
+        maths::Vector2i GetPosition() const;
         float32 GetDelta() const;
         Mouse::Wheel GetWheels() const;
     private:
         float32 m_Delta;
         Mouse::Wheel m_Wheel;
         ModifierState m_State;
-        Vector2i m_Position;
+        maths::Vector2i m_Position;
         ModifierState m_ModifierState;
     };
 
@@ -89,15 +89,15 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::MouseWindow)
         EVENT_CATEGORY_FLAGS(EventCategory::Mouse | EventCategory::Input)
     public:
-        MouseWindowEvent(uint64 win, RegionState::Code regionState, const Vector2i& position = {});
+        MouseWindowEvent(uint64 win, RegionState::Code regionState, const maths::Vector2i& position = {});
         MouseWindowEvent(const MouseWindowEvent& e);
         virtual std::string ToString() const override;
 
-        Vector2i GetPosition() const;
+        maths::Vector2i GetPosition() const;
         RegionState::Code GetRegionState() const;
     private:
         RegionState::Code m_State;
-        Vector2i m_Position;
+        maths::Vector2i m_Position;
     };
 } // namespace nkentseu
 

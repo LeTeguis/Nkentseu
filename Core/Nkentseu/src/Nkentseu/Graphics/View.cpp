@@ -8,6 +8,7 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
+    using namespace maths;
     
     // Constructor
     View::View() {

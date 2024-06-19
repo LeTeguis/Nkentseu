@@ -8,6 +8,7 @@
 //#include "Ntsm/Utils.h"
 
 namespace nkentseu {
+    using namespace maths;
 
     Vector2Test::Vector2Test(){
         UNITEST_REGISTRY(UnitestRegisterClass(Vector2Test::Test_DefaultConstructor, "Test constructor with default values"));
@@ -234,13 +235,13 @@ namespace nkentseu {
     void Vector2Test::Test_Normalize(const std::string& name) {
         Vector2f vec(3.0f, 4.0f);
         vec.Normalize();
-        UNITEST_TRUE((maths::Abs(vec.Len() - 1.0f) < maths::Epsilon())); // Check if close to unit length
+        UNITEST_TRUE((maths::Abs(vec.Len() - 1.0f) < maths::Epsilon)); // Check if close to unit length
     }
 
     // Test Normalized(const std::string& name)
     void Vector2Test::Test_Normalized(const std::string& name) {
         Vector2f vec(3.0f, 4.0f);
         Vector2f normalizedVec = vec.Normalized();
-        UNITEST_TRUE((maths::Abs(normalizedVec.Len() - 1.0f) < maths::Epsilon())); // Check if close to unit length
+        UNITEST_TRUE((maths::Abs(normalizedVec.Len() - 1.0f) < maths::Epsilon)); // Check if close to unit length
     }
 }    // namespace nkentseu

@@ -74,17 +74,17 @@ namespace nkentseu {
         OpenGLStaticDebugInfo::success = false;
 
         if (severity == GL_DEBUG_SEVERITY_HIGH) {
-            std::string message = FORMATTER.Format("source : {0}({1}, type : {2}({3})", source_str, source, type_str, type);
+            std::string message = FORMATTER.Format("source : {0}({1}), type : {2}({3})", source_str, source, type_str, type);
             NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Fatal("{0}", message);
             return;
         }
         else if (severity == GL_DEBUG_SEVERITY_MEDIUM) {
-            std::string message = FORMATTER.Format("source : {0}({1}, type : {2}({3})", source_str, source, type_str, type);
+            std::string message = FORMATTER.Format("source : {0}({1}), type : {2}({3})", source_str, source, type_str, type);
             NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Error("{0}", message);
             return;
         }
         else if (severity == GL_DEBUG_SEVERITY_LOW) {
-            std::string message = FORMATTER.Format("source : {0}({1}, type : {2}({3})", source_str, source, type_str, type);
+            std::string message = FORMATTER.Format("source : {0}({1}), type : {2}({3})", source_str, source, type_str, type);
             NkentseuTrace::Instance().GetLog()->Details(file.c_str(), line, methode.c_str(), nkentseu::Date::GetCurrent(), nkentseu::Time::GetCurrent()).Warning("{0}", message);
             return;
         }

@@ -12,33 +12,37 @@
 #include <Ntsm/Quaternion/Quaternion.h>
 
 namespace nkentseu {
-    class NKENTSEU_API Transform {
-    public:
-        Vector3f position;
-        Quaternion rotation;
-        Vector3f scale;
 
-        Transform(const Vector3f& p, const Quaternion& r, const Vector3f& s);
-        Transform();
-        Transform(const Transform& transform);
-        Transform& operator = (const Transform& transform);
+    namespace maths
+    {
+        class NKENTSEU_API Transform {
+        public:
+            Vector3f position;
+            Quaternion rotation;
+            Vector3f scale;
 
-        Transform Combine(const Transform& a, const Transform& b);
+            Transform(const Vector3f& p, const Quaternion& r, const Vector3f& s);
+            Transform();
+            Transform(const Transform& transform);
+            Transform& operator = (const Transform& transform);
 
-        Transform Inverse();
+            Transform Combine(const Transform& a, const Transform& b);
 
-        Transform Mix(const Transform& b, float32 t);
+            Transform Inverse();
 
-        Matrix4f ToMat4();
-        Matrix4f mat4();
-        static Transform mat4(const Matrix4f& m);
+            Transform Mix(const Transform& b, float32 t);
 
-        static Transform FromMat4(const Matrix4f& m);
+            Matrix4f ToMat4();
+            Matrix4f mat4();
+            static Transform mat4(const Matrix4f& m);
 
-        Vector3f FormPoint(const Vector3f& b);
+            static Transform FromMat4(const Matrix4f& m);
 
-        Vector3f FormVector(const Vector3f& b);
-    };
+            Vector3f FormPoint(const Vector3f& b);
+
+            Vector3f FormVector(const Vector3f& b);
+        };
+    }
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_TRANSFORM_H__

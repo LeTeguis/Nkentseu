@@ -10,6 +10,7 @@
 #include "VulkanUtils.h"
 
 namespace nkentseu {
+    using namespace maths;
 
     VulkanContext::VulkanContext(Memory::Shared<Window> window, const ContextProperties& contextProperties) : m_Window(window), m_IsInitialize(false), m_ContextProperties(contextProperties) {
     }

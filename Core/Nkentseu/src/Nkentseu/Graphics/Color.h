@@ -18,13 +18,13 @@ namespace nkentseu {
 		float32 saturation;
 		float32 value;
 
-		HSV(float32 hue, float32 saturation, float32 value) : hue(RangeFloat(0.0f, 360.0f).Clamp(hue)), saturation(RangeFloat(0.0f, 100.0f).Clamp(saturation)), value(RangeFloat(0.0f, 100.0f).Clamp(value)) {}
+		HSV(float32 hue, float32 saturation, float32 value) : hue(maths::RangeFloat(0.0f, 360.0f).Clamp(hue)), saturation(maths::RangeFloat(0.0f, 100.0f).Clamp(saturation)), value(maths::RangeFloat(0.0f, 100.0f).Clamp(value)) {}
 		HSV() : hue(0), saturation(0), value(0) {}
-		HSV(const HSV& hsv) : hue(RangeFloat(0.0f, 360.0f).Clamp(hsv.hue)), saturation(RangeFloat(0.0f, 100.0f).Clamp(hsv.saturation)), value(RangeFloat(0.0f, 100.0f).Clamp(hsv.value)) {}
+		HSV(const HSV& hsv) : hue(maths::RangeFloat(0.0f, 360.0f).Clamp(hsv.hue)), saturation(maths::RangeFloat(0.0f, 100.0f).Clamp(hsv.saturation)), value(maths::RangeFloat(0.0f, 100.0f).Clamp(hsv.value)) {}
 		HSV& operator=(const HSV& hsv) {
-			hue = (RangeFloat(0.0f, 360.0f).Clamp(hsv.hue));
-			saturation = (RangeFloat(0.0f, 100.0f).Clamp(hsv.saturation));
-			value = (RangeFloat(0.0f, 100.0f).Clamp(hsv.value));
+			hue = (maths::RangeFloat(0.0f, 360.0f).Clamp(hsv.hue));
+			saturation = (maths::RangeFloat(0.0f, 100.0f).Clamp(hsv.saturation));
+			value = (maths::RangeFloat(0.0f, 100.0f).Clamp(hsv.value));
 			return *this;
 		}
 
@@ -175,9 +175,9 @@ namespace nkentseu {
 		/*static const Color& Transparent;
 		static const Color& Blue;
 		static const Color& Green;
-		static const Color& Red;
-		static const Color& Black;
-		static const Color& White;
+		static const Color& Red;*/
+		//static const Color Black;
+		/*static const Color& White;
 		static const Color& Yellow;
 		static const Color& Purple;
 		static const Color& Cyan;

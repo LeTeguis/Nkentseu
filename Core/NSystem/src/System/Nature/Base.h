@@ -103,6 +103,7 @@ namespace nkentseu{
 
     std::string NKENTSEU_API ToString(bool value);
     std::string NKENTSEU_API UnicodeToUTF8(uint64 unicode_code);
+    inline std::string NKENTSEU_API ToLower(std::string str);
 } // namespace nkentseu
 
 

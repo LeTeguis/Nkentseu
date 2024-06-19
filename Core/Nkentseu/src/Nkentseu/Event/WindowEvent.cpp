@@ -8,6 +8,7 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
+    using namespace maths;
 
     WindowStatusEvent::WindowStatusEvent(uint64 win, WindowState::Code state, const WindowProperties& properties) : Event(win), m_State(state), m_Properties(properties) {}
 

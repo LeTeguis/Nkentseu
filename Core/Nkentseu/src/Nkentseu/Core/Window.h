@@ -29,22 +29,22 @@ namespace nkentseu {
         virtual std::string GetTitle() const = 0;
         virtual void SetTitle(std::string title) = 0;
 
-        virtual Vector2i GetPosition() const = 0;
+        virtual maths::Vector2i GetPosition() const = 0;
         virtual void SetPosition(int32 x, int32 y) = 0;
-        virtual void SetPosition(const Vector2i& pos) = 0;
+        virtual void SetPosition(const maths::Vector2i& pos) = 0;
 
-        virtual Vector2u GetSize() = 0;
+        virtual maths::Vector2u GetSize() = 0;
         virtual void SetSize(uint32 width, uint32 height) = 0;
-        virtual void SetSize(const Vector2u& size) = 0;
+        virtual void SetSize(const maths::Vector2u& size) = 0;
 
         virtual float32 GetDpiScale() const = 0;
-        virtual Vector2 ConvertPixelToDpi(const Vector2& pixel) const = 0;
+        virtual maths::Vector2 ConvertPixelToDpi(const maths::Vector2& pixel) const = 0;
 
         virtual float32 GetDpiAspect() = 0;
         virtual float32 GetAspect() = 0;
 
-        virtual Vector2u CurrentDisplaySize() const = 0;
-        virtual Vector2i CurrentDisplayPosition() const = 0;
+        virtual maths::Vector2u CurrentDisplaySize() const = 0;
+        virtual maths::Vector2i CurrentDisplayPosition() const = 0;
 
         virtual void ShowMouse(bool show) = 0;
         virtual void SetMouseCursorGrabbed(bool grabbed) = 0;
@@ -65,7 +65,7 @@ namespace nkentseu {
         virtual void Show() = 0;
         virtual void Hide() = 0;
 
-        virtual void SetIcon(const Vector2u& size, const uint8* pixels) = 0;
+        virtual void SetIcon(const maths::Vector2u& size, const uint8* pixels) = 0;
 
         virtual const WindowProperties& GetProperties() = 0;
 

@@ -49,7 +49,7 @@ namespace nkentseu {
         ~WindowCursor();
         WindowCursor(const WindowCursor&) = delete;
         WindowCursor& operator=(const WindowCursor&) = delete;
-        bool LoadFromPixels(const uint8* pixels, Vector2u size, Vector2u hotspot);
+        bool LoadFromPixels(const uint8* pixels, maths::Vector2u size, maths::Vector2u hotspot);
         bool LoadFromSystem(WindowCursor::Code type);
 
 #ifdef NKENTSEU_PLATFORM_WINDOWS
@@ -62,7 +62,7 @@ namespace nkentseu {
         void Release();
         bool  m_SystemCursor{};
         // WindowCursor::Type m_CursorType = WindowCursor::Type::NoCursor;
-        bool LoadFromPixelsInternal(const uint8* pixels, Vector2u size, Vector2u hotspot);
+        bool LoadFromPixelsInternal(const uint8* pixels, maths::Vector2u size, maths::Vector2u hotspot);
         bool LoadFromSystemInternal(WindowCursor::Code type);
 
 #ifdef NKENTSEU_PLATFORM_WINDOWS

@@ -11,6 +11,8 @@
 #include "EventBroker.h"
 
 namespace nkentseu {
+    using namespace maths;
+
     bool InputManager::s_initialize = false;
 
     InputManager& InputManager::Instance() {

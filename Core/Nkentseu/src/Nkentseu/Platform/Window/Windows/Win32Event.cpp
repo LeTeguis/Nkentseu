@@ -28,6 +28,8 @@
 #define QWORD uint64_t
 
 namespace nkentseu {
+	using namespace maths;
+
 //#define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #define WC_MAINFRAME	TEXT("MainFrame")
 #define MAX_BUTTONS		128

@@ -19,6 +19,7 @@
 #include <utility>
 
 namespace nkentseu {
+    using namespace maths;
     
     VulkanShader::VulkanShader(Memory::Shared<Context> context) : m_GraphicsPipeline(nullptr), m_Context(Memory::SharedCast<VulkanContext>(context)) {
         if (m_Context != nullptr) {

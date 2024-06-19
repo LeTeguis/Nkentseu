@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-15 at 04:56:52 PM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-15 at 04:56:52 PM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -44,8 +44,8 @@ namespace nkentseu {
             bool CullMode(CullModeType::Code mode) override;
             bool FrontFaceMode(FrontFaceType::Code mode) override;
             bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
-            bool ScissorMode(const Vector2i& offset, const Vector2u& extend) override;
-            bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) override;
+            bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) override;
+            bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) override;
 
             //bool UseUniform(VkCommandBuffer commandBuffer, const std::string& name, void* data, usize size);
             //bool BindDescriptorsSet(VkCommandBuffer commandBuffer);

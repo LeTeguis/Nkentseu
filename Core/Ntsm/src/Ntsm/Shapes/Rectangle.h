@@ -13,63 +13,67 @@
 #include <Ntsm/Shapes/Segment.h>
 
 namespace nkentseu {
-	// Définition de la classe Rectangle
-	class NKENTSEU_API Rectangle {
-	public:
 
-		Vector2 corner{}; // Coin supérieur gauche du rectangle
-		Vector2 size{}; // Taille du rectangle
+	namespace maths
+	{
+		// Définition de la classe Rectangle
+		class NKENTSEU_API Rectangle {
+		public:
 
-		// Constructeurs
-		Rectangle();
-		Rectangle(const Vector2& c, const Vector2& r);
-		Rectangle(float32 x, float32 y, float32 w, float32 h);
-		Rectangle(const Vector2& c, float32 w, float32 h);
-		Rectangle(float32 x, float32 y, const Vector2& r);
-		// Surcharge de l'opérateur d'assignation
-		Rectangle operator=(const Rectangle& other);
+			Vector2 corner{}; // Coin supérieur gauche du rectangle
+			Vector2 size{}; // Taille du rectangle
 
-		// Surcharge de l'opérateur de flux de sortie
-		friend std::ostream& operator<<(std::ostream& os, const Rectangle& e) { // Surcharge de l'opérateur << pour l'affichage d'un Rectangle
-			return os << e.ToString(); // Renvoyer le résultat de l'appel à la méthode ToString() du Rectangle
-		}
+			// Constructeurs
+			Rectangle();
+			Rectangle(const Vector2& c, const Vector2& r);
+			Rectangle(float32 x, float32 y, float32 w, float32 h);
+			Rectangle(const Vector2& c, float32 w, float32 h);
+			Rectangle(float32 x, float32 y, const Vector2& r);
+			// Surcharge de l'opérateur d'assignation
+			Rectangle operator=(const Rectangle& other);
 
-		// Méthode pour obtenir une représentation sous forme de chaîne de caractères du Rectangle
-		std::string ToString() const;
+			// Surcharge de l'opérateur de flux de sortie
+			friend std::ostream& operator<<(std::ostream& os, const Rectangle& e) { // Surcharge de l'opérateur << pour l'affichage d'un Rectangle
+				return os << e.ToString(); // Renvoyer le résultat de l'appel à la méthode ToString() du Rectangle
+			}
 
-		friend std::string ToString(const Rectangle& r) {
-			return r.ToString();
-		}
+			// Méthode pour obtenir une représentation sous forme de chaîne de caractères du Rectangle
+			std::string ToString() const;
 
-		// Méthodes membres de la classe Rectangle (non implémentées dans ce contexte)
-		Vector2 Clamp(const Vector2& p);
-		Vector2 Corner(int nr);
-		bool SeparatingAxis(const Segment& axis);
-		Rectangle Enlarge(const Vector2& p);
-		Rectangle Enlarge(const Rectangle& extender);
-		static Rectangle AABB(const Rectangle* rectangles, int count);
-		Vector2 Center();
+			friend std::string ToString(const Rectangle& r) {
+				return r.ToString();
+			}
 
-	};
+			// Méthodes membres de la classe Rectangle (non implémentées dans ce contexte)
+			Vector2 Clamp(const Vector2& p);
+			Vector2 Corner(int nr);
+			bool SeparatingAxis(const Segment& axis);
+			Rectangle Enlarge(const Vector2& p);
+			Rectangle Enlarge(const Rectangle& extender);
+			static Rectangle AABB(const Rectangle* rectangles, int count);
+			Vector2 Center();
 
-	using Rect = Rectangle; // Alias pour la classe Rectangle
-
-
-	template <typename T>
-	class NKENTSEU_API RectT {
-		union {
-			struct { T x; T y; T width; T height; };
-			struct { Vector2T<T> position; Vector2T<T> size; };
 		};
 
-		RectT() : position(T(0), T(0)), size(T(0), T(0)){}
-		RectT(const Vector2T<T>& pos, const Vector2T<T>& size) : position(pos), size(size){}
-		RectT(const RectT& rect) : position(rect.pos), size(rect.size){}
-	};
+		using Rect = Rectangle; // Alias pour la classe Rectangle
 
-	using IntRect = RectT<int32>;
-	using FloatRect = RectT<float32>;
 
+		template <typename T>
+		class NKENTSEU_API RectT {
+		public:
+			union {
+				struct { T x; T y; T width; T height; };
+				struct { Vector2T<T> position; Vector2T<T> size; };
+			};
+
+			RectT() : position(T(0), T(0)), size(T(0), T(0)) {}
+			RectT(const Vector2T<T>& position, const Vector2T<T>& size) : position(position), size(size) {}
+			RectT(const RectT& rect) : position(rect.position), size(rect.size) {}
+		};
+
+		using IntRect = RectT<int32>;
+		using FloatRect = RectT<float32>;
+	}
 } // namespace nkentseu
 
 #endif  // __NKENTSEU_RECTANGLE_H__ // Fin de la définition de la classe Rectangle

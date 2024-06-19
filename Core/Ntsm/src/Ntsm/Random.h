@@ -13,35 +13,38 @@
 #include <Ntsm/Range.h>
 
 namespace nkentseu {
-    class NKENTSEU_API RandomClass {
-    private:
-        RandomClass();
+    namespace maths
+    {
+        class NKENTSEU_API RandomClass {
+        private:
+            RandomClass();
 
-    public:
+        public:
 
-        uint32 MaxUInt();
-        int32 MaxInt();
-        int32 MinInt();
+            uint32 MaxUInt();
+            int32 MaxInt();
+            int32 MinInt();
 
-        uint32 NextUInt32();
-        uint32 NextUInt32(uint32 max);
-        uint32 NextUInt32(uint32 min, uint32 max);
-        uint32 NextUInt32(const RangeUInt& range);
-        int32 NextInt32();
-        int32 NextInt32(int32 limite);
-        int32 NextInt32(int32 min, int32 max);
-        int32 NextInt32(const RangeInt& range);
-        float32 NextFloat32();
-        float32 NextFloat32(float32 limite);
-        float32 NextFloat32(float32 min, float32 max);
-        float32 NextFloat32(const RangeFloat& range);
+            uint32 NextUInt32();
+            uint32 NextUInt32(uint32 max);
+            uint32 NextUInt32(uint32 min, uint32 max);
+            uint32 NextUInt32(const RangeUInt& range);
+            int32 NextInt32();
+            int32 NextInt32(int32 limite);
+            int32 NextInt32(int32 min, int32 max);
+            int32 NextInt32(const RangeInt& range);
+            float32 NextFloat32();
+            float32 NextFloat32(float32 limite);
+            float32 NextFloat32(float32 min, float32 max);
+            float32 NextFloat32(const RangeFloat& range);
 
-        static RandomClass& Instance() {
-            static RandomClass random;
-            return random;
-        }
-    };
-    #define Random RandomClass::Instance()
+            static RandomClass& Instance() {
+                static RandomClass random;
+                return random;
+            }
+        };
+#define Random RandomClass::Instance()
+    }
 } // namespace nkentseu
 
 #endif    // __NKENTSEU_RANDOM_H__

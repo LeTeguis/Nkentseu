@@ -27,12 +27,16 @@
 
 #include "Unkeny/Graphics/CameraEditor.h"
 #include <Unkeny/Graphics/Camera.h>
+#include <Nkentseu/Graphics/Texture.h>
 
 
 namespace nkentseu {
+    using namespace maths;
+
     struct Vertex {
-        Vector3f pos;
+        Vector3f position;
         Vector3f color;
+        Vector2f uv;
     };
 
     /*struct UniformBufferObject {
@@ -96,10 +100,10 @@ namespace nkentseu {
     };
 
     const std::vector<Vertex> vertices_struct = {
-        {{ 0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.31f }}, // top right
-        {{ 0.5f, -0.5f, 0.0f} , { 0.0f, 0.31f, 0.31f }}, // bottom right
-        {{ -0.5f, -0.5f, 0.0f} , { 0.31f, 0.31f, 0.0f }}, // bottom left
-        {{ -0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.0f }} // top left
+        {{ 0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.31f }, { 0.0f, 0.0f }}, // top right
+        {{ 0.5f, -0.5f, 0.0f} , { 0.0f, 0.31f, 0.31f }, {0.0f, 1.0f }}, // bottom right
+        {{ -0.5f, -0.5f, 0.0f} , { 0.31f, 0.31f, 0.0f }, {1.0f, 1.0f }}, // bottom left
+        {{ -0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.0f }, {1.0f, 0.0f }} // top left
     };
 
     const std::vector<Vertex> vertices_triangles_multi = {
@@ -131,15 +135,15 @@ namespace nkentseu {
 
     const std::vector<Vertex> cubeVertices = {
         // Face avant
-        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}}, // 0
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}}, // 1
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}, // 2
-        {{-0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}}, // 3
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f }}, // 0
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f }}, // 1
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f }}, // 2
+        {{-0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}, {1.0f, 0.0f }}, // 3
         // Face arrière
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}}, // 4
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}}, // 5
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, // 6
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.0f}}  // 7
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f }}, // 4
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f }}, // 5
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f }}, // 6
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f }}  // 7
     };
 
     /*const std::vector<Vertex> cubeVertices = {
@@ -193,9 +197,9 @@ namespace nkentseu {
     Memory::Shared<IndexBuffer> indexBuffer2 = nullptr;
     Memory::Shared<VertexArray> vertexArray2 = nullptr;
     Vector2f mouseDelta;
-    CameraEditor camera;
-    Camera camera2;
+    Camera camera;
     CameraMovement movementCamera = CameraMovement::FORWARD;
+    bool perspective = true;
 
     Application::Application() : m_Running(false) {
     }
@@ -221,8 +225,8 @@ namespace nkentseu {
             return false;
         }
 
-        ContextProperties propertie(GraphicsApiType::VulkanApi);
-        //ContextProperties propertie(GraphicsApiType::OpenglApi);
+        //ContextProperties propertie(GraphicsApiType::VulkanApi);
+        ContextProperties propertie(GraphicsApiType::OpenglApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);
@@ -273,6 +277,7 @@ namespace nkentseu {
         BufferLayout bufferLayout;
         bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", 0));
         bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", 1));
+        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float2, "uv", 2));
         bufferLayout.CalculateOffsetsAndStride();
 
         UniformBufferLayout uniformLayout;
@@ -355,6 +360,15 @@ namespace nkentseu {
             vertexArray2->SetIndexBuffer(indexBuffer2);
         }
 
+        Memory::Shared<Texture2D> tetxure = Texture2D::Create(m_Context, "Resources/textures/container2.png");
+        if (tetxure == nullptr) {
+            Log.Error("impossible de charger la texture  Resources/textures/container2.png");
+        }
+        else {
+            Log.Info("Texture charger");
+            tetxure->SetRepeated(true);
+        }
+
         int32 numFrames = -1;
         float32 frameTime = 0;
         float32 time = 0.0f;
@@ -363,31 +377,22 @@ namespace nkentseu {
 
         ObjectBuffer objectBuffer{};
 
-        //camera.SetPosition(Vector3f(-14.0f, 0.0f, -6.0f));
-        camera.SetPosition(Vector3f(0.0f, 0.0f, 7.0f));
-        //camera.SetOrientation(2.0f, 2.0f, 2.0f);
-        //camera.SetOrientation(0.0f, 180.0f, 0.0f);
-        camera.SetOrientation(0.0f, 0.0f, 0.0f);
-        //camera.SetFov(Angle(45.0f).Rad());
-        camera.SetAspectRatio(m_Window->GetDpiAspect());
-        //camera.SetClippingPlanes(0.1f, 100.0f);
+        //camera.FPS_Camera = true;
 
         CameraBuffer cameraBuffer{};
-        //cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
         cameraBuffer.view = camera.GetView();
-        //cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
-        cameraBuffer.proj = camera.GetProjection();
+        cameraBuffer.proj = camera.GetProjection(CameraProjection::Perspective, camera.zoom(), m_Window->GetDpiAspect(), 0.1f, 100.0f);
         if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
             cameraBuffer.proj[1][1] *= -1;
         }
-
+        int32 slot = 0;
         while (m_Running) {
             //float64 delta = timer.Elapsed().seconds;
             float64 delta = timer.Reset().seconds;
             time += delta;
             fps.Update(delta);
 
-            std::string title = FORMATTER.Format("Running at {0} fps. {1}, position {2}, oriantation {3}", fps.GetFps(), fps.GetFrameTime(), camera.GetPosition(), camera.GetOrientation());
+            std::string title = FORMATTER.Format("Running at {0} fps. {1}, position {2}, oriantation {3}", fps.GetFps(), fps.GetFrameTime(), camera.Position, camera.Orientation);
             m_Window->SetTitle(title);
 
             EventTraker.Loop();
@@ -396,59 +401,45 @@ namespace nkentseu {
             float32 cameraRotationSpeed = 15.0f * delta;
 
             if (Input.IsKeyDown(Keyboard::Up)) {
-                //camera.Move(Vector3(0, 0, cameraSpeed));
-                camera.Move(camera.Forward() * cameraSpeed);
-                movementCamera = CameraMovement::FORWARD;
-                camera2.ProcessKeyboard(movementCamera, delta);
+                camera.ProcessKeyboard(CameraMovement::FORWARD, delta);
             } else if (Input.IsKeyDown(Keyboard::Down)) {
-                //camera.Move(Vector3(0, 0, -cameraSpeed));
-                camera.Move(camera.Backward() * cameraSpeed);
-                movementCamera = CameraMovement::BACKWARD;
-                camera2.ProcessKeyboard(movementCamera, delta);
+                camera.ProcessKeyboard(CameraMovement::BACKWARD, delta);
             }
 
             if (Input.IsKeyDown(Keyboard::Left)) {
-                //camera.Move(Vector3(-cameraSpeed, 0, 0));
-                camera.Move(camera.Left() * cameraSpeed);
-                movementCamera = CameraMovement::LEFT;
-                camera2.ProcessKeyboard(movementCamera, delta);
+                camera.ProcessKeyboard(CameraMovement::LEFT, delta);
             } else if (Input.IsKeyDown(Keyboard::Right)) {
-                //camera.Move(Vector3(cameraSpeed, 0, 0));
-                camera.Move(camera.Right() * cameraSpeed);
-                movementCamera = CameraMovement::RIGHT;
-                camera2.ProcessKeyboard(movementCamera, delta);
+                camera.ProcessKeyboard(CameraMovement::RIGHT, delta);
             } 
 
             if (Input.IsKeyDown(Keyboard::Z)) {
-                //camera.Move(Vector3(0, cameraSpeed, 0));
-                camera.Move(camera.Up() * cameraSpeed);
-                movementCamera = CameraMovement::UP;
-                camera2.ProcessKeyboard(movementCamera, delta);
+                camera.ProcessKeyboard(CameraMovement::UP, delta);
             } else if (Input.IsKeyDown(Keyboard::S)) {
-                //camera.Move(Vector3(0, -cameraSpeed, 0));
-                camera.Move(camera.Down() * cameraSpeed);
-                movementCamera = CameraMovement::DOWN;
-                camera2.ProcessKeyboard(movementCamera, delta);
+                camera.ProcessKeyboard(CameraMovement::DOWN, delta);
             }
 
             if (Input.IsKeyDown(Keyboard::Y)) {
-                camera.Rotate(Vector3(0, cameraRotationSpeed, 0));
             } else if (Input.IsKeyDown(Keyboard::H)) {
-                camera.Rotate(Vector3(0, -cameraRotationSpeed, 0));
             }
 
             if (Input.IsKeyDown(Keyboard::G)) {
-                camera.Rotate(Vector3(cameraRotationSpeed, 0, 0));
             } else if (Input.IsKeyDown(Keyboard::J)) {
-                camera.Rotate(Vector3(-cameraRotationSpeed, 0, 0));
             }
 
-            //camera.Rotate(mouseDelta.x, mouseDelta.y, 0);
-            camera.SetFov(camera2.Zoom);
-
+            static CameraProjection projection = CameraProjection::Perspective;
+            static float32 fov_or_othosize = camera.zoom();
+            
+            if (Input.IsKeyDown(Keyboard::P)) {
+                projection = CameraProjection::Perspective;
+                fov_or_othosize = camera.zoom();
+            } else if (Input.IsKeyDown(Keyboard::O)) {
+                projection = CameraProjection::Orthographic;
+                fov_or_othosize = camera.Position.Len();
+            }
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
+            //m_Renderer->Begin(Color::Black());
             m_Renderer->Begin(Color::Black());
 
             if (shader != nullptr) {
@@ -457,18 +448,18 @@ namespace nkentseu {
             }
 
             if (uniformBuffer != nullptr) {
-                // l'activer uniquement si on modifier la fenetre ou le viewport
-                //cameraBuffer.view = matrix4f::LookAt(Vec3(2.0f, 2.0f, 2.0f), Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
-                //cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45.0f).Rad(), m_Window->GetDpiAspect(), 0.1f, 10.0f);
-                //camera.SetAspectRatio(m_Window->GetDpiAspect());
-                //cameraBuffer.view = camera.GetView();
-                //cameraBuffer.proj = camera.GetProjection();
-                cameraBuffer.view = camera.GetView();// .Transpose();
-                cameraBuffer.proj = matrix4f::PerspectiveFov(camera2.zoom(), m_Window->GetDpiAspect(), 0.1f, 100.0f);// .Transpose();
+                cameraBuffer.view = camera.GetView();
+                cameraBuffer.proj = camera.GetProjection(projection, fov_or_othosize, m_Window->GetDpiAspect(), 0.1f, 100.0f);
+
                 if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
                     cameraBuffer.proj[1][1] *= -1;
                 }
                 uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+            }
+
+            if (tetxure != nullptr) {
+                slot = (slot+1) % 10;
+                tetxure->Binds(2);
             }
 
             for (uint32 index = 0; index < 10; index++) {
@@ -476,17 +467,10 @@ namespace nkentseu {
                 if (uniformBuffer != nullptr) {
                     {
                         // update model
-                        //objb.model = matrix4f::Translation(matrix4f::Identity(), cubePositions[index] * 0.25);
-                        //objectBuffer.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
                         objb.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
                         objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)time * Angle(90.0f));
                         objb.model = matrix4f::Translation(objb.model, cubePositions[index] * 0.25);
-                        //objectBuffer.model = matrix4f::Translation(objectBuffer.model, cubePositions[i]);
-                        //objectBuffer.model = matrix4f::Rotation(objectBuffer.model, Vector3f(0.0f, 0.0f, 1.0f), (float32)time * Angle(90.0f));
-                        //objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)time * Angle(90.0f));
-
                         uniformBuffer->Bind("objectBuffer", &objb, sizeof(ObjectBuffer), index);
-                        //uniformBuffer->Bind("objectBuffer", &objectBuffer, sizeof(ObjectBuffer));
                     }
                     uniformBuffer->Flush();
                 }
@@ -612,25 +596,28 @@ namespace nkentseu {
         mouseDelta = event.GetSpeed();
         mouseDelta.Normalize();
 
-        camera2.ProcessMouseMovement(mouseDelta.x, -mouseDelta.y);
+        camera.ProcessMouseMovement(mouseDelta.x, -mouseDelta.y);
         return false;
     }
 
     bool Application::OnMouseScroll(MouseWheelEvent& event)
     {
-        camera2.ProcessMouseScroll(event.GetDelta());
+        camera.ProcessMouseScroll(event.GetDelta());
         return false;
     }
 
     void Application::Saut(const std::string& name, const ActionCode& actionCode, bool pressed, bool released)
     {
-        Log.Debug("Saut");
+        if (pressed) {
+            Log.Debug("Saut");
+        }
     }
 
     void Application::Course(const std::string& name, const AxisCode& axisCode, float32 value)
     {
-        if (value != 0)
+        if (value != 0) {
             Log.Debug("Run {0}", value);
+        }
     }
 
 }    // namespace nkentseu

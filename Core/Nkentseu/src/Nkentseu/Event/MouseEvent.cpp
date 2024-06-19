@@ -8,6 +8,8 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
+	using namespace maths;
+
 	MouseInputEvent::MouseInputEvent(uint64 win, ButtonState::Code buttonState, ModifierState modifierState, Mouse::Button button, bool isDoubleClicked, const Vector2i& position, const Vector2i& globalPosition) : Event(win), m_Button(button), m_ButtonState(buttonState), m_Position(position), m_GlobalPosition(globalPosition), m_ModifierState(modifierState), m_IsDoubleClicked(isDoubleClicked)
 	{
 	}

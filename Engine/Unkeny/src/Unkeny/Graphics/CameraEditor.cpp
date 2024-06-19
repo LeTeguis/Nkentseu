@@ -9,6 +9,7 @@
 #include <Unkeny/Core/Log.h>
 
 namespace nkentseu {
+    using namespace maths;
     
     CameraEditor::CameraEditor()
         : projectionType(ProjectionType::Perspective),

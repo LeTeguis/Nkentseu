@@ -8,23 +8,5 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
-    
-    // Constructor
-    VulkanTexture::VulkanTexture() {
-        // Ajoutez votre code de constructeur ici
-    }
-
-    // Destructor
-    VulkanTexture::~VulkanTexture() {
-        // Ajoutez votre code de destructeur ici
-    }
-
-    std::string VulkanTexture::ToString() const {
-        return FORMATTER.Format(""); // mettez votre formatteur To string entre les guillemets
-    }
-
-    std::string ToString(const VulkanTexture& vulkanTexture) {
-        return vulkanTexture.ToString();
-    }
-
+	using namespace maths;
 }  //  nkentseu

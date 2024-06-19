@@ -82,6 +82,7 @@ namespace nkentseu {
             static uint32 VertexType(DrawVertexType::Code drawVertex);
             static uint32 IndexType(DrawIndexType::Code drawIndex);
             static uint32 GetModuleType(ShaderType::Code code);
+            static uint32 GetModernModuleType(ShaderType::Code shaderType);
     };
 
     struct NKENTSEU_API OpenglBuffer {

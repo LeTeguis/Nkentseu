@@ -8,6 +8,8 @@
 #include "Nkentseu/Platform/PlatformState.h"
 
 namespace nkentseu {
+    using namespace maths;
+
     WindowProperties::WindowProperties() : backgroundColor(Color::DarkGray())
     {
     }

@@ -17,7 +17,8 @@
 #include "OpenGLUtils.h"
 
 namespace nkentseu {
-    
+    using namespace maths;
+
     // Constructor
     OpenglShader::OpenglShader(Memory::Shared<Context> context) : m_Programme(0), m_Context(Memory::SharedCast<OpenglContext>(context)), m_Layout({}) {
     }
@@ -37,7 +38,7 @@ namespace nkentseu {
                 m_Modules.clear();
                 return false;
             }
-            m_Modules.push_back(module);
+            m_Modules[GLConvert::GetModernModuleType(type_)] = module;
         }
         return Compile();
     }
@@ -67,15 +68,16 @@ namespace nkentseu {
             return false;
         }
         if (Unbind()) {
+            OpenGLResult result;
+            bool first = true;
+            glCheckError(first, result, glDeleteProgramPipelines(1, &m_Programme), "cannot delete pipeline");
             m_Programme = 0;
             return true;
         }
         return false;
     }
 
-    // Destructor
     OpenglShader::~OpenglShader() {
-        // Ajoutez votre code de destructeur ici
     }
 
     bool OpenglShader::Bind() {
@@ -84,7 +86,7 @@ namespace nkentseu {
         }
         OpenGLResult result;
         bool first = true;
-        glCheckError(first, result, glUseProgram(m_Programme), "cannot bind shader program");
+        glCheckError(first, result, glBindProgramPipeline(m_Programme), "cannot bind shader program");
         return result.success;
     }
 
@@ -94,7 +96,7 @@ namespace nkentseu {
         }
         OpenGLResult result;
         bool first = true;
-        glCheckError(first, result, glUseProgram(0), "cannot unbind shader program");
+        glCheckError(first, result, glBindProgramPipeline(0), "cannot unbind shader program");
         return result.success;
     }
 
@@ -133,7 +135,6 @@ namespace nkentseu {
         }
         else {
             if (cullFaceIsEnable) {
-                //glCheckError(first, result, glDisable(GL_CULL_FACE), "cannot disable cull face mode");
                 cullFaceIsEnable = false;
             }
         }
@@ -192,21 +193,13 @@ namespace nkentseu {
         bool first = true;
 
         std::string shaderSource = LoadShader(filepath);
-        // Log_nts.Debug("<{0}>", shaderSource);
-        const char* shaderSrc = shaderSource.c_str();
+        const char* shaderSrc = shaderSource.c_str(); 
+        
+        glCheckError(first, result, uint32 shaderModule = glCreateShaderProgramv(module_type, 1, &shaderSrc), "cannot create shader");
 
-        glCheckError(first, result, uint32 shaderModule = glCreateShader(module_type), "cannot create shader");
-        glCheckError(first, result, glShaderSource(shaderModule, 1, &shaderSrc, NULL), "cannot set shader source");
-        glCheckError(first, result, glCompileShader(shaderModule), "cannot compile shader");
-
-        int32 success;
-        glCheckError(first, result, glGetShaderiv(shaderModule, GL_COMPILE_STATUS, &success), "cannot get shader iv");
-
-        if (!success) {
-            char errorLog[1024];
-            glCheckError(first, result, glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog), "cannot get shader info log");
-            Log_nts.Error("Shader Module {0} compile error: {1}", ShaderType::ToString(code), std::string(errorLog));
-            return 0;
+        if (!result.success && shaderModule != 0) {
+            glCheckError(first, result, glDeleteProgram(shaderModule), "cannot delete shader");
+            shaderModule = 0;
         }
         return shaderModule;
     }
@@ -215,51 +208,32 @@ namespace nkentseu {
     {
         OpenGLResult result;
         bool first = true;
-
-        glCheckError(first, result, uint32 shader = glCreateProgram(), "cannot create shader program");
+        uint32 pipeline = 0;
+        glCheckError(first, result, glCreateProgramPipelines(1, &pipeline); , "cannot create shader program");
 
         if (!m_Layout.vertexInput.attributes.empty()) {
             for (const auto& attribute : m_Layout.vertexInput.attributes) {
-                glCheckError(first, result, glBindAttribLocation(shader, attribute.location, attribute.name.c_str()), "cannot bind attribut location");
+                glCheckError(first, result, glBindAttribLocation(pipeline, attribute.location, attribute.name.c_str()), "cannot bind attribut location");
             }
         }
 
-        for (uint32 shaderModule : m_Modules) {
-            glCheckError(first, result, glAttachShader(shader, shaderModule), "cannot attach shader");
+        for (auto [type, shaderModule] : m_Modules) {
+            glCheckError(first, result, glUseProgramStages(pipeline, type, shaderModule), "cannot attach shader");
         }
 
-        glCheckError(first, result, glLinkProgram(shader), "cannot link program");
+        glCheckError(first, result, glBindProgramPipeline(pipeline), "cannot link program");
 
-        int32 success;
-        glCheckError(first, result, glGetProgramiv(shader, GL_LINK_STATUS, &success), "cannot get program iv");
-
-        if (!success) {
-            GLsizei logLength = 0;
-            GLchar errorLog[1024];
-            glCheckError(first, result, glGetProgramInfoLog(shader, 1024, &logLength, errorLog), "cannot get program info");
-            Log_nts.Error("Shader Module compile error: {0}", std::string(errorLog));
-            shader = 0;
-
-            for (uint32 shaderModule : m_Modules) {
-                glCheckError(first, result, glDeleteShader(shaderModule), "cannot delete shader");
-            }
-
-            return 0;
+        for (auto [type, shaderModule] : m_Modules) {
+            glCheckError(first, result, glDeleteProgram(shaderModule), "cannot delete shader");
         }
 
-        for (uint32 shaderModule : m_Modules) {
-            glCheckError(first, result, glDeleteShader(shaderModule), "cannot delete shader");
+        if (!result.success && pipeline != 0) {
+            glCheckError(first, result, glDeleteProgramPipelines(1, &pipeline), "cannot delete pipeline");
         }
 
         m_Modules.clear();
 
-        /*for (auto& ubo : m_Layout.uniformBuffer.attributes) {
-            m_UniformBuffers[ubo.name] = {};
-            m_UniformBuffers[ubo.name].Create(ubo.name, ubo.size, ubo.usage, ubo.binding, 0);
-            //m_UniformBuffers[ubo.name].Create(shader, ubo.name, ubo.size, ubo.usage, ubo.binding, ubo.offset);
-        }*/
-
-        return shader;
+        return pipeline;
     }
 
     std::string OpenglShader::LoadShader(const std::string& shaderFile)

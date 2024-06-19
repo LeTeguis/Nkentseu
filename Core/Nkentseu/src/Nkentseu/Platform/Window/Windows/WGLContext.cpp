@@ -20,6 +20,8 @@
 #include <glad/egl.h>
 
 namespace nkentseu {
+    using namespace maths;
+
     static const TCHAR window_classname[] = _T("SampleWndClass");
     static const TCHAR window_title[] = _T("[glad] WGL");
     static const POINT window_location = { CW_USEDEFAULT, 0 };

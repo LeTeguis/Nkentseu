@@ -8,16 +8,18 @@
 
 namespace nkentseu {
 
-	RangeFloat Segment::Project(const Vector2& onto) {
-		Vector2 ontoUnit = Vector2(onto).Normalized();
-		return RangeFloat(ontoUnit.Dot(points[0]), ontoUnit.Dot(points[1]));
+	namespace maths
+	{
+		RangeFloat Segment::Project(const Vector2& onto) {
+			Vector2 ontoUnit = Vector2(onto).Normalized();
+			return RangeFloat(ontoUnit.Dot(points[0]), ontoUnit.Dot(points[1]));
+		}
+		float32 Segment::Len() {
+			return (points[1] - points[0]).Len();
+		}
+		bool Segment::Equivalent(const Segment& b) {
+			if (*this == b) return true;
+			return Len() == Segment(b).Len();
+		}
 	}
-	float32 Segment::Len() {
-		return (points[1] - points[0]).Len();
-	}
-	bool Segment::Equivalent(const Segment& b) {
-		if (*this == b) return true;
-		return Len() == Segment(b).Len();
-	}
-
 }    // namespace nkentseu

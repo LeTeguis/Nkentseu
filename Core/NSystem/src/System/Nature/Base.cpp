@@ -28,4 +28,10 @@ namespace nkentseu {
         std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wide_to_utf8;
         return wide_to_utf8.to_bytes(wide_str);
     }
+
+    std::string NKENTSEU_API ToLower(std::string str) {
+        for (char& c : str)
+            c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        return str;
+    }
 }

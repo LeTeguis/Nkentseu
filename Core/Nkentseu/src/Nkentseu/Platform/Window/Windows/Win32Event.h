@@ -91,9 +91,9 @@ namespace nkentseu {
             std::vector<EventObserver> eventObservers;
             bool isPick = false;
             bool isQueueLocked = false;
-            Vector2i mousePosition;
-            Vector2i globalMousePosition;
-            Vector2i previousMousePosition;
+            maths::Vector2i mousePosition;
+            maths::Vector2i globalMousePosition;
+            maths::Vector2i previousMousePosition;
     };
 
 }  //  nkentseu

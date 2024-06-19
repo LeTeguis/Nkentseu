@@ -9,59 +9,41 @@
 #include "Unkeny/Core/Log.h"
 
 namespace nkentseu {
+	using namespace maths;
 
 	Camera::Camera(Vector3f pos, Vector3f up, Angle yaw, Angle pitch)
-		: Front(Vector3f(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM), FPS_Camera(false)
+		: Front(Vector3f::Forward()), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM), FPS_Camera(false)
 	{
 		this->Position = pos;
 		this->WorldUp = up;
-		this->Yaw = yaw;
-		this->Pitch = pitch;
+		Orientation.yaw = yaw;
+		Orientation.pitch = pitch;
 		this->updateCameraVectors();
 	}
 
 	Camera::Camera(float32 posX, float32 posY, float32 posZ, float32 upX, float32 upY, float32 upZ, Angle yaw, Angle pitch)
-		: Front(Vector3f(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM), FPS_Camera(false)
+		: Front(Vector3f::Forward()), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM), FPS_Camera(false)
 	{
 		this->Position = Vector3f(posX, posY, posZ);
 		this->WorldUp = Vector3f(upX, upY, upZ);
-		this->Yaw = yaw;
-		this->Pitch = pitch;
+		Orientation.yaw = yaw;
+		Orientation.pitch = pitch;
 		this->updateCameraVectors();
 	}
 
-	matrix4f Camera::GetViewMatrix()
+	matrix4f Camera::GetView()
 	{
-		//return GetMyViewMatrix(this->Position, this->Position + this->Front, this->Up);
 		return matrix4f::LookAt(this->Position, this->Position + this->Front, this->Up);
 	}
 
-	matrix4f Camera::GetMyViewMatrix(Vector3f pos, Vector3f center, Vector3f up)
+	matrix4f Camera::GetProjection(CameraProjection projection, float32 fov_or_orthoSize, float32 aspect, float32 near, float32 far)
 	{
-		Vector3f zAxis = (pos - center).Normalized();
-		Vector3f xAxis = (up.Normalized().Cross(zAxis)).Normalized();
-		Vector3f yAxis = zAxis.Cross(xAxis);
-
-		matrix4f rotation = matrix4f(1.0f);
-		rotation[0][0] = xAxis.x;
-		rotation[1][0] = xAxis.y;
-		rotation[2][0] = xAxis.z;
-		rotation[0][1] = yAxis.x;
-		rotation[1][1] = yAxis.y;
-		rotation[2][1] = yAxis.z;
-		rotation[0][2] = zAxis.x;
-		rotation[1][2] = zAxis.y;
-		rotation[2][2] = zAxis.z;
-
-		matrix4f translation = matrix4f(1.0f);
-		translation[3][0] = -this->Position.x;
-		translation[3][1] = -this->Position.y;
-		translation[3][2] = -this->Position.z;
-
-		return rotation * translation;
+		if (projection == CameraProjection::Perspective) {
+			return matrix4f::PerspectiveFov(fov_or_orthoSize, aspect, near, far);
+		}
+		
+		return matrix4f::Orthogonal(fov_or_orthoSize * aspect, fov_or_orthoSize, near, far);
 	}
-
-
 
 	void Camera::ProcessKeyboard(CameraMovement direction, float32 deltaTime)
 	{
@@ -69,30 +51,30 @@ namespace nkentseu {
 
 		if (FPS_Camera)
 		{
-			if (direction == FORWARD)
+			if (direction == CameraMovement::FORWARD)
 				this->Position += fpsFront * velocity;
-			if (direction == BACKWARD)
+			if (direction == CameraMovement::BACKWARD)
 				this->Position -= fpsFront * velocity;
-			if (direction == LEFT)
+			if (direction == CameraMovement::LEFT)
 				this->Position -= fpsRight * velocity;
-			if (direction == RIGHT)
+			if (direction == CameraMovement::RIGHT)
 				this->Position += fpsRight * velocity;
 		}
 		else
 		{
-			if (direction == FORWARD)
+			if (direction == CameraMovement::FORWARD)
 				this->Position += this->Front * velocity;
-			if (direction == BACKWARD)
+			if (direction == CameraMovement::BACKWARD)
 				this->Position -= this->Front * velocity;
-			if (direction == LEFT)
+			if (direction == CameraMovement::LEFT)
 				this->Position -= this->Right * velocity;
-			if (direction == RIGHT)
+			if (direction == CameraMovement::RIGHT)
 				this->Position += this->Right * velocity;
 		}
 
-		if (direction == UP)
+		if (direction == CameraMovement::UP)
 			this->Position += this->Up * velocity;
-		if (direction == DOWN)
+		if (direction == CameraMovement::DOWN)
 			this->Position -= this->Up * velocity;
 	}
 
@@ -101,15 +83,15 @@ namespace nkentseu {
 		xoffset *= this->MouseSensitivity;
 		yoffset *= this->MouseSensitivity;
 
-		this->Yaw += xoffset;
-		this->Pitch += yoffset;
+		Orientation.yaw += xoffset;
+		Orientation.pitch += yoffset;
 
 		if (constrainPitch)
 		{
-			if (this->Pitch > 89.0f)
-				this->Pitch = 89.0f;
-			if (this->Pitch < -89.0f)
-				this->Pitch = -89.0f;
+			if (Orientation.pitch > 89.0f)
+				Orientation.pitch = 89.0f;
+			if (Orientation.pitch < -89.0f)
+				Orientation.pitch = -89.0f;
 		}
 
 		this->updateCameraVectors();
@@ -136,9 +118,9 @@ namespace nkentseu {
 	{
 		Vector3f front;
 
-		front.x = maths::Cos(this->Yaw) * maths::Cos(this->Pitch);
-		front.y = maths::Sin(this->Pitch);
-		front.z = maths::Sin(this->Yaw) * maths::Cos(this->Pitch);
+		front.x = maths::Cos(Orientation.yaw) * maths::Cos(Orientation.pitch);
+		front.y = maths::Sin(Orientation.pitch);
+		front.z = maths::Sin(Orientation.yaw) * maths::Cos(Orientation.pitch);
 
 		this->Front = front.Normalized();
 		this->Right = this->Front.Cross(this->WorldUp).Normalized();

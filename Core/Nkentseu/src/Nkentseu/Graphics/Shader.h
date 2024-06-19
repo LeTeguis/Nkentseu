@@ -30,8 +30,8 @@ namespace nkentseu {
             virtual bool CullMode(CullModeType::Code mode) = 0;
             virtual bool FrontFaceMode(FrontFaceType::Code mode) = 0;
             virtual bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) = 0;
-            virtual bool ScissorMode(const Vector2i& offset, const Vector2u& extend) = 0;
-            virtual bool ViewportMode(const Vector2f& position, const Vector2f& size, const Vector2f& depth) = 0;
+            virtual bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) = 0;
+            virtual bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) = 0;
 
             static Memory::Shared<Shader> Create(Memory::Shared<Context> context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout);
     };

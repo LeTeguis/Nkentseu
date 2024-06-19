@@ -145,13 +145,13 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API ContextProperties {
-        Vector2u offScreenSize;
+        maths::Vector2u offScreenSize;
         GraphicsPixelFormat pixelFormat;
-        Vector2i version = InitVersion(GraphicsApiType::VulkanApi);
+        maths::Vector2i version = InitVersion(GraphicsApiType::VulkanApi);
         GraphicsApiType::ApiType graphicsApi = GraphicsApiType::VulkanApi;
 
         ContextProperties(const GraphicsApiType::ApiType api);
-        ContextProperties(const GraphicsApiType::ApiType api, const Vector2i& version);
+        ContextProperties(const GraphicsApiType::ApiType api, const maths::Vector2i& version);
 
         // ContextProperties
         ContextProperties& operator=(const ContextProperties& other);
@@ -159,13 +159,13 @@ namespace nkentseu {
 
         ContextProperties();
 
-        ContextProperties(Vector2u size, GraphicsPixelFormat format);
+        ContextProperties(maths::Vector2u size, GraphicsPixelFormat format);
 
         ContextProperties(GraphicsPixelFormat format);
 
         ContextProperties(const ContextProperties& properties);
 
-        static Vector2i InitVersion(const GraphicsApiType::ApiType api);
+        static maths::Vector2i InitVersion(const GraphicsApiType::ApiType api);
     };
 } // namespace nkentseu
 

@@ -14,8 +14,35 @@
 #include <Stb/stb_image.h>
 #include <Stb/stb_image_write.h>
 #include <algorithm>
+#include <Nkentseu/Core/NkentseuLogger.h>
 
 namespace nkentseu {
+    using namespace maths;
+
+    // stb_image callbacks that operate on a sf::InputStream
+    int32 Read(void* user, char* data, int size) {
+        auto* stream = static_cast<nkentseu::InputStream*>(user);
+        return static_cast<int>(stream->Read(data, size));
+    }
+
+    void Skip(void* user, int size) {
+        auto* stream = static_cast<nkentseu::InputStream*>(user);
+
+        if (stream->Seek(stream->Tell() + size) == -1)
+            Log_nts.Error("Failed to seek image loader input stream");
+    }
+
+    int32 Eof(void* user) {
+        auto* stream = static_cast<nkentseu::InputStream*>(user);
+        return stream->Tell() >= stream->GetSize();
+    }
+
+    // stb_image callback for constructing a buffer
+    void BufferFromCallback(void* context, void* data, int size) {
+        auto* source = static_cast<std::uint8_t*>(data);
+        auto* dest = static_cast<std::vector<std::uint8_t>*>(context);
+        std::copy(source, source + size, std::back_inserter(*dest));
+    }
 
     Image::Image() : m_Size(0, 0), m_Channels(0), m_Data(nullptr) {}
 
@@ -53,7 +80,7 @@ namespace nkentseu {
         return *this;
     }
 
-    bool Image::LoadFromFile(const std::string& path, bool flipVertical) {
+    bool Image::LoadFromFile(const std::filesystem::path& path, bool flipVertical) {
         if (m_Data) {
             delete[] m_Data;
             m_Data = nullptr;
@@ -66,7 +93,7 @@ namespace nkentseu {
             stbi_set_flip_vertically_on_load(true);
         }
 
-        m_Data = stbi_load(path.c_str(), &size_.x, &size_.y, &channels, 4);
+        m_Data = stbi_load(path.string().c_str(), &size_.x, &size_.y, &channels, 4);
 
         m_Size = (Vector2u)size_;
         m_Channels = (uint32)channels;
@@ -99,18 +126,93 @@ namespace nkentseu {
         return m_Data != nullptr;
     }
 
-    bool Image::LoadFromMemory(const std::vector<uint8_t>& imageData, bool flipVertical) {
+    bool Image::LoadFromMemory(const std::vector<uint8>& imageData, bool flipVertical) {
         if (!imageData.empty()) {
             // Utilisez std::istringstream pour creer un flux memoire
             std::istringstream stream(std::string(imageData.begin(), imageData.end()));
 
-            // Chargez l'image depuis le flux m�moire
+            // Chargez l'image depuis le flux memoire
             if (LoadFromStream(stream, flipVertical)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    bool Image::LoadFromMemory(const void* data, usize size, bool flipVertical)
+    {
+        if (data && size > 0) {
+            int         width = 0;
+            int         height = 0;
+            int         channels = 0;
+            const auto* buffer = static_cast<const unsigned char*>(data);
+            unsigned char* ptr = stbi_load_from_memory(buffer, static_cast<int32>(size), &width, &height, &channels, STBI_rgb_alpha);
+
+            if (ptr) {
+                m_Size.x = static_cast<unsigned int>(width);
+                m_Size.y = static_cast<unsigned int>(height);
+
+                if (width > 0 && height > 0) {
+                    m_Data = new uint8[width * height * 4];
+                    memcpy(m_Data, ptr, size);
+                }
+
+                stbi_image_free(ptr);
+
+                return true;
+            }
+            else {
+                Log_nts.Error("Failed to load image from memory. Reason: {0} ", stbi_failure_reason());
+                return false;
+            }
+        }
+        else {
+            Log_nts.Error("Failed to load image from memory, no data provided");
+            return false;
+        }
+    }
+
+    bool Image::LoadFromStream(InputStream& stream)
+    {
+
+        if (stream.Seek(0) == -1) {
+            Log_nts.Error("Failed to seek image stream");
+            return false;
+        }
+
+        stbi_io_callbacks callbacks;
+        callbacks.read = &Read;
+        callbacks.skip = &Skip;
+        callbacks.eof = &Eof;
+
+        int32            width = 0;
+        int32            height = 0;
+        int32            channels = 0;
+        unsigned char* ptr = stbi_load_from_callbacks(&callbacks, &stream, &width, &height, &channels, STBI_rgb_alpha);
+
+        if (ptr) {
+            m_Size.x = static_cast<uint32>(width);
+            m_Size.y = static_cast<uint32>(height);
+            m_Channels = channels;
+
+            if (width && height) {
+                if (m_Data != nullptr){
+                    delete[] m_Data;
+                }
+                usize size = m_Size.x * m_Size.y * m_Channels;
+                m_Data = new uint8[size];
+                memcpy(m_Data, ptr, size);
+            }
+
+            stbi_image_free(ptr);
+
+            return true;
+        }
+        else {
+            Log_nts.Error("Failed to load image from stream. Reason: {0}", stbi_failure_reason());
+            return false;
+        }
     }
 
     bool Image::Create(const Vector2u& size, uint32 channels) {
@@ -130,6 +232,68 @@ namespace nkentseu {
         return Create(Vector2u(width, height), channels);
     }
 
+    void Image::Create(const maths::Vector2u& size, const Color& color)
+    {
+        if (size.x && size.y) {
+            if (m_Data != nullptr) delete[] m_Data;
+
+            m_Size = size;
+            m_Data = new uint8[size.x * size.y * 4];
+
+            std::vector<std::uint8_t> newPixels(static_cast<std::size_t>(size.x) * static_cast<std::size_t>(size.y) * 4);
+
+            uint8* ptr = m_Data;
+            uint8* end = ptr + (size.x * size.y * 4);
+            while (ptr < end) {
+                *ptr++ = color.R();
+                *ptr++ = color.G();
+                *ptr++ = color.B();
+                *ptr++ = color.A();
+            }
+        }
+    }
+
+    void Image::Create(const maths::Vector2u& size, const uint8* pixels)
+    {
+        if (pixels && size.x && size.y) {
+            if (m_Data != nullptr) delete[] m_Data;
+
+            m_Size = size;
+            m_Data = new uint8[size.x * size.y * 4];
+
+            for (std::size_t i = 0; i < size.x * size.y * 4; ++i) {
+                m_Data[i] = static_cast<uint8>(pixels[i]);
+            }
+        }
+    }
+
+    void Image::Create(const maths::Vector2u& size, const float32* pixels)
+    {
+        if (pixels && size.x && size.y) {
+            if (m_Data != nullptr) delete[] m_Data;
+
+            m_Size = size;
+            m_Data = new uint8[size.x * size.y * 4];
+
+            for (std::size_t i = 0; i < size.x * size.y * 4; ++i) {
+                m_Data[i] = static_cast<uint8>(pixels[i] * 255);
+            }
+        }
+    }
+
+    void Image::CreateMaskFromColor(const Color& color, uint8 alpha)
+    {
+        if (m_Data != nullptr) {
+            uint8* ptr = m_Data;
+            uint8* end = ptr + m_Size.width * m_Size.height * m_Channels;
+            while (ptr < end) {
+                if ((ptr[0] == color.R()) && (ptr[1] == color.G()) && (ptr[2] == color.B()) && (ptr[3] == color.A()))
+                    ptr[3] = alpha;
+                ptr += 4;
+            }
+        }
+    }
+
     Image Image::Clone() const {
         return Image(*this);
     }
@@ -146,6 +310,17 @@ namespace nkentseu {
         return m_Data;
     }
 
+    Color* Image::GetColors() const
+    {
+        std::vector<Color> colors;
+        colors.resize(m_Size.width * m_Size.height * m_Channels);
+
+        for (uint32 i = 0; i < m_Size.width * m_Size.height; i++) {
+            colors[i] = Color(m_Data[i * 4 + 0], m_Data[i * 4 + 1], m_Data[i * 4 + 2], m_Data[i * 4 + 3]);
+        }
+        return colors.data();
+    }
+
     bool Image::Save(const std::string& path, bool flipVertical) {
         if (!m_Data) {
             return false;
@@ -155,6 +330,39 @@ namespace nkentseu {
             stbi_flip_vertically_on_write(true);
         }
         return stbi_write_png(path.c_str(), m_Size.x, m_Size.y, m_Channels, m_Data, m_Size.x * m_Channels) != 0;
+    }
+
+    bool Image::Save(std::vector<uint8>& output, std::string_view format) const
+    {
+        if (m_Data != nullptr && (m_Size.x > 0) && (m_Size.y > 0)) {
+
+            const std::string specified = ToLower(std::string(format));
+            const maths::Vector2i convertedSize = maths::Vector2i(m_Size.x, m_Size.y);
+
+            if (specified == "bmp") {
+                // BMP format
+                if (stbi_write_bmp_to_func(&BufferFromCallback, &output, convertedSize.x, convertedSize.y, 4, m_Data))
+                    return true;
+            }
+            else if (specified == "tga") {
+                // TGA format
+                if (stbi_write_tga_to_func(&BufferFromCallback, &output, convertedSize.x, convertedSize.y, 4, m_Data))
+                    return true;
+            }
+            else if (specified == "png") {
+                // PNG format
+                if (stbi_write_png_to_func(&BufferFromCallback, &output, convertedSize.x, convertedSize.y, 4, m_Data, 0))
+                    return true;
+            }
+            else if (specified == "jpg" || specified == "jpeg") {
+                // JPG format
+                if (stbi_write_jpg_to_func(&BufferFromCallback, &output, convertedSize.x, convertedSize.y, 4, m_Data, 90))
+                    return true;
+            }
+        }
+
+        Log_nts.Error("Failed to save image with format {0}", std::quoted(format));
+        return false;
     }
 
     uint32 Image::GetPixel(const Vector2i& position) const {

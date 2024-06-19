@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-06-16 at 11:23:53 AM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-06-16 at 11:23:53 AM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -9,18 +9,12 @@
 #pragma once
 
 #include <System/System.h>
+#include "Nkentseu/Graphics/Texture.h"
+#include "VulkanContext.h"
 
 namespace nkentseu {
     
-    class NKENTSEU_API VulkanTexture {
-        public:
-            VulkanTexture();
-            ~VulkanTexture();
-
-            std::string ToString() const;
-            friend std::string ToString(const VulkanTexture& vulkanTexture);
-        private:
-        protected:
+    class NKENTSEU_API VulkanTexture2D : public Texture2D {
     };
 
 }  //  nkentseu

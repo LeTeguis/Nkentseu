@@ -22,6 +22,7 @@
 #endif
 
 namespace nkentseu {
+    using namespace maths;
 #if defined(NKENTSEU_PLATFORM_LINUX)
 std::recursive_mutex mutex;
 Display* sharedDisplay = nullptr;

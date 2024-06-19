@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-20 at 09:30:26 AM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-20 at 09:30:26 AM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -104,7 +104,7 @@ namespace nkentseu {
         };
 
         // Constructor that takes device, width, height, format, and image type
-        bool Create(VulkanGpu* gpu, const Vector2u& size, ImageType imageType, VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
+        bool Create(VulkanGpu* gpu, const maths::Vector2u& size, ImageType imageType, VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
         bool Destroy(VulkanGpu* gpu);
         bool CreateImage(VulkanGpu* gpu, ImageType imageType, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageAspectFlags aspectMask);
         bool CreateMemory(VulkanGpu* gpu);
@@ -122,13 +122,13 @@ namespace nkentseu {
         VkImageView imageView;
         VkDeviceMemory memory;
         VkFormat format;
-        Vector2u size = {};
-        uint32_t mipLevels;
+        maths::Vector2u size = {};
+        uint32 mipLevels;
         VkImageLayout layout;
     };
 
     struct NKENTSEU_API VulkanSwapchain {
-        bool Create(VulkanGpu* gpu, VulkanSurface* surface, const Vector2u& size, const ContextProperties& contextProperties);
+        bool Create(VulkanGpu* gpu, VulkanSurface* surface, const maths::Vector2u& size, const ContextProperties& contextProperties);
         bool Destroy(VulkanGpu* gpu);
         bool FindSupportedFormat(VkPhysicalDevice device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat* format);
         static uint32 GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode);
@@ -182,10 +182,10 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanDefaultVertex {
-        Vector3 position{};
-        Vector3 color{};
-        Vector3 normal{};
-        Vector2 uv{};
+        maths::Vector3 position{};
+        maths::Vector3 color{};
+        maths::Vector3 normal{};
+        maths::Vector2 uv{};
 
         static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
         static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
@@ -204,11 +204,11 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanFramebuffer {
-        bool Create(VulkanGpu* gpu, const Vector2u& size, VulkanRenderPass* renderPass, VulkanSwapchain* swapchain);
+        bool Create(VulkanGpu* gpu, const maths::Vector2u& size, VulkanRenderPass* renderPass, VulkanSwapchain* swapchain);
         bool Destroy(VulkanGpu* gpu);
 
         std::vector<VkFramebuffer> framebuffer = {};
-        Vector2u size = {};
+        maths::Vector2u size = {};
     };
 
     struct NKENTSEU_API VulkanDescriptorPool {
@@ -286,6 +286,37 @@ namespace nkentseu {
         bool Destroy(VulkanGpu* gpu, VulkanCommandPool* commandPool);
 
         std::vector<VkCommandBuffer> commandBuffers = {};
+    };
+
+    struct NKENTSEU_API VulkanTexture {
+        void CreateDescriptorSets();
+
+        bool CreateImage(const maths::Vector2u& size, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
+        void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout);
+        void TransitionImageLayoutCmd(VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout);
+        bool CreateTextureSampler(bool repeate, bool smooth);
+        bool CreateImageView(VkImageAspectFlags aspectFlags);
+        bool CreateTextureImage();
+        static void CreateDepthResources(const maths::Vector2u& size);
+        
+        static bool HasStencilComponent(VkFormat format);
+        static VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+        static VkFormat FindDepthFormat();
+
+        static void CopyBufferToImage(VkBuffer buffer, VkImage image, const maths::Vector2u& size);
+        static void CopyImageToBuffer(VkImage image, VkBuffer buffer, const maths::Vector2u& size);
+        static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, const VkPhysicalDevice& physicalDevice);
+
+        static bool CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+        static std::vector<std::uint8_t> GetImageData(const VkCommandPool& commandPool, const maths::Vector2u& size, VkFormat format, VkImage image);
+
+        VkImage image = nullptr;
+        VkDeviceMemory imageMemory = nullptr;
+        VkImageView imageView = nullptr;
+        VkSampler sampler;
+        VkFormat format;
+        VkDescriptorSet descriptorSet;
+        maths::Vector2u m_Size;
     };
     
 }  //  nkentseu

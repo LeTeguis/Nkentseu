@@ -19,6 +19,8 @@
 #include <Dbt.h>
 
 namespace nkentseu {
+	using namespace maths;
+
 	uint64 Win32Window::s_WindowIDCounter = 0;
 	const GUID guidDevinterfaceHid = { 0x4d1e55b2, 0xf16f, 0x11cf, {0x88, 0xcb, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30} };
 

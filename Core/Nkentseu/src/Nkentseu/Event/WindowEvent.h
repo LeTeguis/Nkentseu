@@ -40,14 +40,14 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::WindowRendered)
         EVENT_CATEGORY_FLAGS(EventCategory::Window) 
     public:
-        WindowRenderedEvent(uint64 win, Rectangle rectangle, Color color);
+        WindowRenderedEvent(uint64 win, maths::Rectangle rectangle, Color color);
         WindowRenderedEvent(const WindowRenderedEvent& e);
         virtual std::string ToString() const override;  
         
-        Rectangle GetRenderRec() const;
+        maths::Rectangle GetRenderRec() const;
         Color GetRenderColor() const;
     private:
-        Rectangle m_Rectangle;
+        maths::Rectangle m_Rectangle;
         Color m_Color;
     };
 
@@ -57,14 +57,14 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::WindowBackgroundErased)
         EVENT_CATEGORY_FLAGS(EventCategory::Window)
     public:
-        WindowBackgroundErasedEvent(uint64 win, Rectangle rectangle, Color color);
+        WindowBackgroundErasedEvent(uint64 win, maths::Rectangle rectangle, Color color);
         WindowBackgroundErasedEvent(const WindowBackgroundErasedEvent& e);
         virtual std::string ToString() const override;
 
-        Rectangle GetBackgroundRec() const;
+        maths::Rectangle GetBackgroundRec() const;
         Color GetBackgroundColor() const;
     private:
-        Rectangle m_Rectangle;
+        maths::Rectangle m_Rectangle;
         Color m_Color;
     };
 
@@ -74,14 +74,14 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::WindowResized)
         EVENT_CATEGORY_FLAGS(EventCategory::Window)
     public:
-        WindowResizedEvent(uint64 win, ResizeState::Code state, const Vector2u& size = {});
+        WindowResizedEvent(uint64 win, ResizeState::Code state, const maths::Vector2u& size = {});
         WindowResizedEvent(const WindowResizedEvent& e);
         virtual std::string ToString() const override;
 
-        Vector2u GetSize() const;
+        maths::Vector2u GetSize() const;
         ResizeState::Code GetRisizeState() const;
     private:
-        Vector2u m_Size;
+        maths::Vector2u m_Size;
         ResizeState::Code m_State;
     };
 
@@ -121,15 +121,15 @@ namespace nkentseu {
         EVENT_TYPE_FLAGS(EventType::WindowMoved)
         EVENT_CATEGORY_FLAGS(EventCategory::Window)
     public:
-        WindowMovedEvent(uint64 win, Vector2i position, Vector2i lastPosition);
+        WindowMovedEvent(uint64 win, maths::Vector2i position, maths::Vector2i lastPosition);
         WindowMovedEvent(const WindowMovedEvent& e);
         virtual std::string ToString() const override;
         
-        Vector2i GetPosition() const;
-        Vector2i GetLastPosition() const;
+        maths::Vector2i GetPosition() const;
+        maths::Vector2i GetLastPosition() const;
     private:
-        Vector2i m_Position;
-        Vector2i m_LastPosition;
+        maths::Vector2i m_Position;
+        maths::Vector2i m_LastPosition;
     };
 
     class NKENTSEU_API WindowVisibleEvent : public Event

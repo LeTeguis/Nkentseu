@@ -26,6 +26,8 @@
 #include "VulkanUniformBuffer.h"
 
 namespace nkentseu {
+    using namespace maths;
+
     VulkanRenderer::VulkanRenderer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
     }
 
@@ -73,7 +75,7 @@ namespace nkentseu {
         VulkanResult result;
         bool first = true;
 
-        vkCheckError(first, result, vkAcquireNextImageKHR(m_Context->m_Gpu.device, m_Context->m_Swapchain.swapchain, UINT64_MAX, m_Context->m_Semaphore.aquireSemaphore, VK_NULL_HANDLE, &m_Context->currentImageIndex), "cannot acquier next image khr ({0})", m_Context->currentImageIndex);
+        vkCheckError(first, result, vkAcquireNextImageKHR(m_Context->GetGpu()->device, m_Context->GetSwapchain()->swapchain, UINT64_MAX, m_Context->GetSemaphore()->aquireSemaphore, VK_NULL_HANDLE, &m_Context->currentImageIndex), "cannot acquier next image khr ({0})", m_Context->currentImageIndex);
 
         if (!result.success) {
             if (result.result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -104,9 +106,9 @@ namespace nkentseu {
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = m_Context->m_RenderPass.renderPass;
+        renderPassBeginInfo.renderPass = m_Context->GetRenderPass()->renderPass;
         renderPassBeginInfo.renderArea.extent = m_ViewportSize;
-        renderPassBeginInfo.framebuffer = m_Context->m_Framebuffer.framebuffer[m_Context->currentImageIndex];
+        renderPassBeginInfo.framebuffer = m_Context->GetFramebuffer()->framebuffer[m_Context->currentImageIndex];
         renderPassBeginInfo.pClearValues = clearValues.data();
         renderPassBeginInfo.clearValueCount = clearValues.size();
 
@@ -138,22 +140,22 @@ namespace nkentseu {
         submitInfo.pWaitDstStageMask = &waitStage;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
-        submitInfo.pSignalSemaphores = &m_Context->m_Semaphore.submitSemaphore;
+        submitInfo.pSignalSemaphores = &m_Context->GetSemaphore()->submitSemaphore;
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &m_Context->m_Semaphore.aquireSemaphore;
+        submitInfo.pWaitSemaphores = &m_Context->GetSemaphore()->aquireSemaphore;
         submitInfo.waitSemaphoreCount = 1;
 
-        vkCheckError(first, result, vkQueueSubmit(m_Context->m_Gpu.queue.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
+        vkCheckError(first, result, vkQueueSubmit(m_Context->GetGpu()->queue.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.pSwapchains = &m_Context->m_Swapchain.swapchain;
+        presentInfo.pSwapchains = &m_Context->GetSwapchain()->swapchain;
         presentInfo.swapchainCount = 1;
         presentInfo.pImageIndices = &m_Context->currentImageIndex;
-        presentInfo.pWaitSemaphores = &m_Context->m_Semaphore.submitSemaphore;
+        presentInfo.pWaitSemaphores = &m_Context->GetSemaphore()->submitSemaphore;
         presentInfo.waitSemaphoreCount = 1;
 
-        vkCheckError(first, result, vkQueuePresentKHR(m_Context->m_Gpu.queue.graphicsQueue, &presentInfo), "cannot present image");
+        vkCheckError(first, result, vkQueuePresentKHR(m_Context->GetGpu()->queue.graphicsQueue, &presentInfo), "cannot present image");
 
         if (!result.success) {
             bool exited = false;
@@ -168,17 +170,17 @@ namespace nkentseu {
 
             if (exited) {
                 if (m_Context->GetCurrentCommandBuffer() != nullptr) {
-                    vkCheckError(first, result, vkDeviceWaitIdle(m_Context->m_Gpu.device), "cannot wait device idle");
+                    vkCheckError(first, result, vkDeviceWaitIdle(m_Context->GetGpu()->device), "cannot wait device idle");
                 }
                 return false;
             }
         }
 
-        vkCheckError(first, result, vkDeviceWaitIdle(m_Context->m_Gpu.device), "cannot wait device idle");
+        vkCheckError(first, result, vkDeviceWaitIdle(m_Context->GetGpu()->device), "cannot wait device idle");
 
         m_Context->currentImageIndex++;
 
-        if (m_Context->currentImageIndex >= m_Context->m_Swapchain.swapchainImages.size()) {
+        if (m_Context->currentImageIndex >= m_Context->GetSwapchain()->swapchainImages.size()) {
             m_Context->currentImageIndex = 0;
         }
         return false;
@@ -190,7 +192,7 @@ namespace nkentseu {
             return false;
         }
 
-        if (m_Context->m_Swapchain.swapchainImages.size() == 0) {
+        if (m_Context->GetSwapchain()->swapchainImages.size() == 0) {
             return false;
         }
 

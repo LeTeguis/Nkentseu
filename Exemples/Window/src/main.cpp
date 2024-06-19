@@ -6,6 +6,7 @@
 #include <Nkentseu/Event/InputManager.h>
 
 using namespace nkentseu;
+using namespace nkentseu::maths;
 
 nkentseu::int32 Main(const nkentseu::ARGV& argv) {
     WindowProperties windowProperty;

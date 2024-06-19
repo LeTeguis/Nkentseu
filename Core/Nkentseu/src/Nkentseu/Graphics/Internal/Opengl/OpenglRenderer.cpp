@@ -38,6 +38,8 @@
 
 
 namespace nkentseu {
+    using namespace maths;
+
     OpenglRenderer::OpenglRenderer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<OpenglContext>(context)) {
     }
 

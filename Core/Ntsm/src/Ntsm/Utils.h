@@ -15,49 +15,49 @@
 #include <vector>
 
 namespace nkentseu {
-    struct NKENTSEU_API maths
+    namespace maths
     {
-		static float32 Sqrt(float32 x);
-		static float32 Sqrt(float32 x, int32 n);
-		static float32 Cos(const Angle& angle);
-		static float32 Sin(const Angle& angle);
-		static Angle ACos(float32 x);
-		static Angle ASin(float32 x);
-		static float32 Tan(const Angle& angle);
-		static Angle ATan(float32 x);
-		static Angle ATan(float32 x, float32 y);
-		static float32 FMod(float32 x, float32 y);
-		static float32 Floor(float32 x);
-		static float32 Ceil(float32 x);
-		static float32 Abs(float32 x);
-		static float32 Pow(float32 x, float32 y);
-		static float32 Exp(float32 x);
-		static float32 Logf(float32 x);
-		static int32   ILogbf(float32 x);
-		static float32 LDexp(float32 x, int32 exp);
+		float32 NKENTSEU_API Sqrt(float32 x);
+		float32 NKENTSEU_API Sqrt(float32 x, int32 n);
+		float32 NKENTSEU_API Cos(const Angle& angle);
+		float32 NKENTSEU_API Sin(const Angle& angle);
+		Angle NKENTSEU_API ACos(float32 x);
+		Angle NKENTSEU_API ASin(float32 x);
+		float32 NKENTSEU_API Tan(const Angle& angle);
+		Angle NKENTSEU_API ATan(float32 x);
+		Angle NKENTSEU_API ATan(float32 x, float32 y);
+		float32 NKENTSEU_API FMod(float32 x, float32 y);
+		float32 NKENTSEU_API Floor(float32 x);
+		float32 NKENTSEU_API Ceil(float32 x);
+		float32 NKENTSEU_API Abs(float32 x);
+		float32 NKENTSEU_API Pow(float32 x, float32 y);
+		float32 NKENTSEU_API Exp(float32 x);
+		float32 NKENTSEU_API Logf(float32 x);
+		int32   NKENTSEU_API ILogbf(float32 x);
+		float32 NKENTSEU_API LDexp(float32 x, int32 exp);
 
-		static bool EqualF32(float32 a, float32 b);
-		static bool EqualF64(float64 a, float64 b);
+		bool NKENTSEU_API EqualF32(float32 a, float32 b);
+		bool NKENTSEU_API EqualF64(float64 a, float64 b);
 
-		static float32 Round(float32 n);
+		float32 NKENTSEU_API Round(float32 n);
 
 		#define MAX(x, y) ((x) < (y) ? y : x)
 		#define MIN(x, y) ((x) < (y) ? x : y)
 		#define ABS(x) ((x) < 0 ? -(x) : (x))
 
-		template<typename T> static T Min(T a, T b) {
+		template<typename T> T Min(T a, T b) {
 			return (a < b) ? a : b;
 		}
 
-		template<typename T> static T Max(T a, T b) {
+		template<typename T> T Max(T a, T b) {
 			return (a > b) ? a : b;
 		}
 
-		template<typename T> static T Abs(T a) {
+		template<typename T> T Abs(T a) {
 			return (a < 0) ? -a : a;
 		}
 
-		template<typename T> static T Min(std::vector<T> list) {
+		template<typename T> T Min(std::vector<T> list) {
 			T min_ = list[0];
 			for (int32 i = 1; i < list.size(); i++) {
 				if (min_ > list[i]) {
@@ -67,7 +67,7 @@ namespace nkentseu {
 			return min_;
 		}
 
-		template<typename T> static T Max(std::vector<T> list) {
+		template<typename T> T Max(std::vector<T> list) {
 			T max_ = list[0];
 			for (int32 i = 1; i < list.size(); i++) {
 				if (max_ < list[i]) {
@@ -77,46 +77,26 @@ namespace nkentseu {
 			return max_;
 		}
 
-		template<typename T> static T  Clamp(T value, T min, T max) {
+		template<typename T> T Clamp(T value, T min, T max) {
 			if (value < min) return min;
 			if (value > max) return max;
 			return value;
 		}
 
-		static const float64 Pi();
-		static const float64 Pi__2();
-		static const float64 Pi_2();
-		static const float64 Sqrt2();
-		static const float64 Sqrt3();
+		const float64 Pi = 3.14159265358979323846;
+		const float64 Pis2 = 3.14159265358979323846 / 2.0;
+		const float64 Pi2 = 3.14159265358979323846 * 2.0;
+		const float64 Sqrt2 = 1.41421356237;
+		const float64 Sqrt3 = 1.73205080757;
 
-		static const float64 PuissanceApprox();
+		const float64 PuissanceApprox = 8192.0;
 
-		static const float64 Epsilon();
-		static const float64 VectorEpsilon();
-		static const float64 MatrixEpsilon();
-		static const float64 QuatEpsilon();
+		const float64 Epsilon = 0.000001220703125;
+		const float64 VectorEpsilon = 0.000001220703125;
+		const float64 MatrixEpsilon = 0.000001220703125;
+		const float64 QuatEpsilon = 0.000001220703125;
 
-		#define M4D(aRow, bCol, a, b)	a.ptr[0 * 4 + aRow] * b.ptr[bCol * 4 + 0] + \
-										a.ptr[1 * 4 + aRow] * b.ptr[bCol * 4 + 1] + \
-										a.ptr[2 * 4 + aRow] * b.ptr[bCol * 4 + 2] + \
-										a.ptr[3 * 4 + aRow] * b.ptr[bCol * 4 + 3]
-
-		#define M4V4D(mRow, x, y, z, w, m) \
-									x * m.ptr[0 * 4 + mRow] + \
-									y * m.ptr[1 * 4 + mRow] + \
-									z * m.ptr[2 * 4 + mRow] + \
-									w * m.ptr[3 * 4 + mRow]
-
-		#define M4SWAP(x, y) \
-									{float64 t = x; x = y; y = t; }
-
-		#define M4_3X3MINOR(x, c0, c1, c2, r0, r1, r2) \
-									(x[c0 * 4 + r0] * (x[c1 * 4 + r1] * x[c2 * 4 + r2] - x[c1 * 4 + r2] * \
-									x[c2 * 4 + r1]) - x[c1 * 4 + r0] * (x[c0 * 4 + r1] * x[c2 * 4 + r2] - \
-									x[c0 * 4 + r2] * x[c2 * 4 + r1]) + x[ c2 * 4 + r0] * (x[c0 * 4 + r1] * \
-									x[c1 * 4 + r2] - x[c0 * 4 + r2] * x[c1 * 4 + r1]))
-
-		enum class PrimitiveType {
+		enum class NKENTSEU_API PrimitiveType {
 			CHAR,
 			SIGNED_CHAR,
 			UNSIGNED_CHAR,
