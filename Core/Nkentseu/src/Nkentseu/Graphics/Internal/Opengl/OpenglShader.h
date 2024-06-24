@@ -41,6 +41,13 @@ namespace nkentseu {
             bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
             bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) override;
             bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) override;
+
+            uint32 GetProgramme() const {
+                return m_Programme;
+            }
+            uint32 GetProgramme() {
+                return m_Programme;
+            }
         private:
             uint32 m_Programme = 0;
             Memory::Shared<OpenglContext> m_Context = nullptr;

@@ -46,6 +46,12 @@ namespace nkentseu {
         usize size = leng * bufferLayout.stride;
         m_VertexBufferObject.size = size;
 
+        /*if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage, sharingMode, propertyFlags, m_VertexBufferObject.buffer, m_VertexBufferObject.bufferMemory)) {
+            Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}");
+            return false;
+        }*/
+
+        //*
         VulkanBuffer stanging;
 
         if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage_t, sharingMode, propertyFlags, stanging.buffer, stanging.bufferMemory)) {
@@ -74,11 +80,21 @@ namespace nkentseu {
             return false;
         }
 
-        bool success = stanging.Destroy(m_Context->GetGpu());
+        bool success = stanging.Destroy(m_Context->GetGpu());//*/
 
         m_Leng = leng;
         Log_nts.Info("Create vertex buffer is good");
 
+        return true;
+    }
+
+    bool VulkanVertexBuffer::SetData(void* data, usize size)
+    {
+        if (m_Context == nullptr) return false;
+        m_VertexBufferObject.Mapped(m_Context->GetGpu(), size, 0);
+        bool success = m_VertexBufferObject.WriteToBuffer(data, size, 0);
+        success = m_VertexBufferObject.Flush(m_Context->GetGpu(), size, 0);
+        m_VertexBufferObject.UnMapped(m_Context->GetGpu());
         return success;
     }
 

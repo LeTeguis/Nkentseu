@@ -181,6 +181,14 @@ namespace nkentseu {
 
 	Color::Color(const Color& color) : m_Red(color.m_Red), m_Green(color.m_Green), m_Blue(color.m_Blue), m_Alpha(color.m_Alpha) {}
 
+	Color::Color(const maths::Vector4f& color) : Color(RGBAf(color.r, color.g, color.b, color.a))
+	{
+	}
+
+	Color::Color(const maths::Vector3f& color) : Color(RGBAf(color.r, color.g, color.b, 1.0f))
+	{
+	}
+
 	Color Color::RGBf(float32 r, float32 g, float32 b) {
 		return Color(ClampValue(r), ClampValue(g), ClampValue(b), 255);
 	}

@@ -23,11 +23,12 @@ namespace nkentseu {
             ~VulkanUniformBuffer();
 
             bool Create();
-            //bool SetCommandBuffer(VkCommandBuffer commandBuffer);
+
+            bool SetData(const std::string& name, void* data, usize size) override;
+            bool SetData(const std::string& name, void* data, usize size, uint32 index) override;
+            bool Bind() override;
+
             Memory::Shared<Context> GetContext() override;
-            bool Bind(const std::string& name, void* data, usize size) override;
-            bool Bind(const std::string& name, void* data, usize size, uint32 index) override;
-            bool Flush() override;
             bool Destroy() override;
         private:
             Memory::Shared<VulkanContext> m_Context;

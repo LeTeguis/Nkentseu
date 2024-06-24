@@ -35,6 +35,8 @@ namespace nkentseu {
                 return Create(bufferUsage, vertices.data(), vertices.size(), bufferLayout);
             }
 
+            virtual bool SetData(void* data, usize size) override;
+
             VulkanBuffer* GetBuffer();
 
             uint32 Leng() const override;

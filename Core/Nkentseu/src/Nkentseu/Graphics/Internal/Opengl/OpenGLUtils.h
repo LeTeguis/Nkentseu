@@ -13,6 +13,7 @@
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "OpenglContext.h"
 #include "Nkentseu/Graphics/ShaderInfo.h"
+#include "Nkentseu/Graphics/RenderPrimitive.h"
 
 #include <glad/gl.h>
 
@@ -83,14 +84,30 @@ namespace nkentseu {
             static uint32 IndexType(DrawIndexType::Code drawIndex);
             static uint32 GetModuleType(ShaderType::Code code);
             static uint32 GetModernModuleType(ShaderType::Code shaderType);
+
+            static uint32 GetPrimitiveType(RenderPrimitive::Enum primitive);
     };
 
     struct NKENTSEU_API OpenglBuffer {
-        bool Create(const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset);
+        bool Create(const std::string& bufferName, uint32 bufferType, uint32 usage, const void* data, usize size, usize binding, int64 offset, uint32 instance, bool usedsa = false);
         bool Destroy();
-        bool WriteToBuffer(void* data, usize size, usize offset = 0);
+        bool WriteToBuffer(const void* data, usize size, usize offset = 0);
+        bool Bind() const;
+        bool Unbind() const;
 
-        uint32 uniform;
+        uint32 buffer = 0;
+        uint32 usage;
+        uint32 bufferType;
+        usize binding;
+        std::string name;
+        uint32 instance = 1;
+        uint32 dynamicAlignment;
+        UniformBufferType::Code uType;
+
+        uint32 currentOffset = 0;
+        uint32 currentIndex = 0;
+
+        bool useDAS = false;
     };
 }  //  nkentseu
 

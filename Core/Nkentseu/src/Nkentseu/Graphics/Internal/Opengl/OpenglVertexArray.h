@@ -34,7 +34,14 @@ namespace nkentseu {
             uint32 GetIndexLeng() override;
             uint32 Leng() override;
             bool Destroy() override;
+
             bool Draw(DrawVertexType::Code drawVertex) override;
+
+            virtual bool DrawVertex(RenderPrimitive::Enum primitive) override;
+            virtual bool DrawVertex(RenderPrimitive::Enum primitive, uint32 firstVertex, uint32 vertexCount) override;
+
+            virtual bool DrawIndex(RenderPrimitive::Enum primitive) override;
+            virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) override;
 
             bool Create();
             bool Create(uint32 vertexNumber);
@@ -48,9 +55,11 @@ namespace nkentseu {
             GLuint m_VertexArrayObject = 0; // VAO
             Memory::Shared<OpenglVertexBuffer> m_VertexBuffer;
             Memory::Shared<OpenglIndexBuffer> m_IndexBuffer;
+            //std::vector<Memory::Shared<OpenglVertexBuffer>> m_VertexBuffers;
             uint32 m_VertexNumber = 0;
 
             Memory::Shared<Context> m_Context;
+            bool m_UseDsa = false;
     private:
         bool ActualizeVertexBuffer();
     };

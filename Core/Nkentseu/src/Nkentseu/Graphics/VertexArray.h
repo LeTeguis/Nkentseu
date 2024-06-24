@@ -15,6 +15,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Context.h"
+#include "RenderPrimitive.h"
 
 namespace nkentseu {
     class NKENTSEU_API VertexArray {
@@ -28,7 +29,14 @@ namespace nkentseu {
             virtual uint32 GetIndexLeng() = 0;
             virtual uint32 Leng() = 0;
             virtual bool Destroy() = 0;
+
             virtual bool Draw(DrawVertexType::Code drawVertex) = 0;
+
+            virtual bool DrawVertex(RenderPrimitive::Enum primitive) = 0;
+            virtual bool DrawVertex(RenderPrimitive::Enum primitive, uint32 firstVertex, uint32 vertexCount) = 0;
+
+            virtual bool DrawIndex(RenderPrimitive::Enum primitive) = 0;
+            virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) = 0;
 
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context);
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, uint32 vertexNumber);

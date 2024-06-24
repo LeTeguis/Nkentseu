@@ -69,6 +69,32 @@ namespace nkentseu {
 			RectT() : position(T(0), T(0)), size(T(0), T(0)) {}
 			RectT(const Vector2T<T>& position, const Vector2T<T>& size) : position(position), size(size) {}
 			RectT(const RectT& rect) : position(rect.position), size(rect.size) {}
+
+			template <typename U>
+			RectT(const Vector2T<U>& position, const Vector2T<U>& size) : position(position), size(size) {}
+			template <typename U>
+			RectT(const RectT<U>& rect) : position((Vector2T<T>)rect.position), size((Vector2T<T>)rect.size) {}
+
+			RectT& operator=(const RectT& rect) {
+				this->x = rect.x;
+				this->y = rect.y;
+				this->width = rect.width;
+				this->height = rect.height;
+
+				return *this;
+			}
+
+			Vector2T<T> GetCenter() const {
+				return Vector2T(x + width / 2, y + height / 2);
+			}
+
+			T GetCenterX() const {
+				return x + width / 2;
+			}
+
+			T GetCenterY() const {
+				return y + height / 2;
+			}
 		};
 
 		using IntRect = RectT<int32>;

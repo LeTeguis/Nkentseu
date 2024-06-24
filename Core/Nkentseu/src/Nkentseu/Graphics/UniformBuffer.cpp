@@ -11,13 +11,6 @@
 #include "Internal/Opengl/OpenglUniformBuffer.h"
 
 namespace nkentseu {
-#define NKENTSEU_CREATE_UNIFORM_BUFFER(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
-																auto data = Memory::Alloc<class_>(context, shader, uniformLayout);	\
-																if (data != nullptr && data->Create()) {	\
-																	return data;	\
-																}	\
-																Memory::Reset(data);	\
-															}
 
 	Memory::Shared<UniformBuffer> UniformBuffer::Create(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout)
 	{
@@ -25,8 +18,17 @@ namespace nkentseu {
 			return nullptr;
 		}
 
-		NKENTSEU_CREATE_UNIFORM_BUFFER(GraphicsApiType::VulkanApi, VulkanUniformBuffer);
-		NKENTSEU_CREATE_UNIFORM_BUFFER(GraphicsApiType::OpenglApi, OpenglUniformBuffer);
+		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+			auto uniform = Memory::Alloc<VulkanUniformBuffer>(context, shader, uniformLayout);
+			if (uniform != nullptr && uniform->Create()) return uniform;
+			Memory::Reset(uniform);
+		}
+
+		if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
+			auto uniform = Memory::Alloc<OpenglUniformBuffer>(context, shader, uniformLayout);
+			if (uniform != nullptr && uniform->Create()) return uniform;
+			Memory::Reset(uniform);
+		}
 		return nullptr;
 	}
 }  //  nkentseu

@@ -51,7 +51,7 @@ namespace nkentseu {
         if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
             for (auto& [name, attribut] : m_ShaderLayout.uniformBuffer.attributes) {
                 VkDescriptorType dtype = (attribut.uType == UniformBufferType::Static) ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-                m_PipelineLayout.Add(attribut.binding, dtype, VK_SHADER_STAGE_VERTEX_BIT);
+                m_PipelineLayout.Add(attribut.binding, dtype, VulkanConvert::ShaderStageToVkShaderStage(attribut.type));
             }
         }
 
@@ -256,7 +256,7 @@ namespace nkentseu {
 
         vkCheckErrorVoid(vkCmdSetScissor(commandBuffer, 0, 1, &scissor));
         vkCheckErrorVoid(vkCmdSetViewport(commandBuffer, 0, 1, &viewport));
-        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(commandBuffer, m_DynamicMode.primitiveTopology));
+        //vkCheckErrorVoid(vkCmdSetPrimitiveTopology(commandBuffer, m_DynamicMode.primitiveTopology));
         vkCheckErrorVoid(vkCmdSetFrontFace(commandBuffer, m_DynamicMode.frontFace));
         vkCheckErrorVoid(vkCmdSetCullMode(commandBuffer, m_DynamicMode.cullMode));
 

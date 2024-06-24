@@ -42,6 +42,12 @@ namespace nkentseu {
             uint32 Leng() override;
 
             bool Draw(DrawVertexType::Code drawVertex) override;
+
+            virtual bool DrawVertex(RenderPrimitive::Enum primitive) override;
+            virtual bool DrawVertex(RenderPrimitive::Enum primitive, uint32 firstVertex, uint32 vertexCount) override;
+
+            virtual bool DrawIndex(RenderPrimitive::Enum primitive) override;
+            virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) override;
         private:
             uint32 m_VertexNumber = 0;
             Memory::Shared<VulkanContext> m_Context = nullptr;

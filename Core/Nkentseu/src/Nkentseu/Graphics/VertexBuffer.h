@@ -21,6 +21,7 @@ namespace nkentseu {
             virtual Memory::Shared<Context> GetContext() = 0;
             virtual bool Destroy() = 0;
             virtual uint32 Leng() const = 0;
+            virtual bool SetData(void* data, usize size) = 0;
 
             static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
 

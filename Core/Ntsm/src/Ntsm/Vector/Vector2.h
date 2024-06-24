@@ -745,6 +745,11 @@ namespace nkentseu {
 			template<typename U>
 			Vector2T(const Vector2T<U>& v) : x((T)v.x), y((T)v.y) {}
 
+			Vector2T(const Vector2f& v) : x((T)v.x), y((T)v.y) {}
+			Vector2T(const Vector2d& v) : x((T)v.x), y((T)v.y) {}
+			Vector2T(const Vector2i& v) : x((T)v.x), y((T)v.y) {}
+			Vector2T(const Vector2u& v) : x((T)v.x), y((T)v.y) {}
+
 			Vector2T operator=(const Vector2T& other) {
 				if (this->x != other.x && this->y != other.y) {
 					this->x = other.x;
@@ -770,6 +775,22 @@ namespace nkentseu {
 			template<typename U>
 			operator Vector2T<U>() {
 				return Vector2T((U)x, (U)y);
+			}
+
+			operator Vector2f () {
+				return Vector2f(x, y);
+			}
+
+			operator Vector2d () {
+				return Vector2d(x, y);
+			}
+
+			operator Vector2i () {
+				return Vector2i(x, y);
+			}
+
+			operator Vector2u () {
+				return Vector2u(x, y);
 			}
 
 			operator T* () {

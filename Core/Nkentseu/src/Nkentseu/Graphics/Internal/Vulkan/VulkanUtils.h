@@ -15,6 +15,8 @@
 #include <Logger/Formatter.h>
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include <Nkentseu/Graphics/ShaderInfo.h>
+
+#include "Nkentseu/Graphics/RenderPrimitive.h"
 //#include <glslang_c_shader_types.h>
 
 namespace nkentseu {
@@ -47,9 +49,14 @@ namespace nkentseu {
         static VkFrontFace FrontFaceType(FrontFaceType::Code mode);
         static VkPrimitiveTopology PrimitiveTopologyType(PrimitiveTopologyType::Code mode);
 
+        static VkPrimitiveTopology GetPrimitiveType(RenderPrimitive::Enum primitive);
+
+
         static bool EndsWith(const std::string& s, const std::string& part);
 
         static VkFormat ShaderFormatToVkFormat(ShaderDataType::Code shaderDataType);
+
+        static VkShaderStageFlagBits ShaderStageToVkShaderStage(ShaderType::Code shaderStage);
     };
 
     template<typename... Args>

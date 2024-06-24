@@ -19,10 +19,11 @@ namespace nkentseu {
     class NKENTSEU_API UniformBuffer {
         public:
             virtual Memory::Shared<Context> GetContext() = 0;
-            virtual bool Bind(const std::string& name, void* data, usize size) = 0;
-            virtual bool Bind(const std::string& name, void* data, usize size, uint32 index) = 0;
-            virtual bool Flush() = 0;
-            //virtual bool Bind(const std::string& name, void* data, usize size, uint32 instance) = 0;
+
+            virtual bool SetData(const std::string& name, void* data, usize size) = 0;
+            virtual bool SetData(const std::string& name, void* data, usize size, uint32 index) = 0;
+            virtual bool Bind() = 0;
+
             virtual bool Destroy() = 0;
 
             static Memory::Shared<UniformBuffer> Create(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout);

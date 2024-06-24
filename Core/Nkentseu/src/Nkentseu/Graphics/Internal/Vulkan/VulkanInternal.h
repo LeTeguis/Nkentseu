@@ -257,6 +257,8 @@ namespace nkentseu {
         VkDeviceMemory bufferMemory = nullptr;
         void* mappedData = nullptr;
         VkDeviceSize size = 0;
+
+
     };
 
     struct NKENTSEU_API VulkanUBO {
@@ -265,6 +267,7 @@ namespace nkentseu {
 
         bool Binds(VulkanGpu* gpu, void* data, usize size, uint32 instanceIndex);
         bool Bind(VulkanGpu* gpu, void* data, usize size, uint32 index, uint32 instanceIndex);
+        bool BindSimple(VulkanGpu* gpu, void* data, usize size, uint32 index, uint32 instanceIndex);
 
         static void* AlignedAlloc(size_t size, size_t alignment);
 
@@ -279,6 +282,7 @@ namespace nkentseu {
 
         uint32 currentOffset = 0;
         void* dataModel = nullptr;
+        uint32 currentIndex = 0;
     };
 
     struct NKENTSEU_API VulkanCommandBuffer {

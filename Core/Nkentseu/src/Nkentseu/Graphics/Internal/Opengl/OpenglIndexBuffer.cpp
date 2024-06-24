@@ -29,66 +29,28 @@ namespace nkentseu {
 
     bool OpenglIndexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices)
     {
-        if (m_ElementBufferObject != 0 || m_Context == nullptr) {
-            return false;
-        }
-
-        OpenGLResult result;
-        bool first = true;
-
-        glCheckError(first, result, glGenBuffers(1, &m_ElementBufferObject), "cannot gen buffer for index buffer");
-        if (!result.success || m_ElementBufferObject == 0) {
-            return false;
-        }
-
-        if (!Bind()) {
-            return false;
-        }
-
-        m_BufferUsage = bufferUsage;
-
-        glCheckError(first, result, glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices.size(), indices.data(), GLConvert::UsageType(m_BufferUsage)), "cannot set buffer data for index buffer");
-
-        if (!result.success) {
-            return false;
-        }
-
-        m_Leng = indices.size();
-
-        m_IndexType = DrawIndexType::UInt32;
-        return Unbind();
+        return Create(bufferUsage, DrawIndexType::UInt32, indices.data(), indices.size());
     }
 
     bool OpenglIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng)
     {
-        if (m_ElementBufferObject != 0 || m_Context == nullptr) {
+        if (m_Buffer.buffer != 0 || m_Context == nullptr) {
             return false;
         }
 
         OpenGLResult result;
         bool first = true;
+        m_Size = leng;
 
-        glCheckError(first, result, glGenBuffers(1, &m_ElementBufferObject), "cannot gen buffer for index buffer");
-        if (!result.success || m_ElementBufferObject == 0) {
+        if (m_Buffer.buffer != 0) {
             return false;
         }
 
-        if (!Bind()) {
-            return false;
-        }
-
-        m_BufferUsage = bufferUsage;
-
-        glCheckError(first, result, glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * leng, indices, GLConvert::UsageType(m_BufferUsage)), "cannot set buffer data for index buffer");
-
-        if (!result.success) {
-            return false;
-        }
-
-        m_Leng = leng;
-
+        m_Size = leng;
         m_IndexType = indexType;
-        return Unbind();
+        usize size = m_Size * sizeof(uint32);
+
+        return m_Buffer.Create("index buffer", GL_ELEMENT_ARRAY_BUFFER, GLConvert::UsageType(m_BufferUsage), indices, size, 0, 0, 1);
     }
 
     Memory::Shared<Context> OpenglIndexBuffer::GetContext()
@@ -98,46 +60,49 @@ namespace nkentseu {
 
     bool OpenglIndexBuffer::Destroy()
     {
-        if (m_ElementBufferObject == 0 || m_Context == nullptr) {
+        if (m_Context == nullptr) {
             return false;
         }
-        return true;
+        return m_Buffer.Destroy();
     }
 
-    bool OpenglIndexBuffer::Bind()
+    bool OpenglIndexBuffer::Bind() const
     {
-        if (m_ElementBufferObject == 0 || m_Context == nullptr) {
+        if (m_Context == nullptr) {
             return false;
         }
-
-        OpenGLResult result;
-        bool first = true;
-
-        glCheckError(first, result, glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ElementBufferObject), "cannot bin index buffer");
-        return result.success;
+        return m_Buffer.Bind();
     }
 
-    bool OpenglIndexBuffer::Unbind()
+    bool OpenglIndexBuffer::Unbind() const
     {
-        if (m_ElementBufferObject == 0 || m_Context == nullptr) {
+        if (m_Context == nullptr) {
             return false;
         }
+        return m_Buffer.Unbind();
+    }
 
-        OpenGLResult result;
-        bool first = true;
-
-        glCheckError(first, result, glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0), "cannot unbin index buffer");
-        return result.success;
+    bool OpenglIndexBuffer::SetData(void* data, usize size)
+    {
+        if (m_Context == nullptr) {
+            return false;
+        }
+        return m_Buffer.WriteToBuffer(data, size);
     }
 
     uint32 OpenglIndexBuffer::Leng() const
     {
-        return m_Leng;
+        return m_Size;
     }
 
     DrawIndexType::Code OpenglIndexBuffer::GetIndexType() const
     {
         return m_IndexType;
+    }
+
+    uint32 OpenglIndexBuffer::GetBuffer() const
+    {
+        return m_Buffer.buffer;
     }
 
 }  //  nkentseu

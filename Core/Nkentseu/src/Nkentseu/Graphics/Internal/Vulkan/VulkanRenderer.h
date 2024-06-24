@@ -14,6 +14,7 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/Color.h>
 #include <Nkentseu/Graphics/Renderer.h>
+#include <Nkentseu/Graphics/Canvas.h>
 #include <Ntsm/Vector/Vector2.h>
 #include "Nkentseu/Core/Events.h"
 
@@ -25,6 +26,7 @@
 namespace nkentseu {
     class VulkanContext;
     class VulkanShader;
+    class VulkanCanvas;
     class VulkanVertexArray;
     
     class NKENTSEU_API VulkanRenderer : public Renderer {
@@ -40,10 +42,14 @@ namespace nkentseu {
             bool Begin(const Color& color) override;
             bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) override;
             bool End() override;
+
+            virtual Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<VulkanContext> m_Context;
+            Memory::Shared<VulkanCanvas> m_Canvas = nullptr;
 
             bool m_IsPrepare = false;
+            bool beginRenderPass = false;
 
             VulkanDynamicMode m_DynamicMode;
 

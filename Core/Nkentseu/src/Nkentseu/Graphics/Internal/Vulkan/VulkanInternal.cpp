@@ -1606,8 +1606,41 @@ namespace nkentseu {
 		currentOffset = 0;
 
 		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
-			currentOffset = instanceIndex * dynamicAlignment;
+			currentIndex++;
+
+			if (currentIndex >= uniformBufferAttribut.instance) {
+				currentIndex = 0;
+			}
+			currentOffset = currentIndex * dynamicAlignment;
 		}
+
+		auto& uniform = uniformBuffers[index];
+
+		uniform.Mapped(gpu, size, 0);
+		success = uniform.WriteToBuffer(data, size, currentOffset);
+		success = uniform.Flush(gpu, size, 0);
+		uniform.UnMapped(gpu);
+
+		return success;
+	}
+
+	bool VulkanUBO::BindSimple(VulkanGpu* gpu, void* data, usize size, uint32 index, uint32 instanceIndex)
+	{
+		if (gpu == nullptr) return false;
+
+		bool success = false;
+
+		currentOffset = 0;
+
+
+		currentIndex++;
+
+		if (currentIndex >= uniformBufferAttribut.instance) {
+			currentIndex = 0;
+		}
+
+		//currentOffset = currentIndex * dynamicAlignment;
+		currentOffset = currentIndex * uniformBufferAttribut.size;
 
 		auto& uniform = uniformBuffers[index];
 

@@ -10,9 +10,6 @@
 
 #include "Log.h"
 #include <Ntsm/Ntsm.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <Nkentseu/Core/Events.h>
 #include <Nkentseu/Graphics/Color.h>
@@ -24,18 +21,18 @@
 
 #include <Nkentseu/Graphics/Shader.h>
 #include <Nkentseu/Core/FPSTimer.h>
-
-#include "Unkeny/Graphics/CameraEditor.h"
-#include <Unkeny/Graphics/Camera.h>
 #include <Nkentseu/Graphics/Texture.h>
 
+#include "Unkeny/Graphics/CameraEditor.h"
+#include "Unkeny/Graphics/Camera.h"
+#include <Nkentseu/Graphics/PrimitiveMesh.h>
 
 namespace nkentseu {
     using namespace maths;
-
+    //Vector4f color;
     struct Vertex {
         Vector3f position;
-        Vector3f color;
+        Vector4f color;
         Vector2f uv;
     };
 
@@ -54,7 +51,7 @@ namespace nkentseu {
         matrix4f proj = matrix4f::Identity();
     };
 
-    float cubeVertices1[] = {
+    float32 cubeVertices1[] = {
         // Back face
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right    
@@ -100,16 +97,16 @@ namespace nkentseu {
     };
 
     const std::vector<Vertex> vertices_struct = {
-        {{ 0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.31f }, { 0.0f, 0.0f }}, // top right
-        {{ 0.5f, -0.5f, 0.0f} , { 0.0f, 0.31f, 0.31f }, {0.0f, 1.0f }}, // bottom right
-        {{ -0.5f, -0.5f, 0.0f} , { 0.31f, 0.31f, 0.0f }, {1.0f, 1.0f }}, // bottom left
-        {{ -0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.0f }, {1.0f, 0.0f }} // top left
+        {{ 0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.31f, 1.0f }, { 0.0f, 0.0f }}, // top right
+        {{ 0.5f, -0.5f, 0.0f} , { 0.0f, 0.31f, 0.31f, 1.0f }, {0.0f, 1.0f }}, // bottom right
+        {{ -0.5f, -0.5f, 0.0f} , { 0.31f, 0.31f, 0.0f, 1.0f }, {1.0f, 1.0f }}, // bottom left
+        {{ -0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.0f, 1.0f }, {1.0f, 0.0f }} // top left
     };
 
     const std::vector<Vertex> vertices_triangles_multi = {
-        {{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+        {{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f }},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 1.0f }},
+        {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 1.0f, 1.0f }}
     };
 
     std::vector<float32> vertices =
@@ -135,28 +132,28 @@ namespace nkentseu {
 
     const std::vector<Vertex> cubeVertices = {
         // Face avant
-        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f }}, // 0
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f }}, // 1
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f }}, // 2
-        {{-0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f}, {1.0f, 0.0f }}, // 3
+        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f }}, // 0
+        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 1.0f }}, // 1
+        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}, {1.0f, 1.0f }}, // 2
+        {{-0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 0.0f, 1.0f}, {1.0f, 0.0f }}, // 3
         // Face arrière
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f }}, // 4
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f }}, // 5
-        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f }}, // 6
-        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f }}  // 7
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f, 1.0f}, {0.0f, 0.0f }}, // 4
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f }}, // 5
+        {{ 0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f, 1.0f}, {1.0f, 1.0f }}, // 6
+        {{-0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 0.0f }}  // 7
     };
 
     /*const std::vector<Vertex> cubeVertices = {
         // Face avant
-        {{-0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 0 (Gray color: R = 0.5, G = 0.5, B = 0.5)
-        {{ 0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 1
-        {{ 0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 2
-        {{-0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}}, // 3
+        {{-0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}}, // 0 (Gray color: R = 0.5, G = 0.5, B = 0.5)
+        {{ 0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}}, // 1
+        {{ 0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}}, // 2
+        {{-0.5f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}}, // 3
         // Face arrière
-        {{-0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}, // 4
-        {{ 0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}, // 5
-        {{ 0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}}, // 6
-        {{-0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, 0.5f}} // 7
+        {{-0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}}, // 4
+        {{ 0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, 0.5, 1.0ff}}, // 5
+        {{ 0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}}, // 6
+        {{-0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, 0.5f, 1.0f}} // 7
     };*/
 
     std::vector<uint32_t> cubeIndices = {
@@ -174,6 +171,34 @@ namespace nkentseu {
         0, 1, 5, 5, 4, 0
     };
 
+    std::vector<Vertex> verticesCube = {
+        // Front face
+        {{-1, -1,  1}, {1, 0, 0, 1}, {0, 0}},  // 0
+        {{ 1, -1,  1}, {0, 1, 0, 1}, {1, 0}},  // 1
+        {{ 1,  1,  1}, {0, 0, 1, 1}, {1, 1}},  // 2
+        {{-1,  1,  1}, {1, 1, 0, 1}, {0, 1}},  // 3
+        // Back face
+        {{-1, -1, -1}, {1, 0, 1, 1}, {1, 0}},  // 4
+        {{ 1, -1, -1}, {0, 1, 1, 1}, {0, 0}},  // 5
+        {{ 1,  1, -1}, {1, 1, 1, 1}, {0, 1}},  // 6
+        {{-1,  1, -1}, {0, 0, 0, 1}, {1, 1}},  // 7
+    };
+
+    std::vector<uint32> indicesCube = {
+        // Front face
+        0, 1, 2, 2, 3, 0,
+        // Back face
+        4, 5, 6, 6, 7, 4,
+        // Left face
+        4, 0, 3, 3, 7, 4,
+        // Right face
+        1, 5, 6, 6, 2, 1,
+        // Top face
+        3, 2, 6, 6, 7, 3,
+        // Bottom face
+        4, 5, 1, 1, 0, 4,
+    };
+
     Vector3f cubePositions[] = {
            Vector3f(0.0f, 0.0f, 0.0f),
            Vector3f(2.0f, 5.0f, -15.0f),
@@ -187,6 +212,237 @@ namespace nkentseu {
            Vector3f(-1.3f, 1.0f, -1.5f)
     };
 
+    struct Shape3D {
+        std::vector<Vertex> vertices;
+        std::vector<uint32> indices;
+    };
+
+    class ShapeCube : public Shape3D {
+    public:
+        ShapeCube() {
+            vertices = {
+                // Front face
+                {{-1, -1,  1}, {1, 0, 0, 1}, {0, 0}},
+                {{ 1, -1,  1}, {0, 1, 0, 1}, {1, 0}},
+                {{ 1,  1,  1}, {0, 0, 1, 1}, {1, 1}},
+                {{-1,  1,  1}, {1, 1, 0, 1}, {0, 1}},
+                // Back face
+                {{-1, -1, -1}, {1, 0, 1, 1}, {1, 0}},
+                {{ 1, -1, -1}, {0, 1, 1, 1}, {0, 0}},
+                {{ 1,  1, -1}, {1, 1, 1, 1}, {0, 1}},
+                {{-1,  1, -1}, {0, 0, 0, 1}, {1, 1}},
+            };
+
+            indices = {
+                /*/ Front face
+                0, 1, 2, 2, 3, 0,
+                // Back face
+                4, 5, 6, 6, 7, 4,
+                // Left face
+                4, 0, 3, 3, 7, 4,
+                // Right face
+                1, 5, 6, 6, 2, 1,
+                // Top face
+                3, 2, 6, 6, 7, 3,
+                // Bottom face
+                4, 5, 1, 1, 0, 4,*/
+
+                // Face avant
+                0, 1, 2, 2, 3, 0,
+                // Face arrière
+                4, 5, 6, 6, 7, 4,
+                // Face gauche
+                0, 3, 7, 7, 4, 0,
+                // Face droite
+                1, 2, 6, 6, 5, 1,
+                // Face supérieure
+                3, 2, 6, 6, 7, 3,
+                // Face inférieure
+                0, 1, 5, 5, 4, 0
+            };
+        }
+    };
+
+    class ShapeSphere : public Shape3D {
+    public:
+        ShapeSphere(float32 radius = 1.0f, int32 sectorCount = 36, int32 stackCount = 18) {
+            float32 x, y, z, xy;
+            float32 s, t;
+            float32 sectorStep = 2 * maths::Pi / sectorCount;
+            float32 stackStep = maths::Pi / stackCount;
+            float32 sectorAngle, stackAngle;
+
+            for (int32 i = 0; i <= stackCount; ++i) {
+                stackAngle = maths::Pi / 2 - i * stackStep;
+                xy = radius * cosf(stackAngle);
+                z = radius * sinf(stackAngle);
+
+                for (int32 j = 0; j <= sectorCount; ++j) {
+                    sectorAngle = j * sectorStep;
+                    x = xy * cosf(sectorAngle);
+                    y = xy * sinf(sectorAngle);
+                    s = (float32)j / sectorCount;
+                    t = (float32)i / stackCount;
+                    vertices.push_back({ {x, y, z}, {1, 0, 0, 1}, {s, t} });
+                }
+            }
+
+            int32 k1, k2;
+            for (int32 i = 0; i < stackCount; ++i) {
+                k1 = i * (sectorCount + 1);
+                k2 = k1 + sectorCount + 1;
+                for (int32 j = 0; j < sectorCount; ++j, ++k1, ++k2) {
+                    if (i != 0) {
+                        indices.push_back(k1);
+                        indices.push_back(k2);
+                        indices.push_back(k1 + 1);
+                    }
+                    if (i != (stackCount - 1)) {
+                        indices.push_back(k1 + 1);
+                        indices.push_back(k2);
+                        indices.push_back(k2 + 1);
+                    }
+                }
+            }
+        }
+    };
+
+    class ShapeTube : public Shape3D {
+    public:
+        ShapeTube(float32 radius = 1.0f, float32 height = 2.0f, int32 sectorCount = 36) {
+            float32 sectorStep = 2 * maths::Pi / sectorCount;
+            float32 sectorAngle;
+
+            for (int32 i = 0; i <= 1; ++i) {
+                float32 h = (i == 0) ? -height / 2 : height / 2;
+                for (int32 j = 0; j <= sectorCount; ++j) {
+                    sectorAngle = j * sectorStep;
+                    float32 x = radius * cosf(sectorAngle);
+                    float32 y = radius * sinf(sectorAngle);
+                    Vertex vertex;
+                    vertex.position = Vector3f( x, y, h );
+                    vertex.color = Vector4f(x, y, h );
+                    vertex.uv = Vector2f(j / (float32)sectorCount, i);
+                    vertices.push_back(vertex);
+                }
+            }
+
+            int32 k1, k2;
+            for (int32 i = 0; i < sectorCount; ++i) {
+                k1 = i;
+                k2 = k1 + sectorCount + 1;
+                indices.push_back(k1);
+                indices.push_back(k2);
+                indices.push_back(k1 + 1);
+                indices.push_back(k1 + 1);
+                indices.push_back(k2);
+                indices.push_back(k2 + 1);
+            }
+        }
+    };
+
+    class ShapeCapsule : public Shape3D {
+    public:
+        ShapeCapsule(float32 radius = 1.0f, float32 height = 2.0f, int32 sectorCount = 36, int32 stackCount = 18) {
+            float32 sectorStep = 2 * maths::Pi / sectorCount;
+            float32 stackStep = maths::Pi / stackCount;
+            float32 sectorAngle, stackAngle;
+
+            // Upper hemisphere
+            for (int32 i = 0; i <= stackCount / 2; ++i) {
+                stackAngle = maths::Pi / 2 - i * stackStep;
+                float32 xy = radius * cosf(stackAngle);
+                float32 z = radius * sinf(stackAngle) + height / 2;
+                for (int32 j = 0; j <= sectorCount; ++j) {
+                    sectorAngle = j * sectorStep;
+                    float32 x = xy * cosf(sectorAngle);
+                    float32 y = xy * sinf(sectorAngle);
+                    vertices.push_back({ {x, y, z}, {1, 0, 0}, {j / (float32)sectorCount, i / (float32)stackCount} });
+                }
+            }
+
+            // Cylinder
+            for (int32 i = 0; i <= 1; ++i) {
+                float32 h = (i == 0) ? height / 2 : -height / 2;
+                for (int32 j = 0; j <= sectorCount; ++j) {
+                    float32 sectorAngle = j * sectorStep;
+                    float32 x = radius * cosf(sectorAngle);
+                    float32 y = radius * sinf(sectorAngle);
+                    vertices.push_back({ {x, y, h}, {0, 1, 0}, {j / (float32)sectorCount, (stackCount / 2 + i) / (float32)stackCount} });
+                }
+            }
+
+            // Lower hemisphere
+            for (int32 i = stackCount / 2; i <= stackCount; ++i) {
+                stackAngle = maths::Pi / 2 - i * stackStep;
+                float32 xy = radius * cosf(stackAngle);
+                float32 z = radius * sinf(stackAngle) - height / 2;
+                for (int32 j = 0; j <= sectorCount; ++j) {
+                    sectorAngle = j * sectorStep;
+                    float32 x = xy * cosf(sectorAngle);
+                    float32 y = xy * sinf(sectorAngle);
+                    vertices.push_back({ {x, y, z}, {0, 0, 1}, {j / (float32)sectorCount, i / (float32)stackCount} });
+                }
+            }
+
+            int32 k1, k2;
+
+            // Upper hemisphere indices
+            for (int32 i = 0; i < stackCount / 2; ++i) {
+                k1 = i * (sectorCount + 1);
+                k2 = k1 + sectorCount + 1;
+                for (int32 j = 0; j < sectorCount; ++j, ++k1, ++k2) {
+                    if (i != 0) {
+                        indices.push_back(k1);
+                        indices.push_back(k2);
+                        indices.push_back(k1 + 1);
+                    }
+                    indices.push_back(k1 + 1);
+                    indices.push_back(k2);
+                    indices.push_back(k2 + 1);
+                }
+            }
+
+            // Cylinder indices
+            for (int32 i = 0; i < sectorCount; ++i) {
+                k1 = (stackCount / 2) * (sectorCount + 1) + i;
+                k2 = k1 + sectorCount + 1;
+                indices.push_back(k1);
+                indices.push_back(k2);
+                indices.push_back(k1 + 1);
+                indices.push_back(k1 + 1);
+                indices.push_back(k2);
+                indices.push_back(k2 + 1);
+            }
+
+            // Lower hemisphere indices
+            for (int32 i = stackCount / 2; i <= stackCount + 2; ++i) {
+                k1 = (i + 1) * (sectorCount + 1);
+                k2 = k1 + sectorCount + 1;
+                for (int32 j = 0; j < sectorCount; ++j, ++k1, ++k2) {
+                    //if (i != stackCount + 2) {
+                        indices.push_back(k1);
+                        indices.push_back(k2);
+                        indices.push_back(k1 + 1);
+                    //}
+                    indices.push_back(k1 + 1);
+                    indices.push_back(k2);
+                    indices.push_back(k2 + 1);
+                }
+            }
+
+
+            /*int bottomPoleIndex = vertices.size() - 1;
+            int lowerHemisphereStart = (stackCount / 2 + 2) * (sectorCount + 1);
+            int offset = lowerHemisphereStart + (stackCount - stackCount / 2 - 1) * (sectorCount + 1);
+            for (int j = 0; j < sectorCount; ++j) {
+                indices.push_back(bottomPoleIndex);
+                indices.push_back(offset + j);
+                indices.push_back(offset + (j + 1) % sectorCount);
+            }*/
+        }
+    };
+
     Vector3f cameraSens = Vector3f(0.0f);
 
     Memory::Shared<VertexBuffer> vertexBuffer = nullptr;
@@ -196,6 +452,12 @@ namespace nkentseu {
     Memory::Shared<VertexBuffer> vertexBuffer2 = nullptr;
     Memory::Shared<IndexBuffer> indexBuffer2 = nullptr;
     Memory::Shared<VertexArray> vertexArray2 = nullptr;
+
+    ShapeCube shapeCube;
+    ShapeSphere shapeSphere;
+    ShapeCapsule shapeCapsule;
+    ShapeTube shapeTube;
+
     Vector2f mouseDelta;
     Camera camera;
     CameraMovement movementCamera = CameraMovement::FORWARD;
@@ -276,13 +538,13 @@ namespace nkentseu {
 
         BufferLayout bufferLayout;
         bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", 0));
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "color", 1));
+        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float4, "color", 1));
         bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float2, "uv", 2));
         bufferLayout.CalculateOffsetsAndStride();
 
         UniformBufferLayout uniformLayout;
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CameraBuffer), 1, "cameraBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
+        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "ObjectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
+        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CameraBuffer), 1, "CameraBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
 
         std::unordered_map<ShaderType::Code, std::string> shaderFiles;
         shaderFiles[ShaderType::Vertex] = "Resources/shaders/ubo.vert.glsl";
@@ -303,10 +565,21 @@ namespace nkentseu {
             Log.Error("Cannot create shader");
         }
 
+        //Memory::Shared<UniformBuffer> uniformBuffer = nullptr;
+
         Memory::Shared<UniformBuffer> uniformBuffer = UniformBuffer::Create(m_Context, shader, uniformLayout);
         if (uniformBuffer == nullptr) {
             Log.Error("Cannot create uniform buffer");
         }
+        //Memory::Shared<UniformBuffer> uniformBuffer2 = nullptr;
+        //*
+        UniformBufferLayout uniformLayout2;
+        uniformLayout2.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
+        Memory::Shared<UniformBuffer> uniformBuffer2 = UniformBuffer::Create(m_Context, shader, uniformLayout);
+        if (uniformBuffer2 == nullptr) {
+            Log.Error("Cannot create uniform buffer");
+        }
+        //*/
 
         /*std::vector<Memory::Shared<UniformBuffer>> ulist;
 
@@ -319,13 +592,14 @@ namespace nkentseu {
                 ulist.push_back(ub);
             }
         }*/
+        Cube cube;
 
-        vertexBuffer = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, cubeVertices, bufferLayout);
+        vertexBuffer = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, shapeCube.vertices, bufferLayout);
         if (vertexBuffer == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
 
-        indexBuffer = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, cubeIndices);
+        indexBuffer = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, shapeCube.indices);
         if (indexBuffer == nullptr) {
             Log.Error("Cannot create index buffer");
         }
@@ -340,12 +614,15 @@ namespace nkentseu {
             vertexArray->SetIndexBuffer(indexBuffer);
         }
 
-        vertexBuffer2 = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, vertices_struct, bufferLayout);
+        //Capsule shape(1, 1, 36);
+        Sphere shape(1, 36, 36);
+
+        vertexBuffer2 = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, shapeCapsule.vertices, bufferLayout);
         if (vertexBuffer2 == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
 
-        indexBuffer2 = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, indices);
+        indexBuffer2 = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, shapeCapsule.indices);
         if (indexBuffer2 == nullptr) {
             Log.Error("Cannot create index buffer");
         }
@@ -368,6 +645,7 @@ namespace nkentseu {
             Log.Info("Texture charger");
             tetxure->SetRepeated(true);
         }
+        //*/
 
         int32 numFrames = -1;
         float32 frameTime = 0;
@@ -376,6 +654,8 @@ namespace nkentseu {
         FPSTimer fps;
 
         ObjectBuffer objectBuffer{};
+        //std::vector<ObjectBuffer> objectBuffers;
+        //objectBuffers.resize(10);
 
         //camera.FPS_Camera = true;
 
@@ -426,6 +706,24 @@ namespace nkentseu {
             } else if (Input.IsKeyDown(Keyboard::J)) {
             }
 
+            if (m_Window != nullptr) {
+                if (Input.IsKeyDown(Keyboard::C)) {
+                    m_Window->ShowMouse(true);
+                }
+                else if (Input.IsKeyDown(Keyboard::V)) {
+                    m_Window->ShowMouse(false);
+                }
+            }
+
+            static bool pause = false;
+
+            if (Input.IsKeyDown(Keyboard::L)) {
+                pause = true;
+            }
+            else if (Input.IsKeyDown(Keyboard::K)) {
+                pause = false;
+            }
+
             static CameraProjection projection = CameraProjection::Perspective;
             static float32 fov_or_othosize = camera.zoom();
             
@@ -454,12 +752,17 @@ namespace nkentseu {
                 if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
                     cameraBuffer.proj[1][1] *= -1;
                 }
-                uniformBuffer->Bind("cameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+                uniformBuffer->SetData("CameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
             }
 
             if (tetxure != nullptr) {
                 slot = (slot+1) % 10;
                 tetxure->Binds(2);
+            }//*/
+
+            static float32 tmpTime = time;
+            if (!pause) {
+                tmpTime = time;
             }
 
             for (uint32 index = 0; index < 10; index++) {
@@ -467,20 +770,43 @@ namespace nkentseu {
                 if (uniformBuffer != nullptr) {
                     {
                         // update model
-                        objb.model = matrix4f::Scaling(matrix4f::Identity(), 0.25f * Vector3f(1.0f, 1.0f, 1.0f));
-                        objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)time * Angle(90.0f));
-                        objb.model = matrix4f::Translation(objb.model, cubePositions[index] * 0.25);
-                        uniformBuffer->Bind("objectBuffer", &objb, sizeof(ObjectBuffer), index);
+                        matrix4f scale = matrix4f::Scaling(matrix4f::Identity(), 0.5f * Vector3f(1.0f, 1.0f, 1.0f));
+                        //matrix4f rotation = matrix4f::Rotation(matrix4f::Identity(), Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f));
+                        matrix4f rotation = matrix4f::Rotation(matrix4f::Identity(), Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f), Vector3f());
+                        matrix4f translation = matrix4f::Translation(matrix4f::Identity(), cubePositions[index]);
+
+                        objb.model = translation * rotation * scale;
+                        //objb.model = scale * rotation * translation;
+
+                        if (index >= 3 && index <= 6) {
+                            if (index == 3 || index == 5) {
+                                objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(-90.0f) * ((float32)index));
+                            } else {
+                                objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f) * ((float32)index));
+                            }
+                        }
+
+                        uniformBuffer->SetData("ObjectBuffer", &objb, sizeof(ObjectBuffer), index);
                     }
-                    uniformBuffer->Flush();
+                    uniformBuffer->Bind();
                 }
                 if (index < 5 && vertexArray != nullptr) {
-                    vertexArray->Draw(DrawVertexType::Triangles);
+                    //vertexArray->DrawVertex(RenderPrimitive::Triangles);
+                    vertexArray->DrawIndex(RenderPrimitive::Triangles);
                 }
                 if (index >= 5 && vertexArray2 != nullptr) {
-                    vertexArray2->Draw(DrawVertexType::Triangles);
+                    vertexArray2->DrawIndex(RenderPrimitive::Triangles);
+                    //vertexArray2->DrawVertex(RenderPrimitive::Triangles);
                 }
             }
+
+            //*
+            Memory::Shared<Canvas> canvas = nullptr;
+            canvas = m_Renderer->GetCanvas();
+
+            if (canvas != nullptr) {
+                canvas->DrawRect(maths::Vector2f(), Vector2f(200, 200), Color::Blue());
+            }//*/
 
             m_Renderer->End();
             mouseDelta = Vector2f();

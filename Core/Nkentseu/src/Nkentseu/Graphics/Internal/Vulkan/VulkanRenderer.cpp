@@ -19,6 +19,7 @@
 #include "VulkanVertexArray.h"
 #include "VulkanVertexBuffer.h"
 #include "VulkanUtils.h"
+#include "VulkanCanvas.h"
 
 #include "Nkentseu/Core/Window.h"
 #include <Nkentseu/Event/EventFilter.h>
@@ -58,6 +59,14 @@ namespace nkentseu {
     }
 
     bool VulkanRenderer::Deinitialize() {
+        if (m_Context == nullptr) {
+            return false;
+        }
+
+        if (m_Canvas != nullptr) {
+            m_Canvas->Present();
+        }
+
         EventTraker.RemoveObserver(REGISTER_CLIENT_EVENT(VulkanRenderer::OnEvent));
         return true;
     }
@@ -69,7 +78,7 @@ namespace nkentseu {
     bool VulkanRenderer::Begin(const Color& color)
     {
         m_IsPrepare = false;
-
+        m_PreviousColor = color;
         if (!CanRender()) return false;
 
         VulkanResult result;
@@ -126,6 +135,10 @@ namespace nkentseu {
 
         VulkanResult result;
         bool first = true;
+
+        if (m_Canvas != nullptr) {
+            m_Canvas->Present();
+        }
 
         vkCheckErrorVoid(vkCmdEndRenderPass(m_Context->GetCurrentCommandBuffer()));
 
@@ -185,6 +198,20 @@ namespace nkentseu {
         }
         return false;
     }
+
+    Memory::Shared<Canvas> VulkanRenderer::GetCanvas()
+    {
+        if (m_Canvas == nullptr) {
+            m_Canvas = Memory::Alloc<VulkanCanvas>(m_Context);
+        }
+        if (m_Canvas != nullptr) m_Canvas->Prepare();
+        return m_Canvas;
+    }
+
+    /*Memory::Shared<Canvas> VulkanRenderer::GetCanvas()
+    {
+        return nullptr;
+    }*/
 
     bool VulkanRenderer::CanRender()
     {

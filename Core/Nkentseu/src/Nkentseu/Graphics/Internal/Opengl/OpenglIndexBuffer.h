@@ -13,6 +13,7 @@
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/IndexBuffer.h"
 #include "OpenglContext.h"
+#include "OpenGLUtils.h"
 
 namespace nkentseu {
     class Context;
@@ -29,18 +30,20 @@ namespace nkentseu {
             bool Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
             bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng);
             
-            bool Bind();
-            bool Unbind();
+            bool Bind() const;
+            bool Unbind() const;
+
+            virtual bool SetData(void* data, usize size) override;
 
             DrawIndexType::Code GetIndexType() const;
+            uint32 GetBuffer() const;
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
-
-            uint32 m_ElementBufferObject = 0;
             BufferDataUsage::Code m_BufferUsage = BufferDataUsage::StaticDraw;
             DrawIndexType::Code m_IndexType = DrawIndexType::UInt32;
 
-            uint32 m_Leng = 0;
+            uint32 m_Size = 0;
+            OpenglBuffer m_Buffer;
     };
 
 }  //  nkentseu

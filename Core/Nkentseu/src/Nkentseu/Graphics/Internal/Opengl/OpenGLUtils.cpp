@@ -125,33 +125,153 @@ namespace nkentseu {
         return 0;
     }
 
-    bool OpenglBuffer::Create(const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset)
+    uint32 GLConvert::GetPrimitiveType(RenderPrimitive::Enum primitive)
+    {
+        if (primitive == RenderPrimitive::Points) return GL_POINTS;
+        if (primitive == RenderPrimitive::Lines) return GL_LINES;
+        if (primitive == RenderPrimitive::LineStrip) return GL_LINE_STRIP;
+        if (primitive == RenderPrimitive::Triangles) return GL_TRIANGLES;
+        if (primitive == RenderPrimitive::TriangleStrip) return GL_TRIANGLE_STRIP;
+        if (primitive == RenderPrimitive::TriangleFan) return GL_TRIANGLE_FAN;
+        return GL_TRIANGLES;
+    }
+
+    /*bool OpenglBuffer::Create(const std::string& uniforName, usize size, BufferDataUsage::Code usage, usize binding, int64 offset)
     {
         OpenGLResult result;
         bool first = true;
+        Log_nts.Debug("Bind = {0}", binding);
 
-        glCheckError(first, result, glGenBuffers(1, &uniform), "cannot gen buffer");
+        this->usage = usage;
+
+        glCheckError(first, result, glCreateBuffers(1, &this->buffer), "cannot gen buffer");
+        glCheckError(first, result, glNamedBufferData(this->buffer, size, nullptr, GLConvert::UsageType(usage)), "cannot gen buffer"); // TODO: investigate usage hint
+        glCheckError(first, result, glBindBufferBase(GL_UNIFORM_BUFFER, binding, this->buffer), "cannot gen buffer");
+
+        /*glCheckError(first, result, glGenBuffers(1, &uniform), "cannot gen buffer");
         glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, uniform), "cannot bind buffer");
         glCheckError(first, result, glBufferData(GL_UNIFORM_BUFFER, size, NULL, GLConvert::UsageType(usage)), "cannot set buffer data");
         glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, 0), "cannot unbind buffer");
 
-        glCheckError(first, result, glBindBufferRange(GL_UNIFORM_BUFFER, binding, uniform, offset, size), "cannot bind buffer range");
+        glCheckError(first, result, glBindBufferRange(GL_UNIFORM_BUFFER, binding, uniform, offset, size), "cannot bind buffer range");//* /
+        return result.success;
+    }*/
+
+    bool OpenglBuffer::Create(const std::string& uniforName, uint32 bufferType, uint32 usage, const void* data, usize size, usize binding, int64 offset, uint32 instance, bool usedsa)
+    {
+        OpenGLResult result;
+        bool first = true;
+
+        this->usage = usage;
+        this->bufferType = bufferType;
+        this->useDAS = usedsa;
+        this->instance = instance;
+        this->name = uniforName;
+        this->binding = binding;
+
+        uint32 sizes = size;
+
+        if (this->useDAS) {
+            if (this->instance > 1 && bufferType == GL_UNIFORM_BUFFER) {
+                int32 minUboAlignment = 0;
+                glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &minUboAlignment);
+
+                if (minUboAlignment > 0) {
+                    dynamicAlignment = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
+                    sizes = dynamicAlignment * instance;
+                }
+            }
+
+            glCheckError(first, result, glCreateBuffers(1, &buffer), "cannot create dsa buffer : {0}", name);
+            glCheckError(first, result, glNamedBufferData(buffer, sizes, data, usage), "cannot set data buffer : {0}", name);
+        }
+        else {
+            glCheckError(first, result, glGenBuffers(1, &buffer), "cannot gen buffer : {0}", name);
+            glCheckError(first, result, glBindBuffer(bufferType, buffer), "cannot bind buffer : {0}", name);
+            glCheckError(first, result, glBufferData(bufferType, sizes, data, usage), "cannot set data buffer : {0}", name);
+            //Log_nts.Debug("type = {0}, name = {1}", bufferType, name);
+        }   
+
+        if (result.success){
+            Unbind();
+        }
+
+        if (bufferType == GL_UNIFORM_BUFFER) {
+            glCheckError(first, result, glBindBufferRange(bufferType, binding, buffer, offset, size), "cannot bind buffer range : {0}", name);
+        }
+
         return result.success;
     }
 
     bool OpenglBuffer::Destroy()
     {
-        return false;
-    }
+        if (buffer == 0) return false;
 
-    bool OpenglBuffer::WriteToBuffer(void* data, usize size, usize offset)
-    {
         OpenGLResult result;
         bool first = true;
 
-        glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, uniform), "cannot bind buffer");
-        glCheckError(first, result, glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data), "cannot set sub data");
-        glCheckError(first, result, glBindBuffer(GL_UNIFORM_BUFFER, 0), "cannot unbind buffer");
+        glCheckError(first, result, glDeleteBuffers(1, &buffer), "cannot delete buffer : {0}", name);
+        buffer = 0;
+
         return result.success;
     }
+
+    bool OpenglBuffer::WriteToBuffer(const void* data, usize size, usize offset)
+    {
+        if (buffer == 0) return false;
+
+        OpenGLResult result;
+        bool first = true;
+
+        if (this->useDAS) {
+
+            currentOffset = offset;
+
+            if (uType == UniformBufferType::Dynamic && bufferType == GL_UNIFORM_BUFFER) {
+                currentIndex++;
+
+                if (currentIndex >= instance) {
+                    currentIndex = 0;
+                }
+                currentOffset = currentIndex * dynamicAlignment;
+            }
+
+            glCheckError(first, result, glNamedBufferSubData(buffer, offset, size, data), "cannot bind buffer : {0}", name);
+        }
+        else {
+            glCheckError(first, result, glBindBuffer(bufferType, buffer), "cannot bind buffer : {0}", name);
+            glCheckError(first, result, glBufferSubData(bufferType, offset, size, data), "cannot bind buffer : {0}", name);
+            if (bufferType == GL_UNIFORM_BUFFER) {
+                glCheckError(first, result, glBindBufferRange(bufferType, binding, buffer, offset, size), "cannot bind buffer range : {0}", name);
+            }
+            glCheckError(first, result, glBindBuffer(bufferType, 0), "cannot bind buffer : {0}", name);
+        }
+
+        return result.success;
+    }
+
+    bool OpenglBuffer::Bind() const
+    {
+        if (buffer == 0) return false;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glBindBuffer(bufferType, buffer), "cannot bind buffer : {0}", name);
+
+        return result.success;
+    }
+
+    bool OpenglBuffer::Unbind() const
+    {
+        if (buffer == 0) return false;
+
+        OpenGLResult result;
+        bool first = true;
+
+        glCheckError(first, result, glBindBuffer(bufferType, 0), "cannot unbind buffer : {0}", name);
+
+        return result.success;
+    }
+
 }  //  nkentseu

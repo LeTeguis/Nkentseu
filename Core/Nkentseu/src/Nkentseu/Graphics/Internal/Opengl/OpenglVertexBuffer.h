@@ -13,6 +13,8 @@
 #include "Nkentseu/Graphics/VertexBuffer.h"
 #include "Nkentseu/Core/NkentseuLogger.h"
 
+#include "OpenGLUtils.h"
+
 namespace nkentseu {
     class Context;
     
@@ -33,19 +35,21 @@ namespace nkentseu {
                 return Create(bufferUsage, vertices.data(), vertices.size(), bufferLayout);
             }
 
-            bool Bind();
-            bool Unbind();
+            bool Bind() const;
+            bool Unbind() const;
+
+            virtual bool SetData(void* data, usize size) override;
 
             uint32 GetBuffer() const;
             const BufferLayout& GetBufferLayaout();
-            bool AttachToVAO();
+            bool AttachToVAO(uint32 vao, bool useDsa);
         private:
             BufferLayout m_BufferLayout;
-            uint32 m_VertexBufferObject = 0;
             BufferDataUsage::Code m_BufferUsage; 
             Memory::Shared<Context> m_Context;
 
-            uint32 m_Leng = 0;
+            uint32 m_Size = 0;
+            OpenglBuffer m_Buffer;
     };
 
 }  //  nkentseu

@@ -10,7 +10,9 @@
 
 #include <System/System.h>
 #include <Ntsm/Matrix/Matrix4.h>
+#include <Ntsm/Shapes/Rectangle.h>
 #include <Ntsm/Quaternion/Quaternion.h>
+#include <Ntsm/Angle.h>
 
 namespace nkentseu {
 
@@ -20,81 +22,39 @@ namespace nkentseu {
 	};
     
     class NKENTSEU_API View {
-        public:
-            View();
-            ~View();
+    public:
+        View();
+        explicit View(const maths::FloatRect& rectangle);
+        View(const maths::Vector2f& center, const maths::Vector2f& size);
 
-            void LookAt(const maths::Vector3f& target);
-            void LookAt(float32 xTarget, float32 yTarget, float32 zTarget);
+        void SetCenter(const maths::Vector2f& center);
+        void SetSize(const maths::Vector2f& size);
+        void SetRotation(const maths::Angle& angle);
+        void SetViewport(const maths::FloatRect& viewport);
+        void SetScissor(const maths::FloatRect& scissor);
+        void Reset(const maths::FloatRect& rectangle);
+        const maths::Vector2f& GetCenter() const;
+        const maths::Vector2f& GetSize() const;
+        maths::Angle GetRotation() const;
+        const maths::FloatRect& GetViewport() const;
+        const maths::FloatRect& GetScissor() const;
+        void Move(const maths::Vector2f& offset);
+        void Rotate(const maths::Angle& angle);
+        void Zoom(float32 factor);
+        const maths::matrix4f GetTransform() const;
+        const maths::matrix4f GetInverseTransform() const;
 
-			void Rotate(float32 axisX, float32 axisY, float32 axisZ, const maths::Angle& angle) {
-				Rotate(maths::Vector3f(axisX, axisY, axisZ), angle);
-			}
+    private:
 
-			void Rotate(const maths::Vector3f& axis, const maths::Angle& angle) {
-				Rotate(maths::matrix4f::Rotation(axis, angle));
-			}
-
-			void Rotate(const maths::Matrix4f& transform) {
-				m_Direction = (maths::Vector4f(m_Direction, 1.0f) * transform).xyz();
-				m_Up = (maths::Vector4f(m_Up, 1.0f) * transform).xyz();
-			}
-
-			void Rotate(const maths::Quaternionf& quat) {
-				maths::Quaternionf q(quat);
-
-				m_Direction = q.Transform(m_Direction);
-				m_Up = q.Transform(m_Up);
-			}
-
-			void RotateAround(const maths::Vector3f& point, const maths::Vector3& axis, const maths::Angle& angle) {
-				maths::Vector3f direction = point - m_Position;
-				Translate(direction);
-				Rotate(axis, angle);
-				direction = (maths::Vector4f(direction, 1.0f) * maths::matrix4f::Rotation(axis, angle)).xyz();
-				Translate(-direction);
-			}
-
-			void Transform(const maths::Matrix4f& transform) {
-				m_Position = (maths::Vector4f(m_Position, 1.0f) * transform).xyz();
-				Rotate(transform);
-			}
-
-			void Translate(float32 x, float32 y, float32 z) {
-				m_Position += maths::Vector3f(x, y, z);
-			}
-
-			void Translate(const maths::Vector3f& vec) {
-				m_Position += vec;
-			}
-
-
-
-			/*Ray GetPickRay(float32 screenX, float32 screenY, float32 viewportX, float32 viewportY, float32 viewportWidth, float32 viewportHeight) {
-				unproject(ray.origin.set(screenX, screenY, 0), viewportX, viewportY, viewportWidth, viewportHeight);
-				unproject(ray.direction.set(screenX, screenY, 1), viewportX, viewportY, viewportWidth, viewportHeight);
-				ray.direction.sub(ray.origin).nor();
-				return ray;
-			}
-
-			Ray GetPickRay(float32 screenX, float32 screenY) {
-				return GetPickRay(screenX, screenY, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			}*/
-        private:
-			maths::Vector3f m_Position = maths::Vector3f();
-			maths::Vector3f m_Direction = maths::Vector3f(0, 0, -1);
-			maths::Vector3f m_Up = maths::Vector3f(0, 1, 0);
-
-			maths::matrix4f m_Projection = maths::matrix4f::Identity();
-			maths::matrix4f m_View = maths::matrix4f::Identity();
-			maths::matrix4f m_Combined = maths::matrix4f::Identity();
-			maths::matrix4f m_InvProjectionView = maths::matrix4f::Identity();
-
-            float32 m_NearClip = 0.1f;
-            float32 m_FarClip = 100.0f;
-
-            void NormalizeUp();
-        protected:
+        maths::Vector2f  m_Center;                     //!< Center of the view, in scene coordinates
+        maths::Vector2f  m_Size;                       //!< Size of the view, in scene coordinates
+        maths::Angle     m_Rotation;                   //!< Angle of rotation of the view rectangle
+        maths::FloatRect m_Viewport{ {0, 0}, {1, 1} };   //!< Viewport rectangle, expressed as a factor of the render-target's size
+        maths::FloatRect m_Scissor{ {0, 0}, {1, 1} };    //!< Scissor rectangle, expressed as a factor of the render-target's size
+        mutable maths::matrix4f m_Transform;          //!< Precomputed projection transform corresponding to the view
+        mutable maths::matrix4f m_InverseTransform;   //!< Precomputed inverse projection transform corresponding to the view
+        mutable bool      m_TransformUpdated{}; //!< Internal state telling if the transform needs to be updated
+        mutable bool      m_InvTransformUpdated{}; //!< Internal state telling if the inverse transform needs to be updated
     };
 
 }  //  nkentseu

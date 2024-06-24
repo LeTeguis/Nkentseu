@@ -37,6 +37,16 @@ namespace nkentseu {
         return success;
     }
 
+    bool VulkanIndexBuffer::SetData(void* data, usize size)
+    {
+        if (m_Context == nullptr) return false;
+        m_IndexBufferObject.Mapped(m_Context->GetGpu(), size, 0);
+        bool success = m_IndexBufferObject.WriteToBuffer(data, size, 0);
+        success = m_IndexBufferObject.Flush(m_Context->GetGpu(), size, 0);
+        m_IndexBufferObject.UnMapped(m_Context->GetGpu());
+        return success;
+    }
+
     bool VulkanIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng)
     {
         if (m_Context == nullptr) return false;
@@ -53,6 +63,11 @@ namespace nkentseu {
 
         m_IndexBufferObject.size = DrawIndexType::SizeOf(indexType);
         usize size = m_IndexBufferObject.size * leng;
+
+        /*if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage, sharingMode, propertyFlags, m_IndexBufferObject.buffer, m_IndexBufferObject.bufferMemory)) {
+            Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}");
+            return false;
+        }*/
 
         VulkanBuffer stanging;
 
@@ -82,12 +97,12 @@ namespace nkentseu {
             return false;
         }
 
-        bool success = stanging.Destroy(m_Context->GetGpu());
+        bool success = stanging.Destroy(m_Context->GetGpu());//*/
 
         m_Leng = leng;
         Log_nts.Info("Create index buffer is good");
 
-        return success;
+        return true;
     }
 
     VulkanBuffer* VulkanIndexBuffer::GetBuffer()

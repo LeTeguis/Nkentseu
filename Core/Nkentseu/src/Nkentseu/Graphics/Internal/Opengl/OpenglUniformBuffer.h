@@ -14,6 +14,7 @@
 #include "Nkentseu/Graphics/Context.h"
 #include "Nkentseu/Graphics/UniformBuffer.h"
 #include "OpenglContext.h"
+#include "OpenglShader.h"
 #include "OpenGLUtils.h"
 
 namespace nkentseu {
@@ -26,14 +27,17 @@ namespace nkentseu {
             bool Create();
             bool Destroy() override;
 
+            bool SetData(const std::string& name, void* data, usize size) override;
+            bool SetData(const std::string& name, void* data, usize size, uint32 index) override;
+            bool Bind() override;
+
             Memory::Shared<Context> GetContext() override;
-            bool Bind(const std::string& name, void* data, usize size) override;
-            bool Bind(const std::string& name, void* data, usize size, uint32 index) override;
-            bool Flush() override;
         private:
             Memory::Shared<OpenglContext> m_Context;
+            Memory::Shared<OpenglShader> m_Shader;
             UniformBufferLayout m_BufferLayout;
-            std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;
+
+            std::unordered_map<std::string, OpenglBuffer> m_Buffers;
     };
 
 }  //  nkentseu

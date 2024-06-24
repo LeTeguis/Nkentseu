@@ -145,9 +145,9 @@ namespace nkentseu {
 	void Win32Window::ShowMouse(bool show)
 	{
 		if (IsValidDisplay()) {
-			// ShowCursor(show ? TRUE : FALSE);
+			ShowCursor(show ? TRUE : FALSE);
 			m_Data->isCursorVisible = show;
-			SetCursor(m_Data->isCursorVisible ? m_Data->lastCursor : nullptr);
+			//SetCursor(m_Data->isCursorVisible ? m_Data->lastCursor : nullptr);
 		}
 	}
 

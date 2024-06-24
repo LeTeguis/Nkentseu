@@ -11,6 +11,7 @@
 #include "System/System.h"
 #include <System/Nature/Base.h>
 #include <Ntsm/Range.h>
+#include <Ntsm/Vector/Vector4.h>
 
 namespace nkentseu {
 	struct NKENTSEU_API HSV {
@@ -57,6 +58,41 @@ namespace nkentseu {
 		Color(uint32 color);
 
 		Color(const Color& color);
+
+		Color(const maths::Vector4f& color);
+		Color(const maths::Vector3f& color);
+
+		operator const maths::Vector4f& () const {
+			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+		}
+
+		operator maths::Vector4f () {
+			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+		}
+
+		operator const maths::Vector3f& () const {
+			return maths::Vector3f(m_Red, m_Green, m_Blue);
+		}
+
+		operator maths::Vector3f () {
+			return maths::Vector3f(m_Red, m_Green, m_Blue);
+		}
+
+		const maths::Vector4f& Vec4f() {
+			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+		}
+
+		const maths::Vector3f& Vec3f() {
+			return maths::Vector3f(m_Red, m_Green, m_Blue);
+		}
+
+		const maths::Vector4f& Vec4f() const {
+			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+		}
+
+		const maths::Vector3f& Vec3f() const {
+			return maths::Vector3f(m_Red, m_Green, m_Blue);
+		}
 
 		static Color RGBf(float32 r, float32 g, float32 b);
 

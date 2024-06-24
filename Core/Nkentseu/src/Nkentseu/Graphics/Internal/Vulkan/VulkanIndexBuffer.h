@@ -28,6 +28,8 @@ namespace nkentseu {
             bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng);
             bool Destroy() override;
 
+            virtual bool SetData(void* data, usize size) override;
+
             VulkanBuffer* GetBuffer();
             DrawIndexType::Code GetIndexType() const;
             uint32 Leng() const override;

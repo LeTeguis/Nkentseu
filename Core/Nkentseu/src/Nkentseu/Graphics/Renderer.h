@@ -9,9 +9,12 @@
 #pragma once
 
 #include "System/System.h"
+#include "System/Definitions/Memory.h"
 #include "Context.h"
 #include "Shader.h"
 #include "Color.h"
+#include "Canvas.h"
+
 #include <Ntsm/Vector/Vector2.h>
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "UniformBuffer.h"
@@ -30,6 +33,8 @@ namespace nkentseu {
             virtual bool Begin(const Color& color) = 0;
             virtual bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) = 0;
             virtual bool End() = 0;
+
+            virtual Memory::Shared<Canvas> GetCanvas() = 0;
 
             static Memory::Shared<Renderer> Create(Memory::Shared<Context> context);
             static Memory::Shared<Renderer> CreateInitialized(Memory::Shared<Context> context);

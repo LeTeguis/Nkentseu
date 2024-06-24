@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-05-19 at 10:47:51 AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sï¿½deris on 2024-05-19 at 10:47:51 AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -33,6 +33,23 @@ namespace nkentseu {
         return Create(bufferUsage, vertices.data(), (vertices.size() / bufferLayout.componentCount), bufferLayout);
     }
 
+    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
+    {
+        if (m_Buffer.buffer != 0 || m_Context == nullptr) {
+            return false;
+        }
+
+        m_BufferUsage = bufferUsage;
+        m_BufferLayout = bufferLayout;
+        m_Size = leng;
+
+        usize size = m_Size * m_BufferLayout.stride;
+
+        Log_nts.Debug("{0}-{1}", m_Size, m_BufferLayout.stride);
+
+        return m_Buffer.Create("vertex buffer", GL_ARRAY_BUFFER, GLConvert::UsageType(m_BufferUsage), vertices, size, 0, 0, 1);
+    }
+
     Memory::Shared<Context> OpenglVertexBuffer::GetContext()
     {
         return m_Context;
@@ -40,82 +57,32 @@ namespace nkentseu {
 
     bool OpenglVertexBuffer::Destroy()
     {
-        if (m_VertexBufferObject == 0) {
-            return false;
-        }
-        return true;
+        return m_Buffer.Destroy();
     }
 
-    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
+    bool OpenglVertexBuffer::Bind() const
     {
-        if (m_VertexBufferObject != 0) {
-            return false;
-        }
-
-        OpenGLResult result;
-        bool first = true;
-
-        glCheckError(first, result, glGenBuffers(1, &m_VertexBufferObject), "cannot gen vertex buffer");
-        if (!result.success || m_VertexBufferObject == 0) {
-            return false;
-        }
-
-        if (!Bind()) {
-            return false;
-        }
-
-        m_BufferUsage = bufferUsage;
-        m_BufferLayout = bufferLayout;
-
-        glCheckError(first, result, glBufferData(GL_ARRAY_BUFFER, bufferLayout.stride * leng, vertices, GLConvert::UsageType(m_BufferUsage)), "cannot set vertex buffer data");
-        
-        if (!result.success) {
-            return false;
-        }
-
-        m_Leng = leng;
-
-        if (!Unbind()) {
-            return false;
-        }
-
-        return true;
+        return m_Buffer.Bind();
     }
 
-    bool OpenglVertexBuffer::Bind()
+    bool OpenglVertexBuffer::Unbind() const
     {
-        if (m_VertexBufferObject == 0) {
-            return false;
-        }
-        OpenGLResult result;
-        bool first = true;
-
-        glCheckError(first, result, glBindBuffer(GL_ARRAY_BUFFER, m_VertexBufferObject), "cannot bind vertex buffer");
-
-        return result.success;
+        return m_Buffer.Unbind();
     }
 
-    bool OpenglVertexBuffer::Unbind()
+    bool OpenglVertexBuffer::SetData(void* data, usize size)
     {
-        if (m_VertexBufferObject == 0) {
-            return false;
-        }
-        OpenGLResult result;
-        bool first = true;
-
-        glCheckError(first, result, glBindBuffer(GL_ARRAY_BUFFER, 0), "cannot unbind vertex buffer");
-
-        return result.success;
+        return m_Buffer.WriteToBuffer(data, size);
     }
 
     uint32 OpenglVertexBuffer::Leng() const
     {
-        return m_Leng;
+        return m_Size;
     }
 
     uint32 OpenglVertexBuffer::GetBuffer() const
     {
-        return m_VertexBufferObject;
+        return m_Buffer.buffer;
     }
 
     const BufferLayout& OpenglVertexBuffer::GetBufferLayaout()
@@ -123,9 +90,9 @@ namespace nkentseu {
         return m_BufferLayout;
     }
 
-    bool OpenglVertexBuffer::AttachToVAO()
+    bool OpenglVertexBuffer::AttachToVAO(uint32 vao, bool useDsa)
     {
-        if (m_VertexBufferObject == 0) {
+        if (m_Buffer.buffer == 0) {
             return false;
         }
         OpenGLResult result;
@@ -134,6 +101,12 @@ namespace nkentseu {
         if (!Bind()) {
             return false;
         }
+
+        if (m_Buffer.useDAS) {
+            glCheckError(first, result, glVertexArrayVertexBuffer(vao, 0, m_Buffer.buffer, 0, m_BufferLayout.stride), "cannot enable vertex array vertex buffer");
+        }
+
+        uint32 stride = m_BufferLayout.stride;
 
         for (auto& attribut : m_BufferLayout) {
             uint32 type = GLConvert::ShaderType(attribut.type);
@@ -142,26 +115,51 @@ namespace nkentseu {
             uint32 offset = attribut.offset;
             uint32 location = attribut.location;
 
-            glCheckError(first, result, glEnableVertexAttribArray(location), "cannot enable vertex atribut array");
+            if (useDsa) {
+                glCheckError(first, result, glEnableVertexArrayAttrib(vao, location), "cannot enable vertex atribut array");
+            }
+            else {
+                glCheckError(first, result, glEnableVertexAttribArray(location), "cannot enable vertex atribut array");
+            }
+
             if (!result.success) {
                 Log_nts.Debug();
                 return false;
             }
 
             if (attribut.type == ShaderDataType::Float || attribut.type == ShaderDataType::Float2 || attribut.type == ShaderDataType::Float3 || attribut.type == ShaderDataType::Float4) {
-                glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (const void*)offset), "cannot set vertex attribut pointer");
+                if (useDsa) {
+                    glCheckError(first, result, glVertexArrayAttribFormat(vao, location, count, type, normalized, offset), "cannot set vertex attribut pointer");
+                }
+                else {
+                    //Log_nts.Debug("name = {0}, binding = {1}", attribut.name, attribut.location);
+                    glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, stride, (const void*)offset), "cannot set vertex attribut pointer");
+                }
             }
             else if (attribut.type == ShaderDataType::Mat3 || attribut.type == ShaderDataType::Mat4) {
                 for (uint8_t i = 0; i < count; i++) {
-                    glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, m_BufferLayout.stride, (const void*)(attribut.offset + sizeof(float) * count * i)), "cannot set vertex attribut pointer");
-                    glCheckError(first, result, glVertexAttribDivisor(location, 1), "cannot set vertex attribut pointer");
+
+                    offset = offset + sizeof(float32) * count * i;
+
+                    if (useDsa) {
+                        glCheckError(first, result, glVertexArrayAttribFormat(vao, location, count, type, normalized, offset), "cannot set vertex attribut pointer");
+                    }
+                    else {
+                        glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, stride, (const void*)(offset)), "cannot set vertex attribut pointer");
+                        glCheckError(first, result, glVertexAttribDivisor(location, 1), "cannot set vertex attribut pointer");
+                    }
                 }
             }
             else if (attribut.type == ShaderDataType::NotDefine) {
                 continue;
             }
             else {
-                glCheckError(first, result, glVertexAttribIPointer(location, count, type, m_BufferLayout.stride, (const void*)offset), "cannot set vertex attribut pointer");
+                if (useDsa) {
+                    glCheckError(first, result, glVertexArrayAttribFormat(vao, location, count, type, normalized, offset), "cannot set vertex attribut pointer");
+                }
+                else {
+                    glCheckError(first, result, glVertexAttribIPointer(location, count, type, stride, (const void*)offset), "cannot set vertex attribut pointer");
+                }
             }
 
             if (!result.success) {

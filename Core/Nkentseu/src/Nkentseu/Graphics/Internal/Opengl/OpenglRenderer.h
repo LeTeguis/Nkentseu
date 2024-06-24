@@ -18,12 +18,14 @@
 
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/Renderer.h"
+#include "Nkentseu/Graphics/Canvas.h"
 #include "Nkentseu/Core/Events.h"
 
 namespace nkentseu {
     class Context;
     class OpenglContext;
     class OpenglShader;
+    class OpenglCanvas;
     class Shader;
     class VertexArray;
 
@@ -41,8 +43,11 @@ namespace nkentseu {
             bool Begin(const Color& color) override;
             bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) override;
             bool End() override;
+
+            virtual Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
+            Memory::Shared<OpenglCanvas> m_Canvas = nullptr;
             bool m_IsPrepare = false;
 
         private:

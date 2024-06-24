@@ -57,29 +57,44 @@ namespace nkentseu {
 				matrix4f result;
 				for (uint32 i = 0; i < 4; i++)
 				{
-					for (uint32 i2 = 0; i2 < 4; i2++)
+					for (uint32 j = 0; j < 4; j++)
 					{
-						float32 Total = 0.0f;
-						for (uint32 i3 = 0; i3 < 4; i3++)
+						result.mat[j][i] = 0.0f;
+						for (uint32 k = 0; k < 4; k++)
 						{
-							//Total += left[i][i3] * right[i3][i2];
-							Total += left[i3][i] * right[i2][i3];
+							//result.mat[i][j] += left[i][k] * right[k][j];
+							result.mat[j][i] += left[k][i] * right[j][k];
 						}
-						//result[i][i2] = Total;
-						result[i2][i] = Total;
 					}
 				}
 				return result;
-			}
+			}//*/
+
+			/*friend matrix4f operator*(const matrix4f& left, const matrix4f& right)
+			{
+				matrix4f result;
+				for (uint32 i = 0; i < 4; ++i)
+				{
+					for (uint32 j = 0; j < 4; ++j)
+					{
+						result.mat[i][j] = 0.0f;
+						for (uint32 k = 0; k < 4; ++k)
+						{
+							result.mat[i][j] += left.mat[i][k] * right.mat[k][j];
+						}
+					}
+				}
+				return result;
+			}*/
 
 			friend matrix4f operator*(const matrix4f& left, float32& right)
 			{
 				matrix4f result;
 				for (uint32 i = 0; i < 4; i++)
 				{
-					for (uint32 i2 = 0; i2 < 4; i2++)
+					for (uint32 j = 0; j < 4; j++)
 					{
-						result[i][i2] = left[i][i2] * right;
+						result[i][j] = left[i][j] * right;
 					}
 				}
 				return result;
@@ -90,9 +105,9 @@ namespace nkentseu {
 				matrix4f result;
 				for (uint32 i = 0; i < 4; i++)
 				{
-					for (uint32 i2 = 0; i2 < 4; i2++)
+					for (uint32 j = 0; j < 4; j++)
 					{
-						result[i][i2] = right[i][i2] * left;
+						result[i][j] = right[i][j] * left;
 					}
 				}
 				return result;
@@ -127,9 +142,9 @@ namespace nkentseu {
 				matrix4f result;
 				for (uint32 i = 0; i < 4; i++)
 				{
-					for (uint32 i2 = 0; i2 < 4; i2++)
+					for (uint32 j = 0; j < 4; j++)
 					{
-						result[i][i2] = left[i][i2] + right[i][i2];
+						result[i][j] = left[i][j] + right[i][j];
 					}
 				}
 				return result;
@@ -140,9 +155,9 @@ namespace nkentseu {
 				matrix4f result;
 				for (uint32 i = 0; i < 4; i++)
 				{
-					for (uint32 i2 = 0; i2 < 4; i2++)
+					for (uint32 j = 0; j < 4; j++)
 					{
-						result[i][i2] = left[i][i2] - right[i][i2];
+						result[i][j] = left[i][j] - right[i][j];
 					}
 				}
 				return result;

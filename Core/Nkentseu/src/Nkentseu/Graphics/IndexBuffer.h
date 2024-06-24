@@ -22,6 +22,7 @@ namespace nkentseu {
             virtual Memory::Shared<Context> GetContext() = 0;
             virtual bool Destroy() = 0;
             virtual uint32 Leng() const = 0;
+            virtual bool SetData(void* data, usize size) = 0;
 
             static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
             static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng);

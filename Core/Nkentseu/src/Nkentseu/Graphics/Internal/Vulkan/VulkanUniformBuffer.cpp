@@ -86,7 +86,7 @@ namespace nkentseu {
         return m_Context;
     }
 
-    bool VulkanUniformBuffer::Bind(const std::string& name, void* data, usize size)
+    bool VulkanUniformBuffer::SetData(const std::string& name, void* data, usize size)
     {
         if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr || data == nullptr || size == 0) return false;
 
@@ -101,7 +101,7 @@ namespace nkentseu {
         return false;
     }
 
-    bool VulkanUniformBuffer::Bind(const std::string& name, void* data, usize size, uint32 index)
+    bool VulkanUniformBuffer::SetData(const std::string& name, void* data, usize size, uint32 index)
     {
         if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr || data == nullptr || size == 0) return false;
 
@@ -118,7 +118,7 @@ namespace nkentseu {
         return false;
     }
 
-    bool VulkanUniformBuffer::Flush()
+    bool VulkanUniformBuffer::Bind()
     {
         if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr) return false;
 
@@ -135,7 +135,12 @@ namespace nkentseu {
             }
         }
 
-        vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, dynamicOffsets.size(), dynamicOffsets.data()));
+        if (dynamicOffsets.size() == 0) {
+            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr));
+        }
+        else {
+            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, dynamicOffsets.size(), dynamicOffsets.data()));
+        }
         return false;
     }
 

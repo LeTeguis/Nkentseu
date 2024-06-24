@@ -158,6 +158,17 @@ namespace nkentseu {
         return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     }
 
+    VkPrimitiveTopology VulkanConvert::GetPrimitiveType(RenderPrimitive::Enum primitive)
+    {
+        if (primitive == RenderPrimitive::Points) return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        if (primitive == RenderPrimitive::Lines) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        if (primitive == RenderPrimitive::LineStrip) return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        if (primitive == RenderPrimitive::Triangles) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        if (primitive == RenderPrimitive::TriangleStrip) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        if (primitive == RenderPrimitive::TriangleFan) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    }
+
     bool VulkanConvert::EndsWith(const std::string& s, const std::string& part) {
         if (s.size() >= part.size()) {
             return (s.compare(s.size() - part.size(), part.size(), part) == 0);
@@ -187,6 +198,26 @@ namespace nkentseu {
         case ShaderDataType::Struct:
         default: return VK_FORMAT_UNDEFINED;
         }
+    }
+
+    VkShaderStageFlagBits VulkanConvert::ShaderStageToVkShaderStage(ShaderType::Code shaderStage) {
+        switch (shaderStage) {
+        case ShaderType::Vertex:
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderType::Fragment:
+            return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderType::Pixel:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderType::Geometry:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderType::TesControl:
+            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderType::TesEvaluation:
+            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderType::Compute:
+            return VK_SHADER_STAGE_GEOMETRY_BIT;
+        }
+        return VK_SHADER_STAGE_VERTEX_BIT;
     }
 
 }  //  nkentseu
