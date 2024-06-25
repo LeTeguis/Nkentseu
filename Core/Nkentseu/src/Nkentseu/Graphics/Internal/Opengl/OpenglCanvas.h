@@ -34,15 +34,14 @@ namespace nkentseu {
         void Destroy() override;
         maths::Vector2f GetSize() override;
 
-        void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture& texture = nullptr) override;
-        void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture& texture = nullptr) override;
-        void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture& texture = nullptr) override;
+        void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture = nullptr) override;
+        void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture texture = nullptr) override;
+        void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture texture = nullptr) override;
 
     private:
         friend class OpenglRenderer;
 
         Memory::Shared<OpenglContext> m_Context = nullptr;
-
         Memory::Shared<OpenglShader> m_Shader = nullptr;
 
         Memory::Shared<OpenglUniformBuffer> m_UniformBuffer = nullptr;

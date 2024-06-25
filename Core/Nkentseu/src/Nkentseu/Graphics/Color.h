@@ -38,7 +38,7 @@ namespace nkentseu {
 		}
 	};
 
-	class NKENTSEU_API Color {
+	struct NKENTSEU_API Color {
 	private:
 		uint8 m_Red = 0;
 		uint8 m_Green = 0;
@@ -207,6 +207,8 @@ namespace nkentseu {
 		Color operator^(const Color& other) const {
 			return Color(m_Red ^ other.m_Red, m_Green ^ other.m_Green, m_Blue ^ other.m_Blue, m_Alpha ^ other.m_Alpha);
 		}
+
+		//static const Color BlueTransparent;
 
 		/*static const Color& Transparent;
 		static const Color& Blue;

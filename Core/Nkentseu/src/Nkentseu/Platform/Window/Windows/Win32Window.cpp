@@ -518,9 +518,9 @@ namespace nkentseu {
 		DwmSetWindowAttribute(m_Data->windowHandle, DWMWA_NCRENDERING_ENABLED, &isNCRenderingEnabled, sizeof(isNCRenderingEnabled));
 
 		if (m_Properties.visible) {
-			ShowWindow(m_Data->windowHandle, SW_SHOW);
-			SetForegroundWindow(m_Data->windowHandle);
-			SetFocus(m_Data->windowHandle);
+			//ShowWindow(m_Data->windowHandle, SW_SHOW);
+			//SetForegroundWindow(m_Data->windowHandle);
+			//SetFocus(m_Data->windowHandle);
 		}
 
 		// Register to receive device interface change notifications (used for joystick connection handling)
@@ -541,6 +541,12 @@ namespace nkentseu {
 		m_IsWindowClosed = false;
 
 		UpdateWindow(m_Data->windowHandle);
+
+		if (m_Properties.visible) {
+			SetFocus(m_Data->windowHandle);
+			SetForegroundWindow(m_Data->windowHandle);
+			ShowWindow(m_Data->windowHandle, SW_SHOW);
+		}
 
 		return m_IsWindowCreated;
 	}

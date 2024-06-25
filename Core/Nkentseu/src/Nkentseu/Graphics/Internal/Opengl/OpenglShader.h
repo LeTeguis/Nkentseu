@@ -48,6 +48,8 @@ namespace nkentseu {
             uint32 GetProgramme() {
                 return m_Programme;
             }
+
+            void GetUniformBufferInfos();
         private:
             uint32 m_Programme = 0;
             Memory::Shared<OpenglContext> m_Context = nullptr;
@@ -60,6 +62,8 @@ namespace nkentseu {
             uint32 MakeShader();
 
             std::string LoadShader(const std::string& shaderFile);
+
+            bool m_UseDsa = false;
     };
 
     //std::unordered_map<std::string, OpenglBuffer> m_UniformBuffers;

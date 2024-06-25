@@ -25,7 +25,7 @@ const vec2 positions[3] = vec2[](
 
 void main() {
     gl_Position = camera.proj * camera.view * transform.model * vec4(aPos, 0.0, 1.0);
-    //gl_Position = vec4(positions[gl_VertexID % 3], 0.0, 1.0);
+    //gl_Position = vec4(aPos, 0.0, 1.0);
     //gl_Position = vec4(aPos, 0.0, 1.0);
     shapeColor = aColor;
     fragTexCoord = aTexCoord;

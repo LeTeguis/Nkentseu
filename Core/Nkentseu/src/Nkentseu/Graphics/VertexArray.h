@@ -30,6 +30,11 @@ namespace nkentseu {
             virtual uint32 Leng() = 0;
             virtual bool Destroy() = 0;
 
+            virtual bool BindVertex() = 0;
+            virtual bool UnbindVertex() = 0;
+            virtual bool BindIndex() = 0;
+            virtual bool UnbindIndex() = 0;
+
             virtual bool Draw(DrawVertexType::Code drawVertex) = 0;
 
             virtual bool DrawVertex(RenderPrimitive::Enum primitive) = 0;
@@ -40,6 +45,13 @@ namespace nkentseu {
 
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context);
             static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, uint32 vertexNumber);
+
+        protected:
+            enum BindInfo {
+                NO_BIND,
+                INDEX_BIND,
+                VERTEX_BIND
+            };
     };
 
 }  //  nkentseu

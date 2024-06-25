@@ -75,9 +75,9 @@ namespace nkentseu {
         virtual void Destroy() = 0;
         virtual maths::Vector2f GetSize() = 0;
 
-        virtual void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture& texture = nullptr) = 0;
-        virtual void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture& texture = nullptr) = 0;
-        virtual void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture& texture = nullptr) = 0;
+        virtual void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture = nullptr) = 0;
+        virtual void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture texture = nullptr) = 0;
+        virtual void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture texture = nullptr) = 0;
 
         static Memory::Shared<Canvas> Create(const Memory::Shared<Context>& context);
 

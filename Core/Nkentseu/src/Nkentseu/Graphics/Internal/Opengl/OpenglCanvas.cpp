@@ -73,9 +73,15 @@ namespace nkentseu {
         shaderLayout.uniformBuffer = uniformLayout;
         // Define necessary layouts
 
-        m_Shader = Memory::SharedCast<OpenglShader>(Shader::Create(m_Context, shaderFiles, shaderLayout));
-        if (!m_Shader) {
+        m_Shader = Memory::Alloc<OpenglShader>(m_Context);
+        if (m_Shader != nullptr){
+            if (!m_Shader->LoadFromFile(shaderFiles, shaderLayout)) {
+                Memory::Reset(m_Shader);
+            }
+        }
+        if (m_Shader == nullptr) {
             Log_nts.Error("Failed to create OpenGL OpenglCanvas shader");
+            return;
         }
 
         m_UniformBuffer = Memory::SharedCast<OpenglUniformBuffer>(UniformBuffer::Create(m_Context, m_Shader, uniformLayout));
@@ -115,55 +121,54 @@ namespace nkentseu {
             return;
         }
 
+        CanvasCamera cameraBuffer{};
+
         if (m_UniformBuffer != nullptr) {
             float32 distance_to_screen = 1.0f;
-            CanvasCamera cameraBuffer{};
-            cameraBuffer.view = matrix4f::Identity();
-            //cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
-            cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45), m_Context->GetWindow()->GetDpiAspect(), 0.1, 100.0f);
-
-            m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+            cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
+            //cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45), m_Context->GetWindow()->GetDpiAspect(), 0.1, 100.0f);
         }
 
-        if (m_VertexArray == nullptr || !m_VertexArray->Bind()) {
+        if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
             return;
         }
 
-        if (m_VertexBuffer == nullptr || !m_VertexBuffer->Bind()) {
-            return;
-        }
-        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size());
+        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(VertexData));
+        m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
 
-        if (m_IndexBuffer == nullptr || !m_IndexBuffer->Bind()) {
-            return;
-        }
-        m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size());
+        m_VertexArray->BindIndex();
 
         uint32 offset = 0;
         for (const auto& command : m_Commands) {
+            if (command.texture) {
+                command.texture->Bind();
+            }
+
             if (m_UniformBuffer != nullptr) {
+                // Camera view
+                //cameraBuffer.view = command.viewport;
+                //m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+
+                // Canvas Trandform
                 CanvasTransform transform;
-                transform.model = matrix4f();
+                transform.model = matrix4f::Identity();
                 m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
 
+                // material
                 CanvasMaterial material;
-                material.useColor = false;
+                material.useColor = true;
                 material.useTexture = false;
                 m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
 
                 m_UniformBuffer->Bind();
-                //Log_nts.Debug();
             }
-            m_VertexArray->DrawIndex(command.primitive);
-            //m_VertexArray->DrawIndex(command.primitive, offset * sizeof(uint32), command.indexCount);
-            //glDrawElements(GLConvert::GetPrimitiveType(command.primitive), command.indexCount, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32)));
+
+            glDrawElements(GLConvert::GetPrimitiveType(command.primitive), command.indexCount, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32)));
             offset += command.indexCount;
         }
-        m_VertexArray->DrawVertex(RenderPrimitive::Triangles);
 
-        m_IndexBuffer->Unbind();
-        m_VertexBuffer->Unbind();
-        m_VertexArray->Unbind();
+        m_VertexArray->UnbindIndex();
+
         m_Shader->Unbind();
 
         m_Vertices.clear();
@@ -172,59 +177,56 @@ namespace nkentseu {
         m_IndexCount = 0;
     }
 
-    void OpenglCanvas::DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture& texture)
+    void OpenglCanvas::DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture)
     {
-        VertexData vertex = VertexData(position, Vector4f(color), Vector2f());
-        m_Vertices.push_back(vertex);
+        Vector2f winsize = m_Context->GetWindow()->GetSize();
 
-        m_Indices.push_back(m_IndexCount);
-        m_IndexCount += 1;
+        VertexData vertex(position / winsize, color, maths::Vector2f(0.0f, 0.0f));
+        m_Vertices.push_back(vertex);
 
         m_Commands.push_back({ RenderPrimitive::Points, 1, {0, 0}, {0, 0, 0, 0}, texture });
     }
 
-    void OpenglCanvas::DrawLine(const Vector2f& start, const Vector2f& end, const Color& color, CanvasTexture& texture) {
-        VertexData vertex1 = VertexData(start, Vector4f(color), Vector2f(1, 1));
-        VertexData vertex2 = VertexData(start + end, Vector4f(color), Vector2f(1, 1));
+    void OpenglCanvas::DrawLine(const Vector2f& start, const Vector2f& end, const Color& color, CanvasTexture texture) {
+        Vector2f winsize = m_Context->GetWindow()->GetSize();
+        Vector2f start_ = start / winsize;
+        Vector2f end_ = end / winsize;
+
+        VertexData vertex1(start_, color, maths::Vector2f(0.0f, 0.0f));
+        VertexData vertex2(end_, color, maths::Vector2f(0.0f, 0.0f));
         m_Vertices.push_back(vertex1);
         m_Vertices.push_back(vertex2);
 
-        m_Indices.push_back(m_IndexCount);
-        m_Indices.push_back(m_IndexCount + 1);
-        m_IndexCount += 2;
-
-        m_Commands.push_back({ RenderPrimitive::Lines, 2, {0, 0}, {0, 0, 0, 0}, texture});
+        m_Commands.push_back({ RenderPrimitive::Lines, 2, {0, 0}, {0, 0, 0, 0}, texture });
     }
 
-    void OpenglCanvas::DrawRect(const Vector2f& position, const Vector2f& size, const Color& color, bool filled, CanvasTexture& texture) {
+    void OpenglCanvas::DrawRect(const Vector2f& position, const Vector2f& size, const Color& color, bool filled, CanvasTexture texture) {
+        Vector2f winsize = m_Context->GetWindow()->GetSize();
+        Vector2f pos_ = position / winsize;
+        Vector2f size_ = size / winsize;
+
+        VertexData vertices[4] = {
+        {pos_, color, maths::Vector2f(0.0f, 0.0f)},
+        {maths::Vector2f(pos_.x + size_.x, pos_.y), color, maths::Vector2f(1.0f, 0.0f)},
+        {maths::Vector2f(pos_.x + size_.x, pos_.y + size_.y), color, maths::Vector2f(1.0f, 1.0f)},
+        {maths::Vector2f(pos_.x, pos_.y + size_.y), color, maths::Vector2f(0.0f, 1.0f)}
+        };
+
+        m_Vertices.insert(m_Vertices.end(), std::begin(vertices), std::end(vertices));
+
         if (filled) {
-            // Filled rectangle (four lines)
-            VertexData vertex1 = VertexData(position + Vector2f(), Vector4f(color), Vector2f(1, 1));
-            VertexData vertex2 = VertexData(position + Vector2f(size.x, 0), Vector4f(color), Vector2f(1, 0));
-            VertexData vertex3 = VertexData(position + Vector2f(0, size.y), Vector4f(color), Vector2f(0, 0));
-            VertexData vertex4 = VertexData(position + size, Vector4f(color), Vector2f(0, 1));
+            uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
+            m_Indices.insert(m_Indices.end(), std::begin(indices), std::end(indices));
+            m_IndexCount += 6;
 
-            m_Vertices.push_back(vertex1);
-            m_Vertices.push_back(vertex2);
-            m_Vertices.push_back(vertex3);
-            m_Vertices.push_back(vertex4);
-
-            m_Indices.push_back(m_IndexCount);
-            m_Indices.push_back(m_IndexCount + 1);
-            m_Indices.push_back(m_IndexCount + 3);
-            m_Indices.push_back(m_IndexCount + 1);
-            m_Indices.push_back(m_IndexCount + 2);
-            m_Indices.push_back(m_IndexCount + 3);
-
-            m_IndexCount += 4;
             m_Commands.push_back({ RenderPrimitive::Triangles, 6, {0, 0}, {0, 0, 0, 0}, texture });
         }
         else {
-            // Outline rectangle (four lines)
-            DrawLine(position, position + Vector2f(size.x, 0), color);
-            DrawLine(position + Vector2f(size.x, 0), position + Vector2f(0, size.y), color);
-            DrawLine(position + Vector2f(0, size.y), position + size, color);
-            DrawLine(position + size, position, color);
+            uint32 indices[] = { 0, 1, 1, 2, 2, 3, 3, 0 };
+            m_Indices.insert(m_Indices.end(), std::begin(indices), std::end(indices));
+            m_IndexCount += 8;
+
+            m_Commands.push_back({ RenderPrimitive::Lines, 8, {0, 0}, {0, 0, 0, 0}, texture });
         }
     }
 

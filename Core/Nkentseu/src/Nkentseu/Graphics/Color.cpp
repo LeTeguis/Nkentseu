@@ -12,6 +12,8 @@
 namespace nkentseu {
 	using namespace maths;
 
+	//const Color Color::BlueTransparent(0, 0, 255, 125);
+
 	//const Color Color::Black = Color(0, 0, 0);
 
 	/*const Color& Color::Transparent = Color::RGBAf(0.0f, 0.0f, 0.0f, 1.0f);

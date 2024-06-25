@@ -166,7 +166,7 @@ namespace nkentseu {
         m_IndexCount = 0;
     }
 
-    void VulkanCanvas::DrawPoint(const Vector2f& position, const Color& color, CanvasTexture& texture)
+    void VulkanCanvas::DrawPoint(const Vector2f& position, const Color& color, CanvasTexture texture)
     {
         VertexData vertex = VertexData(position, Vector4f(color), Vector2f());
         m_Vertices.push_back(vertex);
@@ -177,7 +177,7 @@ namespace nkentseu {
         m_Commands.push_back({ RenderPrimitive::Points, 1, {0, 0}, {0, 0, 0, 0}, texture });
     }
 
-    void VulkanCanvas::DrawLine(const Vector2f& start, const Vector2f& end, const Color& color, CanvasTexture& texture) {
+    void VulkanCanvas::DrawLine(const Vector2f& start, const Vector2f& end, const Color& color, CanvasTexture texture) {
         VertexData vertex1 = VertexData(start, Vector4f(color), Vector2f(1, 1));
         VertexData vertex2 = VertexData(start + end, Vector4f(color), Vector2f(1, 1));
         m_Vertices.push_back(vertex1);
@@ -190,7 +190,7 @@ namespace nkentseu {
         m_Commands.push_back({ RenderPrimitive::Lines, 2, {0, 0}, {0, 0, 0, 0}, texture });
     }
 
-    void VulkanCanvas::DrawRect(const Vector2f& position, const Vector2f& size, const Color& color, bool filled, CanvasTexture& texture) {
+    void VulkanCanvas::DrawRect(const Vector2f& position, const Vector2f& size, const Color& color, bool filled, CanvasTexture texture) {
         if (filled) {
             // Filled rectangle (four lines)
             VertexData vertex1 = VertexData(position + Vector2f(), Vector4f(color), Vector2f(1, 1));

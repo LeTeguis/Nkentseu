@@ -45,15 +45,22 @@ namespace nkentseu {
 
             virtual bool DrawVertex(RenderPrimitive::Enum primitive) override;
             virtual bool DrawVertex(RenderPrimitive::Enum primitive, uint32 firstVertex, uint32 vertexCount) override;
+            virtual bool BindVertex() override;
+            virtual bool UnbindVertex() override;
 
+            virtual bool BindIndex() override;
+            virtual bool UnbindIndex() override;
             virtual bool DrawIndex(RenderPrimitive::Enum primitive) override;
             virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) override;
+
         private:
             uint32 m_VertexNumber = 0;
             Memory::Shared<VulkanContext> m_Context = nullptr;
 
             Memory::Shared<VulkanVertexBuffer> m_VertexBuffer = nullptr;
             Memory::Shared<VulkanIndexBuffer> m_IndexBuffer = nullptr;
+
+            BindInfo m_BindInfo = BindInfo::NO_BIND;
     };
 
 }  //  nkentseu

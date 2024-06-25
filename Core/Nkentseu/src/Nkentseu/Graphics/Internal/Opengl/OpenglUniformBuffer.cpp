@@ -32,7 +32,7 @@ namespace nkentseu {
                 instance = ubo.instance;
             }
 
-            m_Buffers[name].Create(name, GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, ubo.size, ubo.binding, 0, instance, !true);
+            m_Buffers[name].Create(name, GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, ubo.size, ubo.binding, 0, instance);
             m_Buffers[name].uType = ubo.uType;
 
             OpenGLResult result;
@@ -43,10 +43,12 @@ namespace nkentseu {
                 Log_nts.Error("Error: Uniform block index is invalid : {0}-{1}", name, m_Shader->GetProgramme());
             }
             else {
-                Log_nts.Trace("block index is valid name : {0}-{1}-{2}", name, blockIndex, m_Shader->GetProgramme());
                 glCheckError(first, result, glUniformBlockBinding(m_Shader->GetProgramme(), blockIndex, ubo.binding), "");
             }
         }
+
+        //m_Shader->GetUniformBufferInfos();
+
         m_Shader->Unbind();
         return success;
     }

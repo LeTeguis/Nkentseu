@@ -572,7 +572,7 @@ namespace nkentseu {
             Log.Error("Cannot create uniform buffer");
         }
         //Memory::Shared<UniformBuffer> uniformBuffer2 = nullptr;
-        //*
+        /*
         UniformBufferLayout uniformLayout2;
         uniformLayout2.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
         Memory::Shared<UniformBuffer> uniformBuffer2 = UniformBuffer::Create(m_Context, shader, uniformLayout);
@@ -737,8 +737,8 @@ namespace nkentseu {
 
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
-            //m_Renderer->Begin(Color::Black());
             m_Renderer->Begin(Color::Black());
+            //m_Renderer->Begin(Color::BlueTransparent);
 
             if (shader != nullptr) {
                 shader->DrawMode(CullModeType::NoCull, m_PolygonMode);
@@ -792,10 +792,14 @@ namespace nkentseu {
                 }
                 if (index < 5 && vertexArray != nullptr) {
                     //vertexArray->DrawVertex(RenderPrimitive::Triangles);
+                    vertexArray->BindIndex();
                     vertexArray->DrawIndex(RenderPrimitive::Triangles);
+                    vertexArray->UnbindIndex();
                 }
                 if (index >= 5 && vertexArray2 != nullptr) {
+                    vertexArray2->BindIndex();
                     vertexArray2->DrawIndex(RenderPrimitive::Triangles);
+                    vertexArray2->UnbindIndex();
                     //vertexArray2->DrawVertex(RenderPrimitive::Triangles);
                 }
             }
@@ -805,9 +809,13 @@ namespace nkentseu {
             canvas = m_Renderer->GetCanvas();
 
             if (canvas != nullptr) {
-                canvas->DrawRect(maths::Vector2f(), Vector2f(200, 200), Color::Blue());
+                canvas->DrawRect(maths::Vector2f(0, 0), Vector2f(200, 200), Color::Blue());
+                canvas->DrawRect(maths::Vector2f(0.1, 0.1), Vector2f(190, 190), Color::Yellow());
             }//*/
 
+            if (shader != nullptr) {
+                shader->Unbind();
+            }
             m_Renderer->End();
             mouseDelta = Vector2f();
         }

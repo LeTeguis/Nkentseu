@@ -68,6 +68,10 @@ namespace nkentseu {
             makecurrent = m_Context->GetNative()->MakeCurrent();
         }
 
+        if (m_Canvas == nullptr) {
+            m_Canvas = Memory::Alloc<OpenglCanvas>(m_Context);
+        }
+
         EventTraker.AddObserver(REGISTER_CLIENT_EVENT(OpenglRenderer::OnEvent));
         return makecurrent;
     }
@@ -183,9 +187,6 @@ namespace nkentseu {
 
     Memory::Shared<Canvas> OpenglRenderer::GetCanvas()
     {
-        if (m_Canvas == nullptr) {
-            m_Canvas = Memory::Alloc<OpenglCanvas>(m_Context);
-        }
         if (m_Canvas != nullptr) m_Canvas->Prepare();
         return m_Canvas;
     }

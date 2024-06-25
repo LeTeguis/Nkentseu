@@ -45,7 +45,7 @@ namespace nkentseu {
 
         usize size = m_Size * m_BufferLayout.stride;
 
-        Log_nts.Debug("{0}-{1}", m_Size, m_BufferLayout.stride);
+        //Log_nts.Debug("{0}-{1}", m_Size, m_BufferLayout.stride);
 
         return m_Buffer.Create("vertex buffer", GL_ARRAY_BUFFER, GLConvert::UsageType(m_BufferUsage), vertices, size, 0, 0, 1);
     }

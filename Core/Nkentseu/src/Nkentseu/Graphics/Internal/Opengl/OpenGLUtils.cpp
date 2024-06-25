@@ -240,10 +240,18 @@ namespace nkentseu {
         }
         else {
             glCheckError(first, result, glBindBuffer(bufferType, buffer), "cannot bind buffer : {0}", name);
+
+            if (usage == GL_DYNAMIC_DRAW && bufferType != GL_UNIFORM_BUFFER && size != 0) {
+                //glBufferData(bufferType, size, nullptr, GL_DYNAMIC_DRAW);
+                //Log_nts.Debug();
+            }
+
             glCheckError(first, result, glBufferSubData(bufferType, offset, size, data), "cannot bind buffer : {0}", name);
+
             if (bufferType == GL_UNIFORM_BUFFER) {
                 glCheckError(first, result, glBindBufferRange(bufferType, binding, buffer, offset, size), "cannot bind buffer range : {0}", name);
             }
+
             glCheckError(first, result, glBindBuffer(bufferType, 0), "cannot bind buffer : {0}", name);
         }
 

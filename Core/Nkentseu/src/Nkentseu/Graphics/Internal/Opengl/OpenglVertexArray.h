@@ -39,7 +39,11 @@ namespace nkentseu {
 
             virtual bool DrawVertex(RenderPrimitive::Enum primitive) override;
             virtual bool DrawVertex(RenderPrimitive::Enum primitive, uint32 firstVertex, uint32 vertexCount) override;
+            virtual bool BindVertex() override;
+            virtual bool UnbindVertex() override;
 
+            virtual bool BindIndex() override;
+            virtual bool UnbindIndex() override;
             virtual bool DrawIndex(RenderPrimitive::Enum primitive) override;
             virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) override;
 
@@ -60,6 +64,8 @@ namespace nkentseu {
 
             Memory::Shared<Context> m_Context;
             bool m_UseDsa = false;
+
+            BindInfo m_BindInfo = BindInfo::NO_BIND;
     private:
         bool ActualizeVertexBuffer();
     };
