@@ -20,21 +20,6 @@ namespace nkentseu {
     OpenglCanvas::~OpenglCanvas() {
     }
 
-    void OpenglCanvas::Prepare()
-    {
-        m_IsPresent = false;
-        m_Vertices.clear();
-        m_Indices.clear();
-        m_Commands.clear();
-        m_IndexCount = 0;
-    }
-
-    void OpenglCanvas::Present()
-    {
-        Flush();
-        m_IsPresent = true;
-    }
-
     void OpenglCanvas::Destroy()
     {
         if (m_VertexArray) m_VertexArray->Destroy();
@@ -113,68 +98,91 @@ namespace nkentseu {
 
     void OpenglCanvas::Flush()
     {
-        if (m_Vertices.empty() || m_Indices.empty() || m_Commands.empty()) {
+        if (m_Vertices.empty() || m_Indices.empty() || m_CanvasCommands.empty()) {
             return;
         }
+        OpenGLResult result;
+        bool first = true;
+        Vector2f size = m_Context->GetWindow()->GetSize();
 
-        if (m_Shader == nullptr || !m_Shader->Bind()) {
-            return;
+        if (m_ScissorEnable) {
+            glCheckError(first, result, glEnable(GL_SCISSOR_TEST), "cannot enable scissor test");
         }
 
-        if (m_UniformBuffer != nullptr) {
-            float32 distance_to_screen = 1.0f;
-            CanvasCamera cameraBuffer{};
+        bool render_evalable = true;
 
-            cameraBuffer.view = matrix4f::Identity();
-            //cameraBuffer.proj = matrix4f::Identity();
-            Vector2f size = m_Context->GetWindow()->GetSize();
-            cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
-            //cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
-            m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+        if (m_RenderEnable && m_Shader == nullptr || !m_Shader->Bind()) {
+            render_evalable = false;
         }
 
-        if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
-            return;
+        if (render_evalable) {
+            if (m_UniformBuffer != nullptr) {
+                float32 distance_to_screen = 1.0f;
+                CanvasCamera cameraBuffer{};
+
+                cameraBuffer.view = matrix4f::Identity();
+                cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
+                m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+            }
+
+            if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
+                return;
+            }
+
+            m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex2D));
+            m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
+
+            m_VertexArray->BindIndex();
         }
-
-        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex2D));
-        m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
-
-        m_VertexArray->BindIndex();
 
         uint32 offset = 0;
-        for (auto it = m_Commands.begin(); it != m_Commands.end(); ++it) {
-            const auto& command = *it;
+        for (auto it = m_CanvasCommands.begin(); it != m_CanvasCommands.end(); ++it) {
+            const auto command = *it;
 
-            if (command.texture) {
-                command.texture->Bind();
+            if (auto viewportCommand = Memory::SharedCast<CanvasViewportCommand>(command)) {
+                // Apply viewport
+                Viewport viewport = viewportCommand->viewport;
+                glCheckError(first, result, glViewport(viewport.x, viewport.y, viewport.width, viewport.height), "cannot set command viewport in canvas fulsh");
+            } else if (auto scissorCommand = Memory::SharedCast<CanvasScissorCommand>(command)) {
+                // Apply scissort
+                Scissor scissor = scissorCommand->scissor;
+                glCheckError(first, result, glScissor(scissor.x, scissor.y, scissor.width, scissor.height), "cannot set command scissor in canvas fulsh");
+            } else if (render_evalable){
+                if (auto renderCommand = Memory::SharedCast<CanvasRenderCommand>(command)) {
+                    if (renderCommand->texture) {
+                        renderCommand->texture->Bind();
+                    }
+
+                    if (m_UniformBuffer != nullptr) {
+                        CanvasTransform transform;
+                        transform.model = renderCommand->transform;
+                        m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
+
+                        CanvasMaterial material;
+                        material.useColor = true;
+                        material.useTexture = renderCommand->texture != nullptr;
+                        m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
+
+                        m_UniformBuffer->Bind();
+                    }
+
+                    uint32 primitive = GLConvert::GetPrimitiveType(renderCommand->primitive);
+
+                    glCheckError(first, result, glDrawElements(primitive, renderCommand->indexCount, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32))), "cannot draw elements for canvas");
+                    offset += renderCommand->indexCount;
+                }
             }
-
-            if (m_UniformBuffer != nullptr) {
-                CanvasTransform transform;
-                transform.model = command.transform;
-                m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
-
-                CanvasMaterial material;
-                material.useColor = true;
-                material.useTexture = command.texture != nullptr;
-                m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
-
-                m_UniformBuffer->Bind();
-            }
-
-            glDrawElements(GLConvert::GetPrimitiveType(command.primitive), command.indexCount, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32)));
-            offset += command.indexCount;
         }
 
         m_VertexArray->UnbindIndex();
 
-        m_Shader->Unbind();
+        if (render_evalable) {
+            m_Shader->Unbind();
+        }
 
-        m_Vertices.clear();
-        m_Indices.clear();
-        m_Commands.clear();
-        m_IndexCount = 0;
+        if (m_ScissorEnable) {
+            glCheckError(first, result, glDisable(GL_SCISSOR_TEST), "cannot disable scissor test");
+        }
     }
 
 }  //  nkentseu

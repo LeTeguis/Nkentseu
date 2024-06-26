@@ -747,6 +747,7 @@ namespace nkentseu {
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
             m_Renderer->Begin(Color::Black());
+            //m_Renderer->SetViewport();
             //m_Renderer->Begin(Color::BlueTransparent);
 
             if (shader != nullptr) {
@@ -818,9 +819,18 @@ namespace nkentseu {
             canvas = m_Renderer->GetCanvas();
 
             if (canvas != nullptr) {
-                canvas->DrawRect(maths::Vector2f(0, 0), Vector2f(200, 200), Color::Blue());
-                canvas->DrawRect(maths::Vector2f(100, 100), Vector2f(200, 200), Color::Yellow());
-                canvas->DrawRect(maths::Vector2f(-80, 120), Vector2f(250, 200), Color::Green());
+                //canvas->DrawRect(maths::Vector2f(0, 0), Vector2f(200, 200), Color::Blue());
+                //canvas->DrawRect(maths::Vector2f(100, 100), Vector2f(200, 200), Color::Yellow());
+                //canvas->DrawRect(maths::Vector2f(-80, 120), Vector2f(250, 200), Color::Green());
+                canvas->DrawFilledCircle(maths::Vector2f(-200, 200), 50, Color::Green());
+                canvas->DrawHollowCircle(maths::Vector2f(-200, 100), 50, Color::Green());
+                canvas->DrawThickOutlineCircle(maths::Vector2f(-200, -100), 50, 20, Color::Green());
+
+                // Exemple d'utilisation
+                //canvas->DrawFilledRect({ 100.0f, 100.0f }, { 200.0f, 150.0f }, Color(1.0f, 0.0f, 0.0f));
+                //canvas->DrawHollowRect({ 300.0f, 100.0f }, { 150.0f, 100.0f }, Color(0.0f, 1.0f, 0.0f));
+                canvas->DrawThickOutlineRect({ 100.0f, 100.0f }, { 150.0f, 200.0f }, 10.0f, Color(0.0f, 0.0f, 1.0f));
+
                 canvas->Draw(RenderPrimitive::LineStrip, circle);
                 canvas->Draw(RenderPrimitive::Triangles, rectangle, nullptr, maths::matrix4f::Translation(matrix4f::Identity(), Vector3f(-300, 0, 0)));
             }//*/

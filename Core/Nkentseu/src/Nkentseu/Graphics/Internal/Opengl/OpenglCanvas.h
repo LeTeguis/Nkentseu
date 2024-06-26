@@ -28,8 +28,6 @@ namespace nkentseu {
         OpenglCanvas(const Memory::Shared<Context>& context);
         ~OpenglCanvas();
 
-        void Prepare() override;
-        void Present() override;
         void Destroy() override;
         maths::Vector2f GetSize() override;
     private:
@@ -44,12 +42,11 @@ namespace nkentseu {
         Memory::Shared<OpenglIndexBuffer> m_IndexBuffer = nullptr;
         Memory::Shared<OpenglVertexArray> m_VertexArray = nullptr;
 
-        bool m_IsPresent = true;
         maths::Vector2f m_Size;
 
         void Initialize();
         void CreateResources();
-        void Flush();
+        void Flush() override;
     };
 
 }  //  nkentseu

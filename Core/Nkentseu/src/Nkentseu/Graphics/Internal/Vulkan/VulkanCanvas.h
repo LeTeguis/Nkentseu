@@ -27,8 +27,6 @@ namespace nkentseu {
         VulkanCanvas(const Memory::Shared<Context>& context);
         ~VulkanCanvas();
 
-        void Prepare() override;
-        void Present() override;
         void Destroy() override;
         maths::Vector2f GetSize() override;
 
@@ -43,12 +41,11 @@ namespace nkentseu {
         Memory::Shared<VulkanIndexBuffer> m_IndexBuffer;
         Memory::Shared<VulkanVertexArray> m_VertexArray;
 
-        bool m_IsPresent = true;
         maths::Vector2f m_Size;
 
         void Initialize();
         void CreateResources();
-        void Flush();
+        void Flush() override;
     };
 
 }  //  nkentseu

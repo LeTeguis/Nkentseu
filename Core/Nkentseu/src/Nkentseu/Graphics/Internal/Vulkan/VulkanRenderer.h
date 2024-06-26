@@ -43,7 +43,15 @@ namespace nkentseu {
             bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) override;
             bool End() override;
 
-            virtual Memory::Shared<Canvas> GetCanvas() override;
+            bool SetViewport(const maths::Vector4f& viewport) override;
+            bool SetViewport(float32 x, float32 y, float32 width, float32 height) override;
+            bool ResetViewport() override;
+
+            bool SetScissor(const maths::Vector4f& scissor) override;
+            bool SetScissor(float32 x, float32 y, float32 width, float32 height) override;
+            bool ResetScissor() override;
+
+            Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<VulkanContext> m_Context;
             Memory::Shared<VulkanCanvas> m_Canvas = nullptr;

@@ -126,6 +126,7 @@ namespace nkentseu {
         if (!CanRender()) {
             return false;
         }
+        ResetViewport();
 
         if (!m_Context->IsCurrent()) {
             m_Context->MakeCurrent();
@@ -183,6 +184,51 @@ namespace nkentseu {
             swap = result.success;
         }
         return swap;
+    }
+
+    bool OpenglRenderer::SetViewport(const maths::Vector4f& viewport)
+    {
+        return SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+    }
+
+    bool OpenglRenderer::SetViewport(float32 x, float32 y, float32 width, float32 height)
+    {
+        if (m_Context == nullptr) return false;
+        OpenGLResult result;
+        bool first = true;
+
+        Vector2u position = m_Context->GetWindow()->ConvertPixelToDpi(Vector2f(x, y));
+        Vector2u size = m_Context->GetWindow()->ConvertPixelToDpi(Vector2f(width, height));
+
+        glCheckError(first, result, glViewport(position.x, position.y, size.width, size.height), "cannot change viewport");
+        return true;
+    }
+
+    bool OpenglRenderer::ResetViewport()
+    {
+        if (m_Context == nullptr) return false;
+        OpenGLResult result;
+        bool first = true;
+
+        Vector2u size = m_Context->GetWindow()->ConvertPixelToDpi(m_Context->GetWindow()->GetSize());
+
+        glCheckError(first, result, glViewport(0, 0, size.width, size.height), "cannot change viewport");
+        return false;
+    }
+
+    bool OpenglRenderer::SetScissor(const maths::Vector4f& scissor)
+    {
+        return false;
+    }
+
+    bool OpenglRenderer::SetScissor(float32 x, float32 y, float32 width, float32 height)
+    {
+        return false;
+    }
+
+    bool OpenglRenderer::ResetScissor()
+    {
+        return false;
     }
 
     Memory::Shared<Canvas> OpenglRenderer::GetCanvas()

@@ -199,6 +199,36 @@ namespace nkentseu {
         return false;
     }
 
+    bool VulkanRenderer::SetViewport(const maths::Vector4f& viewport)
+    {
+        return false;
+    }
+
+    bool VulkanRenderer::SetViewport(float32 x, float32 y, float32 width, float32 height)
+    {
+        return false;
+    }
+
+    bool VulkanRenderer::ResetViewport()
+    {
+        return false;
+    }
+
+    bool VulkanRenderer::SetScissor(const maths::Vector4f& scissor)
+    {
+        return false;
+    }
+
+    bool VulkanRenderer::SetScissor(float32 x, float32 y, float32 width, float32 height)
+    {
+        return false;
+    }
+
+    bool VulkanRenderer::ResetScissor()
+    {
+        return false;
+    }
+
     Memory::Shared<Canvas> VulkanRenderer::GetCanvas()
     {
         if (m_Canvas == nullptr) {

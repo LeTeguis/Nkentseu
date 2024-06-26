@@ -28,8 +28,8 @@ namespace nkentseu {
 				struct {
 					union { float32 x; float32 r; }; // cordinate (x, y, z, w), size (r, g, b, a)
 					union { float32 y; float32 g; };
-					union { float32 z; float32 b; };
-					union { float32 w; float32 a; };
+					union { float32 z; float32 b; float32 width; };
+					union { float32 w; float32 a; float32 height; };
 				};
 				float32 ptr[4];
 			};

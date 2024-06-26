@@ -16,6 +16,7 @@
 #include "Canvas.h"
 
 #include <Ntsm/Vector/Vector2.h>
+#include <Ntsm/Vector/Vector4.h>
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "UniformBuffer.h"
 
@@ -33,6 +34,14 @@ namespace nkentseu {
             virtual bool Begin(const Color& color) = 0;
             virtual bool Begin(uint8 r, uint8 g, uint8 b, uint8 a = 255) = 0;
             virtual bool End() = 0;
+
+            virtual bool SetViewport(const maths::Vector4f& viewport) = 0;
+            virtual bool SetViewport(float32 x, float32 y, float32 width, float32 height) = 0;
+            virtual bool ResetViewport() = 0;
+
+            virtual bool SetScissor(const maths::Vector4f& scissor) = 0;
+            virtual bool SetScissor(float32 x, float32 y, float32 width, float32 height) = 0;
+            virtual bool ResetScissor() = 0;
 
             virtual Memory::Shared<Canvas> GetCanvas() = 0;
 

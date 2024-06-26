@@ -20,21 +20,6 @@ namespace nkentseu {
     VulkanCanvas::~VulkanCanvas() {
     }
 
-    void VulkanCanvas::Prepare()
-    {
-        m_IsPresent = false;
-        m_Vertices.clear();
-        m_Indices.clear();
-        m_Commands.clear();
-        m_IndexCount = 0;
-    }
-
-    void VulkanCanvas::Present()
-    {
-        Flush();
-        m_IsPresent = true;
-    }
-
     void VulkanCanvas::Destroy()
     {
         if (m_VertexArray) m_VertexArray->Destroy();
@@ -107,67 +92,101 @@ namespace nkentseu {
 
     void VulkanCanvas::Flush()
     {
-        if (m_Vertices.empty() || m_Indices.empty() || m_Commands.empty()) {
+        if (m_Vertices.empty() || m_Indices.empty() || m_CanvasCommands.empty()) {
             return;
         }
+        Vector2f size = m_Context->GetWindow()->GetSize();
 
-        if (m_Shader == nullptr || !m_Shader->Bind()) {
-            return;
+        if (m_ScissorEnable) {
+            // a implementer
         }
 
-        if (m_UniformBuffer != nullptr) {
-            float32 distance_to_screen = 1.0f;
-            CanvasCamera cameraBuffer{};
+        bool render_evalable = true;
 
-            cameraBuffer.view = matrix4f::Identity();
-            cameraBuffer.proj = matrix4f::Identity();
-            //cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
-            m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+        if (m_RenderEnable && m_Shader == nullptr || !m_Shader->Bind()) {
+            render_evalable = false;
         }
 
-        if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
-            return;
+        if (render_evalable) {
+            if (m_UniformBuffer != nullptr) {
+                float32 distance_to_screen = 1.0f;
+                CanvasCamera cameraBuffer{};
+
+                cameraBuffer.view = matrix4f::Identity();
+                cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
+                m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+            }
+
+            if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
+                return;
+            }
+
+            m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex2D));
+            m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
+
+            m_VertexArray->BindIndex();
         }
-
-        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex2D));
-        m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
-
-        m_VertexArray->BindIndex();
 
         uint32 offset = 0;
-        for (auto it = m_Commands.begin(); it != m_Commands.end(); ++it) {
-            const auto& command = *it;
+        for (auto it = m_CanvasCommands.begin(); it != m_CanvasCommands.end(); ++it) {
+            const auto command = *it;
 
-            if (command.texture) {
-                command.texture->Bind();
+            if (auto viewportCommand = Memory::SharedCast<CanvasViewportCommand>(command)) {
+                // Apply viewport
+                VkViewport viewport = {};
+                viewport.width = viewportCommand->viewport.width;
+                viewport.height = viewportCommand->viewport.height;
+                viewport.maxDepth = 1.0f;
+                viewport.x = viewportCommand->viewport.x;
+                viewport.y = viewportCommand->viewport.y;
+                vkCheckErrorVoid(vkCmdSetViewport(m_Context->GetCurrentCommandBuffer(), 0, 1, &viewport));
+                // a implementer
             }
-
-            if (m_UniformBuffer != nullptr) {
-                CanvasTransform transform;
-                transform.model = command.transform;
-                m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
-
-                CanvasMaterial material;
-                material.useColor = true;
-                material.useTexture = command.texture != nullptr;
-                m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
-
-                m_UniformBuffer->Bind();
+            else if (auto scissorCommand = Memory::SharedCast<CanvasScissorCommand>(command)) {
+                // Apply scissort
+                VkRect2D scissor = {};
+                scissor.offset = { scissorCommand->scissor.x, scissorCommand->scissor.y };
+                scissor.extent = { (uint32)scissorCommand->scissor.width, (uint32)scissorCommand->scissor.height };
+                vkCheckErrorVoid(vkCmdSetScissor(m_Context->GetCurrentCommandBuffer(), 0, 1, &scissor));
+                // a implementer
             }
+            else if (render_evalable) {
+                if (auto renderCommand = Memory::SharedCast<CanvasRenderCommand>(command)) {
+                    if (renderCommand->texture) {
+                        renderCommand->texture->Bind();
+                    }
 
-            vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), VulkanConvert::GetPrimitiveType(command.primitive)));
-            vkCheckErrorVoid(vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), command.indexCount, 1, offset, 0, 0));
-            offset += command.indexCount;
+                    if (m_UniformBuffer != nullptr) {
+                        CanvasTransform transform;
+                        transform.model = renderCommand->transform;
+                        m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
+
+                        CanvasMaterial material;
+                        material.useColor = true;
+                        material.useTexture = renderCommand->texture != nullptr;
+                        m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
+
+                        m_UniformBuffer->Bind();
+                    }
+
+                    VkPrimitiveTopology primitive = VulkanConvert::GetPrimitiveType(renderCommand->primitive);
+
+                    vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), primitive));
+                    vkCheckErrorVoid(vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), renderCommand->indexCount, 1, offset, 0, 0));
+                    offset += renderCommand->indexCount;
+                }
+            }
         }
 
         m_VertexArray->UnbindIndex();
 
-        m_Shader->Unbind();
+        if (render_evalable) {
+            m_Shader->Unbind();
+        }
 
-        m_Vertices.clear();
-        m_Indices.clear();
-        m_Commands.clear();
-        m_IndexCount = 0;
+        if (m_ScissorEnable) {
+            // a implementer
+        }
     }
 
 }  //  nkentseu
