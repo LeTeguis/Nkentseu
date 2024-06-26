@@ -30,7 +30,7 @@
 namespace nkentseu {
     using namespace maths;
     //Vector4f color;
-    struct Vertex {
+    struct VertexTest {
         Vector3f position;
         Vector4f color;
         Vector2f uv;
@@ -96,14 +96,14 @@ namespace nkentseu {
          -0.5f,  0.5f, -0.5f,  0.0f, 1.0f  // top-left              
     };
 
-    const std::vector<Vertex> vertices_struct = {
+    const std::vector<VertexTest> vertices_struct = {
         {{ 0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.31f, 1.0f }, { 0.0f, 0.0f }}, // top right
         {{ 0.5f, -0.5f, 0.0f} , { 0.0f, 0.31f, 0.31f, 1.0f }, {0.0f, 1.0f }}, // bottom right
         {{ -0.5f, -0.5f, 0.0f} , { 0.31f, 0.31f, 0.0f, 1.0f }, {1.0f, 1.0f }}, // bottom left
         {{ -0.5f, 0.5f, 0.0f} , { 0.31f, 0.0f, 0.0f, 1.0f }, {1.0f, 0.0f }} // top left
     };
 
-    const std::vector<Vertex> vertices_triangles_multi = {
+    const std::vector<VertexTest> vertices_triangles_multi = {
         {{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 1.0f }},
         {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 1.0f }},
         {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 1.0f, 1.0f }}
@@ -130,7 +130,7 @@ namespace nkentseu {
         1, 2, 3 // second triangle
     };
 
-    const std::vector<Vertex> cubeVertices = {
+    const std::vector<VertexTest> cubeVertices = {
         // Face avant
         {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f }}, // 0
         {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 1.0f }}, // 1
@@ -171,7 +171,7 @@ namespace nkentseu {
         0, 1, 5, 5, 4, 0
     };
 
-    std::vector<Vertex> verticesCube = {
+    std::vector<VertexTest> verticesCube = {
         // Front face
         {{-1, -1,  1}, {1, 0, 0, 1}, {0, 0}},  // 0
         {{ 1, -1,  1}, {0, 1, 0, 1}, {1, 0}},  // 1
@@ -213,7 +213,7 @@ namespace nkentseu {
     };
 
     struct Shape3D {
-        std::vector<Vertex> vertices;
+        std::vector<VertexTest> vertices;
         std::vector<uint32> indices;
     };
 
@@ -319,7 +319,7 @@ namespace nkentseu {
                     sectorAngle = j * sectorStep;
                     float32 x = radius * cosf(sectorAngle);
                     float32 y = radius * sinf(sectorAngle);
-                    Vertex vertex;
+                    VertexTest vertex;
                     vertex.position = Vector3f( x, y, h );
                     vertex.color = Vector4f(x, y, h );
                     vertex.uv = Vector2f(j / (float32)sectorCount, i);
@@ -594,7 +594,7 @@ namespace nkentseu {
         }*/
         Cube cube;
 
-        vertexBuffer = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, shapeCube.vertices, bufferLayout);
+        vertexBuffer = VertexBuffer::Create<VertexTest>(m_Context, BufferDataUsage::StaticDraw, shapeCube.vertices, bufferLayout);
         if (vertexBuffer == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
@@ -617,7 +617,7 @@ namespace nkentseu {
         //Capsule shape(1, 1, 36);
         Sphere shape(1, 36, 36);
 
-        vertexBuffer2 = VertexBuffer::Create<Vertex>(m_Context, BufferDataUsage::StaticDraw, shapeCapsule.vertices, bufferLayout);
+        vertexBuffer2 = VertexBuffer::Create<VertexTest>(m_Context, BufferDataUsage::StaticDraw, shapeCapsule.vertices, bufferLayout);
         if (vertexBuffer2 == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
@@ -666,6 +666,15 @@ namespace nkentseu {
             cameraBuffer.proj[1][1] *= -1;
         }
         int32 slot = 0;
+
+        CircleShape circle(100, 100, 36, Color::CadetBlue());
+        circle.GenerateIndices();
+        circle.GenerateVertices();
+
+        RectangleShape rectangle(200, 100, 10, 0, Color::Cyan());
+        rectangle.GenerateIndices();
+        rectangle.GenerateVertices();
+
         while (m_Running) {
             //float64 delta = timer.Elapsed().seconds;
             float64 delta = timer.Reset().seconds;
@@ -810,7 +819,10 @@ namespace nkentseu {
 
             if (canvas != nullptr) {
                 canvas->DrawRect(maths::Vector2f(0, 0), Vector2f(200, 200), Color::Blue());
-                canvas->DrawRect(maths::Vector2f(0.1, 0.1), Vector2f(190, 190), Color::Yellow());
+                canvas->DrawRect(maths::Vector2f(100, 100), Vector2f(200, 200), Color::Yellow());
+                canvas->DrawRect(maths::Vector2f(-80, 120), Vector2f(250, 200), Color::Green());
+                canvas->Draw(RenderPrimitive::LineStrip, circle);
+                canvas->Draw(RenderPrimitive::Triangles, rectangle, nullptr, maths::matrix4f::Translation(matrix4f::Identity(), Vector3f(-300, 0, 0)));
             }//*/
 
             if (shader != nullptr) {

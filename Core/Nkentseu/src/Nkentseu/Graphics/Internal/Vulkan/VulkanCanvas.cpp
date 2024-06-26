@@ -20,20 +20,19 @@ namespace nkentseu {
     VulkanCanvas::~VulkanCanvas() {
     }
 
-    void VulkanCanvas::Clear(const Color& color)
-    {
-    }
-
     void VulkanCanvas::Prepare()
     {
+        m_IsPresent = false;
         m_Vertices.clear();
         m_Indices.clear();
         m_Commands.clear();
+        m_IndexCount = 0;
     }
 
     void VulkanCanvas::Present()
     {
         Flush();
+        m_IsPresent = true;
     }
 
     void VulkanCanvas::Destroy()
@@ -108,55 +107,60 @@ namespace nkentseu {
 
     void VulkanCanvas::Flush()
     {
-        if (m_Context == nullptr) {
+        if (m_Vertices.empty() || m_Indices.empty() || m_Commands.empty()) {
             return;
         }
 
-        if (m_VertexBuffer == nullptr || m_VertexBuffer->GetBuffer() == nullptr || m_VertexBuffer->GetBuffer()->buffer == nullptr) {
+        if (m_Shader == nullptr || !m_Shader->Bind()) {
             return;
         }
-
-        if (m_IndexBuffer == nullptr || m_IndexBuffer->GetBuffer() == nullptr || m_IndexBuffer->GetBuffer()->buffer == nullptr) {
-            return;
-        }
-
-        m_VertexBuffer->SetData(m_Vertices.data(), m_Vertices.size());
-        m_IndexBuffer->SetData(m_Indices.data(), m_Vertices.size());
-        m_Shader->Bind();
 
         if (m_UniformBuffer != nullptr) {
             float32 distance_to_screen = 1.0f;
             CanvasCamera cameraBuffer{};
-            cameraBuffer.view = matrix4f::Identity();
-            cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);;
 
-            m_UniformBuffer->SetData("camera", &cameraBuffer, sizeof(CanvasCamera));
+            cameraBuffer.view = matrix4f::Identity();
+            cameraBuffer.proj = matrix4f::Identity();
+            //cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
+            m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
         }
 
-        VkBuffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
-        VkDeviceSize offsets[] = { 0 };
-        vkCheckErrorVoid(vkCmdBindVertexBuffers(m_Context->GetCurrentCommandBuffer(), 0, 1, vertexBuffers, offsets));
+        if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
+            return;
+        }
 
-        vkCheckErrorVoid(vkCmdBindIndexBuffer(m_Context->GetCurrentCommandBuffer(), m_IndexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32));
+        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex2D));
+        m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
+
+        m_VertexArray->BindIndex();
 
         uint32 offset = 0;
-        for (const auto& command : m_Commands) {
+        for (auto it = m_Commands.begin(); it != m_Commands.end(); ++it) {
+            const auto& command = *it;
+
+            if (command.texture) {
+                command.texture->Bind();
+            }
+
             if (m_UniformBuffer != nullptr) {
                 CanvasTransform transform;
-                transform.model = matrix4f();
-                m_UniformBuffer->SetData("transform", &transform, sizeof(CanvasTransform));
+                transform.model = command.transform;
+                m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
 
                 CanvasMaterial material;
-                material.useColor = false;
-                material.useTexture = false;
-                m_UniformBuffer->SetData("material", &material, sizeof(CanvasMaterial));
+                material.useColor = true;
+                material.useTexture = command.texture != nullptr;
+                m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
 
                 m_UniformBuffer->Bind();
             }
+
             vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), VulkanConvert::GetPrimitiveType(command.primitive)));
             vkCheckErrorVoid(vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), command.indexCount, 1, offset, 0, 0));
             offset += command.indexCount;
         }
+
+        m_VertexArray->UnbindIndex();
 
         m_Shader->Unbind();
 
@@ -164,62 +168,6 @@ namespace nkentseu {
         m_Indices.clear();
         m_Commands.clear();
         m_IndexCount = 0;
-    }
-
-    void VulkanCanvas::DrawPoint(const Vector2f& position, const Color& color, CanvasTexture texture)
-    {
-        VertexData vertex = VertexData(position, Vector4f(color), Vector2f());
-        m_Vertices.push_back(vertex);
-
-        m_Indices.push_back(m_IndexCount);
-        m_IndexCount += 1;
-
-        m_Commands.push_back({ RenderPrimitive::Points, 1, {0, 0}, {0, 0, 0, 0}, texture });
-    }
-
-    void VulkanCanvas::DrawLine(const Vector2f& start, const Vector2f& end, const Color& color, CanvasTexture texture) {
-        VertexData vertex1 = VertexData(start, Vector4f(color), Vector2f(1, 1));
-        VertexData vertex2 = VertexData(start + end, Vector4f(color), Vector2f(1, 1));
-        m_Vertices.push_back(vertex1);
-        m_Vertices.push_back(vertex2);
-
-        m_Indices.push_back(m_IndexCount);
-        m_Indices.push_back(m_IndexCount + 1);
-        m_IndexCount += 2;
-
-        m_Commands.push_back({ RenderPrimitive::Lines, 2, {0, 0}, {0, 0, 0, 0}, texture });
-    }
-
-    void VulkanCanvas::DrawRect(const Vector2f& position, const Vector2f& size, const Color& color, bool filled, CanvasTexture texture) {
-        if (filled) {
-            // Filled rectangle (four lines)
-            VertexData vertex1 = VertexData(position + Vector2f(), Vector4f(color), Vector2f(1, 1));
-            VertexData vertex2 = VertexData(position + Vector2f(size.x, 0), Vector4f(color), Vector2f(1, 0));
-            VertexData vertex3 = VertexData(position + Vector2f(0, size.y), Vector4f(color), Vector2f(0, 0));
-            VertexData vertex4 = VertexData(position + size, Vector4f(color), Vector2f(0, 1));
-
-            m_Vertices.push_back(vertex1);
-            m_Vertices.push_back(vertex2);
-            m_Vertices.push_back(vertex3);
-            m_Vertices.push_back(vertex4);
-
-            m_Indices.push_back(m_IndexCount);
-            m_Indices.push_back(m_IndexCount + 1);
-            m_Indices.push_back(m_IndexCount + 3);
-            m_Indices.push_back(m_IndexCount + 1);
-            m_Indices.push_back(m_IndexCount + 2);
-            m_Indices.push_back(m_IndexCount + 3);
-
-            m_IndexCount += 4;
-            m_Commands.push_back({ RenderPrimitive::Triangles, 6, {0, 0}, {0, 0, 0, 0}, texture });
-        }
-        else {
-            // Outline rectangle (four lines)
-            DrawLine(position, position + Vector2f(size.x, 0), color);
-            DrawLine(position + Vector2f(size.x, 0), position + Vector2f(0, size.y), color);
-            DrawLine(position + Vector2f(0, size.y), position + size, color);
-            DrawLine(position + size, position, color);
-        }
     }
 
 }  //  nkentseu

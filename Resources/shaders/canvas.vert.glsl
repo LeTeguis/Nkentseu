@@ -17,15 +17,8 @@ layout(binding = 1) uniform CanvasCamera {
     mat4 proj;
 } camera;
 
-const vec2 positions[3] = vec2[](
-    vec2(0.0,  0.5),
-    vec2(0.5, -0.5),
-    vec2(-0.5, -0.5)
-);
-
 void main() {
     gl_Position = camera.proj * camera.view * transform.model * vec4(aPos, 0.0, 1.0);
-    //gl_Position = vec4(positions[gl_VertexID % 3], 0.0, 1.0);
     //gl_Position = vec4(aPos, 0.0, 1.0);
     shapeColor = aColor;
     fragTexCoord = aTexCoord;

@@ -20,13 +20,13 @@ namespace nkentseu {
     OpenglCanvas::~OpenglCanvas() {
     }
 
-    void OpenglCanvas::Clear(const Color& color)
-    {
-    }
-
     void OpenglCanvas::Prepare()
     {
         m_IsPresent = false;
+        m_Vertices.clear();
+        m_Indices.clear();
+        m_Commands.clear();
+        m_IndexCount = 0;
     }
 
     void OpenglCanvas::Present()
@@ -121,43 +121,43 @@ namespace nkentseu {
             return;
         }
 
-        CanvasCamera cameraBuffer{};
-
         if (m_UniformBuffer != nullptr) {
             float32 distance_to_screen = 1.0f;
-            cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
-            //cameraBuffer.proj = matrix4f::PerspectiveFov(Angle(45), m_Context->GetWindow()->GetDpiAspect(), 0.1, 100.0f);
+            CanvasCamera cameraBuffer{};
+
+            cameraBuffer.view = matrix4f::Identity();
+            //cameraBuffer.proj = matrix4f::Identity();
+            Vector2f size = m_Context->GetWindow()->GetSize();
+            cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
+            //cameraBuffer.proj = matrix4f::Orthogonal(distance_to_screen * m_Context->GetWindow()->GetDpiAspect(), distance_to_screen, 0.1f, 100.0f);
+            m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
         }
 
         if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
             return;
         }
 
-        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(VertexData));
+        m_VertexArray->GetVertexBuffer()->SetData(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex2D));
         m_VertexArray->GetIndexBuffer()->SetData(m_Indices.data(), m_Indices.size() * sizeof(uint32));
 
         m_VertexArray->BindIndex();
 
         uint32 offset = 0;
-        for (const auto& command : m_Commands) {
+        for (auto it = m_Commands.begin(); it != m_Commands.end(); ++it) {
+            const auto& command = *it;
+
             if (command.texture) {
                 command.texture->Bind();
             }
 
             if (m_UniformBuffer != nullptr) {
-                // Camera view
-                //cameraBuffer.view = command.viewport;
-                //m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
-
-                // Canvas Trandform
                 CanvasTransform transform;
-                transform.model = matrix4f::Identity();
+                transform.model = command.transform;
                 m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
 
-                // material
                 CanvasMaterial material;
                 material.useColor = true;
-                material.useTexture = false;
+                material.useTexture = command.texture != nullptr;
                 m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
 
                 m_UniformBuffer->Bind();
@@ -175,59 +175,6 @@ namespace nkentseu {
         m_Indices.clear();
         m_Commands.clear();
         m_IndexCount = 0;
-    }
-
-    void OpenglCanvas::DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture)
-    {
-        Vector2f winsize = m_Context->GetWindow()->GetSize();
-
-        VertexData vertex(position / winsize, color, maths::Vector2f(0.0f, 0.0f));
-        m_Vertices.push_back(vertex);
-
-        m_Commands.push_back({ RenderPrimitive::Points, 1, {0, 0}, {0, 0, 0, 0}, texture });
-    }
-
-    void OpenglCanvas::DrawLine(const Vector2f& start, const Vector2f& end, const Color& color, CanvasTexture texture) {
-        Vector2f winsize = m_Context->GetWindow()->GetSize();
-        Vector2f start_ = start / winsize;
-        Vector2f end_ = end / winsize;
-
-        VertexData vertex1(start_, color, maths::Vector2f(0.0f, 0.0f));
-        VertexData vertex2(end_, color, maths::Vector2f(0.0f, 0.0f));
-        m_Vertices.push_back(vertex1);
-        m_Vertices.push_back(vertex2);
-
-        m_Commands.push_back({ RenderPrimitive::Lines, 2, {0, 0}, {0, 0, 0, 0}, texture });
-    }
-
-    void OpenglCanvas::DrawRect(const Vector2f& position, const Vector2f& size, const Color& color, bool filled, CanvasTexture texture) {
-        Vector2f winsize = m_Context->GetWindow()->GetSize();
-        Vector2f pos_ = position / winsize;
-        Vector2f size_ = size / winsize;
-
-        VertexData vertices[4] = {
-        {pos_, color, maths::Vector2f(0.0f, 0.0f)},
-        {maths::Vector2f(pos_.x + size_.x, pos_.y), color, maths::Vector2f(1.0f, 0.0f)},
-        {maths::Vector2f(pos_.x + size_.x, pos_.y + size_.y), color, maths::Vector2f(1.0f, 1.0f)},
-        {maths::Vector2f(pos_.x, pos_.y + size_.y), color, maths::Vector2f(0.0f, 1.0f)}
-        };
-
-        m_Vertices.insert(m_Vertices.end(), std::begin(vertices), std::end(vertices));
-
-        if (filled) {
-            uint32 indices[] = { 0, 1, 2, 2, 3, 0 };
-            m_Indices.insert(m_Indices.end(), std::begin(indices), std::end(indices));
-            m_IndexCount += 6;
-
-            m_Commands.push_back({ RenderPrimitive::Triangles, 6, {0, 0}, {0, 0, 0, 0}, texture });
-        }
-        else {
-            uint32 indices[] = { 0, 1, 1, 2, 2, 3, 3, 0 };
-            m_Indices.insert(m_Indices.end(), std::begin(indices), std::end(indices));
-            m_IndexCount += 8;
-
-            m_Commands.push_back({ RenderPrimitive::Lines, 8, {0, 0}, {0, 0, 0, 0}, texture });
-        }
     }
 
 }  //  nkentseu

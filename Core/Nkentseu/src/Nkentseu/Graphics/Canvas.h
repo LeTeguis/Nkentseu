@@ -22,6 +22,8 @@
 #include "RenderPrimitive.h"
 
 #include <vector>
+#include "Vertex2D.h"
+#include "Shape2D.h"
 
 namespace nkentseu {
 
@@ -55,33 +57,55 @@ namespace nkentseu {
         int32 useColor = true;
     };
 
-    using CanvasTexture = const Memory::Shared<Texture2D>;
+    using CanvasTexture = Memory::Shared<Texture2D>;
 
     struct NKENTSEU_API RenderCommand {
         RenderPrimitive::Enum primitive;
         uint32 indexCount;
-
-        maths::Vector2f scissor;
-        maths::Vector4f viewport;
-
+        maths::matrix4f transform = maths::matrix4f::Identity();
         CanvasTexture texture;
+
+        RenderCommand(RenderPrimitive::Enum prim, uint32 count, const maths::matrix4f& trans, CanvasTexture tex = nullptr)
+            : primitive(prim), indexCount(count), transform(trans), texture(tex) {}
+
+        RenderCommand() = default;
+
+        RenderCommand(const RenderCommand& other)
+            : primitive(other.primitive), indexCount(other.indexCount), transform(other.transform), texture(other.texture) {}
+
+        RenderCommand& operator=(const RenderCommand& other) {
+            if (this != &other) {
+                primitive = other.primitive;
+                indexCount = other.indexCount;
+                transform = other.transform;
+                texture = other.texture;
+            }
+            return *this;
+        }
     };
 
     class NKENTSEU_API Canvas {
     public:
-        virtual void Clear(const Color& color) = 0;
         virtual void Prepare() = 0;
         virtual void Present() = 0;
         virtual void Destroy() = 0;
         virtual maths::Vector2f GetSize() = 0;
 
-        virtual void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture = nullptr) = 0;
-        virtual void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture texture = nullptr) = 0;
-        virtual void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture texture = nullptr) = 0;
+        virtual void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture texture = nullptr);
+
+        virtual void Draw(RenderPrimitive::Enum primitive, const std::vector<Vertex2D>& vertices, const std::vector<uint32>& indices, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
+        virtual void Draw(RenderPrimitive::Enum primitive, const Vertex2D* vertices, usize verticesNumber, const uint32* indices, usize indicesNumber, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
+        virtual void Draw(RenderPrimitive::Enum primitive, const Shape2D& shape, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
 
         static Memory::Shared<Canvas> Create(const Memory::Shared<Context>& context);
 
     protected:
+        std::vector<Vertex2D> m_Vertices;
+        std::vector<uint32> m_Indices;
+        std::vector<RenderCommand> m_Commands;
+        uint32 m_IndexCount = 0;
     };
 
 }  //  nkentseu

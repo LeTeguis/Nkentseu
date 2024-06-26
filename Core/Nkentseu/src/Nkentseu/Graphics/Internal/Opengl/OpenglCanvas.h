@@ -28,16 +28,10 @@ namespace nkentseu {
         OpenglCanvas(const Memory::Shared<Context>& context);
         ~OpenglCanvas();
 
-        void Clear(const Color& color) override;
         void Prepare() override;
         void Present() override;
         void Destroy() override;
         maths::Vector2f GetSize() override;
-
-        void DrawPoint(const maths::Vector2f& position, const Color& color, CanvasTexture texture = nullptr) override;
-        void DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture texture = nullptr) override;
-        void DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled = true, CanvasTexture texture = nullptr) override;
-
     private:
         friend class OpenglRenderer;
 
@@ -50,14 +44,7 @@ namespace nkentseu {
         Memory::Shared<OpenglIndexBuffer> m_IndexBuffer = nullptr;
         Memory::Shared<OpenglVertexArray> m_VertexArray = nullptr;
 
-        std::vector<VertexData> m_Vertices;
-        std::vector<uint32> m_Indices;
-        std::vector<RenderCommand> m_Commands;
-
-        uint32 m_IndexCount = 0;
-
         bool m_IsPresent = true;
-
         maths::Vector2f m_Size;
 
         void Initialize();

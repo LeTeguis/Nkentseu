@@ -62,7 +62,7 @@ namespace nkentseu {
 		Color(const maths::Vector4f& color);
 		Color(const maths::Vector3f& color);
 
-		operator const maths::Vector4f& () const {
+		operator maths::Vector4f () const {
 			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
 		}
 
