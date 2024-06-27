@@ -187,6 +187,8 @@ namespace nkentseu {
 			static matrix4f Camera(const Vector3f& eye, const Vector3f& _look, const Vector3f& _up, const Vector3f& _right);
 			static matrix4f LookAt(const Vector3f& eye, const Vector3f& center, const Vector3f& up);
 			static matrix4f Orthogonal(float32 width, float32 height, float32 zNear, float32 zFar);
+			static matrix4f Orthogonal(const Vector2f& size, float32 zNear, float32 zFar);
+			static matrix4f Orthogonal(const Vector2f& bottomLeft, const Vector2f& topRight, float32 zNear, float32 zFar);
 			static matrix4f Perspective(float32 width, float32 height, float32 zNear, float32 zFar);
 			static matrix4f PerspectiveFov(const Angle& fov, float32 aspect, float32 zNear, float32 zFar);
 			static matrix4f PerspectiveMultifov(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar);

@@ -458,6 +458,11 @@ namespace nkentseu {
     ShapeCapsule shapeCapsule;
     ShapeTube shapeTube;
 
+    Vector2f sub_window_position(100, 100);
+    Vector2f sub_window_size(400, 300);
+    bool mouseIsPressed = false;
+    bool mouseIsHover = false;
+
     Vector2f mouseDelta;
     Camera camera;
     CameraMovement movementCamera = CameraMovement::FORWARD;
@@ -838,9 +843,11 @@ namespace nkentseu {
                 //canvas->DrawThickOutlineRoundRect({ 100.0f, 100.0f }, { 150.0f, 200.0f }, 20.0f, 10.f, Color(0.0f, 0.0f, 1.0f));
                 //canvas->DrawFilledRoundRect({ 100.0f, 100.0f }, { 150.0f, 200.0f }, 20.0f, Color(0.0f, 0.0f, 1.0f));
 
-                canvas->DrawFilledRoundRect({ -1, -301 }, { 402.0f, 326.0f }, { 0.0f, 0.0f, 5.0f, 5.0f }, Color(64, 64, 64));
-                canvas->DrawFilledRoundRect({ 0, 0 }, { 400.0f, 24.0f }, { 0.0f, 0.0f, 5.0f, 5.0f }, Color(20, 20, 20));
-                canvas->DrawFilledRoundRect({ 0, -300 }, { 400.0f, 300.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }, Color(33, 33, 33));
+                Color color = Color(64, 64, 64);
+                if (mouseIsHover) color = Color(0, 162, 232);
+                canvas->DrawFilledRoundRect(Vector2f(-1, -1) + sub_window_position, Vector2f(2.0f, 26.0f) + sub_window_size, {5.0f, 5.0f, 0.0f, 0.0f}, color);
+                canvas->DrawFilledRoundRect(Vector2f(0, 0) + sub_window_position, Vector2f(sub_window_size.width, 24.0f), { 5.0f, 5.0f, 0.0f, 0.0f }, Color(20, 20, 20));
+                canvas->DrawFilledRoundRect(Vector2f(0, 24) + sub_window_position, sub_window_size, { 0.0f, 0.0f, 0.0f, 0.0f }, Color(33, 33, 33));
                 //canvas->DrawFilledRoundRect({ 99.0f, 100.0f - 64.0f }, { 200.0f, 300.0f }, { 0.0f, 0.0f, 20.0f, 20.0f }, Color(33, 33, 33));
 
                 //canvas->Draw(RenderPrimitive::LineStrip, circle);
@@ -956,15 +963,40 @@ namespace nkentseu {
     bool Application::OnMouseInputEvent(MouseInputEvent& event)
     {
         Log.Debug("{0}", event);
+
+        if (event.GetState() == ButtonState::Pressed) {
+            mouseIsPressed = true;
+        }
+        else if (event.GetState() == ButtonState::Released) {
+            mouseIsPressed = false;
+        }
         return false;
     }
 
     bool Application::OnMouseMoved(MouseMovedEvent& event)
     {
         mouseDelta = event.GetSpeed();
+        mouseIsHover = false;
+
+        if (event.GetPosition().x >= sub_window_position.x && event.GetPosition().x <= sub_window_position.x + sub_window_size.width &&
+            event.GetPosition().y >= sub_window_position.y && event.GetPosition().y <= sub_window_position.y + sub_window_size.height) {
+            //sub_window_position += mouseDelta;
+            mouseIsHover = true;
+        }
+
+        if (mouseDelta != Vector2f() && mouseIsPressed) {
+            if (event.GetPosition().x >= sub_window_position.x && event.GetPosition().x <= sub_window_position.x + sub_window_size.width &&
+                event.GetPosition().y >= sub_window_position.y && event.GetPosition().y <= sub_window_position.y + sub_window_size.height) {
+                //sub_window_position += mouseDelta;
+                mouseIsHover = true;
+            }
+            sub_window_position += mouseDelta;
+        }
+
         mouseDelta.Normalize();
 
         camera.ProcessMouseMovement(mouseDelta.x, -mouseDelta.y);
+
         return false;
     }
 

@@ -445,20 +445,70 @@ namespace nkentseu {
         matrix4f matrix4f::Orthogonal(float32 width, float32 height, float32 zNear, float32 zFar)
         {
             matrix4f result;
-            result[0][0] = 2.0f / width;
+            result.m00 = 2.0f / width;
+            result.m10 = 0.0f;
+            result.m20 = 0.0f;
+            result.m30 = 0.0f;
+
+            result.m01 = 0.0f;
+            result.m11 = 2.0f / height;
+            result.m21 = 0.0f;
+            result.m31 = 0.0f;
+
+            result.m02 = 0.0f;
+            result.m12 = 0.0f;
+            result.m22 = 1.0f / (zNear - zFar);
+            result.m32 = zNear / (zNear - zFar);
+
+            result.m03 = 0.0f;
+            result.m13 = 0.0f;
+            result.m23 = 0.0f;
+            result.m33 = 1.0f;
+            return result;
+        }
+
+        matrix4f matrix4f::Orthogonal(const Vector2f& size, float32 zNear, float32 zFar)
+        {
+            matrix4f result;
+            result[0][0] = 2.0f / size.width;
             result[1][0] = 0.0f;
             result[2][0] = 0.0f;
             result[3][0] = 0.0f;
 
             result[0][1] = 0.0f;
-            result[1][1] = 2.0f / height;
+            result[1][1] = 2.0f / size.height;
             result[2][1] = 0.0f;
             result[3][1] = 0.0f;
 
             result[0][2] = 0.0f;
             result[1][2] = 0.0f;
-            result[2][2] = 1.0f / (zNear - zFar);
-            result[3][2] = zNear / (zNear - zFar);
+            result[2][2] = 2.0f / (zNear - zFar);
+            result[3][2] = (zNear + zFar) / (zNear - zFar);
+
+            result[0][3] = 0.0f;
+            result[1][3] = 0.0f;
+            result[2][3] = 0.0f;
+            result[3][3] = 1.0f;
+            return result;
+        }
+
+        matrix4f matrix4f::Orthogonal(const Vector2f& bottomLeft, const Vector2f& topRight, float32 zNear, float32 zFar)
+        {
+            matrix4f result;
+            result[0][0] = 2.0f / (topRight.x - bottomLeft.x);
+            result[1][0] = 0.0f;
+            result[2][0] = 0.0f;
+            result[3][0] = -((topRight.x + bottomLeft.x)/(topRight.x - bottomLeft.x));
+
+            result[0][1] = 0.0f;
+            result[1][1] = 2.0f / (topRight.y - bottomLeft.y);
+            result[2][1] = 0.0f;
+            result[3][1] = -((topRight.y + bottomLeft.y) / (topRight.y - bottomLeft.y));
+
+            result[0][2] = 0.0f;
+            result[1][2] = 0.0f;
+            result[2][2] = 2.0f / (zNear - zFar);
+            result[3][2] = (zNear + zFar) / (zNear - zFar);
 
             result[0][3] = 0.0f;
             result[1][3] = 0.0f;

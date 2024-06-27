@@ -105,6 +105,8 @@ namespace nkentseu {
         bool first = true;
         Vector2f size = m_Context->GetWindow()->GetSize();
 
+        glCheckError(first, result, glDisable(GL_DEPTH_TEST), "cannot disable depth test");
+
         if (m_ScissorEnable) {
             glCheckError(first, result, glEnable(GL_SCISSOR_TEST), "cannot enable scissor test");
         }
@@ -120,9 +122,13 @@ namespace nkentseu {
                 float32 distance_to_screen = 1.0f;
                 CanvasCamera cameraBuffer{};
 
-                cameraBuffer.view = matrix4f::Identity();
-                cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
+                cameraBuffer.view = matrix4f::Identity().Inverse();
+                //cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
+                //cameraBuffer.proj = matrix4f::Orthogonal(size, -1.f, 1.0f);
+                cameraBuffer.proj = matrix4f::Orthogonal(Vector2f(0, size.height), Vector2f(size.width, 0), -1.f, 1.0f);
                 m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
+
+                //glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth), static_cast<float>(screenHeight), 0.0f, -1.0f, 1.0f);
             }
 
             if (m_VertexArray == nullptr || m_VertexArray->GetVertexBuffer() == nullptr || m_VertexArray->GetIndexBuffer() == nullptr) {
@@ -183,6 +189,8 @@ namespace nkentseu {
         if (m_ScissorEnable) {
             glCheckError(first, result, glDisable(GL_SCISSOR_TEST), "cannot disable scissor test");
         }
+
+        glCheckError(first, result, glEnable(GL_DEPTH_TEST), "cannot enable depth test");
     }
 
 }  //  nkentseu

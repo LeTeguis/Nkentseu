@@ -987,21 +987,24 @@ namespace nkentseu {
     void Canvas::Draw(RenderPrimitive::Enum primitive, const std::vector<Vertex2D>& vertices, const std::vector<uint32>& indices, CanvasTexture texture, const maths::matrix4f& transform) {
         //Draw(primitive, vertices.data(), vertices.size(), indices.data(), indices.size(), texture, transform);
 
-        m_Vertices.insert(m_Vertices.begin(), vertices.begin(), vertices.end());
+        //m_Vertices.insert(m_Vertices.begin(), vertices.begin(), vertices.end());
+        m_Vertices.insert(m_Vertices.end(), vertices.begin(), vertices.end());
 
-        // Adjust existing indices to reflect the new vertices at the beginning
+        /*/ Adjust existing indices to reflect the new vertices at the beginning
         for (usize i = 0; i < m_Indices.size(); ++i) {
             m_Indices[i] += vertices.size();
-        }
+        }*/
 
         // Update indices
         std::vector<uint32> adjustedIndices(indices.size());
         for (usize i = 0; i < indices.size(); ++i) {
-            adjustedIndices[i] = indices[i];
+            //adjustedIndices[i] = indices[i];
+            adjustedIndices[i] = indices[i] + m_IndexCount;
         }
 
         // Insert new indices at the beginning of m_Indices
-        m_Indices.insert(m_Indices.begin(), adjustedIndices.begin(), adjustedIndices.end());
+        //m_Indices.insert(m_Indices.begin(), adjustedIndices.begin(), adjustedIndices.end());
+        m_Indices.insert(m_Indices.end(), adjustedIndices.begin(), adjustedIndices.end());
 
         // Increment the index count
         m_IndexCount += vertices.size();
