@@ -205,6 +205,142 @@ namespace nkentseu {
         Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
+    void Canvas::DrawRoundedRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, CanvasTexture texture) {
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        if (radius <= 0.0f) {
+            // Dessiner un rectangle normal
+            vertices.push_back(Vertex2D(position, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            vertices.push_back(Vertex2D(Vector2f(position.x + size.x, position.y), maths::Vector4f(color), maths::Vector2f(1.0f, 0.0f)));
+            vertices.push_back(Vertex2D(Vector2f(position.x + size.x, position.y + size.y), maths::Vector4f(color), maths::Vector2f(1.0f, 1.0f)));
+            vertices.push_back(Vertex2D(Vector2f(position.x, position.y + size.y), maths::Vector4f(color), maths::Vector2f(0.0f, 1.0f)));
+
+            indices = { 0, 1, 2, 2, 3, 0 };
+        }
+        else {
+            // Ajouter les sommets des coins arrondis
+            for (int32 corner = 0; corner < 4; ++corner) {
+                float32 centerX = position.x + (corner == 1 || corner == 2 ? size.x - radius : radius);
+                float32 centerY = position.y + (corner > 1 ? size.y - radius : radius);
+
+                vertices.push_back(Vertex2D(Vector2f(centerX, centerY), maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+
+                for (int32 i = 0; i < segments; ++i) {
+                    float32 theta = static_cast<float32>(i) / static_cast<float32>(segments) * 0.5f * maths::Pi;
+                    float32 x = centerX + (corner == 0 || corner == 3 ? -1 : 1) * radius * std::cos(theta);
+                    float32 y = centerY + (corner == 0 || corner == 1 ? -1 : 1) * radius * std::sin(theta);
+                    vertices.push_back(Vertex2D(Vector2f(x, y), maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+                }
+            }
+
+            // Ajouter les indices pour former les triangles
+            int32 cornerVertexCount = segments + 1;
+            for (int32 corner = 0; corner < 4; ++corner) {
+                for (int32 i = 0; i < segments; ++i) {
+                    indices.push_back(corner * cornerVertexCount + i);
+                    indices.push_back(corner * cornerVertexCount + i + 1);
+                    indices.push_back((corner * cornerVertexCount + segments + i + 1) % (4 * cornerVertexCount));
+                }
+
+                indices.push_back(corner * cornerVertexCount);
+                indices.push_back(corner * cornerVertexCount + segments);
+                indices.push_back(corner * cornerVertexCount + segments + 1);
+
+                indices.push_back(corner * cornerVertexCount + segments);
+                indices.push_back(corner * cornerVertexCount + segments + 2);
+                indices.push_back(corner * cornerVertexCount + segments + 1);
+            }
+
+            /*/ Indices pour relier les coins aux rectangles centraux
+            indices.push_back(0);
+            indices.push_back(cornerVertexCount * 4);
+            indices.push_back(cornerVertexCount * 4 + 1);
+
+            indices.push_back(cornerVertexCount - 1);
+            indices.push_back(cornerVertexCount * 4 + 2);
+            indices.push_back(cornerVertexCount * 4 + 1);
+
+            indices.push_back(cornerVertexCount * 2);
+            indices.push_back(cornerVertexCount * 4 + 2);
+            indices.push_back(cornerVertexCount * 4 + 3);
+
+            indices.push_back(cornerVertexCount * 2 + segments);
+            indices.push_back(cornerVertexCount * 4 + 4);
+            indices.push_back(cornerVertexCount * 4 + 3);
+
+            indices.push_back(cornerVertexCount * 3);
+            indices.push_back(cornerVertexCount * 4 + 4);
+            indices.push_back(cornerVertexCount * 4 + 5);
+
+            indices.push_back(cornerVertexCount * 3 + segments);
+            indices.push_back(cornerVertexCount * 4 + 6);
+            indices.push_back(cornerVertexCount * 4 + 5);
+
+            indices.push_back(0);
+            indices.push_back(cornerVertexCount * 4 + 6);
+            indices.push_back(cornerVertexCount * 4 + 7);*/
+        }
+
+        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
+
+    void Canvas::DrawHollowRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 cornerRadii, float32 thickness, const Color& color, CanvasTexture texture) {
+        if (cornerRadii == 0.0f) {
+            return DrawThickOutlineRect(position, size, thickness, color, texture);
+        }
+
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+        constexpr float32 segments_haps = 1.0f / (float32)segments; // Nombre de segments pour approximer le cercle pour les coins
+        float32 radius_ajust = maths::Min<float32>({ cornerRadii, size.width * 0.5f, size.height * 0.5f });
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            Vector2f center(
+                corner == 1 || corner == 2 ? position.x + size.x - radius_ajust : position.x + radius_ajust,
+                corner == 2 || corner == 3 ? position.y + size.y - radius_ajust : position.y + radius_ajust
+            );
+            float32 angle;
+
+            if (corner == 0) {
+                angle = maths::Pi;
+            }
+            else if (corner == 1) {
+                angle = maths::Pi * 1.5f;
+            }
+            else if (corner == 2) {
+                angle = 0;
+            }
+            else if (corner == 3) {
+                angle = maths::Pi * 0.5;
+            }
+
+            for (int32 i = 0; i < segments; ++i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) + angle;
+
+                Vector2f vertex(
+                    center.x + radius_ajust * maths::Cos(Angle::FromRadian(theta)),
+                    center.y + radius_ajust * maths::Sin(Angle::FromRadian(theta))
+                );
+
+                vertices.push_back(Vertex2D(vertex, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        for (int32 index = 0; index < vertices.size(); index++) {
+            int32 next = (index + 1) % vertices.size();
+            indices.push_back(index);
+            indices.push_back(next);
+        }
+
+        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
     void Canvas::DrawRoundedRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, const Color& color, CanvasTexture texture) {
         constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
 
@@ -216,8 +352,10 @@ namespace nkentseu {
         // Ajout des sommets pour chaque coin avec arrondi
         for (int32 corner = 0; corner < 4; ++corner) {
             float32 radius = cornerRadii[corner];
-            float32 centerX = position.x + (corner == 1 || corner == 2 ? size.x : 0.0f);
-            float32 centerY = position.y + (corner > 1 ? size.y : 0.0f);
+            //float32 centerX = position.x + (corner == 1 || corner == 2 ? size.x : 0.0f);
+            //float32 centerY = position.y + (corner > 1 ? size.y : 0.0f);
+            float32 centerX = position.x + (corner == 0 || corner == 3 ? radius : -radius);
+            float32 centerY = position.y + (corner == 0 || corner == 1 ? -radius : radius);
 
             // Centre du cercle pour ce coin
             vertices.push_back(Vertex2D(Vector2f(centerX, centerY), maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
@@ -239,6 +377,412 @@ namespace nkentseu {
                 indices.push_back(centerIndex + i + 1);
                 indices.push_back(centerIndex + i + 2);
             }
+        }
+
+        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
+
+    void Canvas::DrawFilledRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, CanvasTexture texture) {
+        if (radius == 0.0f) {
+            return DrawFilledRect(position, size, color, texture);
+        }
+
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+        constexpr float32 segments_haps = 1.0f / (float32)segments; // Nombre de segments pour approximer le cercle pour les coins
+        float32 radius_ajust = maths::Min<float32>({ radius, size.width * 0.5f, size.height * 0.5f });
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            Vector2f center(
+                corner == 1 || corner == 2 ? position.x + size.x - radius_ajust : position.x + radius_ajust,
+                corner == 2 || corner == 3 ? position.y + size.y - radius_ajust : position.y + radius_ajust
+            );
+
+            vertices.push_back(Vertex2D(center, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+
+            float32 angle;
+
+            if (corner == 0) {
+                angle = maths::Pi;
+            }
+            else if (corner == 1) {
+                angle = maths::Pi * 1.5f;
+            }
+            else if (corner == 2) {
+                angle = 0;
+            }
+            else if (corner == 3) {
+                angle = maths::Pi * 0.5;
+            }
+
+            for (int32 i = 0; i <= segments; ++i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) + angle;
+
+                Vector2f vertex(
+                    center.x + radius_ajust * maths::Cos(Angle::FromRadian(theta)),
+                    center.y + radius_ajust * maths::Sin(Angle::FromRadian(theta))
+                );
+
+                vertices.push_back(Vertex2D(vertex, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        int32 indice_number = segments + 2;
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            int32 center_indice = corner * indice_number;
+
+            // Ajout des indices pour dessiner les triangles
+            for (int32 index = 1; index <= segments; ++index) {
+                indices.push_back(center_indice); // Centre du cercle
+                indices.push_back(center_indice + index);
+                indices.push_back(center_indice + index + 1);
+            }
+            int32 next_center_indice = (center_indice + indice_number) % (vertices.size());
+
+            indices.push_back(center_indice);
+            indices.push_back(center_indice + segments + 1);
+            indices.push_back(next_center_indice);
+
+            indices.push_back(center_indice + segments + 1);
+            indices.push_back(next_center_indice + 1);
+            indices.push_back(next_center_indice);
+        }
+
+        int32 center_indice0 = 0;
+        int32 center_indice1 = indice_number;
+        int32 center_indice2 = 2 * indice_number;
+        int32 center_indice3 = 3 * indice_number;
+
+        indices.push_back(center_indice0);
+        indices.push_back(center_indice1);
+        indices.push_back(center_indice2);
+
+        indices.push_back(center_indice2);
+        indices.push_back(center_indice3);
+        indices.push_back(center_indice0);
+
+        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
+    void Canvas::DrawFilledRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, const Color& color, CanvasTexture texture) {
+        if (cornerRadii == Vector4f()) {
+            return DrawFilledRect(position, size, color, texture);
+        }
+
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+        constexpr float32 segments_haps = 1.0f / (float32)segments; // Nombre de segments pour approximer le cercle pour les coins
+
+        std::vector<float32> radius_ajust;
+        radius_ajust.push_back(maths::Min<float32>({ cornerRadii.x, size.width * 0.5f, size.height * 0.5f }));
+        radius_ajust.push_back(maths::Min<float32>({ cornerRadii.y, size.width * 0.5f, size.height * 0.5f }));
+        radius_ajust.push_back(maths::Min<float32>({ cornerRadii.z, size.width * 0.5f, size.height * 0.5f }));
+        radius_ajust.push_back(maths::Min<float32>({ cornerRadii.w, size.width * 0.5f, size.height * 0.5f }));
+
+        float32 rad = maths::Max<float32>(radius_ajust);
+
+        float32 statical_radius = 50.f;
+
+        std::vector<Vector2f> centers;
+        centers.push_back({ radius_ajust[0] == 0.0f ? position.x + rad : position.x + radius_ajust[0] , radius_ajust[0] == 0.0f ? position.y + rad : position.y + radius_ajust[0]});
+        centers.push_back({ radius_ajust[1] == 0.0f ? position.x + size.x - rad : position.x + size.x - radius_ajust[1] , radius_ajust[1] == 0.0f ? position.y + rad : position.y + radius_ajust[1]});
+        centers.push_back({ radius_ajust[2] == 0.0f ? position.x + size.x - rad : position.x + size.x - radius_ajust[2] , radius_ajust[2] == 0.0f ? position.y + size.y - rad : position.y + size.y - radius_ajust[2]});
+        centers.push_back({ radius_ajust[3] == 0.0f ? position.x + rad : position.x + radius_ajust[3] , radius_ajust[3] == 0.0f ? position.y + size.y - rad : position.y + size.y - radius_ajust[3]});
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        for (int32 corner = 0; corner < 4; ++corner) {
+            vertices.push_back(Vertex2D(centers[corner], maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+
+            int32 realsegment = segments;
+            float32 realfactor = 0.5f;
+
+            if (radius_ajust[corner] == 0) {
+                realsegment = 2;
+                realfactor = 0.25f;
+            }
+
+            float32 angle = 0.0f;
+
+            if (corner == 0) {
+                angle = maths::Pi;
+            }
+            else if (corner == 1) {
+                angle = maths::Pi * 1.5f;
+            }
+            else if (corner == 2) {
+                angle = 0;
+            }
+            else if (corner == 3) {
+                angle = maths::Pi * 0.5;
+            }
+
+            for (int32 i = 0; i <= realsegment; ++i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * realfactor * maths::Pi) + angle;
+
+                float32 cosAngle = maths::Cos(Angle::FromRadian(theta));
+                float32 sinAngle = maths::Sin(Angle::FromRadian(theta));
+
+                float32 radius_calculus = radius_ajust[corner];
+
+                if (radius_ajust[corner] == 0) {
+                    cosAngle = (cosAngle < 0) ? -1 : 1;
+                    sinAngle = (sinAngle < 0) ? -1 : 1;
+                    radius_calculus = rad;
+                }
+
+                Vector2f vertex(
+                    centers[corner].x + radius_calculus * cosAngle,
+                    centers[corner].y + radius_calculus * sinAngle
+                );
+
+                vertices.push_back(Vertex2D(vertex, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        std::vector<int32> center_indices;
+        center_indices.resize(4);
+
+        int32 next_center_indice = 0;
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            center_indices[corner] = next_center_indice;
+
+            int32 realsegment = segments;
+
+            if (radius_ajust[corner] == 0.0f) {
+                realsegment = 2;
+            }
+
+            // Ajout des indices pour dessiner les triangles
+            for (int32 index = 1; index <= realsegment; ++index) {
+                indices.push_back(center_indices[corner]); // Centre du cercle
+                indices.push_back(center_indices[corner] + index);
+                indices.push_back(center_indices[corner] + index + 1);
+            }
+
+            next_center_indice = (center_indices[corner] + (realsegment + 1) + 1) % (vertices.size());
+
+            indices.push_back(center_indices[corner]);
+            indices.push_back(center_indices[corner] + (realsegment + 1));
+            indices.push_back(next_center_indice);
+
+            indices.push_back(center_indices[corner] + (realsegment + 1));
+            indices.push_back(next_center_indice + 1);
+            indices.push_back(next_center_indice);
+        }
+
+        indices.push_back(center_indices[0]);
+        indices.push_back(center_indices[1]);
+        indices.push_back(center_indices[2]);
+
+        indices.push_back(center_indices[2]);
+        indices.push_back(center_indices[3]);
+        indices.push_back(center_indices[0]);
+
+        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
+    void Canvas::DrawHollowRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, float32 thickness, const Color& color, CanvasTexture texture) {
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        vertices.reserve(4 + segments * 4); // 4 coins + segments pour chaque coin
+
+        // Ajout des sommets pour chaque coin avec arrondi
+        for (int32 corner = 0; corner < 4; ++corner) {
+            float32 radius = cornerRadii[corner];
+            float32 centerX = position.x + (corner == 1 || corner == 2 ? size.x : 0.0f);
+            float32 centerY = position.y + (corner > 1 ? size.y : 0.0f);
+
+            // Ajout des sommets du cercle pour ce coin
+            for (int32 i = 0; i <= segments; ++i) {
+                float32 theta = static_cast<float32>(i) / static_cast<float32>(segments) * 0.5f * maths::Pi;
+                float32 x = centerX - radius + radius * std::cos(theta);
+                float32 y = centerY - radius + radius * std::sin(theta);
+                vertices.push_back(Vertex2D(Vector2f(x, y), maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        // Ajout des indices pour dessiner les lignes des coins
+        for (int32 corner = 0; corner < 4; ++corner) {
+            int32 startIndex = vertices.size() - (segments + 1) * (4 - corner);
+
+            // Indices pour dessiner les lignes du coin
+            for (int32 i = 0; i < segments; ++i) {
+                indices.push_back(startIndex + i);
+                indices.push_back(startIndex + i + 1);
+            }
+
+            // Relier le dernier point au premier pour boucler
+            indices.push_back(startIndex + segments);
+            indices.push_back(startIndex);
+        }
+
+        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
+    void Canvas::DrawThickOutlineRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, float32 thickness, const Color& color, CanvasTexture texture) {
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        vertices.reserve(4 + segments * 8); // 4 coins extérieurs + 4 coins intérieurs + segments pour chaque coin
+
+        // Ajout des sommets pour chaque coin avec arrondi
+        for (int32 corner = 0; corner < 4; ++corner) {
+            float32 outerRadius = cornerRadii[corner] + thickness * 0.5f;
+            float32 innerRadius = cornerRadii[corner] - thickness * 0.5f;
+            float32 centerX = position.x + (corner == 1 || corner == 2 ? size.x : 0.0f);
+            float32 centerY = position.y + (corner > 1 ? size.y : 0.0f);
+
+            // Ajout des sommets du cercle extérieur pour ce coin
+            for (int32 i = 0; i <= segments; ++i) {
+                float32 theta = static_cast<float32>(i) / static_cast<float32>(segments) * 0.5f * maths::Pi;
+                float32 x = centerX - outerRadius + outerRadius * std::cos(theta);
+                float32 y = centerY - outerRadius + outerRadius * std::sin(theta);
+                vertices.push_back(Vertex2D(Vector2f(x, y), maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+
+            // Ajout des sommets du cercle intérieur pour ce coin
+            for (int32 i = 0; i <= segments; ++i) {
+                float32 theta = static_cast<float32>(i) / static_cast<float32>(segments) * 0.5f * maths::Pi;
+                float32 x = centerX - innerRadius + innerRadius * std::cos(theta);
+                float32 y = centerY - innerRadius + innerRadius * std::sin(theta);
+                vertices.push_back(Vertex2D(Vector2f(x, y), maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        // Ajout des indices pour dessiner les triangles de la bordure
+        for (int32 corner = 0; corner < 4; ++corner) {
+            int32 outerStartIndex = corner * (segments + 1);
+            int32 innerStartIndex = vertices.size() - (segments + 1) * (4 - corner);
+
+            // Indices pour dessiner les triangles de la bordure
+            for (int32 i = 0; i < segments; ++i) {
+                indices.push_back(outerStartIndex + i);
+                indices.push_back(outerStartIndex + i + 1);
+                indices.push_back(innerStartIndex + i + 1);
+
+                indices.push_back(outerStartIndex + i);
+                indices.push_back(innerStartIndex + i + 1);
+                indices.push_back(innerStartIndex + i);
+            }
+
+            // Relier le dernier point au premier pour boucler
+            indices.push_back(outerStartIndex + segments);
+            indices.push_back(outerStartIndex);
+            indices.push_back(innerStartIndex);
+
+            indices.push_back(outerStartIndex + segments);
+            indices.push_back(innerStartIndex);
+            indices.push_back(innerStartIndex + segments);
+        }
+
+        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+    }
+
+    void Canvas::DrawThickOutlineRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, float32 thickness, const Color& color, CanvasTexture texture) {
+        if (radius == 0.0f) {
+            return DrawThickOutlineRect(position, size, thickness, color, texture);
+        }
+
+        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
+        constexpr float32 segments_haps = 1.0f / (float32)segments; // Nombre de segments pour approximer le cercle pour les coins
+        float32 radius_ajust = maths::Min<float32>({radius, size.width * 0.5f, size.height * 0.5f});
+
+        std::vector<Vertex2D> vertices;
+        std::vector<uint32> indices;
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            Vector2f center(
+                corner == 1 || corner == 2 ? position.x + size.x - radius_ajust : position.x + radius_ajust,
+                corner == 2 || corner == 3 ? position.y + size.y - radius_ajust : position.y + radius_ajust
+            );
+            float32 angle;
+
+            if (corner == 0) {
+                angle = maths::Pi;
+            }
+            else if (corner == 1) {
+                angle = maths::Pi * 1.5f;
+            }
+            else if (corner == 2) {
+                angle = 0;
+            }
+            else if (corner == 3) {
+                angle = maths::Pi * 0.5;
+            }
+
+            for (int32 i = 0; i < segments; ++i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) + angle;
+
+                Vector2f vertex(
+                    center.x + radius_ajust * maths::Cos(Angle::FromRadian(theta)),
+                    center.y + radius_ajust * maths::Sin(Angle::FromRadian(theta))
+                );
+
+                vertices.push_back(Vertex2D(vertex, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        radius_ajust -= thickness;
+        Vector2f interRect = position + Vector2f(thickness, thickness);
+        Vector2f interSize = size - Vector2f(thickness * 2.0f, thickness * 2.0f);
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            Vector2f center(
+                corner == 1 || corner == 2 ? interRect.x + interSize.x - radius_ajust : interRect.x + radius_ajust,
+                corner == 2 || corner == 3 ? interRect.y + interSize.y - radius_ajust : interRect.y + radius_ajust
+            );
+            float32 angle;
+
+            if (corner == 0) {
+                angle = maths::Pi;
+            }
+            else if (corner == 1) {
+                angle = maths::Pi * 1.5f;
+            }
+            else if (corner == 2) {
+                angle = 0;
+            }
+            else if (corner == 3) {
+                angle = maths::Pi * 0.5;
+            }
+
+            for (int32 i = 0; i < segments; ++i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) + angle;
+
+                Vector2f vertex(
+                    center.x + radius_ajust * maths::Cos(Angle::FromRadian(theta)),
+                    center.y + radius_ajust * maths::Sin(Angle::FromRadian(theta))
+                );
+
+                vertices.push_back(Vertex2D(vertex, maths::Vector4f(color), maths::Vector2f(0.0f, 0.0f)));
+            }
+        }
+
+        int32 vertices_points = vertices.size() / 2;
+
+        for (int32 index = 0; index < vertices_points; index++) {
+            int32 next = (index + 1) % vertices_points;
+
+            // Indices pour le contour extérieur
+            indices.push_back(index);
+            indices.push_back(index + vertices_points);
+            indices.push_back(next + vertices_points);
+
+            // Indices pour relier le contour extérieur
+            indices.push_back(index);
+            indices.push_back(next + vertices_points);
+            indices.push_back(next);
         }
 
         Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());

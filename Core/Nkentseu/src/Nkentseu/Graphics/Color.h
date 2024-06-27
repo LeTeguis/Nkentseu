@@ -63,35 +63,35 @@ namespace nkentseu {
 		Color(const maths::Vector3f& color);
 
 		operator maths::Vector4f () const {
-			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+			return maths::Vector4f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f, m_Alpha / 255.0f);
 		}
 
 		operator maths::Vector4f () {
-			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+			return maths::Vector4f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f, m_Alpha / 255.0f);
 		}
 
 		operator const maths::Vector3f& () const {
-			return maths::Vector3f(m_Red, m_Green, m_Blue);
+			return maths::Vector3f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f);
 		}
 
 		operator maths::Vector3f () {
-			return maths::Vector3f(m_Red, m_Green, m_Blue);
+			return maths::Vector3f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f);
 		}
 
 		const maths::Vector4f& Vec4f() {
-			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+			return maths::Vector4f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f, m_Alpha / 255.0f);
 		}
 
 		const maths::Vector3f& Vec3f() {
-			return maths::Vector3f(m_Red, m_Green, m_Blue);
+			return maths::Vector3f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f);
 		}
 
 		const maths::Vector4f& Vec4f() const {
-			return maths::Vector4f(m_Red, m_Green, m_Blue, m_Alpha);
+			return maths::Vector4f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f, m_Alpha / 255.0f);
 		}
 
 		const maths::Vector3f& Vec3f() const {
-			return maths::Vector3f(m_Red, m_Green, m_Blue);
+			return maths::Vector3f(m_Red / 255.0f, m_Green / 255.0f, m_Blue / 255.0f);
 		}
 
 		static Color RGBf(float32 r, float32 g, float32 b);

@@ -171,7 +171,14 @@ namespace nkentseu {
         virtual void DrawFilledRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, CanvasTexture texture = nullptr);
         virtual void DrawHollowRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, CanvasTexture texture = nullptr);
         virtual void DrawThickOutlineRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 thickness, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawRoundedRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, CanvasTexture texture = nullptr);
         virtual void DrawRoundedRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawFilledRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawFilledRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawHollowRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, float32 thickness, const Color& color, CanvasTexture texture = nullptr);
+        virtual void DrawHollowRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 cornerRadii, float32 thickness, const Color& color, CanvasTexture texture = nullptr);
+        void DrawThickOutlineRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, float32 thickness, const Color& color, CanvasTexture texture = nullptr);
+        void DrawThickOutlineRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, float32 thickness, const Color& color, CanvasTexture texture = nullptr);
 
         virtual void DrawFilledCircle(const maths::Vector2f& center, float32 radius, const Color& color, CanvasTexture texture = nullptr);
         virtual void DrawHollowCircle(const maths::Vector2f& center, float32 radius, const Color& color, CanvasTexture texture = nullptr);
