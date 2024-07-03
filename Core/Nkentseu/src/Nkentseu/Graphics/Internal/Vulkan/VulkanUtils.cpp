@@ -100,24 +100,15 @@ namespace nkentseu {
         Log_nts.Info("    {0} : {1}", "maxPerStageDescriptorSampledImages", maxPerStageDescriptorSampledImages);
     }
 
-    VkShaderStageFlagBits VulkanConvert::GetshaderStageType(ShaderType::Code type) {
-        switch (type) {
-        case ShaderType::Vertex:
-            return VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderType::Fragment:
-        case ShaderType::Pixel: // Assuming Pixel is synonymous with Fragment
-            return VK_SHADER_STAGE_FRAGMENT_BIT;
-        case ShaderType::Geometry:
-            return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case ShaderType::TesControl:
-            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case ShaderType::TesEvaluation:
-            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case ShaderType::Compute:
-            return VK_SHADER_STAGE_COMPUTE_BIT;
-        default:
-            return VK_SHADER_STAGE_VERTEX_BIT;
-        }
+    VkShaderStageFlagBits VulkanConvert::GetshaderStageType(ShaderStage shaderStage) {
+        if (shaderStage.HasStage(ShaderStage::Enum::Vertex)) return VK_SHADER_STAGE_VERTEX_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Fragment)) return VK_SHADER_STAGE_FRAGMENT_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Geometry)) return VK_SHADER_STAGE_GEOMETRY_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesControl)) return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesEvaluation)) return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Compute)) return VK_SHADER_STAGE_COMPUTE_BIT;
+
+        return VK_SHADER_STAGE_VERTEX_BIT;
     }
 
     VkCullModeFlags VulkanConvert::CullModeType(CullModeType::Code mode) {
@@ -200,23 +191,41 @@ namespace nkentseu {
         }
     }
 
-    VkShaderStageFlagBits VulkanConvert::ShaderStageToVkShaderStage(ShaderType::Code shaderStage) {
-        switch (shaderStage) {
-        case ShaderType::Vertex:
-            return VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderType::Fragment:
-            return VK_SHADER_STAGE_FRAGMENT_BIT;
-        case ShaderType::Pixel:
-            return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case ShaderType::Geometry:
-            return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case ShaderType::TesControl:
-            return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case ShaderType::TesEvaluation:
-            return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case ShaderType::Compute:
-            return VK_SHADER_STAGE_GEOMETRY_BIT;
+    VkFormat VulkanConvert::ShaderInternalToVkFormat(ShaderInternalType::Enum shaderType)
+    {
+        switch (shaderType) {
+        case ShaderInternalType::Boolean: return VK_FORMAT_R32_UINT;
+        case ShaderInternalType::Float: return VK_FORMAT_R32_SFLOAT;
+        case ShaderInternalType::Float2: return VK_FORMAT_R32G32_SFLOAT;
+        case ShaderInternalType::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case ShaderInternalType::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case ShaderInternalType::Int: return VK_FORMAT_R32_SINT;
+        case ShaderInternalType::Int2: return VK_FORMAT_R32G32_SINT;
+        case ShaderInternalType::Int3: return VK_FORMAT_R32G32B32_SINT;
+        case ShaderInternalType::Int4: return VK_FORMAT_R32G32B32A32_SINT;
+        //case ShaderInternalType::UInt: return VK_FORMAT_R32_UINT;
+        //case ShaderInternalType::UInt2: return VK_FORMAT_R32G32_UINT;
+        //case ShaderInternalType::UInt3: return VK_FORMAT_R32G32B32_UINT;
+        //case ShaderInternalType::UInt4: return VK_FORMAT_R32G32B32A32_UINT;
+        case ShaderInternalType::Byte: return VK_FORMAT_R8_UNORM;
+        case ShaderInternalType::Byte2: return VK_FORMAT_R8G8_UNORM;
+        case ShaderInternalType::Byte3: return VK_FORMAT_R8G8B8_UNORM;
+        case ShaderInternalType::Byte4: return VK_FORMAT_R8G8B8A8_UNORM;
+        case ShaderInternalType::Mat3: return VK_FORMAT_R32G32B32_SFLOAT; // Mat3 is typically handled as an array of Float3
+        case ShaderInternalType::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT; // Mat4 is typically handled as an array of Float4
+        default: return VK_FORMAT_UNDEFINED;
         }
+    }
+
+    VkShaderStageFlagBits VulkanConvert::ShaderStageToVkShaderStage(ShaderStage shaderStage) {
+
+        if (shaderStage.HasStage(ShaderStage::Enum::Vertex)) return VK_SHADER_STAGE_VERTEX_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Fragment)) return VK_SHADER_STAGE_FRAGMENT_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Geometry)) return VK_SHADER_STAGE_GEOMETRY_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesControl)) return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesEvaluation)) return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Compute)) return VK_SHADER_STAGE_COMPUTE_BIT;
+
         return VK_SHADER_STAGE_VERTEX_BIT;
     }
 

@@ -104,25 +104,28 @@ namespace nkentseu {
         return 0;
     }
 
-    uint32 GLConvert::GetModuleType(ShaderType::Code code)
+    uint32 GLConvert::GetModuleType(ShaderStage shaderStage)
     {
-        if (code == ShaderType::Vertex) return GL_VERTEX_SHADER;
-        if (code == ShaderType::Fragment || code == ShaderType::Pixel) return GL_FRAGMENT_SHADER;
-        if (code == ShaderType::Compute) return GL_COMPUTE_SHADER;
-        if (code == ShaderType::Geometry) return GL_GEOMETRY_SHADER;
-        if (code == ShaderType::TesControl) return GL_TESS_CONTROL_SHADER;
-        if (code == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER;
-        return 0;
+        if (shaderStage.HasStage(ShaderStage::Enum::Vertex)) return GL_VERTEX_SHADER;
+        if (shaderStage.HasStage(ShaderStage::Enum::Fragment)) return GL_FRAGMENT_SHADER;
+        if (shaderStage.HasStage(ShaderStage::Enum::Geometry)) return GL_GEOMETRY_SHADER;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesControl)) return GL_TESS_CONTROL_SHADER;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesEvaluation)) return GL_TESS_EVALUATION_SHADER;
+        if (shaderStage.HasStage(ShaderStage::Enum::Compute)) return GL_COMPUTE_SHADER;
+
+        return GL_VERTEX_SHADER;
     }
 
-    uint32 GLConvert::GetModernModuleType(ShaderType::Code shaderType) {
-        if (shaderType == ShaderType::Vertex) return GL_VERTEX_SHADER_BIT;
-        if (shaderType == ShaderType::Fragment || shaderType == ShaderType::Pixel) return GL_FRAGMENT_SHADER_BIT;
-        if (shaderType == ShaderType::Geometry) return GL_GEOMETRY_SHADER_BIT;
-        if (shaderType == ShaderType::TesControl) return GL_TESS_CONTROL_SHADER_BIT;
-        if (shaderType == ShaderType::TesEvaluation) return GL_TESS_EVALUATION_SHADER_BIT;
-        if (shaderType == ShaderType::Compute) return GL_COMPUTE_SHADER_BIT;
-        return 0;
+    uint32 GLConvert::GetModernModuleType(ShaderStage shaderStage) {
+
+        if (shaderStage.HasStage(ShaderStage::Enum::Vertex)) return GL_VERTEX_SHADER_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Fragment)) return GL_FRAGMENT_SHADER_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Geometry)) return GL_GEOMETRY_SHADER_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesControl)) return GL_TESS_CONTROL_SHADER_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::TesEvaluation)) return GL_TESS_EVALUATION_SHADER_BIT;
+        if (shaderStage.HasStage(ShaderStage::Enum::Compute)) return GL_COMPUTE_SHADER_BIT;
+
+        return GL_VERTEX_SHADER_BIT;
     }
 
     uint32 GLConvert::GetPrimitiveType(RenderPrimitive::Enum primitive)
@@ -168,20 +171,21 @@ namespace nkentseu {
         this->instance = instance;
         this->name = uniforName;
         this->binding = binding;
+        this->size = size;
 
         uint32 sizes = size;
 
-        if (this->useDAS) {
-            if (this->instance > 1 && bufferType == GL_UNIFORM_BUFFER) {
-                int32 minUboAlignment = 0;
-                glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &minUboAlignment);
+        if (this->instance > 1 && bufferType == GL_UNIFORM_BUFFER) {
+            int32 minUboAlignment = 0;
+            glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &minUboAlignment);
 
-                if (minUboAlignment > 0) {
-                    dynamicAlignment = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
-                    sizes = dynamicAlignment * instance;
-                }
+            if (minUboAlignment > 0) {
+                dynamicAlignment = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
+                sizes = dynamicAlignment * instance;
             }
+        }
 
+        if (this->useDAS) {
             glCheckError(first, result, glCreateBuffers(1, &buffer), "cannot create dsa buffer : {0}", name);
             glCheckError(first, result, glNamedBufferData(buffer, sizes, data, usage), "cannot set data buffer : {0}", name);
         }
@@ -227,7 +231,7 @@ namespace nkentseu {
 
             currentOffset = offset;
 
-            if (uType == UniformBufferType::Dynamic && bufferType == GL_UNIFORM_BUFFER) {
+            if (uType == BufferUsageType::Enum::DynamicDraw && bufferType == GL_UNIFORM_BUFFER) {
                 currentIndex++;
 
                 if (currentIndex >= instance) {

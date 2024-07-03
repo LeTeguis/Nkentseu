@@ -23,6 +23,7 @@
 #include "Color.h"
 #include "Image.h"
 #include "Context.h"
+#include "ShaderInputLayout.h"
 
 namespace nkentseu {
 
@@ -108,12 +109,12 @@ namespace nkentseu {
         static uint32 GetMaximumSize(Memory::Shared<Context> context);
         static uint32 GetValidSize(Memory::Shared<Context> constext, uint32 size);
 
-        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context);
-        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, TextureFormat::Code textureFormat, const maths::Vector2u& size);
-        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, const std::filesystem::path& filename, const maths::IntRect& area = maths::IntRect());
-        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, const void* data, usize size, const maths::IntRect& area = maths::IntRect());
-        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, InputStream& stream, const maths::IntRect& area = maths::IntRect());
-        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, const Image& image, const maths::IntRect& area = maths::IntRect());
+        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, TextureFormat::Code textureFormat, const maths::Vector2u& size);
+        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const std::filesystem::path& filename, const maths::IntRect& area = maths::IntRect());
+        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const void* data, usize size, const maths::IntRect& area = maths::IntRect());
+        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, InputStream& stream, const maths::IntRect& area = maths::IntRect());
+        static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const Image& image, const maths::IntRect& area = maths::IntRect());
     };
 
 }  //  nkentseu

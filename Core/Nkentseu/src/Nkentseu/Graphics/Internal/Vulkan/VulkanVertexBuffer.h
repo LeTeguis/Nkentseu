@@ -16,23 +16,25 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "VulkanShaderInputLayout.h"
+
 namespace nkentseu {
     class VulkanContext;
     
     class NKENTSEU_API VulkanVertexBuffer : public VertexBuffer {
         public:
-            VulkanVertexBuffer(Memory::Shared<Context> context);
+            VulkanVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
             ~VulkanVertexBuffer();
 
             Memory::Shared<Context> GetContext() override;
             bool Destroy() override;
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
-            bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) override;
+            bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) override;
 
             template <typename T>
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices, const BufferLayout& bufferLayout = {}) {
-                return Create(bufferUsage, vertices.data(), vertices.size(), bufferLayout);
+            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices) {
+                return Create(bufferUsage, vertices.data(), vertices.size());
             }
 
             virtual bool SetData(void* data, usize size) override;
@@ -43,6 +45,7 @@ namespace nkentseu {
         private:
             VulkanBuffer m_VertexBufferObject;
             Memory::Shared<VulkanContext> m_Context = nullptr;
+            Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
             uint32 m_Leng = 0;
     };
 

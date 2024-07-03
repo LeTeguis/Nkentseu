@@ -9,45 +9,54 @@
 
 namespace nkentseu {
 
-    OpenglUniformBuffer::OpenglUniformBuffer(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout) : m_Context(Memory::SharedCast<OpenglContext>(context)), m_BufferLayout(uniformLayout), m_Shader(Memory::SharedCast<OpenglShader>(shader))
+    OpenglUniformBuffer::OpenglUniformBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<OpenglContext>(context))
     {
+        m_Buffers.clear();
+        m_Oglsil = Memory::SharedCast<OpenglShaderInputLayout>(sil);
     }
 
-    // Destructor
     OpenglUniformBuffer::~OpenglUniformBuffer() {
-        // Ajoutez votre code de destructeur ici
     }
 
-    bool OpenglUniformBuffer::Create()
+    bool OpenglUniformBuffer::Create(Memory::Shared<Shader> shader, const std::vector<std::string> uniformsLoader)
     {
-        if (m_Buffers.size() != 0 || m_Context == nullptr || m_Shader == nullptr) {
+        m_Shader = Memory::SharedCast<OpenglShader>(shader);
+
+        if (m_Buffers.size() != 0 || m_Context == nullptr || m_Shader == nullptr || m_Oglsil == nullptr || uniformsLoader.empty()) {
             return false;
         }
         bool success = true;
         m_Shader->Bind();
-        for (auto& [name, ubo] : m_BufferLayout.attributes) {
-            uint32 instance = 1;
-
-            if (ubo.uType == UniformBufferType::Dynamic) {
-                instance = ubo.instance;
+        for (auto& attribut : m_Oglsil->uniformInput.attributes) {
+            bool loadit = false;
+            for (auto name : uniformsLoader) {
+                if (name == attribut.name) {
+                    loadit = true;
+                }
             }
 
-            m_Buffers[name].Create(name, GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, ubo.size, ubo.binding, 0, instance);
-            m_Buffers[name].uType = ubo.uType;
+            if (!loadit) {
+                continue;
+            }
+
+            if (attribut.usage != BufferUsageType::Enum::DynamicDraw) {
+                attribut.instance = 1;
+            }
+
+            m_Buffers[attribut.name].Create(attribut.name, GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, attribut.size, attribut.binding, 0, attribut.instance);
+            m_Buffers[attribut.name].uType = attribut.usage;
 
             OpenGLResult result;
             bool first = true;
 
-            glCheckError(first, result, GLuint blockIndex = glGetUniformBlockIndex(m_Shader->GetProgramme(), name.c_str()), "");
+            glCheckError(first, result, GLuint blockIndex = glGetUniformBlockIndex(m_Shader->GetProgramme(), attribut.name.c_str()), "");
             if (blockIndex == GL_INVALID_INDEX) {
-                Log_nts.Error("Error: Uniform block index is invalid : {0}-{1}", name, m_Shader->GetProgramme());
+                Log_nts.Error("Error: Uniform block index is invalid : {0}-{1}", attribut.name, m_Shader->GetProgramme());
             }
             else {
-                glCheckError(first, result, glUniformBlockBinding(m_Shader->GetProgramme(), blockIndex, ubo.binding), "");
+                glCheckError(first, result, glUniformBlockBinding(m_Shader->GetProgramme(), blockIndex, attribut.binding), "");
             }
         }
-
-        //m_Shader->GetUniformBufferInfos();
 
         m_Shader->Unbind();
         return success;
@@ -70,7 +79,9 @@ namespace nkentseu {
 
     bool OpenglUniformBuffer::SetData(const std::string& name, void* data, usize size, uint32 index)
     {
-        if (m_Context == nullptr || data == nullptr || size == 0) return false;
+        if (m_Context == nullptr || data == nullptr || size == 0) {
+            return false;
+        }
 
         auto it = m_Buffers.find(name);
         if (it == m_Buffers.end()) {
@@ -80,7 +91,6 @@ namespace nkentseu {
         auto& uniformBuffer = it->second;
 
         return uniformBuffer.WriteToBuffer(data, size, 0);
-        //return uniformBuffer.WriteToBuffer(data, size, 0);
     }
 
     bool OpenglUniformBuffer::Bind()

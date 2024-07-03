@@ -44,6 +44,19 @@ namespace nkentseu {
 			const float32* operator[](int row) const;
 			float32* Ptr();
 			const float32* Ptr() const;
+
+			float32* operator&() {
+				return &(this->data[0]);
+			}
+
+			operator float32* () {
+				return &(this->data[0]);
+			}
+
+			operator const float32* () const {
+				return &(this->data[0]);
+			}
+
 			matrix4f& operator=(const matrix4f& other);
 			matrix4f& operator=(const float32* otherData);
 			bool operator==(const matrix4f& other) const;
@@ -64,6 +77,7 @@ namespace nkentseu {
 						{
 							//result.mat[i][j] += left[i][k] * right[k][j];
 							result.mat[j][i] += left[k][i] * right[j][k];
+							//result.mat[j][i] += left[k][j] * right[i][k];
 						}
 					}
 				}
@@ -190,8 +204,8 @@ namespace nkentseu {
 			static matrix4f Orthogonal(const Vector2f& size, float32 zNear, float32 zFar);
 			static matrix4f Orthogonal(const Vector2f& bottomLeft, const Vector2f& topRight, float32 zNear, float32 zFar);
 			static matrix4f Perspective(float32 width, float32 height, float32 zNear, float32 zFar);
-			static matrix4f PerspectiveFov(const Angle& fov, float32 aspect, float32 zNear, float32 zFar);
-			static matrix4f PerspectiveMultifov(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar);
+			static matrix4f Perspective(const Angle& fov, float32 aspect, float32 zNear, float32 zFar);
+			static matrix4f Perspective(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar);
 
 			static matrix4f Rotation(const Vector3f& axis, const Angle& angle);
 			static matrix4f Rotation(const Angle& pitch, const Angle& yaw, const Angle& roll);

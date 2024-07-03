@@ -44,7 +44,7 @@ namespace nkentseu {
 		return GL_RGBA;
 	}
 
-	OpenglTexture2D::OpenglTexture2D(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<OpenglContext>(context)), m_Handle(0)
+	OpenglTexture2D::OpenglTexture2D(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<OpenglContext>(context)), m_Handle(0)
 	{
 	}
 

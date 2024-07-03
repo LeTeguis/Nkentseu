@@ -62,7 +62,7 @@ namespace nkentseu {
         return oriantation;
     }
 
-    void CameraEditor::SetFov(float32 newFov) {
+    void CameraEditor::SetFov(const maths::Angle& newFov) {
         fov = newFov;
         updateProjection = true;
     }
@@ -204,7 +204,7 @@ namespace nkentseu {
 
     void CameraEditor::UpdateProjection() {
         if (projectionType == ProjectionType::Perspective) {
-            projection = matrix4f::PerspectiveFov(fov, aspectRatio, clippingPlan.x, clippingPlan.y);
+            projection = matrix4f::Perspective(fov, aspectRatio, clippingPlan.x, clippingPlan.y);
         }
         else if (projectionType == ProjectionType::Orthographic) {
             projection = matrix4f::Orthogonal(orthoSize * aspectRatio, orthoSize, clippingPlan.x, clippingPlan.y);

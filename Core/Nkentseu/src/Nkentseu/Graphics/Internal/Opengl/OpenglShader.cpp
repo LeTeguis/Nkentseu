@@ -15,6 +15,7 @@
 
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "OpenGLUtils.h"
+#include "OpenglShaderInputLayout.h"
 
 namespace nkentseu {
     using namespace maths;
@@ -23,28 +24,34 @@ namespace nkentseu {
     OpenglShader::OpenglShader(Memory::Shared<Context> context) : m_Programme(0), m_Context(Memory::SharedCast<OpenglContext>(context)), m_Layout({}) {
     }
 
-    bool OpenglShader::LoadFromFile(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout) {
-        if (m_Context == nullptr || m_Programme != 0) {
+    bool OpenglShader::LoadFromFile(const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout)
+    {
+        Memory::Shared<OpenglShaderInputLayout> oglSIL = Memory::SharedCast<OpenglShaderInputLayout>(shaderInputLayout);
+
+        if (m_Context == nullptr || m_Programme != 0 || oglSIL == nullptr) {
             return false;
         }
 
         m_Modules.clear();
-        m_Layout = shaderLayout;
 
-        for (auto [type_, file_] : shaderFiles) {
-            uint32 module = MakeModule(file_, type_);
+        for (auto attribut : shaderFiles) {
+            uint32 module = MakeModule(attribut.path, attribut.stage);
 
             if (module == 0) {
                 m_Modules.clear();
                 return false;
             }
             if (m_UseDsa) {
-                m_Modules[GLConvert::GetModernModuleType(type_)] = module;
-            } else {
-                m_Modules[type_] = module;
+                m_Modules[GLConvert::GetModernModuleType(attribut.stage)] = module;
+            }
+            else {
+                m_Modules[GLConvert::GetModuleType(attribut.stage)] = module;
             }
         }
-        return Compile();
+        if (Compile()) {
+            oglSIL->ResetConstantPush(this);
+        }
+        return false;
     }
 
     bool OpenglShader::Compile()
@@ -223,7 +230,7 @@ namespace nkentseu {
         }
     }
 
-    uint32 OpenglShader::MakeModule(const std::string& filepath, ShaderType::Code code)
+    uint32 OpenglShader::MakeModule(const std::string& filepath, ShaderStage code)
     {
         uint32 module_type = GLConvert::GetModuleType(code);
         if (module_type == 0) {
@@ -302,6 +309,72 @@ namespace nkentseu {
         m_Modules.clear();
 
         return pipeline;
+    }
+
+    uint32 OpenglShader::MakeShader(Memory::Shared<OpenglShaderInputLayout> oglsil)
+    {
+        OpenGLResult result;
+        bool first = true;
+        uint32 pipeline = 0;
+
+        if (m_UseDsa) {
+            //glCheckError(first, result, glCreateProgramPipelines(1, &pipeline); , "cannot create shader program");
+            glCheckError(first, result, glGenProgramPipelines(1, &pipeline), "cannot create shader program");
+
+            if (!oglsil->vertexInput.attributes.empty()) {
+                for (const auto& attribute : oglsil->vertexInput.attributes) {
+                    glCheckError(first, result, glBindAttribLocation(pipeline, attribute.location, attribute.name.c_str()), "cannot bind attribut location");
+                }
+            }
+
+            for (auto [type, shaderModule] : m_Modules) {
+                glCheckError(first, result, glUseProgramStages(pipeline, type, shaderModule), "cannot attach shader");
+            }
+
+            glCheckError(first, result, glBindProgramPipeline(pipeline), "cannot link program");
+
+            for (auto [type, shaderModule] : m_Modules) {
+                glCheckError(first, result, glDeleteProgram(shaderModule), "cannot delete shader");
+            }
+
+            if (!result.success && pipeline != 0) {
+                glCheckError(first, result, glDeleteProgramPipelines(1, &pipeline), "cannot delete pipeline");
+            }
+        }
+        else {
+            glCheckError(first, result, pipeline = glCreateProgram(), "cannot create shader program");
+            if (pipeline != 0) {
+                for (auto& [type, shaderModule] : m_Modules) {
+                    glCheckError(first, result, glAttachShader(pipeline, shaderModule), "cannot attach shader program");
+                }
+                glCheckError(first, result, glLinkProgram(pipeline), "cannot link shader program");
+            }
+            for (auto& [type, shaderModule] : m_Modules) {
+                glCheckError(first, result, glDeleteShader(shaderModule), "cannot delete shader program");
+            }
+
+            if (!result.success && pipeline != 0) {
+                glCheckError(first, result, glDeleteProgram(pipeline), "cannot delete pipeline");
+            }
+        }
+
+        m_Modules.clear();
+
+        return pipeline;
+    }
+
+    bool OpenglShader::Compile(Memory::Shared<OpenglShaderInputLayout> oglsil)
+    {
+        if (m_Context == nullptr || m_Modules.size() == 0) {
+            return false;
+        }
+
+        m_Programme = MakeShader(oglsil);
+
+        if (m_Programme == 0) {
+            return false;
+        }
+        return true;
     }
 
     std::string OpenglShader::LoadShader(const std::string& shaderFile)

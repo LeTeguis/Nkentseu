@@ -9,28 +9,41 @@
 #include <Logger/Formatter.h>
 
 #include <Nkentseu/Core/NkentseuLogger.h>
+
 #include "Internal/Vulkan/VulkanShader.h"
 #include "Internal/Opengl/OpenglShader.h"
 
-#include "Context.h"
+//#include "Context.h"
+//#include "ShaderInputLayout.h"
 
 namespace nkentseu {
-#define NKENTSEU_CREATE_SHADER(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
-													auto data = Memory::Alloc<class_>(context);	\
-													if (data != nullptr && data->LoadFromFile(shaderFiles, shaderLayout)) {	\
-														return data;	\
-													}	\
-													Memory::Reset(data);	\
-												}
 
-    Memory::Shared<Shader> Shader::Create(Memory::Shared<Context> context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout)
-    {
+	Memory::Shared<Shader> Shader::Create(Memory::Shared<Context> context)
+	{
 		if (context == nullptr) {
 			return nullptr;
 		}
 
-		NKENTSEU_CREATE_SHADER(GraphicsApiType::VulkanApi, VulkanShader);
-		NKENTSEU_CREATE_SHADER(GraphicsApiType::OpenglApi, OpenglShader);
+		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+			return Memory::Alloc<VulkanShader>(context);
+		}
+
+		if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
+			return Memory::Alloc<OpenglShader>(context);
+		}
+
 		return nullptr;
-    }
+	}
+
+
+	Memory::Shared<Shader> Shader::Create(Memory::Shared<Context> context, const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout)
+	{
+		auto shader = Create(context);
+
+		if (shader == nullptr || !shader->LoadFromFile(shaderFiles, shaderInputLayout)) {
+			Memory::Reset(shader);
+		}
+
+		return shader;
+	}
 }  //  nkentseu

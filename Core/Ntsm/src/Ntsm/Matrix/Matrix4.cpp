@@ -12,7 +12,7 @@ namespace nkentseu {
 
     namespace maths
     {
-	    //*********************************
+        //*********************************
         // Constructeur par défaut
         matrix4f::matrix4f() {
             // Initialiser la matrice à l'identité
@@ -340,7 +340,7 @@ namespace nkentseu {
         void matrix4f::Up(const Vector3f& up) {
             m01 = up.x;
             m11 = up.y;
-            m22 = up.z;
+            m21 = up.z;
         }
 
         void matrix4f::Right(const Vector3f& right) {
@@ -498,7 +498,7 @@ namespace nkentseu {
             result[0][0] = 2.0f / (topRight.x - bottomLeft.x);
             result[1][0] = 0.0f;
             result[2][0] = 0.0f;
-            result[3][0] = -((topRight.x + bottomLeft.x)/(topRight.x - bottomLeft.x));
+            result[3][0] = -((topRight.x + bottomLeft.x) / (topRight.x - bottomLeft.x));
 
             result[0][1] = 0.0f;
             result[1][1] = 2.0f / (topRight.y - bottomLeft.y);
@@ -542,9 +542,9 @@ namespace nkentseu {
             return result;
         }
 
-        matrix4f matrix4f::PerspectiveFov(const Angle& fov, float32 aspect, float32 zNear, float32 zFar)
+        matrix4f matrix4f::Perspective(const Angle& fov, float32 aspect, float32 zNear, float32 zFar)
         {
-            float32 width = 1.0f / maths::Tan(fov  * 0.5f), height = aspect / maths::Tan(fov * 0.5f);
+            float32 width = 1.0f / maths::Tan(fov * 0.5f), height = aspect / maths::Tan(fov * 0.5f);
 
             matrix4f result;
             result.m00 = width;
@@ -569,7 +569,7 @@ namespace nkentseu {
             return result;
         }
 
-        matrix4f matrix4f::PerspectiveMultifov(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar)
+        matrix4f matrix4f::Perspective(const Angle& fovX, const Angle& fovY, float32 zNear, float32 zFar)
         {
             float32 width = 1.0f / maths::Tan(fovX * 0.5f), height = 1.0f / maths::Tan(fovY * 0.5f);
 

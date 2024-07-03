@@ -12,19 +12,21 @@
 
 #include <System/System.h>
 #include "Nkentseu/Graphics/Context.h"
+#include "Nkentseu/Graphics/Shader.h"
 #include "Nkentseu/Graphics/UniformBuffer.h"
 #include "OpenglContext.h"
 #include "OpenglShader.h"
 #include "OpenGLUtils.h"
+#include "OpenglShaderInputLayout.h"
 
 namespace nkentseu {
     
     class NKENTSEU_API OpenglUniformBuffer : public UniformBuffer {
         public:
-            OpenglUniformBuffer(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout);
+            OpenglUniformBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
             ~OpenglUniformBuffer();
 
-            bool Create();
+            bool Create(Memory::Shared<Shader> shader, const std::vector<std::string> uniformsLoader) override;
             bool Destroy() override;
 
             bool SetData(const std::string& name, void* data, usize size) override;
@@ -35,7 +37,8 @@ namespace nkentseu {
         private:
             Memory::Shared<OpenglContext> m_Context;
             Memory::Shared<OpenglShader> m_Shader;
-            UniformBufferLayout m_BufferLayout;
+            Memory::Shared<OpenglShaderInputLayout> m_Oglsil = nullptr;
+            //UniformBufferLayout m_BufferLayout;
 
             std::unordered_map<std::string, OpenglBuffer> m_Buffers;
     };

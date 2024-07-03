@@ -15,10 +15,13 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/Shader.h>
 #include <Nkentseu/Graphics/Context.h>
+
 #include "OpenglContext.h"
 #include "OpenGLUtils.h"
 
 namespace nkentseu {
+    class OpenglShaderInputLayout;
+
     class NKENTSEU_API OpenglShader : public Shader {
         public:
             OpenglShader(Memory::Shared<Context> context);
@@ -26,7 +29,8 @@ namespace nkentseu {
 
             Memory::Shared<Context> GetContext() override;
             bool Destroy() override;
-            bool LoadFromFile(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout);
+
+            bool LoadFromFile(const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout) override;
 
             bool Compile();
 
@@ -58,8 +62,11 @@ namespace nkentseu {
             std::unordered_map<uint32, uint32> m_Modules;
 
         private:
-            uint32 MakeModule(const std::string& filepath, ShaderType::Code code);
+            uint32 MakeModule(const std::string& filepath, ShaderStage code);
             uint32 MakeShader();
+
+            uint32 MakeShader(Memory::Shared<OpenglShaderInputLayout> oglsil);
+            bool Compile(Memory::Shared<OpenglShaderInputLayout> oglsil);
 
             std::string LoadShader(const std::string& shaderFile);
 

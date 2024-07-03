@@ -19,7 +19,7 @@ namespace nkentseu {
     
     class NKENTSEU_API OpenglTexture2D : public Texture2D {
     public:
-		OpenglTexture2D(Memory::Shared<Context> context);
+		OpenglTexture2D(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
         ~OpenglTexture2D();
 
 		bool Create(TextureFormat::Code textureFormat, const maths::Vector2u& size) override;

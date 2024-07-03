@@ -22,28 +22,29 @@ namespace nkentseu {
         0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f   // Top
     };
 
-    OpenglVertexBuffer::OpenglVertexBuffer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<OpenglContext>(context)) {
+    OpenglVertexBuffer::OpenglVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<OpenglContext>(context)) {
+        m_OglSil = Memory::SharedCast<OpenglShaderInputLayout>(sil);
     }
 
     OpenglVertexBuffer::~OpenglVertexBuffer() {
     }
 
-    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
+    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices)
     {
-        return Create(bufferUsage, vertices.data(), (vertices.size() / bufferLayout.componentCount), bufferLayout);
+        if (m_OglSil == nullptr) return false;
+        return Create(bufferUsage, vertices.data(), (vertices.size() / m_OglSil->vertexInput.componentCount));
     }
 
-    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
+    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng)
     {
-        if (m_Buffer.buffer != 0 || m_Context == nullptr) {
+        if (m_Buffer.buffer != 0 || m_Context == nullptr || m_OglSil == nullptr) {
             return false;
         }
 
         m_BufferUsage = bufferUsage;
-        m_BufferLayout = bufferLayout;
         m_Size = leng;
 
-        usize size = m_Size * m_BufferLayout.stride;
+        usize size = m_Size * m_OglSil->vertexInput.stride;
 
         //Log_nts.Debug("{0}-{1}", m_Size, m_BufferLayout.stride);
 
@@ -85,14 +86,9 @@ namespace nkentseu {
         return m_Buffer.buffer;
     }
 
-    const BufferLayout& OpenglVertexBuffer::GetBufferLayaout()
-    {
-        return m_BufferLayout;
-    }
-
     bool OpenglVertexBuffer::AttachToVAO(uint32 vao, bool useDsa)
     {
-        if (m_Buffer.buffer == 0) {
+        if (m_Buffer.buffer == 0 || m_OglSil == nullptr) {
             return false;
         }
         OpenGLResult result;
@@ -103,15 +99,15 @@ namespace nkentseu {
         }
 
         if (m_Buffer.useDAS) {
-            glCheckError(first, result, glVertexArrayVertexBuffer(vao, 0, m_Buffer.buffer, 0, m_BufferLayout.stride), "cannot enable vertex array vertex buffer");
+            glCheckError(first, result, glVertexArrayVertexBuffer(vao, 0, m_Buffer.buffer, 0, m_OglSil->vertexInput.stride), "cannot enable vertex array vertex buffer");
         }
 
-        uint32 stride = m_BufferLayout.stride;
+        uint32 stride = m_OglSil->vertexInput.stride;
 
-        for (auto& attribut : m_BufferLayout) {
+        for (auto& attribut : m_OglSil->vertexInput) {
             uint32 type = GLConvert::ShaderType(attribut.type);
             uint32 normalized = attribut.normalized ? GL_TRUE : GL_FALSE;
-            uint32 count = attribut.GetComponentCount();
+            uint32 count = ShaderInternalType::ComponentCount(attribut.type);
             uint32 offset = attribut.offset;
             uint32 location = attribut.location;
 

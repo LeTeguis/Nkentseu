@@ -16,10 +16,14 @@
 #include "IndexBuffer.h"
 #include "Context.h"
 #include "RenderPrimitive.h"
+#include "ShaderInputLayout.h"
 
 namespace nkentseu {
     class NKENTSEU_API VertexArray {
         public:
+            virtual bool Create() = 0;
+            virtual bool Create(uint32 vertexNumber) = 0;
+
             virtual Memory::Shared<Context> GetContext() = 0;
             virtual bool SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer) = 0;
             virtual Memory::Shared<VertexBuffer> GetVertexBuffer() = 0;
@@ -43,8 +47,8 @@ namespace nkentseu {
             virtual bool DrawIndex(RenderPrimitive::Enum primitive) = 0;
             virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) = 0;
 
-            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context);
-            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, uint32 vertexNumber);
+            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+            static Memory::Shared<VertexArray> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, uint32 vertexNumber);
 
         protected:
             enum BindInfo {

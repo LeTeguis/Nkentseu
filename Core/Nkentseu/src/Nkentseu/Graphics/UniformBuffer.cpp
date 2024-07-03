@@ -12,23 +12,42 @@
 
 namespace nkentseu {
 
-	Memory::Shared<UniformBuffer> UniformBuffer::Create(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout)
+	Memory::Shared<UniformBuffer> UniformBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil)
 	{
-		if (context == nullptr || shader == nullptr) {
+		if (context == nullptr) {
 			return nullptr;
 		}
 
 		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
-			auto uniform = Memory::Alloc<VulkanUniformBuffer>(context, shader, uniformLayout);
-			if (uniform != nullptr && uniform->Create()) return uniform;
-			Memory::Reset(uniform);
+			return Memory::Alloc<VulkanUniformBuffer>(context, sil);
 		}
 
 		if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
-			auto uniform = Memory::Alloc<OpenglUniformBuffer>(context, shader, uniformLayout);
-			if (uniform != nullptr && uniform->Create()) return uniform;
-			Memory::Reset(uniform);
+			return Memory::Alloc<OpenglUniformBuffer>(context, sil);
 		}
+
 		return nullptr;
 	}
+
+	Memory::Shared<UniformBuffer> UniformBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, Memory::Shared<Shader> shader, const std::vector<std::string> uniformsLoader)
+	{
+		auto uniform = Create(context, sil);
+
+		if (shader == nullptr) {
+			Log_nts.Fatal();
+		}
+
+		if (uniform == nullptr || !uniform->Create(shader, uniformsLoader)) {
+
+			if (uniform != nullptr) {
+				uniform->Destroy();
+			}
+
+			Memory::Reset(uniform);
+			return nullptr;
+		}
+
+		return uniform;
+	}
+
 }  //  nkentseu

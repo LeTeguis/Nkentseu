@@ -12,6 +12,7 @@
 #include <System/Definitions/Memory.h>
 #include "ShaderInfo.h"
 #include "Context.h"
+#include "ShaderInputLayout.h"
 
 namespace nkentseu {
     class InternalVertexBuffer;
@@ -23,13 +24,18 @@ namespace nkentseu {
             virtual uint32 Leng() const = 0;
             virtual bool SetData(void* data, usize size) = 0;
 
-            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
+            virtual bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) = 0;
+            virtual bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) = 0;
 
-            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices);
+
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng);
 
             template <typename T>
-            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices, const BufferLayout& bufferLayout = {}) {
-                return Create(context, bufferUsage, vertices.data(), vertices.size(), bufferLayout);
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices) {
+                return Create(context, sil, bufferUsage, vertices.data(), vertices.size());
             }
     };
 

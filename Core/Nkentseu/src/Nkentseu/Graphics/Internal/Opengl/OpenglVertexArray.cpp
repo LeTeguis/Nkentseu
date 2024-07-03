@@ -20,7 +20,8 @@
 
 namespace nkentseu {
 
-    OpenglVertexArray::OpenglVertexArray(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<OpenglContext>(context)) {
+    OpenglVertexArray::OpenglVertexArray(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<OpenglContext>(context)) {
+        m_OglSil = Memory::SharedCast<OpenglShaderInputLayout>(sil);
     }
 
     OpenglVertexArray::~OpenglVertexArray() {

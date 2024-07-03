@@ -13,6 +13,9 @@
 #include <System/Definitions/Memory.h>
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/VertexArray.h"
+#include "Nkentseu/Graphics/ShaderInputLayout.h"
+
+#include "VulkanShaderInputLayout.h"
 
 namespace nkentseu {
     class VulkanVertexBuffer;
@@ -21,13 +24,13 @@ namespace nkentseu {
     
     class NKENTSEU_API VulkanVertexArray : public VertexArray {
         public:
-            VulkanVertexArray(Memory::Shared<Context> context);
+            VulkanVertexArray(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
             ~VulkanVertexArray();
 
             Memory::Shared<Context> GetContext() override;
 
-            bool Create();
-            bool Create(uint32 vertexNumber);
+            bool Create() override;
+            bool Create(uint32 vertexNumber) override;
 
             bool Destroy() override;
 
@@ -54,6 +57,7 @@ namespace nkentseu {
             virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) override;
 
         private:
+            Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
             uint32 m_VertexNumber = 0;
             Memory::Shared<VulkanContext> m_Context = nullptr;
 

@@ -38,29 +38,35 @@ namespace nkentseu {
     }
 
     void OpenglCanvas::CreateResources() {
-        std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/canvas.vert.glsl";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/canvas.frag.glsl";
+        shaderInputLayout = Memory::SharedCast<OpenglShaderInputLayout>(ShaderInputLayout::Create(m_Context));
 
-        BufferLayout bufferLayout;
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float2, "aPos", 0));
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float4, "aColor", 1));
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float2, "aTexCoord", 2));
-        bufferLayout.CalculateOffsetsAndStride();
+        if (shaderInputLayout != nullptr) {
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aPos", ShaderInternalType::Float2, 0));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aColor", ShaderInternalType::Float4, 1));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aTexCoord", ShaderInternalType::Float2, 2));
 
-        UniformBufferLayout uniformLayout;
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CanvasTransform), 0, "CanvasTransform", ShaderType::Vertex, UniformBufferType::Static, MAX_QUADS));
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CanvasCamera), 1, "CanvasCamera", ShaderType::Vertex, UniformBufferType::Static, 1));
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CanvasMaterial), 2, "CanvasMaterial", ShaderType::Fragment, UniformBufferType::Static, MAX_QUADS));
+            //shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasTransform", ShaderStage::Enum::Vertex, BufferUsageType::StaticDraw, sizeof(CanvasTransform), 0, 10));
+            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasCamera", ShaderStage::Enum::Vertex, BufferUsageType::StaticDraw, sizeof(CanvasCamera), 0, 1));
+            //shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasMaterial", ShaderStage::Enum::Fragment, BufferUsageType::StaticDraw, sizeof(CanvasMaterial), 2, 10));
 
-        ShaderBufferLayout shaderLayout;
-        shaderLayout.vertexInput = bufferLayout;
-        shaderLayout.uniformBuffer = uniformLayout;
-        // Define necessary layouts
+            shaderInputLayout->pushConstantInput.AddAttribute(PushConstantInputAttribute("CanvasTransform", ShaderStage::Enum::Vertex, sizeof(CanvasTransform)));
+            shaderInputLayout->pushConstantInput.AddAttribute(PushConstantInputAttribute("CanvasMaterial", ShaderStage::Enum::Fragment, sizeof(CanvasMaterial)));
+
+            //shaderInputLayout->samplerInput.AddAttribute(SamplerInputAttribute("CanvasMaterial", 0, ShaderStage::Fragment, SamplerType::CombineImage));
+
+            if (!shaderInputLayout->Initialize()) {
+                Log_nts.Error("linitialisation des input shader ont echouer");
+            }
+        }
+
+        ShaderFilePathLayout shaderFilesLayout({
+            {"Resources/shaders/canvas.vert.glsl", ShaderStage::Enum::Vertex},
+            {"Resources/shaders/canvas.frag.glsl", ShaderStage::Enum::Fragment},
+        });
 
         m_Shader = Memory::Alloc<OpenglShader>(m_Context);
         if (m_Shader != nullptr){
-            if (!m_Shader->LoadFromFile(shaderFiles, shaderLayout)) {
+            if (!m_Shader->LoadFromFile(shaderFilesLayout, shaderInputLayout)) {
                 Memory::Reset(m_Shader);
             }
         }
@@ -69,13 +75,13 @@ namespace nkentseu {
             return;
         }
 
-        m_UniformBuffer = Memory::SharedCast<OpenglUniformBuffer>(UniformBuffer::Create(m_Context, m_Shader, uniformLayout));
+        m_UniformBuffer = Memory::SharedCast<OpenglUniformBuffer>(UniformBuffer::Create(m_Context, shaderInputLayout, m_Shader, {"CanvasCamera"}));
         if (m_UniformBuffer == nullptr) {
             Log_nts.Error("Cannot create uniform buffer");
         }//*/
 
         uint32 size = MAX_VERTICES;
-            m_VertexBuffer = Memory::SharedCast<OpenglVertexBuffer>(VertexBuffer::Create(m_Context, BufferDataUsage::DynamicDraw, nullptr, size, bufferLayout));
+        m_VertexBuffer = Memory::SharedCast<OpenglVertexBuffer>(VertexBuffer::Create(m_Context, shaderInputLayout, BufferDataUsage::DynamicDraw, nullptr, size));
         if (!m_VertexBuffer) {
             Log_nts.Error("Failed to create OpenGL OpenglCanvas vertex buffer");
         }
@@ -86,7 +92,7 @@ namespace nkentseu {
             Log_nts.Error("Failed to create OpenGL OpenglCanvas index buffer");
         }
 
-        m_VertexArray = Memory::SharedCast<OpenglVertexArray>(VertexArray::Create(m_Context));
+        m_VertexArray = Memory::SharedCast<OpenglVertexArray>(VertexArray::Create(m_Context, shaderInputLayout));
         if (!m_VertexArray) {
             Log_nts.Error("Failed to create OpenGL OpenglCanvas vertex array");
         }
@@ -113,7 +119,7 @@ namespace nkentseu {
 
         bool render_evalable = true;
 
-        if (m_RenderEnable && m_Shader == nullptr || !m_Shader->Bind()) {
+        if ((m_RenderEnable && m_Shader == nullptr) || !m_Shader->Bind()) {
             render_evalable = false;
         }
 
@@ -122,12 +128,12 @@ namespace nkentseu {
                 float32 distance_to_screen = 1.0f;
                 CanvasCamera cameraBuffer{};
 
-                cameraBuffer.view = matrix4f::Identity().Inverse();
+                cameraBuffer.view = matrix4f::Identity();
                 //cameraBuffer.proj = matrix4f::Orthogonal(size.width, size.height, 0.1f, 100.0f);
                 //cameraBuffer.proj = matrix4f::Orthogonal(size, -1.f, 1.0f);
                 cameraBuffer.proj = matrix4f::Orthogonal(Vector2f(0, size.height), Vector2f(size.width, 0), -1.f, 1.0f);
                 m_UniformBuffer->SetData("CanvasCamera", &cameraBuffer, sizeof(CanvasCamera));
-
+                m_UniformBuffer->Bind();
                 //glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(screenWidth), static_cast<float>(screenHeight), 0.0f, -1.0f, 1.0f);
             }
 
@@ -159,17 +165,17 @@ namespace nkentseu {
                         renderCommand->texture->Bind();
                     }
 
-                    if (m_UniformBuffer != nullptr) {
+                    if (shaderInputLayout != nullptr) {
                         CanvasTransform transform;
                         transform.model = renderCommand->transform;
-                        m_UniformBuffer->SetData("CanvasTransform", &transform, sizeof(CanvasTransform));
+                        shaderInputLayout->UpdatePushConstant("CanvasTransform", &transform, sizeof(CanvasTransform), m_Shader);
 
                         CanvasMaterial material;
-                        material.useColor = true;
-                        material.useTexture = renderCommand->texture != nullptr;
-                        m_UniformBuffer->SetData("CanvasMaterial", &material, sizeof(CanvasMaterial));
+                        material.useColor = 1 << 1;
+                        material.useTexture |= renderCommand->texture != nullptr ? 1 << 2 : 0;
+                        shaderInputLayout->UpdatePushConstant("CanvasMaterial", &material, sizeof(CanvasMaterial), m_Shader);
 
-                        m_UniformBuffer->Bind();
+                        //shaderInputLayout->Bind();
                     }
 
                     uint32 primitive = GLConvert::GetPrimitiveType(renderCommand->primitive);

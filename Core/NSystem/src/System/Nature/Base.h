@@ -14,6 +14,8 @@
 #include <vector>
 #include "System/System.h"
 
+#include "Enumeration.h"
+
 namespace nkentseu{
     using ARGV = std::vector<std::string>;
 

@@ -15,21 +15,21 @@
 
 namespace nkentseu {
 #define NKENTSEU_CREATE_VERTEX_ARRAY_P1(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
-															auto data = Memory::Alloc<class_>(context);	\
+															auto data = Memory::Alloc<class_>(context, sil);	\
 															if (data != nullptr && data->Create()) {	\
 																return data;	\
 															}	\
 															Memory::Reset(data);	\
 														}
 #define NKENTSEU_CREATE_VERTEX_ARRAY_P2(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
-															auto data = Memory::Alloc<class_>(context);	\
+															auto data = Memory::Alloc<class_>(context, sil);	\
 															if (data != nullptr && data->Create(vertexNumber)) {	\
 																return data;	\
 															}	\
 															Memory::Reset(data);	\
 														}
 
-	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context)
+	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil)
     {
 		if (context == nullptr) {
 			return nullptr;
@@ -41,7 +41,7 @@ namespace nkentseu {
 		return nullptr;
     }
 
-	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context, uint32 vertexNumber)
+	Memory::Shared<VertexArray> VertexArray::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, uint32 vertexNumber)
     {
 		if (context == nullptr) {
 			return nullptr;

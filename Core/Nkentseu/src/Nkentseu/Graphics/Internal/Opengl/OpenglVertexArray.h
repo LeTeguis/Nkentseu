@@ -14,6 +14,9 @@
 #include <System/Definitions/Memory.h>
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/VertexArray.h>
+#include <Nkentseu/Graphics/ShaderInputLayout.h>
+
+#include "OpenglShaderInputLayout.h"
 
 namespace nkentseu {
     class Context;
@@ -22,7 +25,7 @@ namespace nkentseu {
     
     class NKENTSEU_API OpenglVertexArray : public VertexArray{
         public:
-            OpenglVertexArray(Memory::Shared<Context> context);
+            OpenglVertexArray(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
             ~OpenglVertexArray();
 
             Memory::Shared<Context> GetContext() override;
@@ -47,8 +50,8 @@ namespace nkentseu {
             virtual bool DrawIndex(RenderPrimitive::Enum primitive) override;
             virtual bool DrawIndex(RenderPrimitive::Enum primitive, uint32 firstIndex, uint32 indexCount) override;
 
-            bool Create();
-            bool Create(uint32 vertexNumber);
+            bool Create() override;
+            bool Create(uint32 vertexNumber) override;
 
             bool Bind();
             bool Unbind();
@@ -63,6 +66,7 @@ namespace nkentseu {
             uint32 m_VertexNumber = 0;
 
             Memory::Shared<Context> m_Context;
+            Memory::Shared<OpenglShaderInputLayout> m_OglSil;
             bool m_UseDsa = false;
 
             BindInfo m_BindInfo = BindInfo::NO_BIND;

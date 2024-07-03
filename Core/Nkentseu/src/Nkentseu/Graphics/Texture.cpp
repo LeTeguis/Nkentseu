@@ -45,21 +45,21 @@ namespace nkentseu {
 		return uint32();
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil)
 	{
 		Memory::Shared<Texture2D> texture = nullptr;
 		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
-			// texture = Memory::Alloc<VukanTexture2D>(context);
+			// texture = Memory::Alloc<VukanTexture2D>(context, sil);
 		}
 		else if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
-			texture = Memory::Alloc<OpenglTexture2D>(context);
+			texture = Memory::Alloc<OpenglTexture2D>(context, sil);
 		}
 		return texture;
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, TextureFormat::Code textureFormat, const maths::Vector2u& size)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, TextureFormat::Code textureFormat, const maths::Vector2u& size)
 	{
-		Memory::Shared<Texture2D> texture = Create(context);
+		Memory::Shared<Texture2D> texture = Create(context, sil);
 
 		if (texture == nullptr || !texture->Create(textureFormat, size)) {
 			Memory::Reset(texture);
@@ -67,9 +67,9 @@ namespace nkentseu {
 		return texture;
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, const std::filesystem::path& filename, const maths::IntRect& area)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const std::filesystem::path& filename, const maths::IntRect& area)
 	{
-		Memory::Shared<Texture2D> texture = Create(context);
+		Memory::Shared<Texture2D> texture = Create(context, sil);
 
 		if (texture == nullptr || !texture->Create(filename, area)) {
 			Memory::Reset(texture);
@@ -77,9 +77,9 @@ namespace nkentseu {
 		return texture;
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, const void* data, usize size, const maths::IntRect& area)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const void* data, usize size, const maths::IntRect& area)
 	{
-		Memory::Shared<Texture2D> texture = Create(context);
+		Memory::Shared<Texture2D> texture = Create(context, sil);
 
 		if (texture == nullptr || !texture->Create(data, size, area)) {
 			Memory::Reset(texture);
@@ -87,9 +87,9 @@ namespace nkentseu {
 		return texture;
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, InputStream& stream, const maths::IntRect& area)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, InputStream& stream, const maths::IntRect& area)
 	{
-		Memory::Shared<Texture2D> texture = Create(context);
+		Memory::Shared<Texture2D> texture = Create(context, sil);
 
 		if (texture == nullptr || !texture->Create(stream, area)) {
 			Memory::Reset(texture);
@@ -97,9 +97,9 @@ namespace nkentseu {
 		return texture;
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, const Image& image, const maths::IntRect& area)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const Image& image, const maths::IntRect& area)
 	{
-		Memory::Shared<Texture2D> texture = Create(context);
+		Memory::Shared<Texture2D> texture = Create(context, sil);
 
 		if (texture == nullptr || !texture->Create(image, area)) {
 			Memory::Reset(texture);

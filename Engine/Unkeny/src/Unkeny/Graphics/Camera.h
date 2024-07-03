@@ -30,7 +30,7 @@ namespace nkentseu {
 	};
 
 	//const Angle YAW = -90.0f;
-	const maths::Angle YAW = 0.0f;
+	const maths::Angle YAW = 45.0f;
 	const maths::Angle PITCH = 0.0f;
 	const float32 SPEED = 3.0f;
 	const float32 SENSITIVTY = 0.05f * 10;
@@ -57,7 +57,7 @@ namespace nkentseu {
 
 		bool FPS_Camera;
 
-		Camera(maths::Vector3f pos = maths::Vector3f(), maths::Vector3f up = maths::Vector3f::Up(), maths::Angle yaw = YAW, maths::Angle pitch = PITCH);
+		Camera(maths::Vector3f pos = maths::Vector3f(-10.0f, 0.0f, -10.0f), maths::Vector3f up = maths::Vector3f::Up(), maths::Angle yaw = YAW, maths::Angle pitch = PITCH);
 		Camera(float32 posX, float32 posY, float32 posZ, float32 upX, float32 upY, float32 upZ, maths::Angle yaw, maths::Angle pitch);
 		maths::matrix4f GetView();
 		maths::matrix4f GetProjection(CameraProjection projection, float32 fov_or_orthoSize, float32 aspect, float32 near, float32 far);

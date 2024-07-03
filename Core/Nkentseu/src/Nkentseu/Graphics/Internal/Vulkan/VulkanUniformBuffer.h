@@ -19,10 +19,10 @@ namespace nkentseu {
     
     class NKENTSEU_API VulkanUniformBuffer : public UniformBuffer {
         public:
-            VulkanUniformBuffer(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout);
+            VulkanUniformBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
             ~VulkanUniformBuffer();
 
-            bool Create();
+            bool Create(Memory::Shared<Shader> shader, const std::vector<std::string> uniformsLoader) override;
 
             bool SetData(const std::string& name, void* data, usize size) override;
             bool SetData(const std::string& name, void* data, usize size, uint32 index) override;
@@ -33,8 +33,9 @@ namespace nkentseu {
         private:
             Memory::Shared<VulkanContext> m_Context;
             Memory::Shared<VulkanShader> m_Shader;
-            UniformBufferLayout m_BufferLayout;
+            //UniformBufferLayout m_BufferLayout;
             VulkanDescriptorPool m_DescriptorPool;
+            Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
 
             std::unordered_map<std::string, VulkanUBO> m_UniformBuffers;
             std::vector<VkDescriptorSet> m_DescriptorSets = {};
@@ -42,10 +43,14 @@ namespace nkentseu {
             uint32 m_OffsetDynamicCount = 0;
             usize m_DynamicAlignment = 0;
 
+            std::vector<std::string> m_UniformLoaders;
+
             bool CreateDescriptorSets();
             bool Recreate(bool force);
             bool CleanUp(bool force);
             bool FreeData();
+
+            bool Create(const std::vector<std::string> uniformsLoader);
     };
 
 }  //  nkentseu

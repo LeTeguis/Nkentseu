@@ -1311,6 +1311,11 @@ namespace nkentseu {
 		layoutBindings.push_back({ binding, type, 1, shaderStage, nullptr });
 	}
 
+	void VulkanPipelineLayout::AddPushConstantRange(const VkPushConstantRange& pushConstantRange)
+	{
+		pushConstantRanges.push_back(pushConstantRange);
+	}
+
 	bool VulkanPipelineLayout::IsValid()
 	{
 		return pipelineLayout != VK_NULL_HANDLE;
@@ -1502,10 +1507,10 @@ namespace nkentseu {
 
 	// uniform buffer
 
-	bool VulkanUBO::Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType)
+	bool VulkanUBO::Create(VulkanGpu* gpu, const UniformInputAttribute& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType)
 	{
 		if (gpu == nullptr) return false;
-		uniformBufferAttribut = uba;
+		uniformInput = uba;
 
 		this->usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
 		VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -1519,23 +1524,23 @@ namespace nkentseu {
 		//uint32 size = uba.instance > 1 && uba.uType == UniformBufferType::Dynamic ? uba.instance + 1 : uba.instance;
 		//size *= uba.size;
 
-		uint32 size = uniformBufferAttribut.size;
+		uint32 size = uniformInput.size;
 		uint32 range = size;
 		dynamicAlignment = 0;
 
-		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
+		if (uniformInput.usage == BufferUsageType::DynamicDraw) {
 			uint32 minUboAlignment = gpu->properties.limits.minUniformBufferOffsetAlignment;
 
 			if (minUboAlignment > 0) {
 				dynamicAlignment = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
 			}
 			range = dynamicAlignment;
-			size = dynamicAlignment * uniformBufferAttribut.instance;
+			size = dynamicAlignment * uniformInput.instance;
 		}
 
 		for (auto& uniform : uniformBuffers) {
 			if (!VulkanBuffer::CreateBuffer(gpu, size, this->usage, sharingMode, propertyFlags, uniform.buffer, uniform.bufferMemory)) {
-				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", uniformBufferAttribut.name, index);
+				Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}", uniformInput.name, index);
 				success = false;
 			}
 			else {
@@ -1547,7 +1552,7 @@ namespace nkentseu {
 
 				writeDescriptorSets[index].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				writeDescriptorSets[index].dstSet = descriptorSets[index];
-				writeDescriptorSets[index].dstBinding = uniformBufferAttribut.binding; // L'index de la liaison dans le descripteur d'ensemble
+				writeDescriptorSets[index].dstBinding = uniformInput.binding; // L'index de la liaison dans le descripteur d'ensemble
 				writeDescriptorSets[index].dstArrayElement = 0;
 				writeDescriptorSets[index].descriptorType = descriptorType;
 				writeDescriptorSets[index].descriptorCount = 1;
@@ -1583,7 +1588,7 @@ namespace nkentseu {
 		bool success = false;
 
 		currentOffset = 0;
-		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
+		if (uniformInput.usage == BufferUsageType::DynamicDraw) {
 			currentOffset = instanceIndex * dynamicAlignment;
 		}
 
@@ -1605,10 +1610,10 @@ namespace nkentseu {
 
 		currentOffset = 0;
 
-		if (uniformBufferAttribut.uType == UniformBufferType::Dynamic) {
+		if (uniformInput.usage == BufferUsageType::DynamicDraw) {
 			currentIndex++;
 
-			if (currentIndex >= uniformBufferAttribut.instance) {
+			if (currentIndex >= uniformInput.instance) {
 				currentIndex = 0;
 			}
 			currentOffset = currentIndex * dynamicAlignment;
@@ -1635,12 +1640,12 @@ namespace nkentseu {
 
 		currentIndex++;
 
-		if (currentIndex >= uniformBufferAttribut.instance) {
+		if (currentIndex >= uniformInput.instance) {
 			currentIndex = 0;
 		}
 
 		//currentOffset = currentIndex * dynamicAlignment;
-		currentOffset = currentIndex * uniformBufferAttribut.size;
+		currentOffset = currentIndex * uniformInput.size;
 
 		auto& uniform = uniformBuffers[index];
 

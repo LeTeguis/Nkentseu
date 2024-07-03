@@ -13,6 +13,7 @@
 #include <Nkentseu/Core/NkentseuLogger.h>
 #include "OpenglContext.h"
 #include "Nkentseu/Graphics/ShaderInfo.h"
+#include "Nkentseu/Graphics/ShaderInputLayout.h"
 #include "Nkentseu/Graphics/RenderPrimitive.h"
 
 #include <glad/gl.h>
@@ -82,8 +83,8 @@ namespace nkentseu {
             static uint32 VerticesPerType(uint32 vertexType);
             static uint32 VertexType(DrawVertexType::Code drawVertex);
             static uint32 IndexType(DrawIndexType::Code drawIndex);
-            static uint32 GetModuleType(ShaderType::Code code);
-            static uint32 GetModernModuleType(ShaderType::Code shaderType);
+            static uint32 GetModuleType(ShaderStage shaderStage);
+            static uint32 GetModernModuleType(ShaderStage shaderStage);
 
             static uint32 GetPrimitiveType(RenderPrimitive::Enum primitive);
     };
@@ -99,10 +100,11 @@ namespace nkentseu {
         uint32 usage;
         uint32 bufferType;
         usize binding;
+        usize size;
         std::string name;
         uint32 instance = 1;
         uint32 dynamicAlignment;
-        UniformBufferType::Code uType;
+        BufferUsageType::Enum uType;
 
         uint32 currentOffset = 0;
         uint32 currentIndex = 0;

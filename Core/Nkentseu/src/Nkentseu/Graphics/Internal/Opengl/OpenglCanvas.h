@@ -20,6 +20,7 @@
 #include "OpenglVertexBuffer.h"
 #include "OpenglVertexArray.h"
 #include "OpenglUniformBuffer.h"
+#include "OpenglShaderInputLayout.h"
 
 namespace nkentseu {
 
@@ -35,6 +36,7 @@ namespace nkentseu {
 
         Memory::Shared<OpenglContext> m_Context = nullptr;
         Memory::Shared<OpenglShader> m_Shader = nullptr;
+        Memory::Shared<OpenglShaderInputLayout> shaderInputLayout = nullptr;
 
         Memory::Shared<OpenglUniformBuffer> m_UniformBuffer = nullptr;
 

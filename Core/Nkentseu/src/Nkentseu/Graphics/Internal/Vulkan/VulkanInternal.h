@@ -26,6 +26,8 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Ntsm/Vector/Vector3.h>
 
+#include "Nkentseu/Graphics/ShaderInputLayout.h"
+
 namespace nkentseu {
     class Window;
 
@@ -226,10 +228,12 @@ namespace nkentseu {
         bool CreateDescriptorSetLayout(VulkanGpu* gpu, VulkanSwapchain* swapchain);
 
         void Add(uint32 binding, VkDescriptorType type, VkShaderStageFlags shaderStage);
+        void AddPushConstantRange(const VkPushConstantRange& pushConstantRange);
 
         bool IsValid();
 
         std::vector<VkDescriptorSetLayoutBinding> layoutBindings{};
+        std::vector<VkPushConstantRange> pushConstantRanges{};
 
         VkPipelineLayout pipelineLayout = nullptr;
         VkDescriptorSetLayout descriptorSetLayout = nullptr;
@@ -262,7 +266,7 @@ namespace nkentseu {
     };
 
     struct NKENTSEU_API VulkanUBO {
-        bool Create(VulkanGpu* gpu, const UniformBufferAttribut& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType);
+        bool Create(VulkanGpu* gpu, const UniformInputAttribute& uba, VkBufferUsageFlags usage, std::vector<VkDescriptorSet>& descriptorSets, VkDescriptorType descriptorType);
         bool Destroy(VulkanGpu* gpu);
 
         bool Binds(VulkanGpu* gpu, void* data, usize size, uint32 instanceIndex);
@@ -277,7 +281,7 @@ namespace nkentseu {
         std::vector<VkWriteDescriptorSet> writeDescriptorSets;
         std::vector<VkDescriptorBufferInfo> descriptorBufferInfos;
         VkBufferUsageFlags usage;
-        UniformBufferAttribut uniformBufferAttribut;
+        UniformInputAttribute uniformInput;
         uint32 dynamicAlignment = 0;
 
         uint32 currentOffset = 0;

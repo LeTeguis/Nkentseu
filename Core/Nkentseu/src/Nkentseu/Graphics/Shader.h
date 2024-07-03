@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf S�deris on 2024-05-15 at 04:53:53 PM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf S�deris on 2024-05-15 at 04:53:53 PM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -10,13 +10,19 @@
 
 #include <System/System.h>
 #include <System/Definitions/Memory.h>
-
-#include <unordered_map>
+#include <unordered_map>  // Inclusion pour std::unordered_map
 
 #include "ShaderInfo.h"
 #include "Context.h"
+#include "ShaderInputLayout.h"  // Inclusion de ShaderInputLayout pour accéder à ShaderStage
+
 
 namespace nkentseu {
+
+    class ShaderInputLayout;
+    //class ShaderStage;
+    class ShaderFilePathLayout;
+
     class NKENTSEU_API Shader {
         public:
             virtual Memory::Shared<Context> GetContext() = 0;
@@ -24,6 +30,7 @@ namespace nkentseu {
             virtual bool Bind() = 0;
             virtual bool Unbind() = 0;
 
+            virtual bool LoadFromFile(const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout) = 0;
             virtual bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) = 0;
 
             virtual bool PolygonMode(PolygonModeType::Code mode) = 0;
@@ -33,7 +40,8 @@ namespace nkentseu {
             virtual bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) = 0;
             virtual bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) = 0;
 
-            static Memory::Shared<Shader> Create(Memory::Shared<Context> context, const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout);
+            static Memory::Shared<Shader> Create(Memory::Shared<Context> context);
+            static Memory::Shared<Shader> Create(Memory::Shared<Context> context, const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout);
     };
 
 }  //  nkentseu

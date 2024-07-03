@@ -39,7 +39,7 @@ namespace nkentseu {
 	matrix4f Camera::GetProjection(CameraProjection projection, float32 fov_or_orthoSize, float32 aspect, float32 near, float32 far)
 	{
 		if (projection == CameraProjection::Perspective) {
-			return matrix4f::PerspectiveFov(fov_or_orthoSize, aspect, near, far);
+			return matrix4f::Perspective(Angle(fov_or_orthoSize), aspect, near, far);
 		}
 		
 		return matrix4f::Orthogonal(fov_or_orthoSize * aspect, fov_or_orthoSize, near, far);

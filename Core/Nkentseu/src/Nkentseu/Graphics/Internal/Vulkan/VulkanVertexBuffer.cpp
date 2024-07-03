@@ -15,7 +15,8 @@
 
 namespace nkentseu {
 
-    VulkanVertexBuffer::VulkanVertexBuffer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
+    VulkanVertexBuffer::VulkanVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
+        m_Vksil = Memory::SharedCast<VulkanShaderInputLayout>(sil);
     }
 
     Memory::Shared<Context> VulkanVertexBuffer::GetContext()
@@ -26,12 +27,14 @@ namespace nkentseu {
     VulkanVertexBuffer::~VulkanVertexBuffer() {
     }
 
-    bool VulkanVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout) {
-        return Create(bufferUsage, vertices.data(), vertices.size() / bufferLayout.componentCount, bufferLayout);
+    bool VulkanVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) {
+        if (m_Vksil == nullptr) return false;
+
+        return Create(bufferUsage, vertices.data(), vertices.size() / m_Vksil->vertexInput.componentCount);
     }
 
-    bool VulkanVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout) {
-        if (m_Context == nullptr) return false;
+    bool VulkanVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) {
+        if (m_Context == nullptr || m_Vksil == nullptr) return false;
 
         VulkanResult result;
         bool first = true;
@@ -43,7 +46,7 @@ namespace nkentseu {
         VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         VkMemoryPropertyFlags propertyFlags2 = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-        usize size = leng * bufferLayout.stride;
+        usize size = leng * m_Vksil->vertexInput.stride;
         m_VertexBufferObject.size = size;
 
         /*if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage, sharingMode, propertyFlags, m_VertexBufferObject.buffer, m_VertexBufferObject.bufferMemory)) {

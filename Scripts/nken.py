@@ -18,7 +18,7 @@ def GetCommandPath(command):
 def RunCommand(command, command_path, options):
     ret = 0
 
-    args_command = ["python3", command_path]
+    args_command = ["py", command_path]
     if len(options) >= 1:
         for e in options:
             args_command.append(e)

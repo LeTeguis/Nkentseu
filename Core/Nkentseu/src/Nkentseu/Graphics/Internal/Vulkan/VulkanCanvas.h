@@ -11,6 +11,7 @@
 #include <System/System.h>
 
 #include "Nkentseu/Graphics/Canvas.h"
+#include "Nkentseu/Graphics/Shader.h"
 #include "Nkentseu/Graphics/Context.h"
 
 #include "VulkanContext.h"
@@ -20,6 +21,7 @@
 #include "VulkanVertexBuffer.h"
 #include "VulkanVertexArray.h"
 #include "VulkanUniformBuffer.h"
+#include "VulkanShaderInputLayout.h"
 
 namespace nkentseu {
     class VulkanCanvas : public Canvas {
@@ -34,6 +36,8 @@ namespace nkentseu {
         friend class VulkanRenderer;
 
         Memory::Shared<VulkanContext> m_Context;
+        Memory::Shared<VulkanShaderInputLayout> shaderInputLayout = nullptr;
+
         Memory::Shared<VulkanUniformBuffer> m_UniformBuffer = nullptr;
 
         Memory::Shared<VulkanShader> m_Shader;

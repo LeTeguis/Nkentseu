@@ -19,6 +19,7 @@
 #include <vulkan/vulkan.hpp>
 #include "VulkanInternal.h"
 #include "VulkanUtils.h"
+#include "VulkanShaderInputLayout.h"
 
 #include <Nkentseu/Graphics/Shader.h>
 
@@ -33,7 +34,7 @@ namespace nkentseu {
             Memory::Shared<Context> GetContext() override;
             bool Destroy() override;
 
-            bool LoadFromFile(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout);
+            bool LoadFromFile(const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout) override;
 
             bool Bind() override;
             bool Unbind() override;
@@ -61,24 +62,25 @@ namespace nkentseu {
             VulkanPipelineLayout m_PipelineLayout;
             VulkanDynamicMode m_DynamicMode;
 
-            std::unordered_map<ShaderType::Code, VkShaderModule> m_Modules;
+            std::unordered_map<uint32, VkShaderModule> m_Modules;
             ShaderBufferLayout m_ShaderLayout = {};
             // shader info
             std::vector<VkVertexInputBindingDescription> bindingDescriptions = {};
             std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {};
             bool DefineVertexInput();
+            bool DefineVertexInput(Memory::Shared<VulkanShaderInputLayout> shaderInputLayout);
 
             std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-            bool DefinePipelineStage(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles);
+            bool DefinePipelineStage(const ShaderFilePathLayout& shaderFiles);
         private:
             std::vector<char> LoadShader(const std::string& shaderFile);
-            VkShaderModule MakeModule(const std::string& filepath, ShaderType::Code code);
+            VkShaderModule MakeModule(const std::string& filepath, ShaderStage code);
             bool Recreate(bool force);
             bool CleanUp(bool force);
 
             std::string ReplaceShaderExtension(const std::string& shaderPath);
             bool CheckIfShaderExists(const std::string& shaderPath);
-            bool CompileShader(const std::string& filePath, ShaderType::Code shaderType);
+            bool CompileShader(const std::string& filePath, ShaderStage shaderType);
     };
 
 }  //  nkentseu

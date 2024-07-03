@@ -11,28 +11,30 @@
 #include <System/System.h>
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/VertexBuffer.h"
+#include "Nkentseu/Graphics/ShaderInputLayout.h"
 #include "Nkentseu/Core/NkentseuLogger.h"
 
 #include "OpenGLUtils.h"
+#include "OpenglShaderInputLayout.h"
 
 namespace nkentseu {
     class Context;
     
     class NKENTSEU_API OpenglVertexBuffer : public VertexBuffer{
         public:
-            OpenglVertexBuffer(Memory::Shared<Context> context);
+            OpenglVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
             ~OpenglVertexBuffer();
 
             Memory::Shared<Context> GetContext() override;
             bool Destroy() override;
             uint32 Leng() const override;
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout = {});
-            bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout = {});
+            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) override;
+            bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) override;
 
             template <typename T>
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices, const BufferLayout& bufferLayout = {}) {
-                return Create(bufferUsage, vertices.data(), vertices.size(), bufferLayout);
+            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices) {
+                return Create(bufferUsage, vertices.data(), vertices.size());
             }
 
             bool Bind() const;
@@ -41,10 +43,9 @@ namespace nkentseu {
             virtual bool SetData(void* data, usize size) override;
 
             uint32 GetBuffer() const;
-            const BufferLayout& GetBufferLayaout();
             bool AttachToVAO(uint32 vao, bool useDsa);
         private:
-            BufferLayout m_BufferLayout;
+            Memory::Shared<OpenglShaderInputLayout> m_OglSil;
             BufferDataUsage::Code m_BufferUsage; 
             Memory::Shared<Context> m_Context;
 

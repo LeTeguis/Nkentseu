@@ -25,8 +25,10 @@ namespace nkentseu {
             virtual bool Bind() = 0;
 
             virtual bool Destroy() = 0;
+            virtual bool Create(Memory::Shared<Shader> shader, const std::vector<std::string> uniformsLoader) = 0;
 
-            static Memory::Shared<UniformBuffer> Create(Memory::Shared<Context> context, Memory::Shared<Shader> shader, const UniformBufferLayout& uniformLayout);
+            static Memory::Shared<UniformBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+            static Memory::Shared<UniformBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, Memory::Shared<Shader> shader, const std::vector<std::string> uniformsLoader);
     };
 
 }  //  nkentseu

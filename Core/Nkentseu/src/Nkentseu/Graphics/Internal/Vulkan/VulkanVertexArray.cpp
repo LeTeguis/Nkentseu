@@ -19,7 +19,8 @@
 #include "VulkanUtils.h"
 
 namespace nkentseu {
-    VulkanVertexArray::VulkanVertexArray(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
+    VulkanVertexArray::VulkanVertexArray(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<VulkanContext>(context)) {
+        m_Vksil = Memory::SharedCast<VulkanShaderInputLayout>(sil);
     }
 
     // Destructor

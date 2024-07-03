@@ -14,41 +14,44 @@
 #include "Context.h"
 
 namespace nkentseu {
-#define NKENTSEU_CREATE_VERTEX_BUFFER_P1(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
-															auto data = Memory::Alloc<class_>(context);	\
-															if (data != nullptr && data->Create(bufferUsage, vertices, leng, bufferLayout)) {	\
-																return data;	\
-															}	\
-															Memory::Reset(data);	\
-														}
-#define NKENTSEU_CREATE_VERTEX_BUFFER_P2(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
-															auto data = Memory::Alloc<class_>(context);	\
-															if (data != nullptr && data->Create(bufferUsage, vertices, bufferLayout)) {	\
-																return data;	\
-															}	\
-															Memory::Reset(data);	\
-														}
 
-	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng, const BufferLayout& bufferLayout)
-    {
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) {
 		if (context == nullptr) {
 			return nullptr;
 		}
 
-		NKENTSEU_CREATE_VERTEX_BUFFER_P1(GraphicsApiType::VulkanApi, VulkanVertexBuffer);
-		NKENTSEU_CREATE_VERTEX_BUFFER_P1(GraphicsApiType::OpenglApi, OpenglVertexBuffer);
+		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+			return Memory::Alloc<VulkanVertexBuffer>(context, sil);
+		}
+
+		if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
+			return Memory::Alloc<OpenglVertexBuffer>(context, sil);
+		}
+
 		return nullptr;
+	}
+
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng)
+    {
+		auto vertexbuffer = Create(context, sil);
+
+		if (vertexbuffer == nullptr || !vertexbuffer->Create(bufferUsage, vertices, leng)) {
+			Memory::Reset(vertexbuffer);
+			return nullptr;
+		}
+
+		return vertexbuffer;
     }
 
-	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices, const BufferLayout& bufferLayout)
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices)
     {
-		if (context == nullptr) {
+		auto vertexbuffer = Create(context, sil);
+
+		if (vertexbuffer == nullptr || !vertexbuffer->Create(bufferUsage, vertices)) {
+			Memory::Reset(vertexbuffer);
 			return nullptr;
 		}
 
-		NKENTSEU_CREATE_VERTEX_BUFFER_P2(GraphicsApiType::VulkanApi, VulkanVertexBuffer);
-		NKENTSEU_CREATE_VERTEX_BUFFER_P2(GraphicsApiType::OpenglApi, OpenglVertexBuffer);
-
-		return nullptr;
+		return vertexbuffer;
     }
 }  //  nkentseu

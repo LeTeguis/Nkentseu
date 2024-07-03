@@ -11,6 +11,7 @@
 #include <System/System.h>
 #include <Ntsm/Matrix/Matrix4.h>
 #include <Ntsm/Quaternion/Quaternion.h>
+#include <Ntsm/Angle.h>
 
 namespace nkentseu {
     enum class ProjectionType {
@@ -31,7 +32,7 @@ namespace nkentseu {
         void SetOrientation(const maths::Vector3f& oriantation);
         maths::Vector3 GetOrientation();
 
-        void SetFov(float32 newFov);
+        void SetFov(const maths::Angle& newFov);
 
         void SetAspectRatio(float32 newAspectRatio);
 
@@ -71,7 +72,7 @@ namespace nkentseu {
         maths::Vector3f worldUp;
         maths::Vector3f right = maths::Vector3f(1, 0, 0);
         maths::Vector3f oriantation;
-        float32 fov;
+        maths::Angle fov;
         float32 aspectRatio;
         maths::Vector2f clippingPlan;
         float32 orthoSize;

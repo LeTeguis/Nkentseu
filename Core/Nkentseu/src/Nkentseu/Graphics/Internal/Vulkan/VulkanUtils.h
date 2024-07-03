@@ -17,6 +17,7 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 
 #include "Nkentseu/Graphics/RenderPrimitive.h"
+#include "Nkentseu/Graphics/ShaderInputLayout.h"
 //#include <glslang_c_shader_types.h>
 
 namespace nkentseu {
@@ -42,7 +43,7 @@ namespace nkentseu {
     public:
         static const char* VulkanResultToString(VkResult result);
         static void GetResourceLimits(VkPhysicalDevice physicalDevice);
-        static VkShaderStageFlagBits GetshaderStageType(ShaderType::Code type);
+        static VkShaderStageFlagBits GetshaderStageType(ShaderStage type);
 
         static VkCullModeFlags CullModeType(CullModeType::Code mode);
         static VkPolygonMode PolygonModeType(PolygonModeType::Code mode);
@@ -55,8 +56,9 @@ namespace nkentseu {
         static bool EndsWith(const std::string& s, const std::string& part);
 
         static VkFormat ShaderFormatToVkFormat(ShaderDataType::Code shaderDataType);
+        static VkFormat ShaderInternalToVkFormat(ShaderInternalType::Enum shaderType);
 
-        static VkShaderStageFlagBits ShaderStageToVkShaderStage(ShaderType::Code shaderStage);
+        static VkShaderStageFlagBits ShaderStageToVkShaderStage(ShaderStage shaderStage);
     };
 
     template<typename... Args>

@@ -35,10 +35,10 @@ namespace nkentseu {
         return m_Context;
     }
 
-    bool VulkanShader::LoadFromFile(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles, const ShaderBufferLayout& shaderLayout) {
-        if (m_Context == nullptr || shaderFiles.size() == 0 || m_GraphicsPipeline != nullptr) return false;
-
-        m_ShaderLayout = shaderLayout;
+    bool VulkanShader::LoadFromFile(const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout)
+    {
+        Memory::Shared<VulkanShaderInputLayout> vkSIL =  Memory::SharedCast<VulkanShaderInputLayout>(shaderInputLayout);
+        if (m_Context == nullptr || shaderFiles.size() == 0 || m_GraphicsPipeline != nullptr || shaderInputLayout == nullptr) return false;
 
         VulkanResult result;
         bool first = true;
@@ -48,17 +48,6 @@ namespace nkentseu {
             return false;
         }
 
-        if (m_ShaderLayout.uniformBuffer.attributes.size() > 0) {
-            for (auto& [name, attribut] : m_ShaderLayout.uniformBuffer.attributes) {
-                VkDescriptorType dtype = (attribut.uType == UniformBufferType::Static) ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-                m_PipelineLayout.Add(attribut.binding, dtype, VulkanConvert::ShaderStageToVkShaderStage(attribut.type));
-            }
-        }
-
-        if (!m_PipelineLayout.Create(m_Context->GetGpu(), m_Context->GetSwapchain())) {
-            Log_nts.Debug("Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
-            return false;
-        }
         m_Modules.clear();
 
         DefinePipelineStage(shaderFiles);
@@ -66,7 +55,7 @@ namespace nkentseu {
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};
         vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        if (DefineVertexInput()) {
+        if (DefineVertexInput(vkSIL)) {
             vertexInputState.vertexBindingDescriptionCount = bindingDescriptions.size();
             vertexInputState.pVertexBindingDescriptions = bindingDescriptions.data();
             vertexInputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
@@ -160,7 +149,7 @@ namespace nkentseu {
 
         VkGraphicsPipelineCreateInfo pipelineInfo = {};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.layout = m_PipelineLayout.pipelineLayout;
+        pipelineInfo.layout = vkSIL->m_PipelineLayout.pipelineLayout;
         pipelineInfo.renderPass = m_Context->GetRenderPass()->renderPass;
         pipelineInfo.pVertexInputState = vertexInputStates.data();
         pipelineInfo.pColorBlendState = colorBlendStates.data();
@@ -207,7 +196,7 @@ namespace nkentseu {
         return false;
     }
 
-    VkShaderModule VulkanShader::MakeModule(const std::string& filepath, ShaderType::Code type) {
+    VkShaderModule VulkanShader::MakeModule(const std::string& filepath, ShaderStage type) {
         if (m_Context == nullptr) return nullptr;
         VkShaderModule shaderModule = nullptr;
         VulkanResult result;
@@ -382,21 +371,59 @@ namespace nkentseu {
         return false;
     }
 
-    bool VulkanShader::DefinePipelineStage(const std::unordered_map<ShaderType::Code, std::string>& shaderFiles)
+    bool VulkanShader::DefineVertexInput(Memory::Shared<VulkanShaderInputLayout> shaderInputLayout)
     {
-        for (auto [shaderType, shaderFile] : shaderFiles) {
-            m_Modules[shaderType] = MakeModule(shaderFile, shaderType);
+        if (shaderInputLayout == nullptr) return false;
+        if (!shaderInputLayout->vertexInput.attributes.empty()) {
+            bindingDescriptions.resize(1);
 
-            if (m_Modules[shaderType] == nullptr) {
+            bindingDescriptions[0].binding = 0;
+            bindingDescriptions[0].stride = shaderInputLayout->vertexInput.stride;
+            bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+            attributeDescriptions.resize(shaderInputLayout->vertexInput.attributes.size());
+
+            uint32 index = 0;
+            bool set = true;
+
+            for (const auto& attribute : shaderInputLayout->vertexInput.attributes) {
+                VkFormat format = VulkanConvert::ShaderInternalToVkFormat(attribute.type);
+
+                // Vérification si le format est valide
+                if (format <= VK_FORMAT_UNDEFINED || format > VK_FORMAT_ASTC_12x12_SRGB_BLOCK) {
+                    Log_nts.Error("Invalid format for attribute type: {0}", ShaderDataType::ToString(attribute.type));
+                    set = false;
+                    attributeDescriptions.clear();
+                    break;
+                }
+
+                attributeDescriptions[index].binding = 0;
+                attributeDescriptions[index].location = attribute.location;
+                attributeDescriptions[index].format = format;
+                attributeDescriptions[index].offset = attribute.offset;
+
+                index++;
+            }
+            return set;
+        }
+        return false;
+    }
+
+    bool VulkanShader::DefinePipelineStage(const ShaderFilePathLayout& shaderFiles)
+    {
+        for (auto attribut : shaderFiles) {
+            m_Modules[(uint32)attribut.stage] = MakeModule(attribut.path, attribut.stage);
+
+            if (m_Modules[(uint32)attribut.stage] == nullptr) {
                 m_Modules.clear();
-                Log_nts.Debug("Cannot create shader module; Type {0}, File = {1}", ShaderType::ToString(shaderType), shaderFile);
+                //Log_nts.Debug("Cannot create shader module; Type {0}, File = {1}", ShaderType::ToString(shaderType), shaderFile);
                 return false;
             }
 
             VkPipelineShaderStageCreateInfo shaderStage = {};
             shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-            shaderStage.stage = VulkanConvert::GetshaderStageType(shaderType);
-            shaderStage.module = m_Modules[shaderType];
+            shaderStage.stage = VulkanConvert::GetshaderStageType(attribut.stage);
+            shaderStage.module = m_Modules[(uint32)attribut.stage];
             shaderStage.pName = "main";
             shaderStage.flags = 0;
             shaderStage.pNext = nullptr;
@@ -473,23 +500,22 @@ namespace nkentseu {
         return std::filesystem::exists(shaderPath);
     }
 
-    bool VulkanShader::CompileShader(const std::string& filePath, ShaderType::Code shaderType) {
+    bool VulkanShader::CompileShader(const std::string& filePath, ShaderStage shaderType) {
         // Mapping des type a leurs equivalence pour compilation
-        std::unordered_map<ShaderType::Code, std::string> fileTypeMappings = {
-            {ShaderType::Vertex, "--vert"},
-            {ShaderType::Fragment, "--frag"},
-            {ShaderType::Compute, "--comp"},
-            {ShaderType::Geometry, "--geom"},
-            {ShaderType::TesControl, "--tesc"},
-            {ShaderType::TesEvaluation, "--tese"}
+        std::unordered_map<uint32, std::string> fileTypeMappings = {
+            {(uint32)ShaderStage::Enum::Vertex, "--vert"},
+            {(uint32)ShaderStage::Enum::Fragment, "--frag"},
+            {(uint32)ShaderStage::Enum::Compute, "--comp"},
+            {(uint32)ShaderStage::Enum::Geometry, "--geom"},
+            {(uint32)ShaderStage::Enum::TesControl, "--tesc"},
+            {(uint32)ShaderStage::Enum::TesEvaluation, "--tese"}
         };
 
-        // S�paration du chemin du fichier en r�pertoire et nom de fichier avec extension
         std::filesystem::path path(filePath);
         std::string directory = path.parent_path().string();
         std::string fileName = path.filename().string();
 
-        std::string command = FORMATTER.Format("python Scripts/commands/buildshdr.py --name {0} --directory {1} {2}", fileName, directory, fileTypeMappings[shaderType]);
+        std::string command = FORMATTER.Format("python Scripts/commands/buildshdr.py --name {0} --directory {1} {2}", fileName, directory, fileTypeMappings[(uint32)shaderType]);
 
         int32 result = std::system(command.c_str());
         if (result != 0) {
@@ -498,4 +524,5 @@ namespace nkentseu {
         }
         return true;
     }
+
 }  //  nkentseu

@@ -26,6 +26,7 @@
 #include "Unkeny/Graphics/CameraEditor.h"
 #include "Unkeny/Graphics/Camera.h"
 #include <Nkentseu/Graphics/PrimitiveMesh.h>
+#include <Nkentseu/Graphics/ShaderInputLayout.h>
 
 namespace nkentseu {
     using namespace maths;
@@ -458,6 +459,7 @@ namespace nkentseu {
     ShapeCapsule shapeCapsule;
     ShapeTube shapeTube;
 
+    Vector2f mouse_position(100, 100);
     Vector2f sub_window_position(100, 100);
     Vector2f sub_window_size(400, 300);
     bool mouseIsPressed = false;
@@ -541,65 +543,50 @@ namespace nkentseu {
 
         Timer timer;
 
-        BufferLayout bufferLayout;
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float3, "position", 0));
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float4, "color", 1));
-        bufferLayout.attributes.push_back(BufferAttribute(ShaderDataType::Float2, "uv", 2));
-        bufferLayout.CalculateOffsetsAndStride();
+        Memory::Shared<ShaderInputLayout> shaderInputLayout = ShaderInputLayout::Create(m_Context);
 
-        UniformBufferLayout uniformLayout;
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "ObjectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
-        uniformLayout.AddAttribut(UniformBufferAttribut(sizeof(CameraBuffer), 1, "CameraBuffer", ShaderType::Vertex, UniformBufferType::Static, 10));
+        if (shaderInputLayout != nullptr) {
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("position", ShaderInternalType::Float3, 0));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("color", ShaderInternalType::Float4, 1));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("uv", ShaderInternalType::Float2, 2));
 
-        std::unordered_map<ShaderType::Code, std::string> shaderFiles;
-        shaderFiles[ShaderType::Vertex] = "Resources/shaders/ubo.vert.glsl";
-        shaderFiles[ShaderType::Fragment] = "Resources/shaders/ubo.frag.glsl";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/core.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/core.frag.glsl";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/shader.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/shader.frag.glsl";
-        //shaderFiles[ShaderType::Vertex] = "Resources/shaders/triangleInternal.vert.glsl";
-        //shaderFiles[ShaderType::Fragment] = "Resources/shaders/triangleInternal.frag.glsl";
+            //shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("ObjectBuffer", ShaderStage::Vertex, BufferUsageType::DynamicDraw, sizeof(ObjectBuffer), 0, 10));
+            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CameraBuffer", ShaderStage::Enum::Vertex, BufferUsageType::StaticDraw, sizeof(CameraBuffer), 0, 1));
 
-        ShaderBufferLayout shaderLayout;
-        shaderLayout.vertexInput = bufferLayout;
-        shaderLayout.uniformBuffer = uniformLayout;
+            shaderInputLayout->samplerInput.AddAttribute(SamplerInputAttribute("textureSampler", 1, ShaderStage::Enum::Fragment, SamplerType::CombineImage));
 
-        Memory::Shared<Shader> shader = Shader::Create(m_Context, shaderFiles, shaderLayout);
+            shaderInputLayout->pushConstantInput.AddAttribute(PushConstantInputAttribute("ObjectBuffer", ShaderStage::Enum::Vertex, sizeof(ObjectBuffer)));
+
+            if (!shaderInputLayout->Initialize()) {
+                Log.Error("linitialisation des input shader ont echouer");
+            }
+        }
+
+        ShaderFilePathLayout shaderFilesLayout({
+            {"Resources/shaders/ubo.vert.glsl", ShaderStage::Enum::Vertex},
+            {"Resources/shaders/ubo.frag.glsl", ShaderStage::Enum::Fragment},
+            //{"Resources/shaders/core.vert.glsl", ShaderStage::Enum::Vertex},
+            //{"Resources/shaders/core.frag.glsl", ShaderStage::Enum::Fragment},
+            //{"Resources/shaders/shader.vert.glsl", ShaderStage::Enum::Vertex},
+            //{"Resources/shaders/shader.frag.glsl", ShaderStage::Enum::Fragment},
+            //{"Resources/shaders/triangleInternal.vert.glsl", ShaderStage::Enum::Vertex},
+            //{"Resources/shaders/triangleInternal.frag.glsl", ShaderStage::Enum::Fragment},
+        });
+
+        Memory::Shared<Shader> shader = Shader::Create(m_Context, shaderFilesLayout, shaderInputLayout);
+        
         if (shader == nullptr) {
             Log.Error("Cannot create shader");
         }
 
-        //Memory::Shared<UniformBuffer> uniformBuffer = nullptr;
-
-        Memory::Shared<UniformBuffer> uniformBuffer = UniformBuffer::Create(m_Context, shader, uniformLayout);
+        Memory::Shared<UniformBuffer> uniformBuffer = UniformBuffer::Create(m_Context, shaderInputLayout, shader, {"CameraBuffer"});
         if (uniformBuffer == nullptr) {
             Log.Error("Cannot create uniform buffer");
         }
-        //Memory::Shared<UniformBuffer> uniformBuffer2 = nullptr;
-        /*
-        UniformBufferLayout uniformLayout2;
-        uniformLayout2.AddAttribut(UniformBufferAttribut(sizeof(ObjectBuffer), 0, "objectBuffer", ShaderType::Vertex, UniformBufferType::Dynamic, 10));
-        Memory::Shared<UniformBuffer> uniformBuffer2 = UniformBuffer::Create(m_Context, shader, uniformLayout);
-        if (uniformBuffer2 == nullptr) {
-            Log.Error("Cannot create uniform buffer");
-        }
-        //*/
 
-        /*std::vector<Memory::Shared<UniformBuffer>> ulist;
-
-        for (uint32 i = 0; i < 10; i++) {
-            Memory::Shared<UniformBuffer> ub = UniformBuffer::Create(m_Context, shader, uniformLayout);
-            if (ub == nullptr) {
-                Log.Error("Cannot create uniform buffer");
-            }
-            else {
-                ulist.push_back(ub);
-            }
-        }*/
         Cube cube;
 
-        vertexBuffer = VertexBuffer::Create<VertexTest>(m_Context, BufferDataUsage::StaticDraw, shapeCube.vertices, bufferLayout);
+        vertexBuffer = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferDataUsage::StaticDraw, shapeCube.vertices);
         if (vertexBuffer == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
@@ -609,7 +596,7 @@ namespace nkentseu {
             Log.Error("Cannot create index buffer");
         }
 
-        vertexArray = VertexArray::Create(m_Context);
+        vertexArray = VertexArray::Create(m_Context, shaderInputLayout);
         //vertexArray = VertexArray::Create(m_Context, 3);
         if (vertexArray == nullptr) {
             Log.Error("Cannot create vertex array");
@@ -619,10 +606,7 @@ namespace nkentseu {
             vertexArray->SetIndexBuffer(indexBuffer);
         }
 
-        //Capsule shape(1, 1, 36);
-        Sphere shape(1, 36, 36);
-
-        vertexBuffer2 = VertexBuffer::Create<VertexTest>(m_Context, BufferDataUsage::StaticDraw, shapeCapsule.vertices, bufferLayout);
+        vertexBuffer2 = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferDataUsage::StaticDraw, shapeCapsule.vertices);
         if (vertexBuffer2 == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
@@ -632,7 +616,7 @@ namespace nkentseu {
             Log.Error("Cannot create index buffer");
         }
 
-        vertexArray2 = VertexArray::Create(m_Context);
+        vertexArray2 = VertexArray::Create(m_Context, shaderInputLayout);
         //vertexArray = VertexArray::Create(m_Context, 3);
         if (vertexArray2 == nullptr) {
             Log.Error("Cannot create vertex array");
@@ -642,7 +626,7 @@ namespace nkentseu {
             vertexArray2->SetIndexBuffer(indexBuffer2);
         }
 
-        Memory::Shared<Texture2D> tetxure = Texture2D::Create(m_Context, "Resources/textures/container2.png");
+        Memory::Shared<Texture2D> tetxure = Texture2D::Create(m_Context, shaderInputLayout, "Resources/textures/container2.png");
         if (tetxure == nullptr) {
             Log.Error("impossible de charger la texture  Resources/textures/container2.png");
         }
@@ -657,12 +641,6 @@ namespace nkentseu {
         float32 time = 0.0f;
 
         FPSTimer fps;
-
-        ObjectBuffer objectBuffer{};
-        //std::vector<ObjectBuffer> objectBuffers;
-        //objectBuffers.resize(10);
-
-        //camera.FPS_Camera = true;
 
         CameraBuffer cameraBuffer{};
         cameraBuffer.view = camera.GetView();
@@ -743,7 +721,7 @@ namespace nkentseu {
             
             if (Input.IsKeyDown(Keyboard::P)) {
                 projection = CameraProjection::Perspective;
-                fov_or_othosize = camera.zoom();
+                fov_or_othosize = camera.zoom().Deg();
             } else if (Input.IsKeyDown(Keyboard::O)) {
                 projection = CameraProjection::Orthographic;
                 fov_or_othosize = camera.Position.Len();
@@ -752,6 +730,7 @@ namespace nkentseu {
             if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
 
             m_Renderer->Begin(Color::Black());
+            //m_Renderer->Begin(Color::DuckBlue());
             //m_Renderer->SetViewport();
             //m_Renderer->Begin(Color::BlueTransparent);
 
@@ -768,11 +747,12 @@ namespace nkentseu {
                     cameraBuffer.proj[1][1] *= -1;
                 }
                 uniformBuffer->SetData("CameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+                uniformBuffer->Bind();
             }
 
             if (tetxure != nullptr) {
                 slot = (slot+1) % 10;
-                tetxure->Binds(2);
+                tetxure->Binds(1);
             }//*/
 
             static float32 tmpTime = time;
@@ -782,7 +762,8 @@ namespace nkentseu {
 
             for (uint32 index = 0; index < 10; index++) {
                 ObjectBuffer objb;
-                if (uniformBuffer != nullptr) {
+                //if (uniformBuffer != nullptr) {
+                if (shaderInputLayout != nullptr) {
                     {
                         // update model
                         matrix4f scale = matrix4f::Scaling(matrix4f::Identity(), 0.5f * Vector3f(1.0f, 1.0f, 1.0f));
@@ -801,9 +782,12 @@ namespace nkentseu {
                             }
                         }
 
-                        uniformBuffer->SetData("ObjectBuffer", &objb, sizeof(ObjectBuffer), index);
+                        //objb.model = matrix4f::Identity();
+                        //Log.Debug("model - {0}", objb.model);
+                        shaderInputLayout->UpdatePushConstant("ObjectBuffer", &objb, sizeof(ObjectBuffer), shader);
+                        //uniformBuffer->SetData("ObjectBuffer", &objb, sizeof(ObjectBuffer), index);
                     }
-                    uniformBuffer->Bind();
+                    //uniformBuffer->Bind();
                 }
                 if (index < 5 && vertexArray != nullptr) {
                     //vertexArray->DrawVertex(RenderPrimitive::Triangles);
@@ -845,10 +829,23 @@ namespace nkentseu {
 
                 Color color = Color(64, 64, 64);
                 if (mouseIsHover) color = Color(0, 162, 232);
-                canvas->DrawFilledRoundRect(Vector2f(-1, -1) + sub_window_position, Vector2f(2.0f, 26.0f) + sub_window_size, {5.0f, 5.0f, 0.0f, 0.0f}, color);
+                // draw border
+                canvas->DrawFilledRoundRect(Vector2f(-1, -1) + sub_window_position, Vector2f(2.0f, 26.0f) + sub_window_size, { 5.0f, 5.0f, 0.0f, 0.0f }, color);
+                // draw header
                 canvas->DrawFilledRoundRect(Vector2f(0, 0) + sub_window_position, Vector2f(sub_window_size.width, 24.0f), { 5.0f, 5.0f, 0.0f, 0.0f }, Color(20, 20, 20));
+                // draw content
                 canvas->DrawFilledRoundRect(Vector2f(0, 24) + sub_window_position, sub_window_size, { 0.0f, 0.0f, 0.0f, 0.0f }, Color(33, 33, 33));
-                //canvas->DrawFilledRoundRect({ 99.0f, 100.0f - 64.0f }, { 200.0f, 300.0f }, { 0.0f, 0.0f, 20.0f, 20.0f }, Color(33, 33, 33));
+
+                //canvas->SetScissor(sub_window_position.x, sub_window_position.y + 24, sub_window_size.width, sub_window_size.height);
+
+
+                Vector2f button_size(100, 36);
+                Vector2f button_position;
+                button_position.x = sub_window_position.x + ((sub_window_size.width - button_size.width) / 2.0f);
+                button_position.y = sub_window_position.y + sub_window_size.height - button_size.height;
+
+                canvas->DrawFilledRoundRect(Vector2f(-1, -1) + button_position, Vector2f(2.0f, 2.0f) + button_size, { 2.50f, 2.50f, 2.50f, 2.50f }, Color(64, 64, 64));
+                canvas->DrawFilledRoundRect(button_position, button_size, { 2.50f, 2.50f, 2.50f, 2.50f }, Color(20, 20, 20));
 
                 //canvas->Draw(RenderPrimitive::LineStrip, circle);
                 //canvas->Draw(RenderPrimitive::Triangles, rectangle, nullptr, maths::matrix4f::Translation(matrix4f::Identity(), Vector3f(-300, 0, 0)));
@@ -966,10 +963,12 @@ namespace nkentseu {
 
         if (event.GetState() == ButtonState::Pressed) {
             mouseIsPressed = true;
+            mouse_position = event.GetPosition();
         }
         else if (event.GetState() == ButtonState::Released) {
             mouseIsPressed = false;
         }
+
         return false;
     }
 
@@ -989,8 +988,12 @@ namespace nkentseu {
                 event.GetPosition().y >= sub_window_position.y && event.GetPosition().y <= sub_window_position.y + sub_window_size.height) {
                 //sub_window_position += mouseDelta;
                 mouseIsHover = true;
+
+                Vector2f speed = (Vector2f)event.GetPosition() - mouse_position;
+                sub_window_position += speed;
+                mouse_position = event.GetPosition();
             }
-            sub_window_position += mouseDelta;
+            //sub_window_position += mouseDelta;
         }
 
         mouseDelta.Normalize();
