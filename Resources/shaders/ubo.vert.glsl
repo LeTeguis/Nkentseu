@@ -27,6 +27,7 @@ PUSH_CONSTANT uniform ObjectBuffer {
 void main()
 {
     gl_Position = cameraBuffer.proj * cameraBuffer.view * objectBuffer.model * vec4(position, 1.0);
+    //gl_Position = vec4(position, 1.0) * objectBuffer.model * cameraBuffer.view * cameraBuffer.proj;
     //gl_Position = vec4(position, 1.0);
     ourColor = color;
     fragTexCoord = uv;

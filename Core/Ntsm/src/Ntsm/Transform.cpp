@@ -81,7 +81,7 @@ namespace nkentseu {
         {
             Transform transform;
             transform.rotation = Quaternionf(m);
-            transform.position = m.Position();
+            transform.position = m.position.xyz();
 
             matrix4f tanslate = matrix4f::Translation(transform.position).Inverse();
             matrix4f rotation = transform.rotation.Inverse().mat4();

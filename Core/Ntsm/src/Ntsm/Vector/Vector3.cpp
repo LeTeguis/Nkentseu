@@ -92,19 +92,19 @@ namespace nkentseu {
 			return *this;
 		}
 
-		float32 Vector3f::Distance(const Vector3f& r) {
+		float32 Vector3f::Distance(const Vector3f& r) const {
 			return (r - (*this)).Len();
 		}
 
-		float32 Vector3f::Dot(const Vector3f& r) {
+		float32 Vector3f::Dot(const Vector3f& r) const {
 			return x * r.x + y * r.y + z * r.z;
 		}
 
-		float32 Vector3f::LenSq() {
+		float32 Vector3f::LenSq() const{
 			return x * x + y * y + z * z;
 		}
 
-		float32 Vector3f::Len() {
+		float32 Vector3f::Len() const{
 			float32 lenSq = x * x + y * y + z * z;
 			if (lenSq < maths::VectorEpsilon) {
 				return 0.0f;
@@ -124,7 +124,7 @@ namespace nkentseu {
 			z *= invLen;
 		}
 
-		Vector3f Vector3f::Normalized() {
+		Vector3f Vector3f::Normalized() const{
 			Vector3f v(*this);
 			v.Normalize();
 			return v;
@@ -165,7 +165,7 @@ namespace nkentseu {
 			return *this - proj2;
 		}
 
-		Vector3f Vector3f::Cross(const Vector3f& r) {
+		Vector3f Vector3f::Cross(const Vector3f& r) const{
 			return Vector3f(
 				y * r.z - z * r.y,
 				z * r.x - x * r.z,

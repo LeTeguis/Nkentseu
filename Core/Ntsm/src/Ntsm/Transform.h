@@ -10,6 +10,7 @@
 
 #include "System/System.h"
 #include <Ntsm/Quaternion/Quaternion.h>
+#include <Ntsm/Matrix/Matrix4.h>
 
 namespace nkentseu {
 

@@ -104,12 +104,12 @@ namespace nkentseu {
 
 		float32 Angle::Clamp(float32 deg)
 		{
-			while (deg < -180) {
-				deg += 360;
+			while (deg < -180.0f) {
+				deg += 360.0f;
 			}
 
-			while (deg > 180) {
-				deg -= 360;
+			while (deg >= 180.0f) {
+				deg -= 360.0f;
 			}
 
 			return deg;

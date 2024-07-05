@@ -60,7 +60,7 @@ namespace nkentseu {
 			static Vector3f Up() { return Vector3f(0.0f, 1.0f, 0.0f); }
 			static Vector3f Down() { return Vector3f(0.0f, -1.0f, 0.0f); }
 			static Vector3f Left() { return Vector3f(-1.0f, 0.0f, 0.0f); }
-			static Vector3f Right() { return Vector3f(1.0f, 1.0f, 0.0f); }
+			static Vector3f Right() { return Vector3f(1.0f, 0.0f, 0.0f); }
 			static Vector3f Forward() { return Vector3f(0.0f, 0.0f, 1.0f); }
 			static Vector3f Backward() { return Vector3f(0.0f, 0.0f, -1.0f); }
 
@@ -192,17 +192,17 @@ namespace nkentseu {
 				return !(l == r);
 			}
 
-			float32	Distance(const Vector3f& r);
-			float32 Dot(const Vector3f& r);
-			float32 LenSq();
-			float32 Len();
+			float32	Distance(const Vector3f& r) const;
+			float32 Dot(const Vector3f& r) const;
+			float32 LenSq() const;
+			float32 Len() const;
 			void Normalize();
-			Vector3f Normalized();
+			Vector3f Normalized() const;
 			Angle AngleBetween(const Vector3f& r);
 			Vector3f Project(const Vector3f& b);
 			Vector3f Reject(const Vector3f& b);
 			Vector3f Reflect(const Vector3f& b);
-			Vector3f Cross(const Vector3f& r);
+			Vector3f Cross(const Vector3f& r) const;
 			Vector3f Lerp(const Vector3f& e, float32 t);
 			Vector3f Slerp(const Vector3f& e, float32 t);
 			Vector3f Nlerp(const Vector3f& e, float32 t);

@@ -83,6 +83,11 @@ namespace nkentseu {
             return ldexpf(x, exp);
         }
 
+        float32 Copysign(float32 number, float32 sign)
+        {
+            return copysign(number, sign);
+        }
+
         bool EqualF32(float32 a, float32 b) {
             return Abs(a - b) < Epsilon;
         }
