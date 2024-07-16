@@ -14,177 +14,21 @@
 
 #include "Context.h"
 #include "Shader.h"
-
-//#include <atomic>
-//#include <filesystem>
-//#include <vector>
+#include "GraphicsEnum.h"
 
 namespace nkentseu {
-    
-	class ShaderInputLayout;
 	class Shader;
-	class ShaderStage;
-	/*
-	enum class NKENTSEU_API ShaderStageEnum : uint32 {
-		Vertex = 1 << 0,  // 0x01
-		Fragment = 1 << 1,  // 0x02
-		Geometry = 1 << 2,  // 0x04
-		TesControl = 1 << 3,  // 0x08
-		TesEvaluation = 1 << 4,  // 0x10
-		Compute = 1 << 5   // 0x20
-	};
-
-	ENABLE_ENUM_TRAITS(ShaderStageEnum, true, true)
-
-	class NKENTSEU_API ShaderStage : public EnumBase<ShaderStage, ShaderStageEnum> {
-		public:
-			DEFINE_ENUM_BASE_CONSTRUCTOR(ShaderStage, ShaderStageEnum);
-
-			ShaderStage& operator=(const ShaderStage& other) {
-				if (this != &other) {
-					stage = other.stage;
-				}
-				return *this;
-			}
-	};
-
-	/*/
-	class NKENTSEU_API ShaderStage {
-		public:
-		enum class Enum : uint32 {
-			Vertex = 1 << 0,  // 0x01
-			Fragment = 1 << 1,  // 0x02
-			Geometry = 1 << 2,  // 0x04
-			TesControl = 1 << 3,  // 0x08
-			TesEvaluation = 1 << 4,  // 0x10
-			Compute = 1 << 5,  // 0x20
-			NotDefine
-		};
-
-		#define SHADER_STAGE_TO_STRING(type) ((stage & (uint32)Enum::type != 0) ? #type : "")
-
-		private:
-			uint32 stage;
-		public:
-			ShaderStage() : stage((uint32)ShaderStage::Enum::Vertex) {}
-			ShaderStage(ShaderStage::Enum s) : stage((uint32)s) {}
-			ShaderStage(uint32 s) : stage(s) {}
-
-			bool operator==(const ShaderStage& other) const {
-				return stage == other.stage;
-			}
-
-			bool operator!=(const ShaderStage& other) const {
-				return stage != other.stage;
-			}
-
-			ShaderStage operator|(ShaderStage::Enum s) const {
-				return ShaderStage(stage | (uint32)s);
-			}
-
-			ShaderStage operator&(ShaderStage::Enum s) const {
-				return ShaderStage(stage & (uint32)s);
-			}
-
-			ShaderStage& operator|=(ShaderStage::Enum s) {
-				stage |= (uint32)s;
-				return static_cast<ShaderStage&>(*this);
-			}
-
-			ShaderStage& operator&=(ShaderStage::Enum s) {
-				stage &= (uint32)s;
-				return static_cast<ShaderStage&>(*this);
-			}
-
-			operator uint32() const {
-				return stage;
-			}
-
-			operator ShaderStage::Enum() const {
-				return (ShaderStage::Enum)stage;
-			}
-			
-			bool HasStage(ShaderStage::Enum s) const {
-				return (stage & (uint32)s) != 0;
-			}
-			
-			bool HasEnum(ShaderStage::Enum s) const {
-				return (stage & (uint32)s) != 0;
-			}
-
-			static ShaderStage FromString(const std::string& stage) {
-				return ShaderStage();
-			}
-
-			friend std::ostream& operator<<(std::ostream& os, const ShaderStage& e) {
-				return os << e.ToString();
-			}
-
-			std::string ToString() const {
-				std::string str("");
-				str += SHADER_STAGE_TO_STRING(Vertex);
-				str += SHADER_STAGE_TO_STRING(Fragment);
-				str += SHADER_STAGE_TO_STRING(Geometry);
-				str += SHADER_STAGE_TO_STRING(TesControl);
-				str += SHADER_STAGE_TO_STRING(TesEvaluation);
-				str += SHADER_STAGE_TO_STRING(Compute);
-				return str == "" ? "NotDefine" : str;
-			}
-
-			friend std::string ToString(const ShaderStage& v) {
-				return v.ToString();
-			}
-	};
-	//*/
-
-	struct NKENTSEU_API ShaderInternalType {
-		enum Enum {
-			NotDefine, Boolean, Float, Float2, Float3, Float4, Int, Int2, Int3, Int4, Byte, Byte2, Byte3, Byte4, Mat2, Mat3, Mat4
-		};
-
-		static uint32 ComponentCount(ShaderInternalType::Enum type);
-		static uint32 ComponentElementSize(ShaderInternalType::Enum type);
-		static uint32 ComponentSize(ShaderInternalType::Enum type);
-	};
-
-	struct NKENTSEU_API BufferUsageType {
-		enum Enum {
-			StaticDraw, DynamicDraw, StreamDraw
-		};
-	};
-
-	struct NKENTSEU_API BufferSpecificationType {
-		using Code = uint64;
-		enum : Code {
-			Vertex, Index, Uniform, Storage, Texture, Constant
-		};
-	};
-
-	struct NKENTSEU_API IndexBufferType {
-		using Code = uint64;
-		enum : Code {
-			NotDefine, UInt8, UInt16, UInt32, UInt64
-		};
-
-		static usize SizeOf(IndexBufferType::Code indexType);
-	};
-
-	struct NKENTSEU_API SamplerType {
-		enum Enum {
-			CombineImage, SamplerImage, StorageImage
-		};
-	};
 
 	struct NKENTSEU_API VertexInputAttribute {
 		std::string name;
-		ShaderInternalType::Enum type;
+		ShaderInternalType type;
 		uint32 location;
 		uint32 offset;
 		uint32 size = 0;
 		bool normalized = false;
 
 		VertexInputAttribute() = default;
-		VertexInputAttribute(std::string n, ShaderInternalType::Enum t, uint32 loc, bool norm = false);
+		VertexInputAttribute(std::string n, ShaderInternalType t, uint32 loc, bool norm = false);
 	};
 
 	struct NKENTSEU_API VertexInputLayout {
@@ -212,11 +56,12 @@ namespace nkentseu {
 	struct NKENTSEU_API UniformInputAttribute {
 		std::string name = "";
 		ShaderStage stage = ShaderStage::Enum::Vertex;
-		BufferUsageType::Enum usage;
+		BufferUsageType usage;
 		uint32 offset = 0;
 		uint32 size = 0;
 		usize instance = 1;
 		uint32 binding = 0;
+		uint32 set;
 
 		//void* data = nullptr;
 		//usize dataSize = 0;
@@ -232,7 +77,8 @@ namespace nkentseu {
 		}
 
 		UniformInputAttribute() = default;
-		UniformInputAttribute(std::string n, ShaderStage st, BufferUsageType::Enum usg, uint32 sz, uint32 bind = 0, usize inst = 1);
+		UniformInputAttribute(std::string n, ShaderStage st, BufferUsageType usg, uint32 sz, uint32 bind = 0,
+			uint32 set = 0, usize inst = 1);
 	};
 
 	struct NKENTSEU_API UniformInputLayout {
@@ -262,10 +108,11 @@ namespace nkentseu {
 	struct NKENTSEU_API SamplerInputAttribute {
 		std::string name;
 		uint32 binding;
+		uint32 set;
 		ShaderStage stage;
-		SamplerType::Enum type;
+		SamplerType type;
 
-		SamplerInputAttribute(std::string n, uint32 bind, ShaderStage st, SamplerType::Enum tp);
+		SamplerInputAttribute(std::string n, uint32 bind, uint32 set, ShaderStage st, SamplerType tp);
 	};
 
 	struct NKENTSEU_API SamplerInputLayout {
@@ -329,6 +176,9 @@ namespace nkentseu {
 		virtual bool Release();
 
 		virtual bool UpdatePushConstant(const std::string& name, void* data, usize size, Memory::Shared<Shader> shader = nullptr) = 0;
+
+		//virtual bool BindUniformBuffer() = 0;
+		//virtual bool BindTexture() = 0;
 	};
 
 	struct NKENTSEU_API ShaderFilePathAttribut {

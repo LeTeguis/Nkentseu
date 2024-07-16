@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-06-25 at 03:40:09 PM.
+// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-07-16 at 11:38:04 AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -8,7 +8,6 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
-
     // Default constructor
     Vertex2D::Vertex2D()
         : position(0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 1.0f), texCord(0.0f, 0.0f) {}
@@ -46,5 +45,4 @@ namespace nkentseu {
     Vertex2D::~Vertex2D() {
         // Cleanup if needed
     }
-
 }  //  nkentseu

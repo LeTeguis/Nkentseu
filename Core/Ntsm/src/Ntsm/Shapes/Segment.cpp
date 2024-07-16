@@ -10,8 +10,8 @@ namespace nkentseu {
 
 	namespace maths
 	{
-		RangeFloat Segment::Project(const Vector2& onto) {
-			Vector2 ontoUnit = Vector2(onto).Normalized();
+		RangeFloat Segment::Project(const Vector2f& onto) {
+			Vector2f ontoUnit = Vector2f(onto).Normalized();
 			return RangeFloat(ontoUnit.Dot(points[0]), ontoUnit.Dot(points[1]));
 		}
 		float32 Segment::Len() {

@@ -16,7 +16,7 @@
 #include "VertexArray.h"
 
 namespace nkentseu {
-
+/*
 #define NKENTSEU_CREATE_RENDERER(api_, class_)	if (context->GetProperties().graphicsApi == api_) {	\
 													return Memory::Alloc<class_>(context);	\
 												}
@@ -28,15 +28,15 @@ namespace nkentseu {
 																}	\
 																Memory::Reset(data);	\
 															}
-
+*/
 	Memory::Shared<Renderer> Renderer::Create(Memory::Shared<Context> context)
 	{
 		if (context == nullptr) {
 			return nullptr;
 		}
 
-		NKENTSEU_CREATE_RENDERER(GraphicsApiType::VulkanApi, VulkanRenderer);
-		NKENTSEU_CREATE_RENDERER(GraphicsApiType::OpenglApi, OpenglRenderer);
+		//NKENTSEU_CREATE_RENDERER(GraphicsApiType::VulkanApi, VulkanRenderer);
+		//NKENTSEU_CREATE_RENDERER(GraphicsApiType::OpenglApi, OpenglRenderer);
 		return nullptr;
 	}
 
@@ -45,8 +45,8 @@ namespace nkentseu {
 		if (context == nullptr) {
 			return nullptr;
 		}
-		NKENTSEU_CREATE_RENDERER_INTIALIZE(GraphicsApiType::VulkanApi, VulkanRenderer);
-		NKENTSEU_CREATE_RENDERER_INTIALIZE(GraphicsApiType::OpenglApi, OpenglRenderer);
+		//NKENTSEU_CREATE_RENDERER_INTIALIZE(GraphicsApiType::VulkanApi, VulkanRenderer);
+		//NKENTSEU_CREATE_RENDERER_INTIALIZE(GraphicsApiType::OpenglApi, OpenglRenderer);
 		return nullptr;
 	}
 }    // namespace nkentseu

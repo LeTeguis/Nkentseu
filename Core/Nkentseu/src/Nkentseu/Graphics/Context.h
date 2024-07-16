@@ -26,6 +26,9 @@ namespace nkentseu {
             virtual bool EnableVSync() = 0;
             virtual bool DisableVSync() = 0;
 
+            virtual bool Prepare() { return true; };
+            virtual bool Present() { return true; };
+
             virtual const GraphicsInfos& GetGraphicsInfo() = 0;
             virtual const ContextProperties& GetProperties() = 0;
 

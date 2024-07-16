@@ -9,11 +9,13 @@
 #pragma once
 
 #include <System/System.h>
+#include <System/Nature/Enumeration.h>
 
 #include "Nkentseu/Graphics/ShaderInputLayout.h"
 #include "Nkentseu/Graphics/Context.h"
 #include "VulkanInternal.h"
 #include "VulkanContext.h"
+#include "Tools/VulkanPipelineLayout.h"
 
 namespace nkentseu {
     
@@ -26,10 +28,26 @@ namespace nkentseu {
         virtual bool Release() override;
 
         virtual bool UpdatePushConstant(const std::string& name, void* data, usize size, Memory::Shared<Shader> shader = nullptr) override;
-
-        VulkanPipelineLayout m_PipelineLayout;
     private:
+        friend class VulkanShader;
+        friend class VulkanUniformBuffer;
+        friend class VulkanTexture2D;
+
         Memory::Shared<VulkanContext> m_Context;
+
+        bool CreatePipelineLayout();
+        bool DestroyPipelineLayout();
+
+        bool CreateDescriptorSetLayout();
+
+        bool IsValid() const;
+
+        std::unordered_map<BufferSpecificationType::Enum, std::vector<vk::DescriptorSetLayoutBinding>> layoutBindings{};
+        std::vector<vk::PushConstantRange> pushConstantRanges{};
+
+        vk::PipelineLayout pipelineLayout = nullptr;
+        std::unordered_map<BufferSpecificationType::Enum, vk::DescriptorSetLayout> descriptorSetLayouts{};
+        std::unordered_map<BufferSpecificationType::Enum, uint32> sets{};
     };
 
 }  //  nkentseu

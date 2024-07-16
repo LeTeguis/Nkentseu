@@ -12,6 +12,7 @@
 #include <System/Definitions/Memory.h>
 
 #include "ShaderInfo.h"
+#include "ShaderInputLayout.h"
 #include "Context.h"
 
 namespace nkentseu {
@@ -24,8 +25,12 @@ namespace nkentseu {
             virtual uint32 Leng() const = 0;
             virtual bool SetData(void* data, usize size) = 0;
 
-            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
-            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng);
+            virtual bool Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices) = 0;
+            virtual bool Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* vertices, uint32 leng) = 0;
+
+            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context);
+            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferUsageType bufferUsage, const std::vector<uint32>& indices);
+            static Memory::Shared<IndexBuffer> Create(Memory::Shared<Context> context, BufferUsageType bufferUsage, IndexBufferType indexType, const void* indices, uint32 leng);
     };
 
 }  //  nkentseu

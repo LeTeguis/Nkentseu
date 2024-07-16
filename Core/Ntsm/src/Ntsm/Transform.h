@@ -18,7 +18,7 @@ namespace nkentseu {
     {
         class NKENTSEU_API Transform {
         public:
-            Vector3f position;
+            /*Vector3f position;
             Quaternion rotation;
             Vector3f scale;
 
@@ -41,7 +41,7 @@ namespace nkentseu {
 
             Vector3f FormPoint(const Vector3f& b);
 
-            Vector3f FormVector(const Vector3f& b);
+            Vector3f FormVector(const Vector3f& b);*/
         };
     }
 } // namespace nkentseu

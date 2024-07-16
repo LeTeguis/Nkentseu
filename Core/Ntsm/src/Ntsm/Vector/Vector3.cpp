@@ -161,7 +161,7 @@ namespace nkentseu {
 				return Vector3f();
 			}
 			float32 scale = Dot(b) / magBSq;
-			Vector3f proj2 = b * (scale * 2);
+			Vector3f proj2 = b * (scale * 2.0f);
 			return *this - proj2;
 		}
 

@@ -105,9 +105,9 @@ namespace nkentseu {
 		return 0.0f;
 	}
 
-	Vector2 Win32Window::ConvertPixelToDpi(const Vector2& pixel) const
+	Vector2f Win32Window::ConvertPixelToDpi(const Vector2f& pixel) const
 	{
-		Vector2 pixel_(pixel);
+		Vector2f pixel_(pixel);
 		return pixel_ * GetDpiScale();
 	}
 

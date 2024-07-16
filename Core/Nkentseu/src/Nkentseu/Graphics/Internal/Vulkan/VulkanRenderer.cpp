@@ -50,8 +50,8 @@ namespace nkentseu {
             }
         }
 
-        Vector2u size = m_Context->GetFrameBufferSize();
-        m_ViewportSize = { size.width, size.height };
+        //Vector2u size = m_Context->GetFrameBufferSize();
+        //m_ViewportSize = { size.width, size.height };
 
         EventTraker.AddObserver(REGISTER_CLIENT_EVENT(VulkanRenderer::OnEvent));
 
@@ -83,8 +83,8 @@ namespace nkentseu {
 
         VulkanResult result;
         bool first = true;
-
-        vkCheckError(first, result, vkAcquireNextImageKHR(m_Context->GetGpu()->device, m_Context->GetSwapchain()->swapchain, UINT64_MAX, m_Context->GetSemaphore()->aquireSemaphore, VK_NULL_HANDLE, &m_Context->currentImageIndex), "cannot acquier next image khr ({0})", m_Context->currentImageIndex);
+        /*
+        vkCheckError(first, result, vkAcquireNextImageKHR(m_Context->GetDevice()->device, m_Context->GetSwapchain()->swapchain, UINT64_MAX, m_Context->GetSemaphore()->aquireSemaphore, VK_NULL_HANDLE, &m_Context->currentImageIndex), "cannot acquier next image khr ({0})", m_Context->currentImageIndex);
 
         if (!result.success) {
             if (result.result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -125,7 +125,7 @@ namespace nkentseu {
 
         m_IsPrepare = result.success;
         m_ClearColor = false;
-        m_Context->renderThisFrame = true;
+        m_Context->renderThisFrame = true;*/
         return result.success;
     }
 
@@ -139,7 +139,7 @@ namespace nkentseu {
         if (m_Canvas != nullptr) {
             m_Canvas->Present();
         }
-
+        /*
         vkCheckErrorVoid(vkCmdEndRenderPass(m_Context->GetCurrentCommandBuffer()));
 
         vkCheckError(first, result, vkEndCommandBuffer(m_Context->GetCurrentCommandBuffer()), "cannot finish command buffer");
@@ -158,7 +158,7 @@ namespace nkentseu {
         submitInfo.pWaitSemaphores = &m_Context->GetSemaphore()->aquireSemaphore;
         submitInfo.waitSemaphoreCount = 1;
 
-        vkCheckError(first, result, vkQueueSubmit(m_Context->GetGpu()->queue.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
+        vkCheckError(first, result, vkQueueSubmit(m_Context->GetDevice()->queue.graphicsQueue, 1, &submitInfo, 0), "cannot submit command");
 
         VkPresentInfoKHR presentInfo = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -168,7 +168,7 @@ namespace nkentseu {
         presentInfo.pWaitSemaphores = &m_Context->GetSemaphore()->submitSemaphore;
         presentInfo.waitSemaphoreCount = 1;
 
-        vkCheckError(first, result, vkQueuePresentKHR(m_Context->GetGpu()->queue.graphicsQueue, &presentInfo), "cannot present image");
+        vkCheckError(first, result, vkQueuePresentKHR(m_Context->GetDevice()->queue.graphicsQueue, &presentInfo), "cannot present image");
 
         if (!result.success) {
             bool exited = false;
@@ -183,19 +183,19 @@ namespace nkentseu {
 
             if (exited) {
                 if (m_Context->GetCurrentCommandBuffer() != nullptr) {
-                    vkCheckError(first, result, vkDeviceWaitIdle(m_Context->GetGpu()->device), "cannot wait device idle");
+                    vkCheckError(first, result, vkDeviceWaitIdle(m_Context->GetDevice()->device), "cannot wait device idle");
                 }
                 return false;
             }
         }
 
-        vkCheckError(first, result, vkDeviceWaitIdle(m_Context->GetGpu()->device), "cannot wait device idle");
+        vkCheckError(first, result, vkDeviceWaitIdle(m_Context->GetDevice()->device), "cannot wait device idle");
 
         m_Context->currentImageIndex++;
 
         if (m_Context->currentImageIndex >= m_Context->GetSwapchain()->swapchainImages.size()) {
             m_Context->currentImageIndex = 0;
-        }
+        }*/
         return false;
     }
 
@@ -248,14 +248,14 @@ namespace nkentseu {
         if (m_Context == nullptr) {
             return false;
         }
-
+        /*
         if (m_Context->GetSwapchain()->swapchainImages.size() == 0) {
             return false;
         }
 
         if (m_Context->GetWindow()->GetSize() == Vector2u()) {
             return false;
-        }
+        }*/
         return true;
     }
 
@@ -277,8 +277,8 @@ namespace nkentseu {
         Log_nts.Debug("resize");
 
         m_Context->RecreateSwapChain();
-        Vector2u size = m_Context->GetFrameBufferSize();
-        m_ViewportSize = { size.width , size.height };
+        //Vector2u size = m_Context->GetFrameBufferSize();
+        //m_ViewportSize = { size.width , size.height };
 
         return false;
     }

@@ -34,7 +34,7 @@ namespace nkentseu {
             void SetSize(const maths::Vector2u& size) override;
 
             float32 GetDpiScale() const override;
-            maths::Vector2 ConvertPixelToDpi(const maths::Vector2& pixel) const override;
+            maths::Vector2f ConvertPixelToDpi(const maths::Vector2f& pixel) const override;
 
             float32 GetDpiAspect() override;
             float32 GetAspect() override;

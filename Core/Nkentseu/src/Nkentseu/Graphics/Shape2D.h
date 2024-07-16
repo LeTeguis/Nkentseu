@@ -9,9 +9,9 @@
 #pragma once
 
 #include <System/System.h>
-#include "Vertex2D.h"
 #include "Color.h"
 #include <Ntsm/Vector/Vector4.h>
+#include "G2d/Vertex2D.h"
 
 namespace nkentseu {
     

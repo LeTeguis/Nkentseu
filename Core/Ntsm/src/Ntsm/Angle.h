@@ -45,9 +45,7 @@ namespace nkentseu {
 				return angle.ToString();
 			}
 
-			friend bool operator==(const Angle& l, const Angle& r) {
-				return l.m_Degree == r.m_Degree;
-			}
+			friend bool operator==(const Angle& l, const Angle& r);
 
 			friend bool operator!=(const Angle& l, const Angle& r) {
 				return !(l == r);
@@ -102,15 +100,30 @@ namespace nkentseu {
 				return *this;
 			}
 
+			Angle& operator /=(float32 deg) {
+				this->m_Degree = Clamp(this->m_Degree / deg);
+				return *this;
+			}
+
+			Angle& operator +=(float32 deg) {
+				this->m_Degree = Clamp(this->m_Degree + deg);
+				return *this;
+			}
+
+			Angle& operator -=(float32 deg) {
+				this->m_Degree = Clamp(this->m_Degree - deg);
+				return *this;
+			}
+
 			friend Angle operator * (const Angle& other1, const Angle& other2) {
 				return Angle(other1.m_Degree * other2.m_Degree);
 			}
 
-			friend Angle operator * (const Angle& other1, float scale) {
+			friend Angle operator * (const Angle& other1, float32 scale) {
 				return Angle(other1.m_Degree * scale);
 			}
 
-			friend Angle operator * (float scale, const Angle& other1) {
+			friend Angle operator * (float32 scale, const Angle& other1) {
 				return Angle(other1.m_Degree * scale);
 			}
 
@@ -118,6 +131,30 @@ namespace nkentseu {
 
 			friend Angle operator / (const Angle& other1, const Angle& other2) {
 				return Angle(other1.m_Degree / other2.m_Degree);
+			}
+
+			friend Angle operator / (float32 other1, const Angle& other2) {
+				return Angle(other1 / other2.m_Degree);
+			}
+
+			friend Angle operator / (const Angle& other1, float32 other2) {
+				return Angle(other1.m_Degree / other2);
+			}
+
+			friend Angle operator + (float32 other1, const Angle& other2) {
+				return Angle(other1 + other2.m_Degree);
+			}
+
+			friend Angle operator + (const Angle& other1, float32 other2) {
+				return Angle(other1.m_Degree + other2);
+			}
+
+			friend Angle operator - (float32 other1, const Angle& other2) {
+				return Angle(other1 - other2.m_Degree);
+			}
+
+			friend Angle operator - (const Angle& other1, float32 other2) {
+				return Angle(other1.m_Degree - other2);
 			}
 
 			static Angle FromRadian(float32 rad);

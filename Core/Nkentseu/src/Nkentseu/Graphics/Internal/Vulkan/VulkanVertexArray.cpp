@@ -55,7 +55,7 @@ namespace nkentseu {
     }
 
     bool VulkanVertexArray::SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer) {
-        if (m_Context == nullptr) return false;
+        if (m_Context == nullptr || m_Vksil == nullptr) return false;
 
         m_VertexBuffer = Memory::SharedCast<VulkanVertexBuffer>(vertexBuffer);
 
@@ -63,12 +63,12 @@ namespace nkentseu {
     }
 
     Memory::Shared<VertexBuffer> VulkanVertexArray::GetVertexBuffer() {
-        if (m_Context == nullptr) return nullptr;
+        if (m_Context == nullptr || m_Vksil == nullptr) return nullptr;
         return m_VertexBuffer;
     }
 
     bool VulkanVertexArray::SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer) {
-        if (m_Context == nullptr) return false;
+        if (m_Context == nullptr || m_Vksil == nullptr) return false;
 
         m_IndexBuffer = Memory::SharedCast<VulkanIndexBuffer>(indexBuffer);
 
@@ -76,7 +76,7 @@ namespace nkentseu {
     }
 
     Memory::Shared<IndexBuffer> VulkanVertexArray::GetIndexBuffer() {
-        if (m_Context == nullptr) return nullptr;
+        if (m_Context == nullptr || m_Vksil == nullptr) return nullptr;
         return m_IndexBuffer;
     }
 
@@ -97,23 +97,25 @@ namespace nkentseu {
             return false;
         }
 
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+        
         if (m_VertexBuffer != nullptr && m_VertexBuffer->GetBuffer() != nullptr) {
-            VkBuffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
-            VkDeviceSize offsets[] = { 0 };
-            vkCheckErrorVoid(vkCmdBindVertexBuffers(m_Context->GetCurrentCommandBuffer(), 0, 1, vertexBuffers, offsets));
+            vk::Buffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
+            vk::DeviceSize offsets[] = { 0 };
+            vkCheckErrorVoid(commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets));
         }
         else if (Leng() == 0) {
             return false;
         }
 
         if (m_IndexBuffer == nullptr) {
-            vkCheckErrorVoid(vkCmdDraw(m_Context->GetCurrentCommandBuffer(), Leng(), 1, 0, 0));
+            vkCheckErrorVoid(commandBuffer.draw(Leng(), 1, 0, 0));
         }
         else {
-            vkCmdBindIndexBuffer(m_Context->GetCurrentCommandBuffer(), m_IndexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), m_IndexBuffer->Leng(), 1, 0, 0, 0);
+            vkCheckErrorVoid(commandBuffer.bindIndexBuffer(m_IndexBuffer->GetBuffer()->buffer, 0, vk::IndexType::eUint32));
+            vkCheckErrorVoid(commandBuffer.drawIndexed(m_IndexBuffer->Leng(), 1, 0, 0, 0));
         }
-
+        
         return true;
     }
 
@@ -131,11 +133,14 @@ namespace nkentseu {
         }
 
         m_BindInfo = BindInfo::VERTEX_BIND;
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
 
-        VkBuffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
-        VkDeviceSize offsets[] = { 0 };
-        vkCheckErrorVoid(vkCmdBindVertexBuffers(m_Context->GetCurrentCommandBuffer(), 0, 1, vertexBuffers, offsets));
-
+        vk::Buffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
+        vk::DeviceSize offsets[] = { 0 };
+        vkCheckErrorVoid(commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot bind vertex buffer");
+        }
         return true;
     }
 
@@ -148,11 +153,17 @@ namespace nkentseu {
 
     bool VulkanVertexArray::DrawVertex(RenderPrimitive::Enum primitive)
     {
-        if (m_VertexBuffer == nullptr) {
-            return false;
+        if (m_BindInfo != BindInfo::VERTEX_BIND) return false;
+
+        if (m_VertexBuffer != nullptr && m_VertexBuffer->Leng() != 0) {
+            return DrawVertex(primitive, 0, m_VertexBuffer->Leng());
         }
 
-        return DrawVertex(primitive, 0, m_VertexBuffer->Leng());
+        if (Leng() != 0) {
+            return DrawVertex(primitive, 0, Leng());
+        }
+
+        return false;
     }
 
     bool VulkanVertexArray::DrawVertex(RenderPrimitive::Enum primitive, uint32 firstVertex, uint32 vertexCount)
@@ -160,12 +171,19 @@ namespace nkentseu {
         if (m_Context == nullptr || vertexCount == 0 || m_BindInfo != BindInfo::VERTEX_BIND) {
             return false;
         }
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
 
         uint32 first = Leng() < firstVertex ? 0 : firstVertex;
         uint32 count = first + vertexCount > Leng() ? Leng() : vertexCount;
 
-        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), VulkanConvert::GetPrimitiveType(primitive)));
-        vkCheckErrorVoid(vkCmdDraw(m_Context->GetCurrentCommandBuffer(), count, 1, first, 0));
+        vkCheckErrorVoid(commandBuffer.setPrimitiveTopology(VulkanConvert::GetPrimitiveType(primitive)));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot set primitive topology");
+        }
+        vkCheckErrorVoid(commandBuffer.draw(Leng(), 1, first, 0));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot draw vertex buffer");
+        }
 
         return true;
     }
@@ -185,12 +203,19 @@ namespace nkentseu {
         }
 
         m_BindInfo = BindInfo::INDEX_BIND;
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
 
-        VkBuffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
-        VkDeviceSize offsets[] = { 0 };
-        vkCheckErrorVoid(vkCmdBindVertexBuffers(m_Context->GetCurrentCommandBuffer(), 0, 1, vertexBuffers, offsets));
+        vk::Buffer vertexBuffers[] = { m_VertexBuffer->GetBuffer()->buffer };
+        vk::DeviceSize offsets[] = { 0 };
 
-        vkCheckErrorVoid(vkCmdBindIndexBuffer(m_Context->GetCurrentCommandBuffer(), m_IndexBuffer->GetBuffer()->buffer, 0, VK_INDEX_TYPE_UINT32));
+        vkCheckErrorVoid(commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot bind vertex buffer");
+        }
+        vkCheckErrorVoid(commandBuffer.bindIndexBuffer(m_IndexBuffer->GetBuffer()->buffer, 0, vk::IndexType::eUint32));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot bind index buffer");
+        }
 
         return true;
     }
@@ -215,13 +240,20 @@ namespace nkentseu {
         if (m_Context == nullptr || m_IndexBuffer == nullptr || m_BindInfo != BindInfo::INDEX_BIND) {
             return false;
         }
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
 
         uint32 first = m_IndexBuffer->Leng() < firstIndex ? 0 : firstIndex;
         uint32 count = first + indexCount > m_IndexBuffer->Leng() ? m_IndexBuffer->Leng() : indexCount;
 
-        vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), VulkanConvert::GetPrimitiveType(primitive)));
-        vkCheckErrorVoid(vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), count, 1, first, 0, 0));
-
+        vkCheckErrorVoid(commandBuffer.setPrimitiveTopology(VulkanConvert::GetPrimitiveType(primitive))); 
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot set primitive topology");
+        }
+        vkCheckErrorVoid(commandBuffer.drawIndexed(count, 1, first, 0, 0));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot draw index buffer");
+            return false;
+        }
         return true;
     }
 

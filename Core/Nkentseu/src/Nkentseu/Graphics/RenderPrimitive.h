@@ -13,7 +13,7 @@
 
 namespace nkentseu {
     
-    class NKENTSEU_API RenderPrimitive {
+    class NKENTSEU_API RenderPrimitive1 {
         public:
             enum Enum
             {

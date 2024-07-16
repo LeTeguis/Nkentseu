@@ -204,4 +204,20 @@ namespace nkentseu {
         if (m_NativeContext == nullptr) return false;
         return m_NativeContext->IsInitialize();
     }
+
+    bool OpenglContext::Present()
+    {
+        if (m_NativeContext == nullptr) return false;
+        bool swap = m_NativeContext->Swapchaine();
+
+        if (swap) {
+            OpenGLResult result;
+            bool first = true;
+
+            glCheckError(first, result, glFlush(), "cannot flush");
+            swap = result.success;
+        }
+
+        return swap;
+    }
 }    // namespace nkentseu

@@ -22,6 +22,7 @@
 #include "VulkanShaderInputLayout.h"
 
 #include <Nkentseu/Graphics/Shader.h>
+#include "Tools/VulkanPipelineLayout.h"
 
 namespace nkentseu {
     class VulkanContext;
@@ -39,42 +40,45 @@ namespace nkentseu {
             bool Bind() override;
             bool Unbind() override;
 
-            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) override;
-
-            bool PolygonMode(PolygonModeType::Code mode) override;
-            bool CullMode(CullModeType::Code mode) override;
-            bool FrontFaceMode(FrontFaceType::Code mode) override;
-            bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
-            bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) override;
-            bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) override;
-
             //bool UseUniform(VkCommandBuffer commandBuffer, const std::string& name, void* data, usize size);
             //bool BindDescriptorsSet(VkCommandBuffer commandBuffer);
 
-            VulkanPipelineLayout* GetPipelineLayout();
+            //VulkanPipelineLayout* GetPipelineLayout();
         private:
             Memory::Shared<VulkanContext> m_Context = nullptr;
-            VkPipeline m_GraphicsPipeline = nullptr;
-            VulkanPipelineConfig m_PipelineConfig;
+            Memory::Shared<VulkanShaderInputLayout> m_VkSil = nullptr;
+
+            // pipeline
+            vk::Pipeline pipeline = nullptr;
+            bool CreatePipeline(const ShaderFilePathLayout& shaderFiles);
+
+            // shader module
+            std::unordered_map<uint32, vk::ShaderModule> shaderModules;
+            std::vector<char> LoadShader(const std::string& shaderFile);
+            vk::ShaderModule MakeModule(const std::string& filepath, ShaderStage code);
+
+            // binding and attribut
+            std::vector<vk::VertexInputBindingDescription> bindingDescriptions = {};
+            std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = {};
+            bool DefineVertexInput(VertexInputLayout vertexIL);
+
+            // pipeline stage
+            std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
+            bool DefinePipelineStage(const ShaderFilePathLayout& shaderFiles);
+
+        private:
+            //VulkanPipelineConfig m_PipelineConfig;
             VkRect2D m_Scissor = {};
             VkViewport m_ViewPort = {};
 
-            VulkanPipelineLayout m_PipelineLayout;
+            //VulkanPipelineLayout m_PipelineLayout;
             VulkanDynamicMode m_DynamicMode;
 
-            std::unordered_map<uint32, VkShaderModule> m_Modules;
             ShaderBufferLayout m_ShaderLayout = {};
-            // shader info
-            std::vector<VkVertexInputBindingDescription> bindingDescriptions = {};
-            std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {};
-            bool DefineVertexInput();
-            bool DefineVertexInput(Memory::Shared<VulkanShaderInputLayout> shaderInputLayout);
 
-            std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-            bool DefinePipelineStage(const ShaderFilePathLayout& shaderFiles);
+            bool isCreate = false;
+            
         private:
-            std::vector<char> LoadShader(const std::string& shaderFile);
-            VkShaderModule MakeModule(const std::string& filepath, ShaderStage code);
             bool Recreate(bool force);
             bool CleanUp(bool force);
 

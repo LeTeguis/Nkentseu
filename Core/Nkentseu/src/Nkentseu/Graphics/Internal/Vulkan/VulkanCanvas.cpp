@@ -38,6 +38,7 @@ namespace nkentseu {
     }
 
     void VulkanCanvas::CreateResources() {
+        /*
         shaderInputLayout = Memory::SharedCast<VulkanShaderInputLayout>(ShaderInputLayout::Create(m_Context));
 
         if (shaderInputLayout != nullptr) {
@@ -78,7 +79,7 @@ namespace nkentseu {
         m_UniformBuffer = Memory::SharedCast<VulkanUniformBuffer>(UniformBuffer::Create(m_Context, shaderInputLayout, m_Shader, { "CanvasCamera" }));
         if (m_UniformBuffer == nullptr) {
             Log_nts.Error("Cannot create uniform buffer");
-        }//*/
+        }//* /
 
         uint32 size = MAX_VERTICES;
         m_VertexBuffer = Memory::SharedCast<VulkanVertexBuffer>(VertexBuffer::Create(m_Context, shaderInputLayout, BufferDataUsage::DynamicDraw, nullptr, size));
@@ -99,7 +100,7 @@ namespace nkentseu {
         else {
             m_VertexArray->SetVertexBuffer(m_VertexBuffer);
             m_VertexArray->SetIndexBuffer(m_IndexBuffer);
-        }
+        }*/
     }
 
     void VulkanCanvas::Flush()
@@ -155,7 +156,7 @@ namespace nkentseu {
                 viewport.maxDepth = 1.0f;
                 viewport.x = viewportCommand->viewport.x;
                 viewport.y = viewportCommand->viewport.y;
-                vkCheckErrorVoid(vkCmdSetViewport(m_Context->GetCurrentCommandBuffer(), 0, 1, &viewport));
+                //vkCheckErrorVoid(vkCmdSetViewport(m_Context->GetCurrentCommandBuffer(), 0, 1, &viewport));
                 // a implementer
             }
             else if (auto scissorCommand = Memory::SharedCast<CanvasScissorCommand>(command)) {
@@ -163,13 +164,13 @@ namespace nkentseu {
                 VkRect2D scissor = {};
                 scissor.offset = { scissorCommand->scissor.x, scissorCommand->scissor.y };
                 scissor.extent = { (uint32)scissorCommand->scissor.width, (uint32)scissorCommand->scissor.height };
-                vkCheckErrorVoid(vkCmdSetScissor(m_Context->GetCurrentCommandBuffer(), 0, 1, &scissor));
+                //vkCheckErrorVoid(vkCmdSetScissor(m_Context->GetCurrentCommandBuffer(), 0, 1, &scissor));
                 // a implementer
             }
             else if (render_evalable) {
                 if (auto renderCommand = Memory::SharedCast<CanvasRenderCommand>(command)) {
                     if (renderCommand->texture) {
-                        renderCommand->texture->Bind();
+                        renderCommand->texture->Bind(0);
                     }
 
                     if (shaderInputLayout != nullptr) {
@@ -185,10 +186,10 @@ namespace nkentseu {
                         //shaderInputLayout->Bind();
                     }
 
-                    VkPrimitiveTopology primitive = VulkanConvert::GetPrimitiveType(renderCommand->primitive);
+                    vk::PrimitiveTopology primitive = VulkanConvert::GetPrimitiveType(renderCommand->primitive);
 
-                    vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), primitive));
-                    vkCheckErrorVoid(vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), renderCommand->indexCount, 1, offset, 0, 0));
+                    //vkCheckErrorVoid(vkCmdSetPrimitiveTopology(m_Context->GetCurrentCommandBuffer(), primitive));
+                    //vkCheckErrorVoid(vkCmdDrawIndexed(m_Context->GetCurrentCommandBuffer(), renderCommand->indexCount, 1, offset, 0, 0));
                     offset += renderCommand->indexCount;
                 }
             }

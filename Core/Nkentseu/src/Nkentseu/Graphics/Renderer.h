@@ -43,6 +43,11 @@ namespace nkentseu {
             virtual bool SetScissor(float32 x, float32 y, float32 width, float32 height) = 0;
             virtual bool ResetScissor() = 0;
 
+            virtual bool SetPolygonMode(PolygonModeType mode) = 0;
+            virtual bool SetCullMode(CullModeType mode) = 0;
+            virtual bool SetFrontFaceMode(FrontFaceType mode) = 0;
+            virtual bool SetRenderPrimitive(RenderPrimitive mode) = 0;
+
             virtual Memory::Shared<Canvas> GetCanvas() = 0;
 
             static Memory::Shared<Renderer> Create(Memory::Shared<Context> context);

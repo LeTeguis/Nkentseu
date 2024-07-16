@@ -36,72 +36,64 @@ namespace nkentseu {
     bool VulkanVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) {
         if (m_Context == nullptr || m_Vksil == nullptr) return false;
 
-        VulkanResult result;
-        bool first = true;
-
-        VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-        VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        VkBufferUsageFlagBits usage_t = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        VkMemoryPropertyFlags propertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        VkMemoryPropertyFlags propertyFlags2 = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
         usize size = leng * m_Vksil->vertexInput.stride;
         m_VertexBufferObject.size = size;
 
-        /*if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage, sharingMode, propertyFlags, m_VertexBufferObject.buffer, m_VertexBufferObject.bufferMemory)) {
-            Log_nts.Error("Cannot create uniforme buffer : name = {0} at index = {1}");
-            return false;
-        }*/
+        vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer;
+        vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
 
-        //*
-        VulkanBuffer stanging;
+        vk::BufferUsageFlags usage_t = vk::BufferUsageFlagBits::eTransferSrc;
+        vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        vk::MemoryPropertyFlags propertyFlags2 = vk::MemoryPropertyFlagBits::eDeviceLocal;
 
-        if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage_t, sharingMode, propertyFlags, stanging.buffer, stanging.bufferMemory)) {
-            return false;
-        }
+        VkBufferInternal stanging;
 
-        vkCheckError(first, result, vkMapMemory(m_Context->GetGpu()->device, stanging.bufferMemory, 0, size, 0, &m_VertexBufferObject.mappedData), "cannot map buffer memory");
-
-        if (!result.success) {
+        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage_t, sharingMode, propertyFlags, stanging.buffer, stanging.bufferMemory)) {
             return false;
         }
 
-        memcpy(m_VertexBufferObject.mappedData, vertices, size);
-
-        vkCheckErrorVoid(vkUnmapMemory(m_Context->GetGpu()->device, stanging.bufferMemory));
-
-        if (!VulkanStaticDebugInfo::success) {
+        if (!stanging.Mapped(m_Context.get(), size, 0, {})) {
             return false;
         }
 
-        if (!VulkanBuffer::CreateBuffer(m_Context->GetGpu(), size, usage, sharingMode, propertyFlags2, m_VertexBufferObject.buffer, m_VertexBufferObject.bufferMemory)) {
+        if (!stanging.WriteToBuffer(vertices, size, 0)) {
             return false;
         }
 
-        if (!VulkanBuffer::CopyBuffer(m_Context->GetGpu(), m_Context->GetCommandPool(), stanging.buffer, m_VertexBufferObject.buffer, size)) {
+        if (!stanging.UnMapped(m_Context.get())) {
             return false;
         }
 
-        bool success = stanging.Destroy(m_Context->GetGpu());//*/
+        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage, sharingMode, propertyFlags2, m_VertexBufferObject.buffer, m_VertexBufferObject.bufferMemory)) {
+            return false;
+        }
 
+        if (!VkBufferInternal::CopyBuffer(m_Context.get(), stanging.buffer, m_VertexBufferObject.buffer, size)) {
+            return false;
+        }
+
+        bool success = stanging.Destroy(m_Context.get());
+        if (!success)
+            Log_nts.Error("success : {0}", ((success) ? "True" : "False"));
+       
         m_Leng = leng;
-        Log_nts.Info("Create vertex buffer is good");
+        if (success)
+            Log_nts.Info("Create vertex buffer is good");
 
-        return true;
+        return success;
     }
 
     bool VulkanVertexBuffer::SetData(void* data, usize size)
     {
         if (m_Context == nullptr) return false;
-        m_VertexBufferObject.Mapped(m_Context->GetGpu(), size, 0);
+        m_VertexBufferObject.Mapped(m_Context.get(), size, 0);
         bool success = m_VertexBufferObject.WriteToBuffer(data, size, 0);
-        success = m_VertexBufferObject.Flush(m_Context->GetGpu(), size, 0);
-        m_VertexBufferObject.UnMapped(m_Context->GetGpu());
+        success = m_VertexBufferObject.Flush(m_Context.get(), size, 0);
+        m_VertexBufferObject.UnMapped(m_Context.get());
         return success;
     }
 
-    VulkanBuffer* VulkanVertexBuffer::GetBuffer()
+    VkBufferInternal* VulkanVertexBuffer::GetBuffer()
     {
         if (m_Context == nullptr) return nullptr;
         return &m_VertexBufferObject;
@@ -113,7 +105,7 @@ namespace nkentseu {
 
     bool VulkanVertexBuffer::Destroy() {
         if (m_Context == nullptr) return false;
-        bool success = m_VertexBufferObject.Destroy(m_Context->GetGpu());
+        bool success = m_VertexBufferObject.Destroy(m_Context.get());
         return success;
     }
 

@@ -38,7 +38,7 @@ namespace nkentseu {
 				struct {
 					Vector4f right;
 					Vector4f up;
-					Vector4f backward;
+					Vector4f forward;
 					Vector4f position;
 				};
 			};
@@ -85,7 +85,7 @@ namespace nkentseu {
 				return Vector3f(
 					vec.x * mat.right.x + vec.y * mat.right.y + vec.z * mat.right.z + mat.right.w,	
 					vec.x * mat.up.x + vec.y * mat.up.y + vec.z * mat.up.z + mat.up.w,
-					vec.x * mat.backward.x + vec.y * mat.backward.y + vec.z * mat.backward.z + mat.backward.w
+					vec.x * mat.forward.x + vec.y * mat.forward.y + vec.z * mat.forward.z + mat.forward.w
 				);
 			}
 
@@ -94,7 +94,7 @@ namespace nkentseu {
 				return Vector4f(
 					vec.x * mat.right.x + vec.y * mat.right.y + vec.z * mat.right.z + vec.w * mat.right.w,
 					vec.x * mat.up.x + vec.y * mat.up.y + vec.z * mat.up.z + vec.w * mat.up.w,
-					vec.x * mat.backward.x + vec.y * mat.backward.y + vec.z * mat.backward.z + vec.w * mat.backward.w,
+					vec.x * mat.forward.x + vec.y * mat.forward.y + vec.z * mat.forward.z + vec.w * mat.forward.w,
 					vec.x * mat.position.x + vec.y * mat.position.y + vec.z * mat.position.z + vec.w * mat.position.w
 				);
 			}
@@ -148,6 +148,9 @@ namespace nkentseu {
 
 			// Transposition
 			mat4f Transpose() const;
+
+			void Extract(Vector3f& position, EulerAngle& eulerAngles, Vector3f& scale) const;
+			void Extract(Vector3f& position, EulerAngle& eulerAngles, Vector3f& scale, Vector3f& right, Vector3f& up, Vector3f& forward) const;
 
 			// to string
 			std::string ToStringRow(uint32 i) const;

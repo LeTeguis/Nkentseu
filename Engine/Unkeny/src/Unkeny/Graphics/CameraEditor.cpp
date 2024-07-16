@@ -199,7 +199,7 @@ namespace nkentseu {
         //if (oriantation != Vector3f()) right = mat.Right().Normalized();
         //else right = Vector3f(1.0f, 0.0f, 0.0f).Normalized();
 
-        view = matrix4f::Translation(-position) * rotation.mat4();
+        //view = matrix4f::Translation(-position) * rotation.mat4();
     }
 
     void CameraEditor::UpdateProjection() {
@@ -213,7 +213,7 @@ namespace nkentseu {
 
     void CameraEditor::UpdateRotation()
     {
-        rotation = Quaternion::euler(Angle(oriantation.pitch), Angle(oriantation.yaw), Angle(oriantation.roll));
+        /*/rotation = Quaternion::euler(Angle(oriantation.pitch), Angle(oriantation.yaw), Angle(oriantation.roll));
         matrix4f transform = rotation.mat4();
 
         //front = mat.Forward();
@@ -222,7 +222,7 @@ namespace nkentseu {
         //right = mat.Right();
         //up = mat.Up();
         // Extraire les vecteurs de la matrice de transformation
-        front = transform.backward.xyz(); // Colonne 2 correspond à l'axe avant
+        front = transform.forward.xyz(); // Colonne 2 correspond à l'axe avant
         right = transform.right.xyz();   // Colonne 0 correspond à l'axe droit
         up = transform.up.xyz();     // Colonne 1 correspond à l'axe haut
 
@@ -235,7 +235,7 @@ namespace nkentseu {
         Log.Debug("up = {0}", up);
         Log.Debug("right = {0}", right);
 
-        updateView = true;
+        updateView = true;*/
     }
 
 }  //  nkentseu

@@ -83,9 +83,9 @@ namespace nkentseu {
             return ldexpf(x, exp);
         }
 
-        float32 Copysign(float32 number, float32 sign)
+        Angle Copysign(float32 number, float32 sign)
         {
-            return copysign(number, sign);
+            return Angle::FromRadian(copysign(number, sign));
         }
 
         bool EqualF32(float32 a, float32 b) {

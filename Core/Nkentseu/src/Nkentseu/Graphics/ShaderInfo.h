@@ -80,69 +80,6 @@ namespace nkentseu {
 	};
 
 	// Repr�sente diff�rents types de buffers
-	struct NKENTSEU_API CullModeType {
-		using Code = uint64;
-		// Enum�ration des types de buffers
-		enum : Code {
-			NotDefine, Front, Back, FrontBack, NoCull
-		};
-
-		// Convertit un code de type de buffer en cha�ne de caract�res
-		static std::string ToString(CullModeType::Code drawMode);
-
-		// Convertit une cha�ne de caract�res en code de type de buffer
-		static CullModeType::Code FromString(const std::string& drawModeStr);
-	};
-
-	// Repr�sente diff�rents types de buffers
-	struct NKENTSEU_API PrimitiveTopologyType {
-		using Code = uint64;
-		// Enum�ration des types de buffers
-		enum : Code {
-			NotDefine, PointList, 
-			LineList, LineStrip, 
-			TriangleList, TriangleStrip, TriangleFan, 
-			LineListWithAdjacency, LineStripWithAdjacency, 
-			TriangleListWithAdjacency, TriangleStripWithAdjacency,
-			PathList
-		};
-		// Convertit un code de type de buffer en cha�ne de caract�res
-		static std::string ToString(CullModeType::Code mode);
-
-		// Convertit une cha�ne de caract�res en code de type de buffer
-		static CullModeType::Code FromString(const std::string& mode);
-	};
-
-	// Repr�sente diff�rents types de buffers
-	struct NKENTSEU_API FrontFaceType {
-		using Code = uint64;
-		// Enum�ration des types de buffers
-		enum : Code {
-			NotDefine, CounterClockwise, Clockwise
-		};
-		// Convertit un code de type de buffer en cha�ne de caract�res
-		static std::string ToString(FrontFaceType::Code mode);
-
-		// Convertit une cha�ne de caract�res en code de type de buffer
-		static FrontFaceType::Code FromString(const std::string& mode);
-	};
-
-	// Repr�sente diff�rents types de buffers
-	struct NKENTSEU_API PolygonModeType {
-		using Code = uint64;
-		// Enum�ration des types de buffers
-		enum : Code {
-			NotDefine, Line, Fill, Point, FillRectangle
-		};
-
-		// Convertit un code de type de buffer en cha�ne de caract�res
-		static std::string ToString(PolygonModeType::Code drawContentMode);
-
-		// Convertit une cha�ne de caract�res en code de type de buffer
-		static PolygonModeType::Code FromString(const std::string& drawContentModeStr);
-	};
-
-	// Repr�sente diff�rents types de buffers
 	struct NKENTSEU_API DrawIndexType {
 		using Code = uint64;
 		// Enum�ration des types de buffers

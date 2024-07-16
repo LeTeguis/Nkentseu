@@ -22,7 +22,7 @@
 #include "RenderPrimitive.h"
 
 #include <vector>
-#include "Vertex2D.h"
+#include "G2d/Vertex2D.h"
 #include "Shape2D.h"
 
 namespace nkentseu {
@@ -120,12 +120,12 @@ namespace nkentseu {
 
     class CanvasRenderCommand : public CanvasCommand {
     public:
-        RenderPrimitive::Enum primitive;
+        RenderPrimitive primitive;
         uint32 indexCount;
         maths::matrix4f transform;
         CanvasTexture texture;
 
-        CanvasRenderCommand(RenderPrimitive::Enum prim, uint32 count, const maths::matrix4f& trans, CanvasTexture tex = nullptr)
+        CanvasRenderCommand(RenderPrimitive prim, uint32 count, const maths::matrix4f& trans, CanvasTexture tex = nullptr)
             : primitive(prim), indexCount(count), transform(trans), texture(tex) {}
 
         virtual void Execute() override {
@@ -188,9 +188,9 @@ namespace nkentseu {
         virtual void DrawHollowEllipse(const maths::Vector2f& center, float32 radiusX, float32 radiusY, const Color& color, CanvasTexture texture = nullptr);
         virtual void DrawThickOutlineEllipse(const maths::Vector2f& center, float32 radiusX, float32 radiusY, float32 thickness, const Color& color, CanvasTexture texture = nullptr);
 
-        virtual void Draw(RenderPrimitive::Enum primitive, const std::vector<Vertex2D>& vertices, const std::vector<uint32>& indices, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
-        virtual void Draw(RenderPrimitive::Enum primitive, const Vertex2D* vertices, usize verticesNumber, const uint32* indices, usize indicesNumber, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
-        virtual void Draw(RenderPrimitive::Enum primitive, const Shape2D& shape, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
+        virtual void Draw(RenderPrimitive primitive, const std::vector<Vertex2D>& vertices, const std::vector<uint32>& indices, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
+        virtual void Draw(RenderPrimitive primitive, const Vertex2D* vertices, usize verticesNumber, const uint32* indices, usize indicesNumber, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
+        virtual void Draw(RenderPrimitive primitive, const Shape2D& shape, CanvasTexture texture = nullptr, const maths::matrix4f& transform = maths::matrix4f::Identity());
 
         static Memory::Shared<Canvas> Create(const Memory::Shared<Context>& context);
 
@@ -202,7 +202,7 @@ namespace nkentseu {
         std::vector<CanvasCommandShared> m_CanvasCommands;
         uint32 m_IndexCount = 0;
         bool m_ScissorEnable = false;
-        bool m_RenderEnable = false;
+        bool m_RenderEnable = true;
         bool m_IsPresent = true;
 
         virtual void Flush() = 0;

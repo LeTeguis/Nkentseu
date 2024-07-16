@@ -37,7 +37,7 @@ namespace nkentseu {
         mat4f::mat4f(const Vector4f& col0, const Vector4f& col1, const Vector4f& col2, const Vector4f& col3) {
             right = col0;
             up = col1;
-            backward = col2;
+            forward = col2;
             position = col3;
         }
 
@@ -79,7 +79,7 @@ namespace nkentseu {
         mat4f::mat4f(const Vector3f& right, const Vector3f& up, const Vector3f& back) {
             this->right = Vector4f(right, 0.0f);
             this->up = Vector4f(up, 0.0f);
-            this->backward = Vector4f(back, 0.0f);
+            this->forward = Vector4f(back, 0.0f);
             this->position = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
@@ -87,7 +87,7 @@ namespace nkentseu {
         mat4f::mat4f(const Vector3f& right, const Vector3f& up, const Vector3f& back, const Vector3f& position) {
             this->right = Vector4f(right, 0.0f);
             this->up = Vector4f(up, 0.0f);
-            this->backward = Vector4f(back, 0.0f);
+            this->forward = Vector4f(back, 0.0f);
             this->position = Vector4f(position, 1.0f);
         }
 
@@ -218,35 +218,58 @@ namespace nkentseu {
             return result;
         }
 
-        /*EulerAngle mat4f::eulerAngles() const
+        void mat4f::Extract(Vector3f& position, EulerAngle& eulerAngles, Vector3f& scale) const
         {
-            EulerAngle angle;
-            
-            angle.yaw = maths::ASin(m02);
+            mat4f mat = *this;
 
-            if (angle.yaw >= 89.0f && angle.yaw <= 90.0f) {
-                angle.roll = 0.0f;
-                angle.pitch = maths::ATan(-m10, -m20);
-            } else if (angle.yaw >= -90.0f && angle.yaw <= -89.0f) {
-                angle.roll = 0.0f;
-                angle.pitch = maths::ATan(m10, m20);
-            }
-            else {
-                angle.roll = maths::ATan(m01, m00);
-                angle.pitch = maths::ATan(m12, m22);
-            }
+            // extract scale
+            scale.x = mat.right.Len();
+            scale.y = mat.up.Len();
+            scale.z = mat.forward.Len();
 
-            if (angle.roll >= 180.0f || angle.pitch >= 180.0f) {
-                angle.yaw += 180.0f;
-                angle.roll = angle.roll >= 180.0f ? Angle(0.0f) : angle.roll;
-                angle.pitch = angle.pitch >= 180.0f ? Angle(0.0f) : angle.pitch;
-            }
+            // ortho normalize
+            mat.right = mat.right.xyz().Normalized();
+            mat.up = mat.up.xyz().Normalized();
+            mat.forward = mat.forward.xyz().Normalized();
 
-            return angle;
-        }*/
+            // extract eurle angle
+            eulerAngles.pitch = maths::ATan(mat[1][2], mat[2][2]);
+            eulerAngles.yaw = maths::ATan(-mat[0][2], maths::Sqrt(mat[1][2] * mat[1][2] + mat[2][2] * mat[2][2]));
+            eulerAngles.roll = maths::ATan(mat[0][1], mat[0][0]);
+
+            // extract position
+            position = mat.position.xyz();
+        }
+
+        void mat4f::Extract(Vector3f& position, EulerAngle& eulerAngles, Vector3f& scale, Vector3f& right, Vector3f& up, Vector3f& forward) const
+        {
+            mat4f mat = *this;
+
+            // extract scale
+            scale.x = mat.right.Len();
+            scale.y = mat.up.Len();
+            scale.z = mat.forward.Len();
+
+            // ortho normalize
+            mat.right = mat.right.xyz().Normalized();
+            mat.up = mat.up.xyz().Normalized();
+            mat.forward = mat.forward.xyz().Normalized();
+
+            right = mat.right.xyz();
+            up = mat.up.xyz();
+            forward = mat.forward.xyz();
+
+            // extract eurle angle
+            eulerAngles.pitch = maths::ATan(mat[1][2], mat[2][2]);
+            eulerAngles.yaw = maths::ATan(-mat[0][2], maths::Sqrt(mat[1][2] * mat[1][2] + mat[2][2] * mat[2][2]));
+            eulerAngles.roll = maths::ATan(mat[0][1], mat[0][0]);
+
+            // extract position
+            position = mat.position.xyz();
+        }
 
         mat4f mat4f::LookAt(const Vector3f& position, const Vector3f& direction, const Vector3f& up, bool view) {
-            Vector3f forward, right, upward;
+            Vector3f forward;
 
             if (view) {
                 // Si c'est une vue, le vecteur forward est dans la direction opposée
@@ -256,33 +279,32 @@ namespace nkentseu {
                 forward = direction.Normalized();
             }
 
-            // Calcul du vecteur right comme produit vectoriel de up et forward
-            right = up.Cross(forward).Normalized();
+            Vector3f right_transpose, upward_transpose, forward_transpose;
+            forward_transpose = forward.Normalized();
+            right_transpose = up.Cross(forward_transpose).Normalized();
+            upward_transpose = forward_transpose.Cross(right_transpose).Normalized();
 
-            // Recalcul du vecteur up pour qu'il soit orthogonal aux deux autres
-            upward = right.Cross(forward);
-
-            // Initialisation de la matrice résultat avec la matrice identité
-            mat4f result(1.0f);
-
-            result.right = Vector4f(right, 0.0f);
-            result.up = Vector4f(upward, 0.0f);
-            result.backward = Vector4f(forward, 0.0f);
-            result.position = Vector4f(-position.Dot(right), -position.Dot(upward), -position.Dot(forward), 1.0f);
-
+            mat4f result;
+            result.right = Vector4f(right_transpose.x, upward_transpose.x, forward_transpose.x, 0.0f);
+            result.up = Vector4f(right_transpose.y, upward_transpose.y, forward_transpose.y, 0.0f);
+            result.forward = Vector4f(right_transpose.z, upward_transpose.z, forward_transpose.z, 0.0f);
+            result.position = Vector4f(position, 1.0f);
             return result;
         }
 
         // Méthode lookAt utilisant les vecteurs direction et up
         mat4f mat4f::LookAt(const Vector3f& direction, const Vector3f& up) {
-            // Calculer le vecteur right comme le produit vectoriel de up et direction
-            Vector3f right = up.Cross(direction).Normalized();
+            Vector3f right_transpose, upward_transpose, forward_transpose;
+            forward_transpose = direction.Normalized();
+            right_transpose = up.Cross(forward_transpose).Normalized();
+            upward_transpose = forward_transpose.Cross(right_transpose).Normalized();
 
-            // Recalculer le vecteur up pour qu'il soit orthogonal aux deux autres
-            Vector3f upward = direction.Cross(right).Normalized();
-
-            // Appeler la méthode lookAt déjà définie avec eye à l'origine
-            return LookAt(Vector3f(0.0f, 0.0f, 0.0f), direction, upward, right);
+            mat4f result;
+            result.right = Vector4f(right_transpose.x, upward_transpose.x, forward_transpose.x, 0.0f);
+            result.up = Vector4f(right_transpose.y, upward_transpose.y, forward_transpose.y, 0.0f);
+            result.forward = Vector4f(right_transpose.z, upward_transpose.z, forward_transpose.z, 0.0f);
+            result.position = Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+            return result;
         }
 
         // Methode lookAt utilisant les vecteurs right, up et back
@@ -291,7 +313,7 @@ namespace nkentseu {
 
             result.right = Vector4f(right, 0.0f);
             result.up = Vector4f(up, 0.0f);
-            result.backward = Vector4f(look, 0.0f);
+            result.forward = Vector4f(look, 0.0f);
             result.position = Vector4f(-eye.Dot(right), -eye.Dot(up), -eye.Dot(look), 1.0f);
 
             return result;
@@ -307,7 +329,7 @@ namespace nkentseu {
             mat4f result;
             result.right = Vector4f(right_transpose.x, upward_transpose.x, forward_transpose.x, 0.0f);
             result.up = Vector4f(right_transpose.y, upward_transpose.y, forward_transpose.y, 0.0f);
-            result.backward = Vector4f(right_transpose.z, upward_transpose.z, forward_transpose.z, 0.0f);
+            result.forward = Vector4f(right_transpose.z, upward_transpose.z, forward_transpose.z, 0.0f);
             result.position = Vector4f(-right_transpose.Dot(eye), -upward_transpose.Dot(eye), -forward_transpose.Dot(eye), 1.0f);
             return result;
         }

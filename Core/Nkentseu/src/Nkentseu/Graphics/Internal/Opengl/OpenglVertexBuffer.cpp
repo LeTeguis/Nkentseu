@@ -123,7 +123,7 @@ namespace nkentseu {
                 return false;
             }
 
-            if (attribut.type == ShaderDataType::Float || attribut.type == ShaderDataType::Float2 || attribut.type == ShaderDataType::Float3 || attribut.type == ShaderDataType::Float4) {
+            if (attribut.type == ShaderInternalType::Enum::Float || attribut.type == ShaderInternalType::Enum::Float2 || attribut.type == ShaderInternalType::Enum::Float3 || attribut.type == ShaderInternalType::Enum::Float4) {
                 if (useDsa) {
                     glCheckError(first, result, glVertexArrayAttribFormat(vao, location, count, type, normalized, offset), "cannot set vertex attribut pointer");
                 }
@@ -132,8 +132,8 @@ namespace nkentseu {
                     glCheckError(first, result, glVertexAttribPointer(location, count, type, normalized, stride, (const void*)offset), "cannot set vertex attribut pointer");
                 }
             }
-            else if (attribut.type == ShaderDataType::Mat3 || attribut.type == ShaderDataType::Mat4) {
-                for (uint8_t i = 0; i < count; i++) {
+            else if (attribut.type == ShaderInternalType::Enum::Mat3 || attribut.type == ShaderInternalType::Enum::Mat4) {
+                for (uint8 i = 0; i < count; i++) {
 
                     offset = offset + sizeof(float32) * count * i;
 
@@ -146,7 +146,7 @@ namespace nkentseu {
                     }
                 }
             }
-            else if (attribut.type == ShaderDataType::NotDefine) {
+            else if (attribut.type == ShaderInternalType::Enum::NotDefine) {
                 continue;
             }
             else {

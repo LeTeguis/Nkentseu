@@ -149,36 +149,96 @@ namespace nkentseu {
 				return *this;
 			}
 
-			Vector3f operator + (const Vector3f& other) {
-				return Vector3f(other.x + this->x, other.y + this->y, other.z + this->z);
+			Vector3f& operator+=(float32 right) {
+				this->x += right;
+				this->y += right;
+				this->z += right;
+				return *this;
 			}
 
-			friend Vector3f operator + (const Vector3f& other1, const Vector3f& other2) {
-				return Vector3f(other1.x + other2.x, other1.y + other2.y, other1.z + other2.z);
+			Vector3f& operator-=(float32 right) {
+				this->x -= right;
+				this->y -= right;
+				this->z -= right;
+				return *this;
+			}
+
+			Vector3f& operator*=(float32 right) {
+				this->x *= right;
+				this->y *= right;
+				this->z *= right;
+				return *this;
+			}
+
+			Vector3f& operator/=(float32 right) {
+				this->x /= right;
+				this->y /= right;
+				this->z /= right;
+				return *this;
+			}
+
+			Vector3f operator + (const Vector3f& other) {
+				return Vector3f(other.x + this->x, other.y + this->y, other.z + this->z);
 			}
 
 			Vector3f operator - (const Vector3f& other) {
 				return Vector3f(this->x - other.x, this->y - other.y, this->z - other.z);
 			}
 
-			friend Vector3f operator - (const Vector3f& other1, const Vector3f& other2) {
-				return Vector3f(other1.x - other2.x, other1.y - other2.y, other1.z - other2.z);
-			}
-
 			Vector3f operator * (const Vector3f& other) {
 				return Vector3f(this->x * other.x, this->y * other.y, this->z * other.z);
-			}
-
-			friend Vector3f operator * (const Vector3f& other1, const Vector3f& other2) {
-				return Vector3f(other1.x * other2.x, other1.y * other2.y, other1.z * other2.z);
 			}
 
 			Vector3f operator / (const Vector3f& other) {
 				return Vector3f(this->x / other.x, this->y / other.y, this->z / other.z);
 			}
+			
+			Vector3f operator + (float32 right) {
+				return Vector3f(right + this->x, right + this->y, right + this->z);
+			}
 
-			friend Vector3f operator/(const Vector3f& other1, const Vector3f& other2) {
-				return Vector3f(other1.x / other2.x, other1.y / other2.y, other1.z / other2.z);
+			Vector3f operator - (float32 right) {
+				return Vector3f(this->x - right, this->y - right, this->z - right);
+			}
+
+			Vector3f operator * (float32 right) {
+				return Vector3f(this->x * right, this->y * right, this->z * right);
+			}
+
+			Vector3f operator / (float32 right) {
+				return Vector3f(this->x / right, this->y / right, this->z / right);
+			}
+			
+			friend Vector3f operator + (float32 left, const Vector3f& right) {
+				return Vector3f(left + right.x, left + right.y, left + right.z);
+			}
+
+			friend Vector3f operator - (float32 left, const Vector3f& right) {
+				return Vector3f(-right.x + left, -right.y + left, -right.z + left);
+			}
+
+			friend Vector3f operator * (float32 left, const Vector3f& right) {
+				return Vector3f(right.x * left, right.y * left, right.z * left);
+			}
+
+			friend Vector3f operator * (const Vector3f& left, float32 right) {
+				return Vector3f(left.x * right, left.y * right, left.z * right);
+			}
+
+			friend Vector3f operator / (float32 left, const Vector3f& right) {
+				return Vector3f(left / right.x, left / right.y, left / right.z);
+			}
+			
+			friend Vector3f operator + (const Vector3f& left, const Vector3f& right) {
+				return Vector3f(left.x + right.x, left.y + right.y, left.z + right.z);
+			}
+
+			friend Vector3f operator - (const Vector3f& left, const Vector3f& right) {
+				return Vector3f(-right.x + left.x, -right.y + left.y, -right.z + left.z);
+			}
+
+			friend Vector3f operator / (const Vector3f& left, const Vector3f& right) {
+				return Vector3f(left.x / right.x, left.y / right.y, left.z / right.z);
 			}
 
 			friend bool operator==(const Vector3f& l, const Vector3f& r) {

@@ -99,7 +99,7 @@ namespace nkentseu {
 
         // Utilisation de la méthode Draw pour dessiner le point
         std::vector<uint32> indices = { 0 };
-        Draw(RenderPrimitive::Points, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Points, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawLine(const maths::Vector2f& start, const maths::Vector2f& end, const Color& color, CanvasTexture texture) {
@@ -111,7 +111,7 @@ namespace nkentseu {
 
         // Utilisation de la méthode Draw pour dessiner la ligne
         std::vector<uint32> indices = { 0, 1 };
-        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Lines, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, bool filled, CanvasTexture texture) {
@@ -129,12 +129,12 @@ namespace nkentseu {
         if (filled) {
             // Indices pour le rectangle rempli (deux triangles)
             indices = { 0, 1, 2, 2, 3, 0 };
-            primitive = RenderPrimitive::Triangles;
+            primitive = RenderPrimitive::Enum::Triangles;
         }
         else {
             // Indices pour le rectangle en contour (quatre lignes)
             indices = { 0, 1, 1, 2, 2, 3, 3, 0 };
-            primitive = RenderPrimitive::Lines;
+            primitive = RenderPrimitive::Enum::Lines;
         }
 
         // Utilisation de la méthode Draw pour dessiner le rectangle
@@ -153,7 +153,7 @@ namespace nkentseu {
             0, 1, 2, 2, 3, 0
         };
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawHollowRect(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, CanvasTexture texture) {
@@ -168,7 +168,7 @@ namespace nkentseu {
             0, 1, 1, 2, 2, 3, 3, 0
         };
 
-        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Lines, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawThickOutlineRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 thickness, const Color& color, CanvasTexture texture) {
@@ -202,7 +202,7 @@ namespace nkentseu {
             indices.push_back(next);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawRoundedRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, CanvasTexture texture) {
@@ -284,7 +284,7 @@ namespace nkentseu {
             indices.push_back(cornerVertexCount * 4 + 7);*/
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
 
@@ -338,7 +338,7 @@ namespace nkentseu {
             indices.push_back(next);
         }
 
-        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Lines, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawRoundedRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, const Color& color, CanvasTexture texture) {
@@ -379,7 +379,7 @@ namespace nkentseu {
             }
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
 
@@ -465,7 +465,7 @@ namespace nkentseu {
         indices.push_back(center_indice3);
         indices.push_back(center_indice0);
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawFilledRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, const Color& color, CanvasTexture texture) {
@@ -584,7 +584,7 @@ namespace nkentseu {
         indices.push_back(center_indices[3]);
         indices.push_back(center_indices[0]);
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawHollowRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, float32 thickness, const Color& color, CanvasTexture texture) {
@@ -625,7 +625,7 @@ namespace nkentseu {
             indices.push_back(startIndex);
         }
 
-        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Lines, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawThickOutlineRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& cornerRadii, float32 thickness, const Color& color, CanvasTexture texture) {
@@ -686,7 +686,7 @@ namespace nkentseu {
             indices.push_back(innerStartIndex + segments);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawThickOutlineRoundRect(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, float32 thickness, const Color& color, CanvasTexture texture) {
@@ -785,7 +785,7 @@ namespace nkentseu {
             indices.push_back(next);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawFilledCircle(const maths::Vector2f& center, float32 radius, const Color& color, CanvasTexture texture) {
@@ -814,7 +814,7 @@ namespace nkentseu {
             indices.push_back(i + 1);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawHollowCircle(const maths::Vector2f& center, float32 radius, const Color& color, CanvasTexture texture) {
@@ -841,7 +841,7 @@ namespace nkentseu {
         indices.push_back(segments - 1); // Bouclage pour relier le dernier au premier
         indices.push_back(0); // Bouclage pour relier le dernier au premier
 
-        Draw(RenderPrimitive::LineStrip, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::LineStrip, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawThickOutlineCircle(const maths::Vector2f& center, float32 radius, float32 thickness, const Color& color, CanvasTexture texture) {
@@ -883,7 +883,7 @@ namespace nkentseu {
             indices.push_back(next);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawFilledEllipse(const maths::Vector2f& center, float32 radiusX, float32 radiusY, const Color& color, CanvasTexture texture) {
@@ -912,7 +912,7 @@ namespace nkentseu {
             indices.push_back(i + 1);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawHollowEllipse(const maths::Vector2f& center, float32 radiusX, float32 radiusY, const Color& color, CanvasTexture texture) {
@@ -939,7 +939,7 @@ namespace nkentseu {
         indices.push_back(segments - 1); // Relier le dernier au premier pour fermer l'ellipse
         indices.push_back(0); // Relier le dernier au premier pour fermer l'ellipse
 
-        Draw(RenderPrimitive::Lines, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Lines, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
     void Canvas::DrawThickOutlineEllipse(const maths::Vector2f& center, float32 radiusX, float32 radiusY, float32 thickness, const Color& color, CanvasTexture texture) {
@@ -981,10 +981,10 @@ namespace nkentseu {
             indices.push_back(next);
         }
 
-        Draw(RenderPrimitive::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
+        Draw(RenderPrimitive::Enum::Triangles, vertices, indices, texture, maths::matrix4f::Identity());
     }
 
-    void Canvas::Draw(RenderPrimitive::Enum primitive, const std::vector<Vertex2D>& vertices, const std::vector<uint32>& indices, CanvasTexture texture, const maths::matrix4f& transform) {
+    void Canvas::Draw(RenderPrimitive primitive, const std::vector<Vertex2D>& vertices, const std::vector<uint32>& indices, CanvasTexture texture, const maths::matrix4f& transform) {
         //Draw(primitive, vertices.data(), vertices.size(), indices.data(), indices.size(), texture, transform);
 
         //m_Vertices.insert(m_Vertices.begin(), vertices.begin(), vertices.end());
@@ -1014,7 +1014,7 @@ namespace nkentseu {
         m_RenderEnable = true;
     }
 
-    void Canvas::Draw(RenderPrimitive::Enum primitive, const Vertex2D* vertices, usize verticesNumber, const uint32* indices, usize indicesNumber, CanvasTexture texture, const maths::matrix4f& transform) {
+    void Canvas::Draw(RenderPrimitive primitive, const Vertex2D* vertices, usize verticesNumber, const uint32* indices, usize indicesNumber, CanvasTexture texture, const maths::matrix4f& transform) {
 
         std::vector<Vertex2D> transformedVertices(vertices, vertices + verticesNumber);
         std::vector<uint32> adjustedIndices(indices, indices + indicesNumber);
@@ -1023,7 +1023,7 @@ namespace nkentseu {
     }
 
 
-    void Canvas::Draw(RenderPrimitive::Enum primitive, const Shape2D& shape, CanvasTexture texture, const maths::matrix4f& transform)
+    void Canvas::Draw(RenderPrimitive primitive, const Shape2D& shape, CanvasTexture texture, const maths::matrix4f& transform)
     {
         Draw(primitive, shape.GetVertices(), shape.GetIndices(), texture, maths::matrix4f::Identity());
     }

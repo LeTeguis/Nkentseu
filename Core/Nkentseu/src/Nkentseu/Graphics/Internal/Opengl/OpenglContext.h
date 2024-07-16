@@ -41,6 +41,8 @@ namespace nkentseu {
 
             bool Swapchaine();
             bool IsValidContext();
+
+            bool Present() override;
         private:
             Memory::Shared<Window> m_Window = nullptr;
             Memory::Shared<NativeContext> m_NativeContext;

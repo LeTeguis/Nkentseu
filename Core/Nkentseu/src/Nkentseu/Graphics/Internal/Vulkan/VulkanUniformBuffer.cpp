@@ -36,7 +36,7 @@ namespace nkentseu {
 
     bool VulkanUniformBuffer::SetData(const std::string& name, void* data, usize size)
     {
-        if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr || data == nullptr || size == 0) return false;
+        if (m_Context == nullptr || m_Context->GetCommandBuffer() == nullptr || data == nullptr || size == 0) return false;
 
         auto it = m_UniformBuffers.find(name);
         if (it == m_UniformBuffers.end()) {
@@ -45,36 +45,36 @@ namespace nkentseu {
 
         auto& uniforms = it->second;
 
-        uniforms.Binds(m_Context->GetGpu(), data, size, 0);
+        uniforms.Binds(m_Context.get(), data, size, 0);
         return false;
     }
 
     bool VulkanUniformBuffer::SetData(const std::string& name, void* data, usize size, uint32 index)
     {
-        if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr || data == nullptr || size == 0) return false;
+        if (m_Context == nullptr || m_Context->GetCommandBuffer() == nullptr || data == nullptr || size == 0) return false;
 
         auto it = m_UniformBuffers.find(name);
         if (it == m_UniformBuffers.end()) {
             return false;
         }
 
-        //usize offset = index * size;
         bool success = true;
         auto& uniforms = it->second;
-        //uniforms.Binds(m_Context->GetGpu(), data, size, index);
-        uniforms.Bind(m_Context->GetGpu(), data, size, m_Context->currentImageIndex, index);
-        return false;
+        success = uniforms.Binds(m_Context.get(), data, size, index);
+        //success = uniforms.Bind(m_Context->GetDevice(), data, size, m_Context->currentImageIndex, index);
+        return success;
     }
 
     bool VulkanUniformBuffer::Bind()
     {
-        if (m_Context == nullptr || m_Context->GetCurrentCommandBuffer() == nullptr || m_Vksil == nullptr) return false;
+        if (m_Context == nullptr || m_Context->GetCommandBuffer() == nullptr || m_Vksil == nullptr) return false;
 
         uint32 odc = m_OffsetDynamicCount;
-        VkPipelineBindPoint pbp = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        VkDescriptorSet descriptorSet = m_DescriptorSets[m_Context->currentImageIndex];
-        VkPipelineLayout pipelineLayout = m_Vksil->m_PipelineLayout.pipelineLayout;
-        VkCommandBuffer commandBuffer = m_Context->GetCurrentCommandBuffer();
+        vk::PipelineBindPoint pbp = vk::PipelineBindPoint::eGraphics;
+        vk::DescriptorSet descriptorSet = m_DescriptorSets[m_Context->currentImageIndex];
+        vk::PipelineLayout pipelineLayout = m_Vksil->pipelineLayout;
+        uint32 set = m_Vksil->sets[BufferSpecificationType::Enum::Uniform];
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
         std::vector<uint32> dynamicOffsets = {};
 
         for (auto& [nom, uniform] : m_UniformBuffers) {
@@ -84,12 +84,20 @@ namespace nkentseu {
         }
 
         if (dynamicOffsets.size() == 0) {
-            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr));
+            vkCheckErrorVoid(commandBuffer.bindDescriptorSets(pbp, pipelineLayout, set, 1, &descriptorSet, 0, nullptr));
+            if (!VulkanStaticDebugInfo::Result()) {
+                Log_nts.Error("Cannot bin descriptor set");
+                return false;
+            }
         }
         else {
-            vkCheckErrorVoid(vkCmdBindDescriptorSets(commandBuffer, pbp, pipelineLayout, 0, 1, &descriptorSet, dynamicOffsets.size(), dynamicOffsets.data()));
+            vkCheckErrorVoid(commandBuffer.bindDescriptorSets(pbp, pipelineLayout, set, 1, &descriptorSet, dynamicOffsets.size(), dynamicOffsets.data()));
+            if (!VulkanStaticDebugInfo::Result()) {
+                Log_nts.Error("Cannot bin descriptor set");
+                return false;
+            }
         }
-        return false;
+        return true;
     }
 
     bool VulkanUniformBuffer::Destroy()
@@ -104,22 +112,26 @@ namespace nkentseu {
 
     bool VulkanUniformBuffer::CreateDescriptorSets()
     {
-        if (m_Context == nullptr || m_DescriptorPool.descriptorPool == nullptr || m_Vksil == nullptr) return false;
+        if (m_Context == nullptr || descriptorPool == nullptr || m_Vksil == nullptr) return false;
 
         VulkanResult result;
         bool first = true;
 
-        VkDescriptorSetLayout descriptorLayout = m_Vksil->m_PipelineLayout.descriptorSetLayout;
-        std::vector<VkDescriptorSetLayout> layouts(m_Context->GetSwapchain()->swapchainImages.size(), descriptorLayout);
-        VkDescriptorSetAllocateInfo allocInfo{};
+        // Recupere le layout du descriptor set pour les uniform buffers
+        auto it = m_Vksil->descriptorSetLayouts.find(BufferSpecificationType::Enum::Uniform);
+        if (it == m_Vksil->descriptorSetLayouts.end()) {
+            Log_nts.Error("Uniform buffer descriptor set layout not found.");
+            return false;
+        }
 
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = m_DescriptorPool.descriptorPool;
-        allocInfo.descriptorSetCount = m_Context->GetSwapchain()->swapchainImages.size();
+        std::vector<vk::DescriptorSetLayout> layouts(m_Context->swapchainImages.size(), it->second);
+        vk::DescriptorSetAllocateInfo allocInfo{};
+        allocInfo.descriptorPool = descriptorPool;
+        allocInfo.descriptorSetCount = static_cast<uint32>(layouts.size());
         allocInfo.pSetLayouts = layouts.data();
 
-        m_DescriptorSets.resize(m_Context->GetSwapchain()->swapchainImages.size());
-        vkCheckError(first, result, vkAllocateDescriptorSets(m_Context->GetGpu()->device, &allocInfo, m_DescriptorSets.data()), "cannot create descriptor sets");
+        m_DescriptorSets.resize(layouts.size());
+        vkCheckError(first, result, m_Context->device.allocateDescriptorSets(&allocInfo, m_DescriptorSets.data()), "cannot create descriptor sets");
 
         return result.success;
     }
@@ -139,8 +151,8 @@ namespace nkentseu {
         if (m_Context == nullptr || m_Vksil == nullptr) return false;
         if (m_Vksil->uniformInput.attributes.size() > 0) {
             for (auto& attribut : m_Vksil->uniformInput.attributes) {
-                if (!m_UniformBuffers[attribut.name].Destroy(m_Context->GetGpu())) {
-                    Log_nts.Error("Cannot destroy uniforme buffer : name = {0}", attribut.name);
+                if (!m_UniformBuffers[attribut.name].Destroy(m_Context.get())) {
+                  Log_nts.Error("Cannot destroy uniforme buffer : name = {0}", attribut.name);
                 }
             }
             m_UniformBuffers.clear();
@@ -150,12 +162,11 @@ namespace nkentseu {
         bool first = true;
 
         if (m_DescriptorSets.size() > 0) {
-
-            vkCheckError(first, result, vkFreeDescriptorSets(m_Context->GetGpu()->device, m_DescriptorPool.descriptorPool, m_DescriptorSets.size(), m_DescriptorSets.data()), "cannot free descriptor sets");
+            vkCheckError(first, result, m_Context->device.freeDescriptorSets(descriptorPool, m_DescriptorSets.size(), m_DescriptorSets.data()), "cannot free descriptor sets");
             m_DescriptorSets.clear();
         }
 
-        m_DescriptorPool.Destroy(m_Context->GetGpu());
+        DestroyDescriptorPool();
         m_OffsetDynamicCount = 0;
         return result.success;
     }
@@ -182,17 +193,17 @@ namespace nkentseu {
                 if (std::find(dTypesList.begin(), dTypesList.end(), attribut.usage) == dTypesList.end()) {
                     dTypesList.push_back(attribut.usage);
 
-                    VkDescriptorType dtype = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    vk::DescriptorType dtype = vk::DescriptorType::eUniformBuffer;
 
                     if (attribut.usage == BufferUsageType::Enum::DynamicDraw) {
-                        dtype = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                        dtype = vk::DescriptorType::eUniformBufferDynamic;
                     }
 
-                    m_DescriptorPool.Add(dtype, m_Context->GetSwapchain()->swapchainImages.size());
+                    AddInDescriptorPool(dtype, m_Context->swapchainImages.size());
                 }
             }
 
-            if (!m_DescriptorPool.Create(m_Context->GetGpu(), m_Context->GetSwapchain())) {
+            if (!CreateDescriptorPool()) {
                 return false;
             }
 
@@ -200,9 +211,9 @@ namespace nkentseu {
                 return false;
             }
 
-            VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            uint32 imageCount = m_Context->GetSwapchain()->swapchainImages.size();
-            std::vector<VkWriteDescriptorSet> descriptorWrites;
+            vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eUniformBuffer;
+            uint32 imageCount = m_Context->swapchainImages.size();
+            std::vector<vk::WriteDescriptorSet> descriptorWrites;
             bool success = true;
 
             for (auto& attribut : m_Vksil->uniformInput.attributes) {
@@ -217,14 +228,12 @@ namespace nkentseu {
                     continue;
                 }
                 m_UniformBuffers[attribut.name] = {};
-                VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-
+                vk::DescriptorType descriptorType = vk::DescriptorType::eUniformBuffer;
                 if (attribut.usage == BufferUsageType::Enum::DynamicDraw) {
-                    m_OffsetDynamicCount++;
-                    descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                    descriptorType = vk::DescriptorType::eUniformBufferDynamic;
                 }
 
-                if (!m_UniformBuffers[attribut.name].Create(m_Context->GetGpu(), attribut, usage, m_DescriptorSets, descriptorType)) {
+                if (!m_UniformBuffers[attribut.name].Create(m_Context.get(), attribut, usage, m_DescriptorSets, descriptorType)) {
                     Log_nts.Error("Cannot create uniforme buffer : name = {0}", attribut.name);
                     success = false;
                 }
@@ -236,11 +245,54 @@ namespace nkentseu {
             }
 
             if (descriptorWrites.size() > 0) {
-                vkUpdateDescriptorSets(m_Context->GetGpu()->device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+                vkCheckErrorVoid(m_Context->device.updateDescriptorSets(descriptorWrites.size(), descriptorWrites.data(), 0, nullptr));
+                if (!VulkanStaticDebugInfo::Result()) {
+                    Log_nts.Error("Cannot update descriptor set");
+                    return false;
+                }
             }
             return success;
         }
         return false;
+    }
+
+    bool VulkanUniformBuffer::CreateDescriptorPool()
+    {
+        VulkanResult result;
+        bool first = true;
+
+        vk::DescriptorPoolCreateInfo poolInfo{};
+        poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+        if (poolSizes.size() > 0) {
+            poolInfo.poolSizeCount = poolSizes.size();
+            poolInfo.pPoolSizes = poolSizes.data();
+        }
+        poolInfo.maxSets = static_cast<uint32_t>(m_Context->swapchainImages.size());
+
+        vkCheckError(first, result, m_Context->device.createDescriptorPool(&poolInfo, m_Context->allocator, &descriptorPool), "cannot create descriptor pool");
+
+        return result.success;
+    }
+
+    bool VulkanUniformBuffer::DestroyDescriptorPool()
+    {
+        if (descriptorPool != nullptr) {
+            vkCheckErrorVoid(m_Context->device.destroyDescriptorPool(descriptorPool, m_Context->allocator));
+            descriptorPool = nullptr;
+
+            if (!VulkanStaticDebugInfo::Result()) {
+                Log_nts.Error("Cannot destroy descriptor pool");
+            }
+        }
+        return true;
+    }
+
+    void VulkanUniformBuffer::AddInDescriptorPool(vk::DescriptorType type, uint32 count)
+    {
+        vk::DescriptorPoolSize poolSize{};
+        poolSize.type = type;
+        poolSize.descriptorCount = count;
+        poolSizes.push_back(poolSize);
     }
 
 }  //  nkentseu

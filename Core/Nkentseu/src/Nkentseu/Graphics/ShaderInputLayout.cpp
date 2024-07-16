@@ -13,66 +13,8 @@
 
 namespace nkentseu {
     
-	uint32 ShaderInternalType::ComponentCount(ShaderInternalType::Enum type) {
-		switch (type) {
-		case Boolean: return 1;
-		case Float: return 1;
-		case Float2: return 2;
-		case Float3: return 3;
-		case Float4: return 4;
-		case Int: return 1;
-		case Int2: return 2;
-		case Int3: return 3;
-		case Int4: return 4;
-		case Byte: return 1;
-		case Byte2: return 2;
-		case Byte3: return 3;
-		case Byte4: return 4;
-		case Mat2: return 4;
-		case Mat3: return 9;
-		case Mat4: return 16;
-		default: return 0;
-		}
-	}
-
-	uint32 ShaderInternalType::ComponentElementSize(ShaderInternalType::Enum type) {
-		switch (type) {
-		case Boolean: return sizeof(bool);
-		case Float: return sizeof(float32);
-		case Float2: return sizeof(float32);
-		case Float3: return sizeof(float32);
-		case Float4: return sizeof(float32);
-		case Int: return sizeof(int32);
-		case Int2: return sizeof(int32);
-		case Int3: return sizeof(int32);
-		case Int4: return sizeof(int32);
-		case Byte: return sizeof(int8);
-		case Byte2: return sizeof(int8);
-		case Byte3: return sizeof(int8);
-		case Byte4: return sizeof(int8);
-		case Mat2: return sizeof(float32);
-		case Mat3: return sizeof(float32);
-		case Mat4: return sizeof(float32);
-		default: return 0;
-		}
-	}
-
-	uint32 ShaderInternalType::ComponentSize(ShaderInternalType::Enum type) {
-		return ComponentCount(type) * ComponentElementSize(type);
-	}
-
-	usize IndexBufferType::SizeOf(IndexBufferType::Code indexType) {
-		switch (indexType) {
-		case UInt8: return sizeof(uint8);
-		case UInt16: return sizeof(uint16);
-		case UInt32: return sizeof(uint32);
-		case UInt64: return sizeof(uint64);
-		default: return 0;
-		}
-	}
-
 	// VertexInputAttribute
-	VertexInputAttribute::VertexInputAttribute(std::string n, ShaderInternalType::Enum t, uint32 loc, bool norm)
+	VertexInputAttribute::VertexInputAttribute(std::string n, ShaderInternalType t, uint32 loc, bool norm)
 		: name(std::move(n)), type(t), location(loc), normalized(norm) {
 		size = ShaderInternalType::ComponentSize(type);
 	}
@@ -137,8 +79,8 @@ namespace nkentseu {
 	}
 
 	// UniformInputAttribute
-	UniformInputAttribute::UniformInputAttribute(std::string n, ShaderStage st, BufferUsageType::Enum usg, uint32 sz, uint32 bind, usize inst)
-		: name(std::move(n)), stage(st), usage(usg), size(sz), instance(inst), binding(bind) {}
+	UniformInputAttribute::UniformInputAttribute(std::string n, ShaderStage st, BufferUsageType usg, uint32 sz, uint32 bind, uint32 set, usize inst)
+		: name(std::move(n)), stage(st), usage(usg), set(set), size(sz), instance(inst), binding(bind) {}
 
 	// UniformInputLayout
 	UniformInputLayout::UniformInputLayout(std::initializer_list<UniformInputAttribute> attrList)
@@ -197,8 +139,8 @@ namespace nkentseu {
 	}
 
 	// SamplerInputAttribute
-	SamplerInputAttribute::SamplerInputAttribute(std::string n, uint32 bind, ShaderStage st, SamplerType::Enum tp)
-		: name(std::move(n)), binding(bind), stage(st), type(tp) {}
+	SamplerInputAttribute::SamplerInputAttribute(std::string n, uint32 bind, uint32 set, ShaderStage st, SamplerType tp)
+		: name(std::move(n)), binding(bind), stage(st), type(tp), set(set) {}
 
 	// SamplerInputLayout
 	SamplerInputLayout::SamplerInputLayout(std::initializer_list<SamplerInputAttribute> attrList){
@@ -279,7 +221,8 @@ namespace nkentseu {
 	void PushConstantInputLayout::CalculateSize() {
 		uint32 totalSize = 0;
 		for (auto& attr : attributes) {
-			attr.offset = totalSize;
+			//attr.offset = totalSize;
+			attr.offset = 0;
 			totalSize += attr.size;
 		}
 		sizes = totalSize;

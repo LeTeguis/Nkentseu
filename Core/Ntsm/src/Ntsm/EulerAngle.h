@@ -38,6 +38,11 @@ namespace nkentseu {
             EulerAngle& operator+=(const EulerAngle& other);
             EulerAngle& operator-=(const EulerAngle& other);
 
+            EulerAngle operator*(float32 scalar) const;
+            EulerAngle& operator*=(float32 scalar);
+
+            friend EulerAngle operator*(float32 scalar, const EulerAngle& other);
+
             // Opérateurs d'incrémentation et de décrémentation
             EulerAngle& operator++();    // Pré-incrémentation
             EulerAngle operator++(int);  // Post-incrémentation

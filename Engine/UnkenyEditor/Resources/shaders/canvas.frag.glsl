@@ -1,11 +1,20 @@
 #version 450 core
 
+#ifdef VULKAN
+#define PUSH_CONSTANT layout (push_constant)
+#else
+#define PUSH_CONSTANT layout (std140)
+#endif
+
+#define USE_COLOR (1 << 1)
+#define USE_TEXTURE (1 << 2)
+
 layout (location=0) in vec4 shapeColor;
 layout (location=1) in vec2 fragTexCoord;
 
 layout (location=0) out vec4 mixColor;
 
-layout(binding = 2) uniform CanvasMaterial {
+PUSH_CONSTANT uniform CanvasMaterial {
     int useTexture;
     int useColor;
 } material;
@@ -17,11 +26,11 @@ void main()
     vec4 finalColor = vec4(1.0, 1.0, 1.0, 1.0);
     //vec4 finalColor = shapeColor;
 
-    if (material.useColor > 0){
+    if ((material.useColor & USE_COLOR) != 0){
         finalColor *= shapeColor;
     }
 
-    if (material.useTexture > 0){
+    if ((material.useTexture & USE_TEXTURE) != 0){
         //finalColor *= texture(texSampler, fragTexCoord);
     }
 

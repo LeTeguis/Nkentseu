@@ -240,6 +240,12 @@ namespace nkentseu {
 				return !(l == r);
 			}
 
+			float32 Dot(const Vector4f& right) const;
+			float32 LenSq() const;
+			float32 Len() const;
+			void Normalize();
+			Vector4f Normalized() const;
+
 			static Vector4f Zero() { return Vector4f(); }
 		};
 

@@ -12,47 +12,18 @@
 namespace nkentseu {
 	using namespace maths;
 
-	static GLenum ConvertTextureFormat(TextureFormat::Code format) {
-		switch (format) {
-		case TextureFormat::RGBA8: return GL_RGBA8;
-		case TextureFormat::RGB8: return GL_RGB8;
-		case TextureFormat::SRGB8_ALPHA8: return GL_SRGB8_ALPHA8;
-		case TextureFormat::DEPTH_COMPONENT16: return GL_DEPTH_COMPONENT16;
-		case TextureFormat::DEPTH_COMPONENT24: return GL_DEPTH_COMPONENT24;
-		case TextureFormat::DEPTH_COMPONENT32F: return GL_DEPTH_COMPONENT32F;
-		case TextureFormat::STENCIL_INDEX8: return GL_STENCIL_INDEX8;
-		case TextureFormat::DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
-		case TextureFormat::DEPTH32F_STENCIL8: return GL_DEPTH32F_STENCIL8;
-		case TextureFormat::RED_INTEGER: return GL_RED_INTEGER;
-		default: return GL_RGBA8;
-		}
-	}
-
-	static GLenum ConvertTextureDataFormat(TextureFormat::Code format) {
-		switch (format) {
-		case TextureFormat::RGBA8: return GL_RGBA; break;
-		case TextureFormat::RED_INTEGER: return GL_RED_INTEGER; break;
-		case TextureFormat::RGB8: return GL_RGB; break;
-		case TextureFormat::SRGB8_ALPHA8: return GL_RGBA; break;
-		case TextureFormat::DEPTH24_STENCIL8: return GL_DEPTH_STENCIL_ATTACHMENT; break;
-		case TextureFormat::DEPTH32F_STENCIL8: return GL_DEPTH_STENCIL_ATTACHMENT; break;
-		case TextureFormat::DEPTH_COMPONENT16: return GL_DEPTH_ATTACHMENT;  break;
-		case TextureFormat::DEPTH_COMPONENT24: return GL_DEPTH_ATTACHMENT;  break;
-		case TextureFormat::DEPTH_COMPONENT32F: return GL_DEPTH_ATTACHMENT;  break;
-		case TextureFormat::STENCIL_INDEX8: return GL_STENCIL_ATTACHMENT;  break;
-		}
-		return GL_RGBA;
-	}
-
 	OpenglTexture2D::OpenglTexture2D(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<OpenglContext>(context)), m_Handle(0)
 	{
+		if (sil != nullptr) {
+			m_InputLayout = sil->samplerInput;
+		}
 	}
 
 	OpenglTexture2D::~OpenglTexture2D()
 	{
 	}
 
-	bool OpenglTexture2D::Create(TextureFormat::Code textureFormat, const maths::Vector2u& size) {
+	bool OpenglTexture2D::Create(TextureFormat textureFormat, const maths::Vector2u& size) {
 
 		OpenGLResult result;
 		bool first = true;
@@ -81,7 +52,7 @@ namespace nkentseu {
 		if (m_Handle == 0) {
 			glCheckError(first, result, glCreateTextures(GL_TEXTURE_2D, 1, &m_Handle), "");
 		}
-		glCheckError(first, result, glTextureStorage2D(m_Handle, 1, ConvertTextureFormat(m_Format), m_ActualSize.x, m_ActualSize.y), "");
+		glCheckError(first, result, glTextureStorage2D(m_Handle, 1, GLConvert::ToTextureFormat(m_Format), m_ActualSize.x, m_ActualSize.y), "");
 
 		glCheckError(first, result, glTextureParameteri(m_Handle, GL_TEXTURE_MIN_FILTER, m_IsSmooth ? GL_LINEAR : GL_NEAREST), "");
 		glCheckError(first, result, glTextureParameteri(m_Handle, GL_TEXTURE_MAG_FILTER, m_IsSmooth ? GL_LINEAR : GL_NEAREST), "");
@@ -136,13 +107,13 @@ namespace nkentseu {
 			if (rectangle.y + rectangle.height > height)
 				rectangle.height = height - rectangle.y;
 
-			if (Create(TextureFormat::RGBA8, maths::Vector2u(rectangle.width, rectangle.height))) {
+			if (Create(TextureFormat::Enum::RGBA8, maths::Vector2u(rectangle.width, rectangle.height))) {
 
 				const uint8* pixels = image.GetPixels() + 4 * (rectangle.x + (width * rectangle.y));
 
 				glCheckError(first, result, glBindTexture(GL_TEXTURE_2D, m_Handle), "");
 				for (int i = 0; i < rectangle.height; ++i) {
-					glCheckError(first, result, glTexSubImage2D(GL_TEXTURE_2D, 0, 0, i, rectangle.width, 1, ConvertTextureDataFormat(m_Format), GL_UNSIGNED_BYTE, pixels), "");
+					glCheckError(first, result, glTexSubImage2D(GL_TEXTURE_2D, 0, 0, i, rectangle.width, 1, GLConvert::ToTextureDataFormat(m_Format), GL_UNSIGNED_BYTE, pixels), "");
 					pixels += 4 * width;
 				}
 
@@ -184,12 +155,12 @@ namespace nkentseu {
 
 		if ((m_Size == m_ActualSize) && !m_PixelsFlipped) {
 			glCheckError(first, result, glBindTexture(GL_TEXTURE_2D, m_Handle), "");
-			glCheckError(first, result, glGetTexImage(GL_TEXTURE_2D, 0, ConvertTextureFormat(m_Format), GL_UNSIGNED_BYTE, pixels.data()), "");
+			glCheckError(first, result, glGetTexImage(GL_TEXTURE_2D, 0, GLConvert::ToTextureFormat(m_Format), GL_UNSIGNED_BYTE, pixels.data()), "");
 		}
 		else {
 			std::vector<std::uint8_t> allPixels(m_ActualSize.x * m_ActualSize.y * 4);
 			glCheckError(first, result, glBindTexture(GL_TEXTURE_2D, m_Handle), "");
-			glCheckError(first, result, glGetTexImage(GL_TEXTURE_2D, 0, ConvertTextureFormat(m_Format), GL_UNSIGNED_BYTE, allPixels.data()), "");
+			glCheckError(first, result, glGetTexImage(GL_TEXTURE_2D, 0, GLConvert::ToTextureFormat(m_Format), GL_UNSIGNED_BYTE, allPixels.data()), "");
 
 			const std::uint8_t* src = allPixels.data();
 			std::uint8_t* dst = pixels.data();
@@ -224,7 +195,7 @@ namespace nkentseu {
 		bool first = true;
 
 		if (pixels && m_Handle) {
-			glCheckError(first, result, glTextureSubImage2D(m_Handle, 0, dest.x, dest.y, size.x, size.y, ConvertTextureDataFormat(m_Format), GL_UNSIGNED_BYTE, pixels), "");
+			glCheckError(first, result, glTextureSubImage2D(m_Handle, 0, dest.x, dest.y, size.x, size.y, GLConvert::ToTextureDataFormat(m_Format), GL_UNSIGNED_BYTE, pixels), "");
 		}
 	}
 
@@ -344,7 +315,7 @@ namespace nkentseu {
 		return m_IsSmooth;
 	}
 
-	void OpenglTexture2D::SetTextureFormat(TextureFormat::Code textureFormat) {
+	void OpenglTexture2D::SetTextureFormat(TextureFormat textureFormat) {
 		if (textureFormat != m_Format) {
 
 			OpenGLResult result;
@@ -352,7 +323,7 @@ namespace nkentseu {
 
 			m_Format = textureFormat;
 			glCheckError(first, result, glBindTexture(GL_TEXTURE_2D, m_Handle), "");
-			glCheckError(first, result, glTextureStorage2D(m_Handle, 1, ConvertTextureFormat(m_Format), m_ActualSize.x, m_ActualSize.y), "");
+			glCheckError(first, result, glTextureStorage2D(m_Handle, 1, GLConvert::ToTextureFormat(m_Format), m_ActualSize.x, m_ActualSize.y), "");
 
 			glCheckError(first, result, glTextureParameteri(m_Handle, GL_TEXTURE_MIN_FILTER, m_IsSmooth ? GL_LINEAR : GL_NEAREST), "");
 			glCheckError(first, result, glTextureParameteri(m_Handle, GL_TEXTURE_MAG_FILTER, m_IsSmooth ? GL_LINEAR : GL_NEAREST), "");
@@ -363,7 +334,7 @@ namespace nkentseu {
 		}
 	}
 
-	TextureFormat::Code OpenglTexture2D::GetTextureFormat() const {
+	TextureFormat OpenglTexture2D::GetTextureFormat() const {
 		return m_Format;
 	}
 
@@ -435,37 +406,36 @@ namespace nkentseu {
 		m_HasMipmap = false;
 	}
 
-	maths::Matrix4f OpenglTexture2D::Binds(uint32 slot, TextCord::Code coordinateType) {
-
+	void OpenglTexture2D::Bind(const std::string& name)
+	{
 		OpenGLResult result;
 		bool first = true;
 
 		if (m_Handle) {
-			glCheckError(first, result, glBindTextureUnit(slot, m_Handle), "");
-
-			if ((coordinateType == TextCord::Pixels) || m_PixelsFlipped) {
-				maths::Matrix4f matrix(1.f);
-
-				if (coordinateType == TextCord::Pixels) {
-					matrix[0][0] = 1.f / static_cast<float32>(m_ActualSize.x);
-					matrix[1][1] = 1.f / static_cast<float32>(m_ActualSize.y);
+			for (auto attribut : m_InputLayout) {
+				if (attribut.name == name) {
+					glCheckError(first, result, glBindTextureUnit(attribut.binding, m_Handle), "cannot bind {0}", name);
+					return;
 				}
-
-				if (m_PixelsFlipped) {
-					matrix[1][1] = -matrix[1][1];
-					matrix[3][1] = static_cast<float32>(m_Size.y) / static_cast<float32>(m_ActualSize.y);
-				}
-				return matrix;
-			}
-			else {
-				return maths::Matrix4f();
 			}
 		}
-		else {
-			glCheckError(first, result, glBindTextureUnit(slot, 0), "");
-			return maths::Matrix4f();
-		}
+		Log_nts.Error("cannot bind {0}", name);
+	}
 
+	void OpenglTexture2D::Bind(uint32 binding)
+	{
+		OpenGLResult result;
+		bool first = true;
+
+		if (m_Handle) {
+			for (auto attribut : m_InputLayout) {
+				if (attribut.binding == binding) {
+					glCheckError(first, result, glBindTextureUnit(attribut.binding, m_Handle), "cannot bind {0}", attribut.name);
+					return;
+				}
+			}
+		}
+		Log_nts.Error("cannot bind {0}", binding);
 	}
 
 	const std::filesystem::path& OpenglTexture2D::GetPath() const {
@@ -499,17 +469,6 @@ namespace nkentseu {
 
 	void OpenglTexture2D::Destroy()
 	{
-	}
-
-	bool OpenglTexture2D::Bind()
-	{
-		Binds(0);
-		return false;
-	}
-
-	bool OpenglTexture2D::Unbind()
-	{
-		return false;
 	}
 
 }  //  nkentseu

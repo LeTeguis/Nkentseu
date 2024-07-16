@@ -60,6 +60,19 @@ namespace nkentseu {
             return *this;
         }
 
+        EulerAngle EulerAngle::operator*(float32 scalar) const
+        {
+            return EulerAngle(pitch * scalar, yaw * scalar, roll * scalar);
+        }
+
+        EulerAngle& EulerAngle::operator*=(float32 scalar)
+        {
+            pitch *= scalar;
+            yaw *= scalar;
+            roll *= scalar;
+            return *this;
+        }
+
         // Operateurs d'incrementation et de decrementation
         EulerAngle& EulerAngle::operator++() {  // Pre-incrementation
             ++pitch;
@@ -92,6 +105,11 @@ namespace nkentseu {
             std::stringstream ss;
             ss << "euler(" << pitch.Deg() << ", " << yaw.Deg() << ", " << roll.Deg() << ")";
             return ss.str();
+        }
+
+        EulerAngle operator*(float32 scalar, const EulerAngle& other)
+        {
+            return EulerAngle();
         }
 
         // Operateur de flux

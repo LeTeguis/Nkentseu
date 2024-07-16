@@ -22,7 +22,7 @@ namespace nkentseu {
 		OpenglTexture2D(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
         ~OpenglTexture2D();
 
-		bool Create(TextureFormat::Code textureFormat, const maths::Vector2u& size) override;
+		bool Create(TextureFormat textureFormat, const maths::Vector2u& size) override;
 		bool Create(const std::filesystem::path& filename, const maths::IntRect& area = maths::IntRect()) override;
 		bool Create(const void* data, std::size_t size, const maths::IntRect& area = maths::IntRect()) override;
 		bool Create(InputStream& stream, const maths::IntRect& area = maths::IntRect()) override;
@@ -41,26 +41,25 @@ namespace nkentseu {
 		void Update(const Image& image, const maths::Vector2i& dest) override;
 		void SetSmooth(bool smooth) override;
 		bool IsSmooth() const override;
-		void SetTextureFormat(TextureFormat::Code textureFormat) override;
-		TextureFormat::Code GetTextureFormat() const override;
+		void SetTextureFormat(TextureFormat textureFormat) override;
+		TextureFormat GetTextureFormat() const override;
 		void SetRepeated(bool repeated) override;
 		bool IsRepeated() const override;
 		bool GenerateMipmap() override;
 		void Swap(Texture& right) noexcept override;
 		void InvalidateMipmap() override;
-		maths::Matrix4f Binds(uint32 slot, TextCord::Code coordinateType = TextCord::Normalized) override;
+		void Bind(const std::string& name) override;
+		void Bind(uint32 binding) override;
 		const std::filesystem::path& GetPath() const override;
 
         static uint32 GetMaximumSize(Memory::Shared<Context> context);
         static uint32 GetValidSize(Memory::Shared<Context> context, uint32 size);
 
 		void Destroy() override;
-		bool Bind() override;
-		bool Unbind() override;
     private:
-
+		SamplerInputLayout m_InputLayout;
         Memory::Shared<OpenglContext> m_Context;
-        TextureFormat::Code m_Format = TextureFormat::RGBA8;
+        TextureFormat m_Format = TextureFormat::Enum::RGBA8;
 
         std::filesystem::path m_Path;
         uint64_t m_CacheId;

@@ -14,7 +14,7 @@ namespace nkentseu {
 		Angle::Angle() : m_Degree(0.0) {}
 		Angle::Angle(float32 degree) : m_Degree(Clamp(degree)) {}
 
-		Angle::Angle(const Angle& angle) : m_Degree(angle.m_Degree)
+		Angle::Angle(const Angle& angle) : m_Degree(Clamp(angle.m_Degree))
 		{
 		}
 
@@ -52,7 +52,7 @@ namespace nkentseu {
 		}
 
 		Angle& Angle::operator = (const float32& a) {
-			this->m_Degree = a;
+			this->m_Degree = Clamp(a);
 			return *this;
 		}
 
@@ -112,7 +112,13 @@ namespace nkentseu {
 				deg -= 360.0f;
 			}
 
+			if (deg == 180.0f) deg = -180.0f;
+
 			return deg;
 		}
-	}
+
+		bool operator==(const Angle& l, const Angle& r) {
+			return maths::Abs(l.m_Degree - r.m_Degree) <= maths::Epsilon;
+		}
+}
 }    // namespace nkentseu

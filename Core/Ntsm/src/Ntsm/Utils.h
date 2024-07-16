@@ -35,7 +35,7 @@ namespace nkentseu {
 		float32 NKENTSEU_API Logf(float32 x);
 		int32   NKENTSEU_API ILogbf(float32 x);
 		float32 NKENTSEU_API LDexp(float32 x, int32 exp);
-		float32 NKENTSEU_API Copysign(float32 number, float32 sign);
+		Angle NKENTSEU_API Copysign(float32 number, float32 sign);
 
 		bool NKENTSEU_API EqualF32(float32 a, float32 b);
 		bool NKENTSEU_API EqualF64(float64 a, float64 b);

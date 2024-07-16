@@ -84,6 +84,7 @@ namespace nkentseu {
 
     bool OpenglVertexArray::SetVertexBuffer(Memory::Shared<VertexBuffer> vertexBuffer)
     {
+        if (m_OglSil == nullptr) return false;
         m_VertexBuffer = Memory::SharedCast<OpenglVertexBuffer>(vertexBuffer);
         return ActualizeVertexBuffer();
     }
@@ -95,6 +96,8 @@ namespace nkentseu {
 
     bool OpenglVertexArray::SetIndexBuffer(Memory::Shared<IndexBuffer> indexBuffer)
     {
+        if (m_OglSil == nullptr) return false;
+
         m_IndexBuffer = Memory::SharedCast<OpenglIndexBuffer>(indexBuffer);
 
         if (m_UseDsa && m_IndexBuffer != nullptr) {
@@ -167,7 +170,6 @@ namespace nkentseu {
             glCheckError(first, result, glDrawElements(vertexType, m_IndexBuffer->Leng(), indexType, 0), "cannot draw elements");
         }
         else {
-            Log_nts.Debug();
             glCheckError(first, result, glDrawArrays(vertexType, 0, Leng()), "cannot draw arrays");
         }
 
@@ -178,7 +180,9 @@ namespace nkentseu {
 
     bool OpenglVertexArray::BindVertex()
     {
-        if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo == BindInfo::VERTEX_BIND) return false;
+        if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo == BindInfo::VERTEX_BIND) {
+            return false;
+        }
 
         if (!Bind()) {
             m_BindInfo = BindInfo::NO_BIND;
@@ -196,9 +200,13 @@ namespace nkentseu {
 
     bool OpenglVertexArray::UnbindVertex()
     {
-        if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo != BindInfo::VERTEX_BIND || m_VertexBuffer == nullptr) return false;
+        if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo != BindInfo::VERTEX_BIND) {
+            return false;
+        }
         m_BindInfo = BindInfo::NO_BIND;
-        m_VertexBuffer->Unbind();
+        if (m_VertexBuffer != nullptr && !m_VertexBuffer->Unbind()){
+            return Unbind() && false;
+        }
         return Unbind();
     }
 
@@ -225,14 +233,15 @@ namespace nkentseu {
 
         OpenGLResult result;
         bool first = true;
-
         glCheckError(first, result, glDrawArrays(GLConvert::GetPrimitiveType(primitive), firstElement, count), "cannot draw arrays");
         return result.success;
     }
 
     bool OpenglVertexArray::BindIndex()
     {
-        if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo == BindInfo::INDEX_BIND) return false;
+        if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo == BindInfo::INDEX_BIND) {
+            return false;
+        }
 
         if (!Bind()) {
             return false;
@@ -250,10 +259,9 @@ namespace nkentseu {
             m_BindInfo = BindInfo::NO_BIND;
             return false;
         }
-
         m_BindInfo = BindInfo::INDEX_BIND;
 
-        return false;
+        return true;
     }
 
     bool OpenglVertexArray::UnbindIndex()
@@ -261,8 +269,10 @@ namespace nkentseu {
         if (m_Context == nullptr || m_VertexArrayObject == 0 || m_BindInfo != BindInfo::INDEX_BIND
             || m_IndexBuffer == nullptr || m_VertexBuffer == nullptr) return false;
         m_BindInfo = BindInfo::NO_BIND;
-        m_IndexBuffer->Unbind();
-        m_VertexBuffer->Unbind();
+        if (!m_IndexBuffer->Unbind()) {
+        }
+        if (!m_VertexBuffer->Unbind()) {
+        }
         return Unbind();
     }
 
@@ -287,9 +297,9 @@ namespace nkentseu {
         uint32 indexType = GLConvert::IndexType(m_IndexBuffer->GetIndexType());
         uint32 offset = (firstElement) * sizeof(uint32);
         uint32 primitiveType = GLConvert::GetPrimitiveType(primitive);
-
         
-        glCheckError(first, result, glDrawElements(primitiveType, count, indexType, 0), "cannot draw elements");
+        //glCheckError(first, result, glDrawElements(primitiveType, count, indexType, 0), "cannot draw elements");
+        glCheckError(first, result, glDrawElements(primitiveType, count, indexType, (void*)(offset)), "cannot draw elements");
 
         return result.success;
     }

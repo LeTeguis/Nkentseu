@@ -27,20 +27,20 @@ namespace nkentseu {
             bool Destroy() override;
             uint32 Leng() const override;
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
-            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng);
+            bool Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices) override;
+            bool Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* vertices, uint32 leng) override;
             
             bool Bind() const;
             bool Unbind() const;
 
             virtual bool SetData(void* data, usize size) override;
 
-            DrawIndexType::Code GetIndexType() const;
+            IndexBufferType GetIndexType() const;
             uint32 GetBuffer() const;
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
-            BufferDataUsage::Code m_BufferUsage = BufferDataUsage::StaticDraw;
-            DrawIndexType::Code m_IndexType = DrawIndexType::UInt32;
+            BufferUsageType m_BufferUsage = BufferUsageType::Enum::StaticDraw;
+            IndexBufferType m_IndexType = IndexBufferType::Enum::UInt32;
 
             uint32 m_Size = 0;
             OpenglBuffer m_Buffer;

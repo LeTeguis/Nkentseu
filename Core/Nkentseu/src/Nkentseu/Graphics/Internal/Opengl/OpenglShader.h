@@ -37,15 +37,6 @@ namespace nkentseu {
             bool Bind() override;
             bool Unbind() override;
 
-            bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) override;
-
-            bool PolygonMode(PolygonModeType::Code mode) override;
-            bool CullMode(CullModeType::Code mode) override;
-            bool FrontFaceMode(FrontFaceType::Code mode) override;
-            bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) override;
-            bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) override;
-            bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) override;
-
             uint32 GetProgramme() const {
                 return m_Programme;
             }

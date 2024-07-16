@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 4/11/2024 at 12:03:04 PM.
+// Created by TEUGUIA TADJUIDJE Rodolf Sederis on 4/11/2024 at 12:03:04 PM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -866,12 +866,338 @@ namespace nkentseu {
 			}
 		};
 
-		using Vector2 = Vector2f;
+		//using Vector2 = Vector2f;
 		using Vec2 = Vector2f;
 		using Vec2f = Vector2f;
 		using Vec2i = Vector2i;
 		using Vec2u = Vector2u;
 		using Vec2d = Vector2d;
+
+		template <typename T>
+		struct NKENTSEU_API Vector2 {
+			union {
+				T ptr[2];
+				struct {
+					union { T x, u, width, major; };
+					union { T y, v, height, minor; };
+				};
+			};
+
+			// Constructeurs
+			Vector2() : x(0), y(0) {} // Constructeur par defaut
+
+			Vector2(T x, T y) : x(x), y(y) {} // Constructeur avec paramètres
+
+			Vector2(const T* arr) : x(arr[0]), y(arr[1]) {} // Constructeur avec pointeur
+
+			template <typename U>
+			Vector2(const U& other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)) {} // Constructeur avec type U
+
+			Vector2(const Vector2& other) : x(other.x), y(other.y) {} // Constructeur par copie
+
+			// Operateur d'affectation
+			Vector2& operator=(const Vector2& other) {
+				if (this != &other) {
+					x = other.x;
+					y = other.y;
+				}
+				return *this;
+			}
+
+			// Operateur d'affectation pour type U
+			template <typename U>
+			Vector2& operator=(const Vector2<U>& other) {
+				x = static_cast<T>(other.x);
+				y = static_cast<T>(other.y);
+				return *this;
+			}
+
+			// Operateur d'egalite
+			bool operator==(const Vector2& other) const {
+				return x == other.x && y == other.y;
+			}
+
+			// Operateur de difference
+			bool operator!=(const Vector2& other) const {
+				return !(*this == other);
+			}
+
+			// Operateur d'addition
+			Vector2 operator+(const Vector2& other) const {
+				return Vector2(x + other.x, y + other.y);
+			}
+
+			Vector2& operator+=(const Vector2& other) {
+				x += other.x;
+				y += other.y;
+				return *this;
+			}
+
+			// Operateur de soustraction
+			Vector2 operator-(const Vector2& other) const {
+				return Vector2(x - other.x, y - other.y);
+			}
+
+			Vector2& operator-=(const Vector2& other) {
+				x -= other.x;
+				y -= other.y;
+				return *this;
+			}
+
+			// Operateur de multiplication (scalaire)
+			Vector2 operator*(T scalar) const {
+				return Vector2(x * scalar, y * scalar);
+			}
+
+			Vector2& operator*=(T scalar) {
+				x *= scalar;
+				y *= scalar;
+				return *this;
+			}
+
+			// Operateur de division (scalaire)
+			Vector2 operator/(T scalar) const {
+				return Vector2(x / scalar, y / scalar);
+			}
+
+			Vector2& operator/=(T scalar) {
+				x /= scalar;
+				y /= scalar;
+				return *this;
+			}
+
+			// Operateur de multiplication (scalaire) pour type U
+			template <typename U>
+			Vector2<T> operator*(U scalar) const {
+				return Vector2<T>(x * static_cast<T>(scalar), y * static_cast<T>(scalar));
+			}
+
+			template <typename U>
+			Vector2<T>& operator*=(U scalar) {
+				x *= static_cast<T>(scalar);
+				y *= static_cast<T>(scalar);
+				return *this;
+			}
+
+			// Operateur de division (scalaire) pour type U
+			template <typename U>
+			Vector2<T> operator/(U scalar) const {
+				return Vector2<T>(x / static_cast<T>(scalar), y / static_cast<T>(scalar));
+			}
+
+			template <typename U>
+			Vector2<T>& operator/=(U scalar) {
+				x /= static_cast<T>(scalar);
+				y /= static_cast<T>(scalar);
+				return *this;
+			}
+
+			// Operateur unaire -
+			Vector2 operator-() const {
+				return Vector2(-x, -y);
+			}
+
+			// Operateurs d'incrementation
+			Vector2& operator++() { // Pre-incrementation
+				++x;
+				++y;
+				return *this;
+			}
+
+			Vector2 operator++(int) { // Post-incrementation
+				Vector2 temp = *this;
+				++(*this);
+				return temp;
+			}
+
+			// Operateurs de decrementation
+			Vector2& operator--() { // Pre-decrementation
+				--x;
+				--y;
+				return *this;
+			}
+
+			Vector2 operator--(int) { // Post-decrementation
+				Vector2 temp = *this;
+				--(*this);
+				return temp;
+			}
+
+			// Operateur de cast vers T*
+			operator T* () {
+				return ptr;
+			}
+
+			// Operateur de cast vers const T*
+			operator const T* () const {
+				return ptr;
+			}
+
+			// Affichage du vecteur
+			friend std::ostream& operator<<(std::ostream& os, const Vector2& vec) {
+				os << "(" << vec.x << ", " << vec.y << ")";
+				return os;
+			}
+
+			// Conversion en chaîne de caractères
+			std::string ToString() const {
+				std::stringstream ss;
+				ss << "(" << x << ", " << y << ")";
+				return ss.str();
+			}
+
+			// Fonction amie pour convertir un Vector2 en chaîne de caractères
+			friend std::string ToString(const Vector2& vec) {
+				return vec.ToString();
+			}
+		};
+
+		using vec2i = Vector2<int32>;
+		using vec2u = Vector2<uint32>;
+		using vec2f = Vector2<float32>;
+		using vec2d = Vector2<float64>;
+
+		// Fonction pour calculer la somme des coordonnees
+		template <typename T>
+		T SumCord(const Vector2<T>& vec) {
+			return vec.x + vec.y;
+		}
+
+		// Fonction pour calculer la distance entre deux vecteurs
+		template <typename T>
+		T Distance(const Vector2<T>& vec1, const Vector2<T>& vec2) {
+			return std::sqrt(std::pow(vec2.x - vec1.x, 2) + std::pow(vec2.y - vec1.y, 2));
+		}
+
+		// Fonction pour calculer le produit scalaire entre deux vecteurs
+		template <typename T>
+		T Dot(const Vector2<T>& vec1, const Vector2<T>& vec2) {
+			return vec1.x * vec2.x + vec1.y * vec2.y;
+		}
+
+		// Fonction pour calculer la norme au carre d'un vecteur
+		template <typename T>
+		T LenSq(const Vector2<T>& vec) {
+			return vec.x * vec.x + vec.y * vec.y;
+		}
+
+		// Fonction pour calculer la norme d'un vecteur
+		template <typename T>
+		T Len(const Vector2<T>& vec) {
+			return std::sqrt(LenSq(vec));
+		}
+
+		// Fonction pour normaliser un vecteur
+		template <typename T>
+		Vector2<T> Normalize(const Vector2<T>& vec) {
+			T length = Len(vec);
+			if (length != 0) {
+				return vec / length;
+			}
+			return Vector2<T>(0, 0);
+		}
+
+		// Fonction pour normaliser un vecteur (version modifiant le vecteur original)
+		template <typename T>
+		void Normalized(Vector2<T>& vec) {
+			T length = Len(vec);
+			if (length != 0) {
+				vec /= length;
+			}
+		}
+
+		// Fonction pour verifier si un vecteur est unitaire (norme egale à 1)
+		template <typename T>
+		bool IsUnit(const Vector2<T>& vec) {
+			return std::abs(LenSq(vec) - static_cast<T>(1)) < std::numeric_limits<T>::epsilon();
+		}
+
+		// Fonction pour calculer l'angle entre deux vecteurs
+		template <typename T>
+		T AngleBetween(const Vector2<T>& vec1, const Vector2<T>& vec2) {
+			T len1 = Len(vec1);
+			T len2 = Len(vec2);
+			if (len1 == 0 || len2 == 0) {
+				return 0;
+			}
+			return std::acos(Dot(vec1, vec2) / (len1 * len2));
+		}
+
+		// Fonction pour projeter un vecteur sur un autre
+		template <typename T>
+		Vector2<T> Project(const Vector2<T>& vec, const Vector2<T>& onto) {
+			T ontoLenSq = LenSq(onto);
+			if (ontoLenSq == 0) {
+				return Vector2<T>(0, 0);
+			}
+			return onto * (Dot(vec, onto) / ontoLenSq);
+		}
+
+		// Fonction pour rejeter un vecteur par rapport à un autre
+		template <typename T>
+		Vector2<T> Reject(const Vector2<T>& vec, const Vector2<T>& onto) {
+			return vec - Project(vec, onto);
+		}
+
+		// Fonction pour refleter un vecteur par rapport à une normale
+		template <typename T>
+		Vector2<T> Reflect(const Vector2<T>& vec, const Vector2<T>& normal) {
+			return vec - (normal * static_cast<T>(2) * Dot(vec, normal));
+		}
+
+		// Fonction pour realiser une interpolation lineaire entre deux vecteurs
+		template <typename T>
+		Vector2<T> Lerp(const Vector2<T>& start, const Vector2<T>& end, T t) {
+			return start + (end - start) * t;
+		}
+
+		// Fonction pour realiser une interpolation spherique entre deux vecteurs
+		template <typename T>
+		Vector2<T> Slerp(const Vector2<T>& start, const Vector2<T>& end, T t) {
+			T dot = Dot(start, end);
+			dot = (dot < static_cast<T>(-1)) ? static_cast<T>(-1) : ((dot > static_cast<T>(1)) ? static_cast<T>(1) : dot);
+			T theta = std::acos(dot) * t;
+			Vector2<T> relative = end - start * dot;
+			relative = Normalize(relative);
+			return ((start * std::cos(theta)) + (relative * std::sin(theta)));
+		}
+
+		// Fonction pour realiser une interpolation lineaire normale entre deux vecteurs
+		template <typename T>
+		Vector2<T> Nlerp(const Vector2<T>& start, const Vector2<T>& end, T t) {
+			return Normalize(Lerp(start, end, t));
+		}
+
+		// Fonction pour faire pivoter un vecteur de 90 degres dans le sens horaire
+		template <typename T>
+		Vector2<T> Rotate90(const Vector2<T>& vec) {
+			return Vector2<T>(vec.y, -vec.x);
+		}
+
+		// Fonction pour faire pivoter un vecteur de 180 degres
+		template <typename T>
+		Vector2<T> Rotate180(const Vector2<T>& vec) {
+			return Vector2<T>(-vec.x, -vec.y);
+		}
+
+		// Fonction pour faire pivoter un vecteur de 270 degres dans le sens horaire
+		template <typename T>
+		Vector2<T> Rotate270(const Vector2<T>& vec) {
+			return Vector2<T>(-vec.y, vec.x);
+		}
+
+		// Fonction pour verifier si deux vecteurs sont collineaires
+		template <typename T>
+		bool Collinear(const Vector2<T>& vec1, const Vector2<T>& vec2) {
+			T cross = vec1.x * vec2.y - vec1.y * vec2.x;
+			return std::abs(cross) < std::numeric_limits<T>::epsilon();
+		}
+
+		// Fonction pour creer un vecteur nul
+		template <typename T>
+		Vector2<T> ZeroVec2() {
+			return Vector2<T>(0, 0);
+		}
 	}
 } // namespace nkentseu
 

@@ -31,14 +31,6 @@ namespace nkentseu {
             virtual bool Unbind() = 0;
 
             virtual bool LoadFromFile(const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout) = 0;
-            virtual bool DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode) = 0;
-
-            virtual bool PolygonMode(PolygonModeType::Code mode) = 0;
-            virtual bool CullMode(CullModeType::Code mode) = 0;
-            virtual bool FrontFaceMode(FrontFaceType::Code mode) = 0;
-            virtual bool PrimitiveTopologyMode(PrimitiveTopologyType::Code mode) = 0;
-            virtual bool ScissorMode(const maths::Vector2i& offset, const maths::Vector2u& extend) = 0;
-            virtual bool ViewportMode(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& depth) = 0;
 
             static Memory::Shared<Shader> Create(Memory::Shared<Context> context);
             static Memory::Shared<Shader> Create(Memory::Shared<Context> context, const ShaderFilePathLayout& shaderFiles, Memory::Shared<ShaderInputLayout> shaderInputLayout);

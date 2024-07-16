@@ -11,6 +11,7 @@
 #include <System/System.h>
 
 #include <System/Definitions/Memory.h>
+#include "VulkanContext.h"
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/VertexArray.h"
 #include "Nkentseu/Graphics/ShaderInputLayout.h"

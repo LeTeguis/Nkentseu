@@ -11,123 +11,112 @@
 #include <System/System.h>
 
 #include <string>
+#include <sstream>
 #include <stdexcept>
 #include <type_traits>
 #include <cstdint>
 
 namespace nkentseu {
-
-    template<typename EnumType, bool EnableBitwiseOps, bool EnableUint32Conversion>
-    struct NKENTSEU_API EnumTraits {
-        using UnderlyingType = std::underlying_type_t<EnumType>;
-        static constexpr bool enableBitwiseOps = EnableBitwiseOps;
-        static constexpr bool enableUint32Conversion = EnableUint32Conversion;
-    };
-
-    #define ENABLE_ENUM_TRAITS(EnumType, EnableBitwiseOps, EnableUint32Conversion) \
-    template<> \
-    struct NKENTSEU_API EnumTraits<EnumType, EnableBitwiseOps, EnableUint32Conversion> { \
-        using UnderlyingType = std::underlying_type_t<EnumType>; \
-        static constexpr bool enableBitwiseOps = EnableBitwiseOps; \
-        static constexpr bool enableUint32Conversion = EnableUint32Conversion; \
-    };
-
-    template<typename Derived, typename EnumType>
-    class NKENTSEU_API EnumBase {
-    protected:
-        using Traits = EnumTraits<EnumType, EnumTraits<EnumType, false, false>::enableBitwiseOps, EnumTraits<EnumType, false, false>::enableUint32Conversion>;
-        typename Traits::UnderlyingType data;
-
+    // Base template class
+    template<typename EnumType, typename BaseType = int>
+    class Enumeration {
     public:
-        using Enum = EnumType;
+        using BASE_TYPE = BaseType;
 
-        EnumBase() : data(static_cast<typename Traits::UnderlyingType>(EnumType::Vertex)) {}
-        EnumBase(EnumType s) : data(static_cast<typename Traits::UnderlyingType>(s)) {}
-        EnumBase(typename Traits::UnderlyingType s) : data(s) {}
+        Enumeration() : value(0) {}
+        Enumeration(EnumType e) : value(static_cast<BASE_TYPE>(e)) {}
+        Enumeration(BASE_TYPE v) : value(v) {}
 
-        bool operator==(const EnumBase& other) const {
-            return data == other.data;
+        bool operator==(const Enumeration& other) const {
+            return value == other.value;
         }
 
-        bool operator!=(const EnumBase& other) const {
-            return data != other.data;
+        bool operator!=(const Enumeration& other) const {
+            return value != other.value;
         }
 
-        template<bool Enable = Traits::enableBitwiseOps, typename std::enable_if<Enable, int>::type = 0>
-        Derived operator|(EnumType s) const {
-            return Derived(data | static_cast<typename Traits::UnderlyingType>(s));
+        bool operator==(const EnumType& other) const {
+            return value == static_cast<BASE_TYPE>(other);
         }
 
-        template<bool Enable = Traits::enableBitwiseOps, typename std::enable_if<Enable, int>::type = 0>
-        Derived operator&(EnumType s) const {
-            return Derived(data & static_cast<typename Traits::UnderlyingType>(s));
+        bool operator!=(const EnumType& other) const {
+            return value != static_cast<BASE_TYPE>(other);
         }
 
-        template<bool Enable = Traits::enableBitwiseOps, typename std::enable_if<Enable, int>::type = 0>
-        Derived& operator|=(EnumType s) {
-            data |= static_cast<typename Traits::UnderlyingType>(s);
-            return static_cast<Derived&>(*this);
+        Enumeration operator|(EnumType e) const {
+            return Enumeration(value | static_cast<BASE_TYPE>(e));
         }
 
-        template<bool Enable = Traits::enableBitwiseOps, typename std::enable_if<Enable, int>::type = 0>
-        Derived& operator&=(EnumType s) {
-            data &= static_cast<typename Traits::UnderlyingType>(s);
-            return static_cast<Derived&>(*this);
+        Enumeration operator&(EnumType e) const {
+            return Enumeration(value & static_cast<BASE_TYPE>(e));
         }
 
-        template<bool Enable = Traits::enableUint32Conversion, typename std::enable_if<Enable, int>::type = 0>
-        operator uint32_t() const {
-            return data;
+        Enumeration& operator|=(EnumType e) {
+            value |= static_cast<BASE_TYPE>(e);
+            return *this;
         }
 
-        template<bool Enable = Traits::enableBitwiseOps, typename std::enable_if<Enable, int>::type = 0>
-        bool Hasdata(EnumType s) const {
-            return (data & static_cast<typename Traits::UnderlyingType>(s)) != 0;
+        Enumeration& operator&=(EnumType e) {
+            value &= static_cast<BASE_TYPE>(e);
+            return *this;
         }
+
+        operator BASE_TYPE() const {
+            return value;
+        }
+
+        operator EnumType() const {
+            return static_cast<EnumType>(value);
+        }
+
+        bool HasFlag(EnumType e) const {
+            return (value & static_cast<BASE_TYPE>(e)) != 0;
+        }
+
+        virtual std::string ToString() const {
+            return "";
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Enumeration& e) {
+            return os << e.ToString();
+        }
+
+    protected:
+        BASE_TYPE value;
     };
 
-    #define DEFINE_ENUM_BASE_CONSTRUCTOR(class_name, enum_name)     using EnumBase<class_name, enum_name>::EnumBase; \
-                                                                    class_name() : EnumBase() {}\
-                                                                    class_name(Enum s) : EnumBase(s) {}\
-                                                                    class_name(const class_name& other) : EnumBase(other) {}
+    #define ENUM_TO_STRING_BEGIN                virtual std::string ToString() const override {\
+                                                    std::string str = "";
+    //#define ENUM_TO_STRING_CONTENT(value_e)         if (value & static_cast<BASE_TYPE>(value_e)) str += #value_e;
+    #define ENUM_TO_STRING_CONTENT(value_e)         if (value == static_cast<BASE_TYPE>(value_e)) str = #value_e;
+    #define ENUM_TO_STRING_END(not_vlue)            return str.empty() ? #not_vlue : str;\
+                                                }
 
-    #define ENUMERATION(NAME, ...) \
-                                    class NAME { \
-                                    public: \
-                                        enum class Enum : uint32_t { \
-                                            __VA_ARGS__, \
-                                            NotDefine \
-                                        }; \
-                                        \
-                                    private: \
-                                        uint32_t data; \
-                                        \
-                                    public: \
-                                        NAME() : data((uint32_t)NAME::Enum::NotDefine) {} \
-                                        NAME(NAME::Enum s) : data((uint32_t)s) {} \
-                                        NAME(uint32_t s) : data(s) {} \
-                                        \
-                                        bool operator==(const NAME& other) const { return data == other.data; } \
-                                        bool operator!=(const NAME& other) const { return data != other.data; } \
-                                        NAME operator|(NAME::Enum s) const { return NAME(data | (uint32_t)s); } \
-                                        NAME operator&(NAME::Enum s) const { return NAME(data & (uint32_t)s); } \
-                                        NAME& operator|=(NAME::Enum s) { data |= (uint32_t)s; return *this; } \
-                                        NAME& operator&=(NAME::Enum s) { data &= (uint32_t)s; return *this; } \
-                                        operator uint32_t() const { return data; } \
-                                        operator NAME::Enum() const { return (NAME::Enum)data; } \
-                                        bool Hasdata(NAME::Enum s) const { return (data & (uint32_t)s) != 0; } \
-                                        bool HasEnum(NAME::Enum s) const { return (data & (uint32_t)s) != 0; } \
-                                        std::string ToString() const { \
-                                            std::string str(""); \
-                                            NAME::ToStringImpl(str, data); \
-                                            return str == "" ? "NotDefine" : str; \
-                                        } \
-                                        static void ToStringImpl(std::string& str, uint32_t data) { \
-                                            (void)std::initializer_list<int>{((data & (uint32_t)NAME::Enum::__VA_ARGS__) ? (str += #__VA_ARGS__, 0) : "")...}; \
-                                        } \
-                                        friend std::ostream& operator<<(std::ostream& os, const NAME& e) { return os << e.ToString(); } \
-                                        friend std::string ToString(const NAME& v) { return v.ToString(); } \
-                                    };
+    // Macro to define the enumeration and class
+    #define ENUMERATION(enum_name, default_type, tostring, methods, ...) \
+          enum class NKENTSEU_API Enum##enum_name : default_type { __VA_ARGS__ }; \
+          class NKENTSEU_API enum_name : public Enumeration<Enum##enum_name, default_type> { \
+              public: \
+                    using Enum = Enum##enum_name; \
+                    enum_name() : Enumeration() {} \
+                    enum_name(Enum e) : Enumeration(e) {} \
+                    enum_name(BASE_TYPE v) : Enumeration(v) {}\
+                    tostring\
+                    methods\
+                    /*bool operator==(const enum_name& other) const {\
+                        return value == other.value;\
+                    }\
+                    bool operator==(const enum_name& other) const {\
+                        return !(value == other);\
+                    }\*/\
+          }
+
+    /*bool operator==(const enum_name& other) const {\
+        return value == other.value;\
+    }\
+    bool operator==(const enum_name& other) const {\
+        return !(value == other);\
+    }\*/
 
 }  //  nkentseu
 

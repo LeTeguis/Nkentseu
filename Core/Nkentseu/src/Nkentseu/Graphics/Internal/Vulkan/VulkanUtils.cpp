@@ -101,63 +101,58 @@ namespace nkentseu {
     }
 
     VkShaderStageFlagBits VulkanConvert::GetshaderStageType(ShaderStage shaderStage) {
-        if (shaderStage.HasStage(ShaderStage::Enum::Vertex)) return VK_SHADER_STAGE_VERTEX_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::Fragment)) return VK_SHADER_STAGE_FRAGMENT_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::Geometry)) return VK_SHADER_STAGE_GEOMETRY_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::TesControl)) return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::TesEvaluation)) return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::Compute)) return VK_SHADER_STAGE_COMPUTE_BIT;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Vertex)) return VK_SHADER_STAGE_VERTEX_BIT;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Fragment)) return VK_SHADER_STAGE_FRAGMENT_BIT;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Geometry)) return VK_SHADER_STAGE_GEOMETRY_BIT;
+        if (shaderStage.HasFlag(ShaderStage::Enum::TesControl)) return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        if (shaderStage.HasFlag(ShaderStage::Enum::TesEvaluation)) return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Compute)) return VK_SHADER_STAGE_COMPUTE_BIT;
 
         return VK_SHADER_STAGE_VERTEX_BIT;
     }
 
-    VkCullModeFlags VulkanConvert::CullModeType(CullModeType::Code mode) {
-        if (mode == CullModeType::Front) return VK_CULL_MODE_FRONT_BIT;
-        if (mode == CullModeType::Back) return VK_CULL_MODE_BACK_BIT;
-        if (mode == CullModeType::FrontBack) return VK_CULL_MODE_FRONT_AND_BACK;
-        return VK_CULL_MODE_NONE;
+    vk::ShaderStageFlagBits VulkanConvert::GetshaderStageType2(ShaderStage shaderStage) {
+        if (shaderStage.HasFlag(ShaderStage::Enum::Vertex)) return vk::ShaderStageFlagBits::eVertex;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Fragment)) return vk::ShaderStageFlagBits::eFragment;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Geometry)) return vk::ShaderStageFlagBits::eGeometry;
+        if (shaderStage.HasFlag(ShaderStage::Enum::TesControl)) return vk::ShaderStageFlagBits::eTessellationControl;
+        if (shaderStage.HasFlag(ShaderStage::Enum::TesEvaluation)) return vk::ShaderStageFlagBits::eTessellationEvaluation;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Compute)) return vk::ShaderStageFlagBits::eCompute;
+
+        return vk::ShaderStageFlagBits::eVertex;
     }
 
-    VkPolygonMode VulkanConvert::PolygonModeType(PolygonModeType::Code contentMode) {
-        if (contentMode == PolygonModeType::Line) return VK_POLYGON_MODE_LINE;
-        if (contentMode == PolygonModeType::Fill) return VK_POLYGON_MODE_FILL;
-        if (contentMode == PolygonModeType::Point) return VK_POLYGON_MODE_POINT;
-        if (contentMode == PolygonModeType::FillRectangle) return VK_POLYGON_MODE_FILL_RECTANGLE_NV;
-        return VK_POLYGON_MODE_FILL;
+    vk::CullModeFlags VulkanConvert::ToCullModeType(CullModeType mode) {
+        if (mode == CullModeType::Enum::Front) return (vk::CullModeFlags)VK_CULL_MODE_FRONT_BIT;
+        if (mode == CullModeType::Enum::Back) return (vk::CullModeFlags)VK_CULL_MODE_BACK_BIT;
+        if (mode == CullModeType::Enum::FrontBack) return (vk::CullModeFlags)VK_CULL_MODE_FRONT_AND_BACK;
+        return (vk::CullModeFlags)VK_CULL_MODE_NONE;
     }
 
-    VkFrontFace VulkanConvert::FrontFaceType(FrontFaceType::Code mode)
+    vk::PolygonMode VulkanConvert::ToPolygonModeType(PolygonModeType contentMode) {
+        if (contentMode == PolygonModeType::Enum::Line) return (vk::PolygonMode)VK_POLYGON_MODE_LINE;
+        if (contentMode == PolygonModeType::Enum::Fill) return (vk::PolygonMode)VK_POLYGON_MODE_FILL;
+        if (contentMode == PolygonModeType::Enum::Point) return (vk::PolygonMode)VK_POLYGON_MODE_POINT;
+        if (contentMode == PolygonModeType::Enum::FillRectangle) return (vk::PolygonMode)VK_POLYGON_MODE_FILL_RECTANGLE_NV;
+        return (vk::PolygonMode)VK_POLYGON_MODE_FILL;
+    }
+
+    vk::FrontFace VulkanConvert::ToFrontFaceType(FrontFaceType mode)
     {
-        if (mode == FrontFaceType::Clockwise) return VK_FRONT_FACE_CLOCKWISE;
-        if (mode == FrontFaceType::CounterClockwise) return VK_FRONT_FACE_COUNTER_CLOCKWISE;
-        return VK_FRONT_FACE_CLOCKWISE;
+        if (mode == FrontFaceType::Enum::Clockwise) return (vk::FrontFace)VK_FRONT_FACE_CLOCKWISE;
+        if (mode == FrontFaceType::Enum::CounterClockwise) return (vk::FrontFace)VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        return (vk::FrontFace)VK_FRONT_FACE_CLOCKWISE;
     }
 
-    VkPrimitiveTopology VulkanConvert::PrimitiveTopologyType(PrimitiveTopologyType::Code mode)
+    vk::PrimitiveTopology VulkanConvert::GetPrimitiveType(RenderPrimitive primitive)
     {
-        if (mode == PrimitiveTopologyType::PointList) return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-        if (mode == PrimitiveTopologyType::LineList) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-        if (mode == PrimitiveTopologyType::LineStrip) return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-        if (mode == PrimitiveTopologyType::TriangleList) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        if (mode == PrimitiveTopologyType::TriangleStrip) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-        if (mode == PrimitiveTopologyType::TriangleFan) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-        if (mode == PrimitiveTopologyType::LineListWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
-        if (mode == PrimitiveTopologyType::LineStripWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
-        if (mode == PrimitiveTopologyType::TriangleListWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
-        if (mode == PrimitiveTopologyType::TriangleStripWithAdjacency) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
-        if (mode == PrimitiveTopologyType::PathList) return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    }
-
-    VkPrimitiveTopology VulkanConvert::GetPrimitiveType(RenderPrimitive::Enum primitive)
-    {
-        if (primitive == RenderPrimitive::Points) return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-        if (primitive == RenderPrimitive::Lines) return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-        if (primitive == RenderPrimitive::LineStrip) return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-        if (primitive == RenderPrimitive::Triangles) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        if (primitive == RenderPrimitive::TriangleStrip) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-        if (primitive == RenderPrimitive::TriangleFan) return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        if (primitive == RenderPrimitive::Enum::Points) return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        if (primitive == RenderPrimitive::Enum::Lines) return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        if (primitive == RenderPrimitive::Enum::LineStrip) return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        if (primitive == RenderPrimitive::Enum::Triangles) return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        if (primitive == RenderPrimitive::Enum::TriangleStrip) return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        if (primitive == RenderPrimitive::Enum::TriangleFan) return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+        return (vk::PrimitiveTopology)VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     }
 
     bool VulkanConvert::EndsWith(const std::string& s, const std::string& part) {
@@ -191,42 +186,111 @@ namespace nkentseu {
         }
     }
 
-    VkFormat VulkanConvert::ShaderInternalToVkFormat(ShaderInternalType::Enum shaderType)
+    VkFormat VulkanConvert::ShaderInternalToVkFormat(ShaderInternalType shaderType)
     {
-        switch (shaderType) {
-        case ShaderInternalType::Boolean: return VK_FORMAT_R32_UINT;
-        case ShaderInternalType::Float: return VK_FORMAT_R32_SFLOAT;
-        case ShaderInternalType::Float2: return VK_FORMAT_R32G32_SFLOAT;
-        case ShaderInternalType::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
-        case ShaderInternalType::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
-        case ShaderInternalType::Int: return VK_FORMAT_R32_SINT;
-        case ShaderInternalType::Int2: return VK_FORMAT_R32G32_SINT;
-        case ShaderInternalType::Int3: return VK_FORMAT_R32G32B32_SINT;
-        case ShaderInternalType::Int4: return VK_FORMAT_R32G32B32A32_SINT;
-        //case ShaderInternalType::UInt: return VK_FORMAT_R32_UINT;
-        //case ShaderInternalType::UInt2: return VK_FORMAT_R32G32_UINT;
-        //case ShaderInternalType::UInt3: return VK_FORMAT_R32G32B32_UINT;
-        //case ShaderInternalType::UInt4: return VK_FORMAT_R32G32B32A32_UINT;
-        case ShaderInternalType::Byte: return VK_FORMAT_R8_UNORM;
-        case ShaderInternalType::Byte2: return VK_FORMAT_R8G8_UNORM;
-        case ShaderInternalType::Byte3: return VK_FORMAT_R8G8B8_UNORM;
-        case ShaderInternalType::Byte4: return VK_FORMAT_R8G8B8A8_UNORM;
-        case ShaderInternalType::Mat3: return VK_FORMAT_R32G32B32_SFLOAT; // Mat3 is typically handled as an array of Float3
-        case ShaderInternalType::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT; // Mat4 is typically handled as an array of Float4
-        default: return VK_FORMAT_UNDEFINED;
-        }
+        if (shaderType == ShaderInternalType::Enum::Boolean) return VK_FORMAT_R32_UINT;
+        if (shaderType == ShaderInternalType::Enum::Float) return VK_FORMAT_R32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Float2) return VK_FORMAT_R32G32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Float3) return VK_FORMAT_R32G32B32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Float4) return VK_FORMAT_R32G32B32A32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Int) return VK_FORMAT_R32_SINT;
+        if (shaderType == ShaderInternalType::Enum::Int2) return VK_FORMAT_R32G32_SINT;
+        if (shaderType == ShaderInternalType::Enum::Int3) return VK_FORMAT_R32G32B32_SINT;
+        if (shaderType == ShaderInternalType::Enum::Int4) return VK_FORMAT_R32G32B32A32_SINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt): return VK_FORMAT_R32_UINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt2): return VK_FORMAT_R32G32_UINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt3): return VK_FORMAT_R32G32B32_UINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt4): return VK_FORMAT_R32G32B32A32_UINT;
+        if (shaderType == ShaderInternalType::Enum::Byte) return VK_FORMAT_R8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Byte2) return VK_FORMAT_R8G8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Byte3) return VK_FORMAT_R8G8B8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Byte4) return VK_FORMAT_R8G8B8A8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Mat2) return VK_FORMAT_R32G32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Mat3) return VK_FORMAT_R32G32B32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Mat4) return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+        return VK_FORMAT_UNDEFINED;
     }
 
-    VkShaderStageFlagBits VulkanConvert::ShaderStageToVkShaderStage(ShaderStage shaderStage) {
+    vk::Format VulkanConvert::ShaderInternalToVkFormat2(ShaderInternalType shaderType)
+    {
+        if (shaderType == ShaderInternalType::Enum::Boolean) return (vk::Format)VK_FORMAT_R32_UINT;
+        if (shaderType == ShaderInternalType::Enum::Float) return (vk::Format)VK_FORMAT_R32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Float2) return (vk::Format)VK_FORMAT_R32G32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Float3) return (vk::Format)VK_FORMAT_R32G32B32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Float4) return (vk::Format)VK_FORMAT_R32G32B32A32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Int) return (vk::Format)VK_FORMAT_R32_SINT;
+        if (shaderType == ShaderInternalType::Enum::Int2) return (vk::Format)VK_FORMAT_R32G32_SINT;
+        if (shaderType == ShaderInternalType::Enum::Int3) return (vk::Format)VK_FORMAT_R32G32B32_SINT;
+        if (shaderType == ShaderInternalType::Enum::Int4) return (vk::Format)VK_FORMAT_R32G32B32A32_SINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt): return (vk::Format) VK_FORMAT_R32_UINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt2): return (vk::Format) VK_FORMAT_R32G32_UINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt3): return (vk::Format) VK_FORMAT_R32G32B32_UINT;
+        //if (shaderType == ShaderInternalType::Enum::UInt4): return (vk::Format) VK_FORMAT_R32G32B32A32_UINT;
+        if (shaderType == ShaderInternalType::Enum::Byte) return (vk::Format)VK_FORMAT_R8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Byte2) return (vk::Format)VK_FORMAT_R8G8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Byte3) return (vk::Format)VK_FORMAT_R8G8B8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Byte4) return (vk::Format)VK_FORMAT_R8G8B8A8_UNORM;
+        if (shaderType == ShaderInternalType::Enum::Mat2) return (vk::Format)VK_FORMAT_R32G32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Mat3) return (vk::Format)VK_FORMAT_R32G32B32_SFLOAT;
+        if (shaderType == ShaderInternalType::Enum::Mat4) return (vk::Format)VK_FORMAT_R32G32B32A32_SFLOAT;
 
-        if (shaderStage.HasStage(ShaderStage::Enum::Vertex)) return VK_SHADER_STAGE_VERTEX_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::Fragment)) return VK_SHADER_STAGE_FRAGMENT_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::Geometry)) return VK_SHADER_STAGE_GEOMETRY_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::TesControl)) return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::TesEvaluation)) return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        if (shaderStage.HasStage(ShaderStage::Enum::Compute)) return VK_SHADER_STAGE_COMPUTE_BIT;
+        return (vk::Format)VK_FORMAT_UNDEFINED;
+    }
 
-        return VK_SHADER_STAGE_VERTEX_BIT;
+    vk::Format VulkanConvert::ToTextureFormat(TextureFormat format)
+    {
+        if (format == TextureFormat::Enum::RGBA8) return (vk::Format)VK_FORMAT_R8G8B8A8_UNORM;
+        if (format == TextureFormat::Enum::RGB8) return (vk::Format)VK_FORMAT_R8G8B8_UNORM;
+        if (format == TextureFormat::Enum::SRGB8_ALPHA8) return (vk::Format)VK_FORMAT_R8G8B8A8_SRGB;
+        if (format == TextureFormat::Enum::RED_INTEGER) return (vk::Format)VK_FORMAT_R8_UINT;
+        if (format == TextureFormat::Enum::DEPTH_COMPONENT16) return (vk::Format)VK_FORMAT_D16_UNORM;
+        if (format == TextureFormat::Enum::DEPTH_COMPONENT24) return (vk::Format)VK_FORMAT_X8_D24_UNORM_PACK32;
+        if (format == TextureFormat::Enum::DEPTH_COMPONENT32F) return (vk::Format)VK_FORMAT_D32_SFLOAT;
+        if (format == TextureFormat::Enum::STENCIL_INDEX8) return (vk::Format)VK_FORMAT_S8_UINT;
+        if (format == TextureFormat::Enum::DEPTH24_STENCIL8) return (vk::Format)VK_FORMAT_D24_UNORM_S8_UINT;
+        if (format == TextureFormat::Enum::DEPTH32F_STENCIL8) return (vk::Format)VK_FORMAT_D32_SFLOAT_S8_UINT;
+        return (vk::Format)VK_FORMAT_UNDEFINED;
+    }
+
+    vk::DescriptorType VulkanConvert::SamplerInputAttributType(SamplerType sampler)
+    {
+        if (sampler == SamplerType::Enum::CombineImage) {
+            return vk::DescriptorType::eCombinedImageSampler;
+        }
+        else if (sampler == SamplerType::Enum::SamplerImage) {
+            return vk::DescriptorType::eSampledImage;
+        }
+        else if (sampler == SamplerType::Enum::StorageImage) {
+            return vk::DescriptorType::eStorageImage;
+        }
+        return vk::DescriptorType::eCombinedImageSampler;
+    }
+
+    vk::DescriptorType VulkanConvert::BufferUsageAttributType(BufferUsageType usage)
+    {
+        if (usage == BufferUsageType::Enum::StaticDraw) {
+            return vk::DescriptorType::eUniformBuffer;
+        }
+        else if (usage == BufferUsageType::Enum::DynamicDraw) {
+            return vk::DescriptorType::eUniformBufferDynamic;
+        }
+        else if (usage == BufferUsageType::Enum::StreamDraw) {
+            return vk::DescriptorType::eStorageBuffer;
+        }
+        return vk::DescriptorType::eUniformBuffer;
+    }
+
+    vk::ShaderStageFlagBits VulkanConvert::ShaderStageToVkShaderStage(ShaderStage shaderStage) {
+
+        if (shaderStage.HasFlag(ShaderStage::Enum::Vertex)) return vk::ShaderStageFlagBits::eVertex;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Fragment)) return vk::ShaderStageFlagBits::eFragment;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Geometry)) return vk::ShaderStageFlagBits::eGeometry;
+        if (shaderStage.HasFlag(ShaderStage::Enum::TesControl)) return vk::ShaderStageFlagBits::eTessellationControl;
+        if (shaderStage.HasFlag(ShaderStage::Enum::TesEvaluation)) return vk::ShaderStageFlagBits::eTessellationEvaluation;
+        if (shaderStage.HasFlag(ShaderStage::Enum::Compute)) return vk::ShaderStageFlagBits::eCompute;
+
+        return vk::ShaderStageFlagBits::eVertex;
     }
 
 }  //  nkentseu

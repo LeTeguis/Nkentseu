@@ -29,24 +29,34 @@ namespace nkentseu {
 															Memory::Reset(data);	\
 														}
 
-    Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices)
-    {
-		if (context == nullptr) {
-			return nullptr;
+	Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context)
+	{
+		if (context == nullptr) return nullptr;
+		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+			return Memory::Alloc<VulkanIndexBuffer>(context);
 		}
-		NKENTSEU_CREATE_INDEX_BUFFER_P1(GraphicsApiType::VulkanApi, VulkanIndexBuffer);
-		NKENTSEU_CREATE_INDEX_BUFFER_P1(GraphicsApiType::OpenglApi, OpenglIndexBuffer);
+		if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
+			return Memory::Alloc<OpenglIndexBuffer>(context);
+		}
 		return nullptr;
+	}
+
+	Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context, BufferUsageType bufferUsage, const std::vector<uint32>& indices)
+    {
+		auto index = Create(context);
+		if (index == nullptr || !index->Create(bufferUsage, indices)) {
+			Memory::Reset(index);
+		}
+		return index;
     }
 
-    Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context, BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng)
+    Memory::Shared<IndexBuffer> IndexBuffer::Create(Memory::Shared<Context> context, BufferUsageType bufferUsage, IndexBufferType indexType, const void* indices, uint32 leng)
     {
-		if (context == nullptr) {
-			return nullptr;
+		auto index = Create(context);
+		if (index == nullptr || !index->Create(bufferUsage, indexType, indices, leng)) {
+			Memory::Reset(index);
 		}
-		NKENTSEU_CREATE_INDEX_BUFFER_P2(GraphicsApiType::VulkanApi, VulkanIndexBuffer);
-		NKENTSEU_CREATE_INDEX_BUFFER_P2(GraphicsApiType::OpenglApi, OpenglIndexBuffer);
-		return nullptr;
+		return index;
     }
 
 }  //  nkentseu

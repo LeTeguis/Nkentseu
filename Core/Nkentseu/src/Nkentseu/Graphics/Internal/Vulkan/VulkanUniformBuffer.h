@@ -14,6 +14,8 @@
 #include "Nkentseu/Graphics/UniformBuffer.h"
 #include "VulkanContext.h"
 #include "VulkanShader.h"
+#include "Tools/VulkanUBO.h"
+#include "Tools/VulkanDescriptorPool.h"
 
 namespace nkentseu {
     
@@ -33,12 +35,10 @@ namespace nkentseu {
         private:
             Memory::Shared<VulkanContext> m_Context;
             Memory::Shared<VulkanShader> m_Shader;
-            //UniformBufferLayout m_BufferLayout;
-            VulkanDescriptorPool m_DescriptorPool;
             Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
 
-            std::unordered_map<std::string, VulkanUBO> m_UniformBuffers;
-            std::vector<VkDescriptorSet> m_DescriptorSets = {};
+            std::unordered_map<std::string, VkUniformBufferInternal> m_UniformBuffers;
+            std::vector<vk::DescriptorSet> m_DescriptorSets = {};
 
             uint32 m_OffsetDynamicCount = 0;
             usize m_DynamicAlignment = 0;
@@ -51,6 +51,13 @@ namespace nkentseu {
             bool FreeData();
 
             bool Create(const std::vector<std::string> uniformsLoader);
+
+            // descriptor pool
+            vk::DescriptorPool descriptorPool = nullptr;
+            std::vector<vk::DescriptorPoolSize> poolSizes;
+            bool CreateDescriptorPool();
+            bool DestroyDescriptorPool();
+            void AddInDescriptorPool(vk::DescriptorType type, uint32 count);
     };
 
 }  //  nkentseu

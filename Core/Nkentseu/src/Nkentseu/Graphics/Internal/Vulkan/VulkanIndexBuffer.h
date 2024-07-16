@@ -12,7 +12,7 @@
 
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/IndexBuffer.h"
-#include "VulkanInternal.h"
+#include "VulkanContext.h"
 
 namespace nkentseu {
     class VulkanContext;
@@ -24,19 +24,19 @@ namespace nkentseu {
 
             Memory::Shared<Context> GetContext() override;
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices);
-            bool Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* vertices, uint32 leng);
+            bool Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices) override;
+            bool Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* vertices, uint32 leng) override;
             bool Destroy() override;
 
             virtual bool SetData(void* data, usize size) override;
 
-            VulkanBuffer* GetBuffer();
-            DrawIndexType::Code GetIndexType() const;
+            VkBufferInternal* GetBuffer();
+            IndexBufferType GetIndexType() const;
             uint32 Leng() const override;
         private:
             Memory::Shared<VulkanContext> m_Context = nullptr;
-            VulkanBuffer m_IndexBufferObject;
-            DrawIndexType::Code m_IndexType = DrawIndexType::UInt32;
+            VkBufferInternal m_IndexBufferObject;
+            IndexBufferType m_IndexType = IndexBufferType::Enum::UInt32;
 
             uint32 m_Leng = 0;
     };

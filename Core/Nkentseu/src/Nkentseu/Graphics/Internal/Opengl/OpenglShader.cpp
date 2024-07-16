@@ -125,7 +125,7 @@ namespace nkentseu {
         }
         return result.success;
     }
-
+    /*
     bool OpenglShader::DrawMode(CullModeType::Code mode, PolygonModeType::Code contentMode)
     {
         return PolygonMode(contentMode) && CullMode(mode);
@@ -206,7 +206,7 @@ namespace nkentseu {
             return false;
         }
         return true;
-    }
+    }*/
 
     void OpenglShader::GetUniformBufferInfos()
     {

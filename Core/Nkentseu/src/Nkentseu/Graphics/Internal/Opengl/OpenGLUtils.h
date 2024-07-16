@@ -76,17 +76,20 @@ namespace nkentseu {
 
     class NKENTSEU_API GLConvert {
         public:
-            static uint32 ShaderType(ShaderDataType::Code type);
-            static uint32 UsageType(BufferDataUsage::Code type);
-            static uint32 CullModeType(CullModeType::Code mode);
-            static uint32 PolygonModeType(PolygonModeType::Code contentMode);
+            static uint32 ShaderType(ShaderInternalType shaderType);
+            static uint32 UsageType(BufferUsageType type);
+            static uint32 ToCullModeType(CullModeType mode);
+            static uint32 ToPolygonModeType(PolygonModeType contentMode);
             static uint32 VerticesPerType(uint32 vertexType);
             static uint32 VertexType(DrawVertexType::Code drawVertex);
             static uint32 IndexType(DrawIndexType::Code drawIndex);
             static uint32 GetModuleType(ShaderStage shaderStage);
             static uint32 GetModernModuleType(ShaderStage shaderStage);
 
-            static uint32 GetPrimitiveType(RenderPrimitive::Enum primitive);
+            static uint32 GetPrimitiveType(RenderPrimitive primitive);
+
+            static GLenum ToTextureFormat(TextureFormat format);
+            static GLenum ToTextureDataFormat(TextureFormat format);
     };
 
     struct NKENTSEU_API OpenglBuffer {

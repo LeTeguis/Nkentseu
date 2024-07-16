@@ -25,6 +25,7 @@ namespace nkentseu {
     class Window;
     class Context;
     class Renderer;
+    class RenderWindow;
     class Event;
 
     class NKENTSEU_API Application
@@ -53,9 +54,10 @@ namespace nkentseu {
         Memory::Shared<Window> m_Window;
         Memory::Shared<Context> m_Context;
         Memory::Shared<Renderer> m_Renderer;
+        Memory::Shared<RenderWindow> m_RenderWindow;
         bool m_Running;
 
-        PolygonModeType::Code m_PolygonMode = PolygonModeType::Fill;
+        PolygonModeType m_PolygonMode = PolygonModeType::Enum::Fill;
     };
 
     Memory::Shared<Application> MainApplication(const ARGV& argv);

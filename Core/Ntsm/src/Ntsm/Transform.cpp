@@ -10,6 +10,7 @@ namespace nkentseu {
 
     namespace maths
     {
+        /*
         Transform::Transform(const Vector3f& p, const Quaternion& r, const Vector3f& s) : position(p), rotation(r), scale(s) {}
         Transform::Transform() : position(Vector3f(0, 0, 0)), rotation(Quaternion(0, 0, 0, 1)), scale(Vector3f(1, 1, 1)) {}
         Transform::Transform(const Transform& transform) : position(transform.position), rotation(transform.rotation), scale(transform.scale) {}
@@ -123,6 +124,6 @@ namespace nkentseu {
             Vector3f out;
             out = rotation * (scale * b);
             return out;
-        }
+        }*/
     }
 }    // namespace nkentseu

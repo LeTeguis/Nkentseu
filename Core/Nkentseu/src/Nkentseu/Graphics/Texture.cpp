@@ -13,28 +13,6 @@
 namespace nkentseu {
 	using namespace maths;
 
-	bool TextureFormat::IsColor(TextureFormat::Code format)
-	{
-		return format == TextureFormat::RGBA8			||
-			   format == TextureFormat::RGB8			||
-			   format == TextureFormat::SRGB8_ALPHA8	||
-			   format == TextureFormat::RED_INTEGER;
-	}
-
-	bool TextureFormat::IsDepth(TextureFormat::Code format)
-	{
-		return format == TextureFormat::DEPTH_COMPONENT16 ||
-			   format == TextureFormat::DEPTH_COMPONENT24 ||
-			   format == TextureFormat::DEPTH_COMPONENT32F;
-	}
-
-	bool TextureFormat::IsStencil(TextureFormat::Code format)
-	{
-		return format == TextureFormat::STENCIL_INDEX8		||
-			   format == TextureFormat::DEPTH24_STENCIL8	||
-			   format == TextureFormat::DEPTH32F_STENCIL8;
-	}
-
 	uint32 Texture2D::GetMaximumSize(Memory::Shared<Context> context)
 	{
 		return uint32();
@@ -49,7 +27,7 @@ namespace nkentseu {
 	{
 		Memory::Shared<Texture2D> texture = nullptr;
 		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
-			// texture = Memory::Alloc<VukanTexture2D>(context, sil);
+			texture = Memory::Alloc<VulkanTexture2D>(context, sil);
 		}
 		else if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
 			texture = Memory::Alloc<OpenglTexture2D>(context, sil);
@@ -57,7 +35,7 @@ namespace nkentseu {
 		return texture;
 	}
 
-	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, TextureFormat::Code textureFormat, const maths::Vector2u& size)
+	Memory::Shared<Texture2D> Texture2D::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, TextureFormat textureFormat, const maths::Vector2u& size)
 	{
 		Memory::Shared<Texture2D> texture = Create(context, sil);
 

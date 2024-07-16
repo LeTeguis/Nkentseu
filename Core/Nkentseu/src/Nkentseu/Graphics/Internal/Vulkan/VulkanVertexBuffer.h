@@ -12,7 +12,7 @@
 
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/VertexBuffer.h"
-#include "VulkanInternal.h"
+#include "VulkanContext.h"
 
 #include <vulkan/vulkan.hpp>
 
@@ -39,11 +39,11 @@ namespace nkentseu {
 
             virtual bool SetData(void* data, usize size) override;
 
-            VulkanBuffer* GetBuffer();
+            VkBufferInternal* GetBuffer();
 
             uint32 Leng() const override;
         private:
-            VulkanBuffer m_VertexBufferObject;
+            VkBufferInternal m_VertexBufferObject;
             Memory::Shared<VulkanContext> m_Context = nullptr;
             Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
             uint32 m_Leng = 0;

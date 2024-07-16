@@ -1,5 +1,5 @@
 //
-// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-06-25 at 03:40:09 PM AM.
+// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 2024-07-16 at 11:38:04 AM AM.
 // Copyright (c) 2024 Rihen. All rights reserved.
 //
 
@@ -12,7 +12,6 @@
 #include <Ntsm/Matrix/Matrix4.h>
 
 namespace nkentseu {
-    
     struct NKENTSEU_API Vertex2D {
         maths::Vector2f position;
         maths::Vector4f color;
@@ -37,7 +36,6 @@ namespace nkentseu {
         // Destructor
         ~Vertex2D();
     };
-
 }  //  nkentseu
 
 #endif  // __VERTEX2_D_H__!

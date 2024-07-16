@@ -16,59 +16,51 @@ namespace nkentseu {
 
     VulkanShaderInputLayout::~VulkanShaderInputLayout() {
     }
-
     bool VulkanShaderInputLayout::Initialize()
     {
         if (m_Context == nullptr || !ShaderInputLayout::Initialize()) {
             return false;
         }
 
-        if (uniformInput.attributes.size() > 0) {
-            for (auto& attribut : uniformInput.attributes) {
-                VkDescriptorType dtype;
-                if (attribut.usage == BufferUsageType::StaticDraw) {
-                    dtype = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                }
-                else if (attribut.usage == BufferUsageType::DynamicDraw) {
-                    dtype = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-                }
-                else if (attribut.usage == BufferUsageType::StreamDraw) {
-                    dtype = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                }
+        // Créer les bindings de descripteur pour les uniform inputs
+        for (auto& attribut : uniformInput.attributes) {
+            vk::DescriptorSetLayoutBinding layoutBinding = {};
+            layoutBinding.binding = attribut.binding;
+            layoutBinding.descriptorType = VulkanConvert::BufferUsageAttributType(attribut.usage);
+            layoutBinding.descriptorCount = 1;
+            layoutBinding.stageFlags = VulkanConvert::ShaderStageToVkShaderStage(attribut.stage);
+            layoutBinding.pImmutableSamplers = nullptr;
 
-                m_PipelineLayout.Add(attribut.binding, dtype, VulkanConvert::ShaderStageToVkShaderStage(attribut.stage));
-            }
+            layoutBindings[BufferSpecificationType::Enum::Uniform].push_back(layoutBinding);
+            sets[BufferSpecificationType::Enum::Uniform] = attribut.set;
         }
 
-        if (samplerInput.attributes.size() > 0) {
-            for (auto& attribut : samplerInput.attributes) {
-                VkDescriptorType dtype;
-                if (attribut.type == SamplerType::CombineImage) {
-                    dtype = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                }
-                else if (attribut.type == SamplerType::SamplerImage) {
-                    dtype = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-                }
-                else if (attribut.type == SamplerType::StorageImage) {
-                    dtype = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-                }
-                m_PipelineLayout.Add(attribut.binding, dtype, VulkanConvert::ShaderStageToVkShaderStage(attribut.stage));
-            }
+        // Créer les bindings de descripteur pour les sampler inputs
+        for (auto& attribut : samplerInput.attributes) {
+            vk::DescriptorSetLayoutBinding layoutBinding = {};
+            layoutBinding.binding = attribut.binding;
+            layoutBinding.descriptorType = VulkanConvert::SamplerInputAttributType(attribut.type);
+            layoutBinding.descriptorCount = 1;
+            layoutBinding.stageFlags = VulkanConvert::ShaderStageToVkShaderStage(attribut.stage);
+            layoutBinding.pImmutableSamplers = nullptr;
+            
+            layoutBindings[BufferSpecificationType::Enum::Texture].push_back(layoutBinding);
+            sets[BufferSpecificationType::Enum::Texture] = attribut.set;
         }
 
-        if (pushConstantInput.attributes.size() > 0) {
-            for (const auto& attribut : pushConstantInput.attributes) {
-                VkPushConstantRange pushConstantRange{};
-                pushConstantRange.stageFlags = VulkanConvert::ShaderStageToVkShaderStage(attribut.stage);
-                pushConstantRange.offset = attribut.offset;
-                pushConstantRange.size = attribut.size;
+        // Créer les push constant ranges
+        for (auto& attribut : pushConstantInput.attributes) {
+            vk::PushConstantRange pushConstantRange = {};
+            pushConstantRange.stageFlags = VulkanConvert::ShaderStageToVkShaderStage(attribut.stage);
+            pushConstantRange.offset = attribut.offset;
+            pushConstantRange.size = attribut.size;
 
-                m_PipelineLayout.AddPushConstantRange(pushConstantRange);
-            }
+            pushConstantRanges.push_back(pushConstantRange);
         }
 
-        if (!m_PipelineLayout.Create(m_Context->GetGpu(), m_Context->GetSwapchain())) {
-            Log_nts.Debug("Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
+        // Créer le pipeline layout
+        if (!CreatePipelineLayout()) {
+            Log_nts.Error("cannot create pipeline layout");
             return false;
         }
 
@@ -78,19 +70,19 @@ namespace nkentseu {
     bool VulkanShaderInputLayout::Release()
     {
         // Release Vulkan resources
-        m_PipelineLayout.Destroy(m_Context->GetGpu());
+        DestroyPipelineLayout();
         return ShaderInputLayout::Release();
     }
 
     bool VulkanShaderInputLayout::UpdatePushConstant(const std::string& name, void* data, usize size, Memory::Shared<Shader> shader) {
-        // Validate Vulkan context and pipeline layout
-        if (!m_Context || !m_PipelineLayout.IsValid() || !m_Context->GetCurrentCommandBuffer()) {
+        // Valider le contexte Vulkan et le pipeline layout
+        if (m_Context == nullptr || pipelineLayout == nullptr) {
             return false;
         }
 
         // Find the push constant attribute by name
         const PushConstantInputAttribute* attribute = nullptr;
-        for (const auto& attr : pushConstantInput.attributes) {
+        for (auto& attr : pushConstantInput.attributes) {
             if (attr.name == name) {
                 attribute = &attr;
                 break;
@@ -108,18 +100,119 @@ namespace nkentseu {
             return false;
         }
 
-        VulkanResult result;
-        bool first = true;
+        vk::CommandBuffer currentCommandBuffer = m_Context->GetCommandBuffer();
 
-        vkCheckErrorVoid(vkCmdPushConstants(
-            m_Context->GetCurrentCommandBuffer(),
-            m_PipelineLayout.pipelineLayout,
+        vkCheckErrorVoid(currentCommandBuffer.pushConstants(
+            pipelineLayout,
             VulkanConvert::ShaderStageToVkShaderStage(attribute->stage),
             0, //attribute->offset,
             size,
             data
         ));
         return true;
+    }
+
+    bool VulkanShaderInputLayout::CreatePipelineLayout() {
+        if (m_Context == nullptr) return false;
+        VulkanResult result;
+        bool first = true;
+
+        if (!CreateDescriptorSetLayout()) {
+            Log_nts.Error("cannot create descriptor set layout");
+            return false;
+        }
+        uint32 index = 0;
+        std::vector<vk::DescriptorSetLayout> layouts;
+        layouts.resize(descriptorSetLayouts.size());
+        for (auto& [bst, layout] : descriptorSetLayouts) {
+            if (layout != nullptr) {
+                layouts[sets[bst]] = layout;
+                Log_nts.Debug("indice = {0}", sets[bst]);
+                /*layouts.push_back(layout);
+                Log_nts.Info("DescriptorSetLayout added to PipelineLayout for BufferSpecificationType : {0}", BufferSpecificationType(bst));
+
+                if (bst == BufferSpecificationType::Enum::Uniform) {
+                    layouts[]
+                    uniformInputIndex = index;
+                } else if (bst == BufferSpecificationType::Enum::Texture) {
+                    samplerInputIndex = index;
+                }
+                index++;*/
+            }
+        }
+        vk::PipelineLayoutCreateInfo layoutInfo = {};
+
+        if (layouts.size() > 0) {
+            layoutInfo.setLayoutCount = (uint32)layouts.size();
+            layoutInfo.pSetLayouts = layouts.data();
+        }
+        else {
+            Log_nts.Fatal();
+        }
+
+        if (!pushConstantRanges.empty()) {
+            layoutInfo.pushConstantRangeCount = static_cast<uint32>(pushConstantRanges.size());
+            layoutInfo.pPushConstantRanges = pushConstantRanges.data();
+        }
+
+        vk::PipelineLayout pipelineLayout = nullptr;
+        vkCheckError(first, result, m_Context->device.createPipelineLayout(&layoutInfo, m_Context->allocator, &pipelineLayout), "cannot create pipeline layout");
+
+        if (result.success && pipelineLayout != VK_NULL_HANDLE) {
+            this->pipelineLayout = pipelineLayout;
+            Log_nts.Info("Pipeline layout created successfully");
+            return true;
+        }
+
+        return false;
+    }
+
+    bool VulkanShaderInputLayout::DestroyPipelineLayout()
+    {
+        if (m_Context == nullptr) return false;
+
+        for (auto& [bst, layout] : descriptorSetLayouts) {
+            if (layout != VK_NULL_HANDLE) {
+                vkCheckErrorVoid(m_Context->device.destroyDescriptorSetLayout(layout, m_Context->allocator));
+                layout = VK_NULL_HANDLE;
+            }
+        }
+
+        if (pipelineLayout != VK_NULL_HANDLE) {
+            vkCheckErrorVoid(m_Context->device.destroyPipelineLayout(pipelineLayout, m_Context->allocator));
+            pipelineLayout = VK_NULL_HANDLE;
+        }
+
+        return true;
+    }
+
+    bool VulkanShaderInputLayout::CreateDescriptorSetLayout() {
+        if (m_Context == nullptr) return false;
+
+        VulkanResult result;
+        bool first = true;
+
+        for (const auto& [bst, bindings] : layoutBindings) {
+            if (bindings.empty()) continue;
+
+            vk::DescriptorSetLayoutCreateInfo layoutDescriptorInfo{};
+            layoutDescriptorInfo.bindingCount = static_cast<uint32>(bindings.size());
+            layoutDescriptorInfo.pBindings = bindings.data();
+
+            vk::DescriptorSetLayout descriptorSetLayout = nullptr;
+            vkCheckError(first, result, m_Context->device.createDescriptorSetLayout(&layoutDescriptorInfo, m_Context->allocator, &descriptorSetLayout), "cannot create descriptor set layout");
+
+            if (result.success && descriptorSetLayout != VK_NULL_HANDLE) {
+                descriptorSetLayouts[bst] = descriptorSetLayout;
+                Log_nts.Info("DescriptorSetLayout created successfully for BufferSpecificationType {0}", BufferSpecificationType(bst));
+            }
+        }
+        return true;
+    }
+
+    bool VulkanShaderInputLayout::IsValid() const
+    {
+        return pipelineLayout != VK_NULL_HANDLE;
     }
 
 }  //  nkentseu

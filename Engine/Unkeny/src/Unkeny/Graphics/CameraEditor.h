@@ -79,7 +79,7 @@ namespace nkentseu {
 
         maths::matrix4f view;
         maths::matrix4f projection;
-        maths::Quaternionf rotation;
+        //maths::Quaternionf rotation;
 
         bool updateProjection = false;
         bool updateView = false;

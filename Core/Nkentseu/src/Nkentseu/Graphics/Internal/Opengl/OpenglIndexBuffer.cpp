@@ -27,12 +27,12 @@ namespace nkentseu {
         // Ajoutez votre code de destructeur ici
     }
 
-    bool OpenglIndexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<uint32>& indices)
+    bool OpenglIndexBuffer::Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices)
     {
-        return Create(bufferUsage, DrawIndexType::UInt32, indices.data(), indices.size());
+        return Create(bufferUsage, IndexBufferType::Enum::UInt32, indices.data(), indices.size());
     }
 
-    bool OpenglIndexBuffer::Create(BufferDataUsage::Code bufferUsage, DrawIndexType::Code indexType, const void* indices, uint32 leng)
+    bool OpenglIndexBuffer::Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* indices, uint32 leng)
     {
         if (m_Buffer.buffer != 0 || m_Context == nullptr) {
             return false;
@@ -95,7 +95,7 @@ namespace nkentseu {
         return m_Size;
     }
 
-    DrawIndexType::Code OpenglIndexBuffer::GetIndexType() const
+    IndexBufferType OpenglIndexBuffer::GetIndexType() const
     {
         return m_IndexType;
     }

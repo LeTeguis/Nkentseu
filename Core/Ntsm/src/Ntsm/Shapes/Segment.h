@@ -20,7 +20,7 @@ namespace nkentseu {
 		class NKENTSEU_API Segment {
 		public:
 			union {
-				Vector2 points[2];
+				Vector2f points[2];
 				struct {
 					float32 x1; float32 y1; // Coordonnées x et y du point A
 					float32 x2; float32 y2; // Coordonnées x et y du point B
@@ -29,9 +29,9 @@ namespace nkentseu {
 			};
 
 			// Constructeurs
-			Segment() : points{ Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f) } {} // Constructeur par défaut initialisant les points A et B à l'origine (0, 0)
-			Segment(const Vector2& point1, const Vector2& point2) : points{ point1, point2 } {} // Constructeur initialisant les points A et B avec des vecteurs donnés
-			Segment(float32 x1, float32 y1, float32 x2, float32 y2) : points{ Vector2(x1, y1), Vector2(x2, y2) } {} // Constructeur initialisant les points A et B avec des coordonnées données
+			Segment() : points{ Vector2f(0.0f, 0.0f), Vector2f(0.0f, 0.0f) } {} // Constructeur par défaut initialisant les points A et B à l'origine (0, 0)
+			Segment(const Vector2f& point1, const Vector2f& point2) : points{ point1, point2 } {} // Constructeur initialisant les points A et B avec des vecteurs donnés
+			Segment(float32 x1, float32 y1, float32 x2, float32 y2) : points{ Vector2f(x1, y1), Vector2f(x2, y2) } {} // Constructeur initialisant les points A et B avec des coordonnées données
 			Segment(const Segment& segment) : points{ segment.points[0], segment.points[1] } {} // Constructeur de copie initialisant les points A et B avec ceux d'un autre segment
 
 			// Surcharge de l'opérateur d'assignation
@@ -54,7 +54,7 @@ namespace nkentseu {
 			}
 
 			// Méthodes membres de la classe Segment (non implémentées dans ce contexte)
-			RangeFloat Project(const Vector2& onto);
+			RangeFloat Project(const Vector2f& onto);
 			float32 Len();
 			bool Equivalent(const Segment& b);
 

@@ -59,7 +59,7 @@ namespace nkentseu {
             bool m_IsPrepare = false;
             bool beginRenderPass = false;
 
-            VulkanDynamicMode m_DynamicMode;
+            //VulkanDynamicMode m_DynamicMode;
 
             bool m_ClearColor = false;
             Color m_PreviousColor;

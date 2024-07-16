@@ -16,7 +16,150 @@ namespace nkentseu {
 
     namespace maths
     {
-        class NKENTSEU_API Quaternionf {
+        struct NKENTSEU_API quatf {
+            union {
+                struct {
+                    float32 x;
+                    float32 y;
+                    float32 z;
+                    float32 w;
+                };
+                struct {
+                    Vector3f vector;
+                    float32 scalar;
+                };
+                Vector4f quat;
+                float32 data[4];
+            };
+
+            // Constructeurs
+            quatf();
+            quatf(float32 value, bool identity = true);
+            quatf(float32 x, float32 y, float32 z, float32 w);
+            quatf(float32 x, float32 y, float32 z);
+            quatf(const Angle& angle, const Vector3f& axis);
+            quatf(const EulerAngle& eulerAngle);
+            quatf(const Vector3f& vector, float32 scalar);
+            quatf(const mat4f& mat);
+            quatf(const quatf& quat);
+            quatf(const Vector4f& quat);
+            quatf(const Vector3f& from, const Vector3f& to);
+
+            quatf& operator=(const quatf& other);
+
+            operator float32* () {
+                return &data[0];
+            }
+
+            inline float32& operator[] (size_t index) {
+                return this->data[index % 4];
+            }
+
+            inline const float32& operator[](size_t index) const {
+                return this->data[index % 4];
+            }
+
+            quatf operator+(const quatf& right);
+            quatf& operator+=(const quatf& right);
+            quatf operator-(const quatf& right);
+            quatf& operator-=(const quatf& right);
+            quatf operator*(const quatf& right);
+            quatf operator*(float32 right);
+            quatf operator/(float32 right);
+            quatf& operator*=(const quatf& right);
+
+            friend quatf operator*(float32 left, const quatf& right);
+            friend quatf operator*(const quatf& right, float32 left);
+            friend Vector3f operator*(const Vector3f& left, const quatf& right);
+            friend Vector3f operator*(const quatf& left, const Vector3f& right);
+
+            friend quatf operator+(const quatf& a, const quatf& b);
+            friend quatf operator-(const quatf& a, const quatf& b);
+
+            friend quatf operator^(const quatf& q, float32 f);
+
+            friend bool operator==(const quatf& left, const quatf& right);
+            friend bool operator!=(const quatf& a, const quatf& b);
+
+            operator mat4f ();
+            operator EulerAngle ();
+
+            static quatf LookAt(const Vector3f& direction, const Vector3f& up);
+            static quatf LookAt(const Vector3f& position, const Vector3f& target, const Vector3f& up);
+
+            float32 Dot(const quatf& right);
+            float32 LenSq();
+            float32 Len();
+            void Normalize();
+            quatf Normalized() const;
+            quatf Conjugate();
+            quatf Inverse(bool normalize = true);
+
+            quatf Cross(const quatf& quat);
+
+            int32 GimbalPole() const;
+
+            static quatf Reflection(const  Vector3f& normal);
+
+            bool IsNormalize();
+            Vector3f Axis() const;
+            Angle Angles() const;
+            quatf Mix(const quatf& to, float32 t);
+            quatf Lerp(const quatf& e, float32 t);
+            quatf NLerp(const quatf& to, float t);
+
+            quatf SLerp(const quatf& end, float32 t);
+
+            static quatf identity() {
+                return quatf(0, 0, 0, 1);
+            }
+
+            EulerAngle eulerAngle() const {
+                quatf q(*this);
+                return (EulerAngle)q;
+            }
+            /*Vector3f forward() const {
+                return (*this * Vector3f(0, 0, 1));
+            }
+            Vector3f back()  const {
+                return (*this * Vector3f(0, 0, -1));
+            }
+            Vector3f up()  const {
+                return (*this * Vector3f(0, 1, 0));
+            }
+            Vector3f down()  const {
+                return (*this * Vector3f(0, -1, 0));
+            }
+            Vector3f left()  const {
+                return (*this * Vector3f(-1, 0, 0));
+            }
+            Vector3f right()  const {
+                return (*this * Vector3f(1, 0, 0));
+            }*/
+
+            static quatf rotateX(const Angle& pitch);
+            static quatf rotateY(const Angle& yaw);
+            static quatf rotateZ(const Angle& roll);
+            Vector3f transformVector(const Vector3f& vector);
+            Vector3f reflectVector(const Vector3f& vector);
+
+            friend std::ostream& operator<<(std::ostream& os, const quatf& e) {
+                return os << e.ToString();
+            }
+
+            std::string ToString() const {
+                std::stringstream ss;
+                ss << "[" << x << ", " << y << ", " << z << "; " << w << "]";
+                return ss.str();
+            }
+
+            friend std::string ToString(const quatf& v) {
+                return v.ToString();
+            }
+
+            void epsi();
+        };
+        /*class NKENTSEU_API Quaternionf {
         public:
             union {
                 struct {
@@ -226,7 +369,7 @@ namespace nkentseu {
             static quatf fromEuler(const EulerAngle& eulerAngles);
             static quatf fromEuler(const Angle& pitch, const Angle& yaw, const Angle& roll);
             mat4f toMatrix() const;
-            static quatf fromMatrix(const mat4f& mat);
+            static quatf fromMatrix(const mat4f& mat, bool addScale = false);
             static quatf reflection(const  Vector3f& normal);
             bool isNormalize();
 
@@ -258,10 +401,19 @@ namespace nkentseu {
 
             EulerAngle eulerAngle() const;
             EulerAngle eulerAngle2() const;
+            EulerAngle eulerAngle3() const;
+            EulerAngle eulerAngle4() const;
+            EulerAngle eulerAngle5() const;
+            EulerAngle eulerAngle6() const;
+            EulerAngle eulerAngle7() const;
+            EulerAngle eulerAngle8() const;
+            EulerAngle eulerAngle9() const;
+            EulerAngle eulerAngle10() const;
+            EulerAngle eulerAngle11() const;
             int32 gimbalPole() const;
 
             Vector3f forward() const;
-            Vector3f backward() const;
+            Vector3f back() const;
             Vector3f up() const;
             Vector3f down() const;
             Vector3f right() const;
@@ -274,6 +426,36 @@ namespace nkentseu {
             static quatf rotateX(const Angle& pitch);
             static quatf rotateY(const Angle& yaw);
             static quatf rotateZ(const Angle& roll);
+
+            /*quatf lookAt(Vector3f& lookAt, Vector3f& upDirection) {
+                Vector3f forward = lookAt.Normalized();
+                Vector3f up = upDirection.Normalized();
+                Vector3f right = up.Cross(forward);
+
+                quatf ret;
+                ret.w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
+                float32 w4_recip = 1.0f / (4.0f * ret.w);
+                ret.x = (up.z - forward.y) * w4_recip;
+                ret.y = (forward.x - right.z) * w4_recip;
+                ret.z = (right.y - up.x) * w4_recip;
+
+                return ret;
+            }
+
+            quatf lookAt(Vector3f& lookAt) {
+                Vector3f forward = lookAt.Normalized();
+                Vector3f up = Vector3f::Up();
+                Vector3f right = up.Cross(forward);
+
+                quatf ret;
+                ret.w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
+                float32 w4_recip = 1.0f / (4.0f * ret.w);
+                ret.x = (up.z - forward.y) * w4_recip;
+                ret.y = (forward.x - right.z) * w4_recip;
+                ret.z = (right.y - up.x) * w4_recip;
+
+                return ret;
+            }* /
 
             friend std::ostream& operator<<(std::ostream& os, const quatf& e) {
                 return os << e.ToString();
@@ -288,7 +470,7 @@ namespace nkentseu {
             friend std::string ToString(const quatf& v) {
                 return v.ToString();
             }
-        };
+        };*/
 
     }
 } // namespace nkentseu

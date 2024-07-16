@@ -96,6 +96,39 @@ namespace nkentseu {
 			return *this;
 		}
 
+		float32 Vector4f::Dot(const Vector4f& right) const
+		{
+			return x * right.x + y * right.y + z * right.z + w * right.w;
+		}
+
+		float32 Vector4f::LenSq() const
+		{
+			return x * x + y * y + z * z + w * w;
+		}
+
+		float32 Vector4f::Len() const
+		{
+			return maths::Sqrt(x * x + y * y + z * z + w * w);
+		}
+
+		void Vector4f::Normalize()
+		{
+			float32 lenSq = x * x + y * y + z * z + w * w;
+
+			if (lenSq == 0) {
+				return;
+			}
+
+			*this /= maths::Sqrt(lenSq);
+		}
+
+		Vector4f Vector4f::Normalized() const
+		{
+			Vector4f v(*this);
+			v.Normalize();
+			return v;
+		}
+
 		// [Vector4d]
 		Vector4d::Vector4d() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
 

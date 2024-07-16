@@ -15,6 +15,7 @@
 #include <Nkentseu/Graphics/Color.h>
 #include <Nkentseu/Graphics/Context.h>
 #include <Nkentseu/Graphics/Renderer.h>
+#include <Nkentseu/Graphics/RenderWindow.h>
 #include <Nkentseu/Event/EventBroker.h>
 
 #include <Nkentseu/Event/InputManager.h>
@@ -503,9 +504,10 @@ namespace nkentseu {
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);
-        m_Renderer = Renderer::CreateInitialized(m_Context);
+        //m_Renderer = Renderer::CreateInitialized(m_Context);
+        m_RenderWindow = RenderWindow::CreateInitialized(m_Context);
 
-        if (m_Renderer == nullptr) {
+        if (m_RenderWindow == nullptr) {
             Log.Fatal();
         }
 
@@ -532,15 +534,16 @@ namespace nkentseu {
             return;
         }
 
-        if (m_Renderer == nullptr || m_Context == nullptr) {
+        //if (m_Renderer == nullptr || m_Context == nullptr) {
+        if (m_Context == nullptr) {
             if (m_Context != nullptr) {
                 m_Context->Deinitialize();
                 Log.Debug();
             }
-            if (m_Renderer != nullptr) {
+            /*if (m_Renderer != nullptr) {
                 m_Renderer->Deinitialize();
                 Log.Debug();
-            }
+            }*/
             m_Window->Close();
             return;
         }
@@ -550,14 +553,14 @@ namespace nkentseu {
         Memory::Shared<ShaderInputLayout> shaderInputLayout = ShaderInputLayout::Create(m_Context);
 
         if (shaderInputLayout != nullptr) {
-            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("position", ShaderInternalType::Float3, 0));
-            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("color", ShaderInternalType::Float4, 1));
-            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("uv", ShaderInternalType::Float2, 2));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("position", ShaderInternalType::Enum::Float3, 0));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("color", ShaderInternalType::Enum::Float4, 1));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("uv", ShaderInternalType::Enum::Float2, 2));
 
             //shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("ObjectBuffer", ShaderStage::Vertex, BufferUsageType::DynamicDraw, sizeof(ObjectBuffer), 0, 10));
-            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CameraBuffer", ShaderStage::Enum::Vertex, BufferUsageType::StaticDraw, sizeof(CameraBuffer), 0, 1));
+            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CameraBuffer", ShaderStage::Enum::Vertex, BufferUsageType::Enum::StaticDraw, sizeof(CameraBuffer), 0, 0, 1));
 
-            shaderInputLayout->samplerInput.AddAttribute(SamplerInputAttribute("textureSampler", 1, ShaderStage::Enum::Fragment, SamplerType::CombineImage));
+            shaderInputLayout->samplerInput.AddAttribute(SamplerInputAttribute("textureSampler", 1, 1, ShaderStage::Enum::Fragment, SamplerType::Enum::CombineImage));
 
             shaderInputLayout->pushConstantInput.AddAttribute(PushConstantInputAttribute("ObjectBuffer", ShaderStage::Enum::Vertex, sizeof(ObjectBuffer)));
 
@@ -567,29 +570,31 @@ namespace nkentseu {
         }
 
         ShaderFilePathLayout shaderFilesLayout({
-            {"Resources/shaders/ubo.vert.glsl", ShaderStage::Enum::Vertex},
-            {"Resources/shaders/ubo.frag.glsl", ShaderStage::Enum::Fragment},
-            //{"Resources/shaders/core.vert.glsl", ShaderStage::Enum::Vertex},
-            //{"Resources/shaders/core.frag.glsl", ShaderStage::Enum::Fragment},
+            //{"Resources/shaders/ubo.vert.glsl", ShaderStage::Enum::Vertex},
+            //{"Resources/shaders/ubo.frag.glsl", ShaderStage::Enum::Fragment},
+            {"Resources/shaders/core.vert.glsl", ShaderStage::Enum::Vertex},
+            {"Resources/shaders/core.frag.glsl", ShaderStage::Enum::Fragment},
             //{"Resources/shaders/shader.vert.glsl", ShaderStage::Enum::Vertex},
             //{"Resources/shaders/shader.frag.glsl", ShaderStage::Enum::Fragment},
             //{"Resources/shaders/triangleInternal.vert.glsl", ShaderStage::Enum::Vertex},
             //{"Resources/shaders/triangleInternal.frag.glsl", ShaderStage::Enum::Fragment},
         });
 
-        Memory::Shared<Shader> shader = Shader::Create(m_Context, shaderFilesLayout, shaderInputLayout);
+        Memory::Shared<Shader> shader = nullptr;
+        shader = Shader::Create(m_Context, shaderFilesLayout, shaderInputLayout);
         
         if (shader == nullptr) {
             Log.Error("Cannot create shader");
         }
 
-        Memory::Shared<UniformBuffer> uniformBuffer = UniformBuffer::Create(m_Context, shaderInputLayout, shader, {"CameraBuffer"});
+        Memory::Shared<UniformBuffer> uniformBuffer = nullptr;
+        uniformBuffer = UniformBuffer::Create(m_Context, shaderInputLayout, shader, {"CameraBuffer"});
         if (uniformBuffer == nullptr) {
             Log.Error("Cannot create uniform buffer");
         }
 
         Cube cube;
-
+        
         vertexBuffer = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferDataUsage::StaticDraw, shapeCube.vertices);
         if (vertexBuffer == nullptr) {
             Log.Error("Cannot create vertex buffer");
@@ -601,7 +606,7 @@ namespace nkentseu {
         }
 
         vertexArray = VertexArray::Create(m_Context, shaderInputLayout);
-        //vertexArray = VertexArray::Create(m_Context, 3);
+        //vertexArray = VertexArray::Create(m_Context, shaderInputLayout, 3);
         if (vertexArray == nullptr) {
             Log.Error("Cannot create vertex array");
         }
@@ -630,7 +635,8 @@ namespace nkentseu {
             vertexArray2->SetIndexBuffer(indexBuffer2);
         }
 
-        Memory::Shared<Texture2D> tetxure = Texture2D::Create(m_Context, shaderInputLayout, "Resources/textures/container2.png");
+        Memory::Shared<Texture2D> tetxure = nullptr;
+        tetxure = Texture2D::Create(m_Context, shaderInputLayout, "Resources/textures/container2.png");
         if (tetxure == nullptr) {
             Log.Error("impossible de charger la texture  Resources/textures/container2.png");
         }
@@ -713,6 +719,16 @@ namespace nkentseu {
 
             static bool pause = false;
             static float32 tmpTime = time;
+            static float32 print_time = 0;
+            static int32 indice_angle = 0;
+
+            if (print_time >= 1.0f) {
+                print_time = 0.0f;
+                indice_angle++;
+            }
+            else {
+                print_time += delta;
+            }
 
             if (Input.IsKeyDown(Keyboard::L)) {
                 pause = true;
@@ -742,8 +758,93 @@ namespace nkentseu {
                 cameraView.setProjectionType(CameraProjection::Orthographic);
             }
 
-            if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
+            if (!pause) {
+                tmpTime = time;
+            }
 
+            //if (m_Renderer == nullptr || m_Context == nullptr) { continue; }
+
+            if (m_Context == nullptr || !m_Context->Prepare()) {
+                continue;
+            }
+
+            if (m_RenderWindow != nullptr && m_RenderWindow->Begin(Color::Black())) {
+                if (shader != nullptr && shader->Bind()) {
+                    m_RenderWindow->SetCullMode(CullModeType::Enum::NoCull);
+                    m_RenderWindow->SetPolygonMode(m_PolygonMode);
+
+                    /*
+                    // draw a simple triangle that data store in shader or in vertex buffer
+                    if (vertexArray != nullptr && vertexArray->BindVertex()) {
+                        if (!vertexArray->DrawVertex(RenderPrimitive::Triangles)) {
+                            Log.Warning();
+                        }
+                        if (!vertexArray->UnbindVertex()) {
+                            Log.Warning();
+                        }
+                    }
+                    */
+
+                    // update camera buffer
+                    if (uniformBuffer != nullptr) {
+                        CameraBuffer cameraBuffer{};
+                        cameraBuffer.view = cameraView.getView();
+                        cameraBuffer.proj = cameraView.getProjection();
+
+                        if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+                            cameraBuffer.proj[1][1] *= -1;
+                        }
+                        uniformBuffer->SetData("CameraBuffer", &cameraBuffer, sizeof(CameraBuffer));
+                        uniformBuffer->Bind();
+                    }
+                    // use texture
+                    if (tetxure != nullptr) {
+                        tetxure->Bind(1);
+                    }
+
+                    // draw 10 objets
+                    for (int32 objet = 0; objet < 10; objet++) {
+                        // update push constant
+                        if (shaderInputLayout != nullptr) {
+                            ObjectBuffer objb;
+
+                            mat4f translation = mat4f::Translation(cubePositions[objet] * 2);
+                            mat4f rotation = mat4f::RotationY((float32)tmpTime * Angle(90.0f));
+
+                            objb.model = translation * rotation;// * translation;
+
+                            shaderInputLayout->UpdatePushConstant("ObjectBuffer", &objb, sizeof(ObjectBuffer), shader);
+                        }
+
+                        // draw a object store in vertex and index buffer
+                        Memory::Shared<VertexArray> mesh = nullptr;
+
+                        if (objet % 2 == 0) {
+                            mesh = vertexArray;
+                        }
+                        else {
+                            mesh = vertexArray2;
+                        }
+
+                        if (mesh != nullptr && mesh->BindIndex()) {
+                            if (!mesh->DrawIndex(RenderPrimitive::Enum::Triangles)) {
+                                Log.Warning();
+                            }
+                            if (!mesh->UnbindIndex()) {
+                                Log.Warning();
+                            }
+                        }
+                    }
+
+                    if (!shader->Unbind()) {
+                        Log.Error("cannot unbind shader");
+                    }
+                } else { Log.Error("cannot bind shader"); }
+
+                m_RenderWindow->End();
+            }
+
+            /*
             m_Renderer->Begin(Color::Black());
             //m_Renderer->Begin(Color::DuckBlue());
             //m_Renderer->SetViewport();
@@ -751,7 +852,9 @@ namespace nkentseu {
 
             if (shader != nullptr) {
                 shader->DrawMode(CullModeType::NoCull, m_PolygonMode);
-                shader->Bind();
+                if (!shader->Bind()) {
+                    Log.Trace();
+                }
             }
 
             if (uniformBuffer != nullptr) {
@@ -772,26 +875,37 @@ namespace nkentseu {
             if (tetxure != nullptr) {
                 slot = (slot+1) % 10;
                 tetxure->Binds(1);
-            }//*/
+            }//* /
 
             if (!pause) {
                 tmpTime = time;
             }
 
-            for (uint32 index = 0; index < 10; index++) {
+
+            for (uint32 index = 0; index < 0; index++) {
                 ObjectBuffer objb;
                 //if (uniformBuffer != nullptr) {
                 if (shaderInputLayout != nullptr) {
                     {
                         // update model
                         //matrix4f scale = matrix4f::Scaling(matrix4f::Identity(), 0.5f * Vector3f(1.0f, 1.0f, 1.0f));
-                        mat4f scale = mat4f::Scaling(0.5f * Vector3f(1.0f, 1.0f, 1.0f));
+                        //mat4f scale = mat4f::Scaling(0.5f * Vector3f(1.0f, 1.0f, 1.0f));
                         //matrix4f rotation = matrix4f::Rotation(matrix4f::Identity(), Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f));
                         //matrix4f rotation = matrix4f::Rotation(matrix4f::Identity(), Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f), Vector3f());
                         //mat4f rotation = mat4f::rotation(Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f), Vector3f());
-                        mat4f rotation = mat4f::RotationY((float32)tmpTime * Angle(90.0f));
+                        mat4f rotation(1.0f);
+                        mat4f scale = mat4f::Scaling(0.5f * Vector3f(1.0f, 1.0f, 1.0f));
+                        mat4f translation(1.0f);
+                        if (index != 0) {
+                            //scale = mat4f::Scaling(0.5f * Vector3f(1.0f, 1.0f, 1.0f));
+                            rotation = mat4f::RotationY((float32)tmpTime * Angle(90.0f));
+                            translation = mat4f::Translation(cubePositions[index]);
+                        }
+                        else
+                            rotation = mat4f::RotationZ(Angle(10.0f) * (float32)indice_angle) * mat4f::RotationY(Angle(10.0f) * (float32)indice_angle);// *mat4f::RotationX(Angle(5.0f) * (float32)indice_angle);// *mat4f::RotationX(Angle(90.0f));
+                            //rotation  = mat4f::RotationY(Angle(45.0f));
                         //matrix4f translation = matrix4f::Translation(matrix4f::Identity(), cubePositions[index]);
-                        mat4f translation = mat4f::Translation(cubePositions[index]);
+                        //mat4f translation = mat4f::Translation(cubePositions[index]);
 
                         objb.model = translation * rotation * scale;
                         //Log.Debug("{0}", rotation.eulerAngles());
@@ -806,6 +920,22 @@ namespace nkentseu {
                                 //objb.model = matrix4f::Rotation(objb.model, Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f) * ((float32)index));
                                 objb.model = mat4f::Rotation(Vector3f(0.0f, 1.0f, 0.0f), (float32)tmpTime * Angle(90.0f) * ((float32)index)) * objb.model;
                             }
+                        }
+                        if (index == 0 && print_time == 0.0f) {
+                            Vector3f position, scale_, up_, back_, right_;
+                            EulerAngle angle;
+
+                            objb.model.Extract(position, angle, scale_, right_, up_, back_);
+
+                            Log.Debug("mat4f angle = {0}", angle);
+                            //Log.Debug("positon = {0}, angle = {1}, scale = {2}", position, angle, scale_);
+                            //Log.Debug("right = {0}, up = {1}, back = {2}", right_, up_, back_);
+
+                            quatf quat(objb.model);
+                            //Log.Debug("quat = {0}", quat);
+                            Log.Debug("angle = {0}", (EulerAngle)quat);
+                            //Log.Debug("angle = {0}", quat.eulerAngle());
+                            //Log.Debug("quat angle = {0}", quat.eulerAngle11());
                         }
 
                         //objb.model = objb.model.Transpose();
@@ -832,9 +962,11 @@ namespace nkentseu {
                 }
             }
 
+            
+
             //*
             Memory::Shared<Canvas> canvas = nullptr;
-            //canvas = m_Renderer->GetCanvas();
+            canvas = m_Renderer->GetCanvas();
 
             if (canvas != nullptr) {
                 //canvas->DrawRect(maths::Vector2f(0, 0), Vector2f(200, 200), Color::Blue());
@@ -878,13 +1010,17 @@ namespace nkentseu {
 
                 //canvas->Draw(RenderPrimitive::LineStrip, circle);
                 //canvas->Draw(RenderPrimitive::Triangles, rectangle, nullptr, maths::matrix4f::Translation(matrix4f::Identity(), Vector3f(-300, 0, 0)));
-            }//*/
+            }//* /
 
             if (shader != nullptr) {
                 shader->Unbind();
             }
-            m_Renderer->End();
+            m_Renderer->End();*/
             mouseDelta = Vector2f();
+
+            if (m_Context != nullptr) {
+                m_Context->Present();
+            }
         }
 
         if (vertexArray != nullptr) {
@@ -919,10 +1055,13 @@ namespace nkentseu {
             ubo->Destroy();
         }*/
 
-        shader->Destroy();
-        m_Renderer->Deinitialize();
-        m_Context->Deinitialize();
-        m_Window->Close();
+        if (tetxure != nullptr) tetxure->Destroy();
+        if (shader != nullptr) shader->Destroy();
+        if (shaderInputLayout != nullptr) shaderInputLayout->Release();
+        if (m_RenderWindow != nullptr) m_RenderWindow->Deinitialize();
+        if (m_Renderer != nullptr) m_Renderer->Deinitialize();
+        if (m_Context != nullptr) m_Context->Deinitialize();
+        if (m_Window != nullptr) m_Window->Close();
     }
 
     void Application::OnEvent(Event& event)
@@ -954,15 +1093,15 @@ namespace nkentseu {
             m_Running = false;
         }
 
-        if (event.GetKeycode() == Keyboard::Space && event.GetState() == ButtonState::Pressed) {
-            if (m_PolygonMode == PolygonModeType::Fill) {
-                m_PolygonMode = PolygonModeType::Line;
+        if (event.GetKeycode() == Keyboard::A && event.GetState() == ButtonState::Pressed) {
+            if (m_PolygonMode == PolygonModeType::Enum::Fill) {
+                m_PolygonMode = PolygonModeType::Enum::Line;
             }
-            else if (m_PolygonMode == PolygonModeType::Line) {
-                m_PolygonMode = PolygonModeType::Point;
+            else if (m_PolygonMode == PolygonModeType::Enum::Line) {
+                m_PolygonMode = PolygonModeType::Enum::Point;
             }
-            else if (m_PolygonMode == PolygonModeType::Point) {
-                m_PolygonMode = PolygonModeType::Fill;
+            else if (m_PolygonMode == PolygonModeType::Enum::Point) {
+                m_PolygonMode = PolygonModeType::Enum::Fill;
             }
         }
 
@@ -1053,3 +1192,4 @@ namespace nkentseu {
     }
 
 }    // namespace nkentseu
+

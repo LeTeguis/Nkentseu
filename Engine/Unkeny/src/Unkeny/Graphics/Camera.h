@@ -214,7 +214,7 @@ namespace nkentseu {
         }
 
         void updateDirection2() {
-            // Calculate rotation quaternion from Euler angles (assuming Z-Y-X convention)
+            /*/ Calculate rotation quaternion from Euler angles (assuming Z-Y-X convention)
             maths::quatf rotation = maths::quatf::fromEuler(m_euler.roll, m_euler.yaw, m_euler.pitch);
 
             // Apply rotation to the world's up vector to get the object's up vector
@@ -230,7 +230,7 @@ namespace nkentseu {
             m_forward = m_forward.Normalized();
 
             // Calculate right vector as the cross product of forward and up
-            m_right = m_forward.Cross(m_up).Normalized();
+            m_right = m_forward.Cross(m_up).Normalized();*/
         }
 
         void updateDirection3() {

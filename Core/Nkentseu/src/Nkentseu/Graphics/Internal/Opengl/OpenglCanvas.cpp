@@ -41,12 +41,12 @@ namespace nkentseu {
         shaderInputLayout = Memory::SharedCast<OpenglShaderInputLayout>(ShaderInputLayout::Create(m_Context));
 
         if (shaderInputLayout != nullptr) {
-            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aPos", ShaderInternalType::Float2, 0));
-            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aColor", ShaderInternalType::Float4, 1));
-            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aTexCoord", ShaderInternalType::Float2, 2));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aPos", ShaderInternalType::Enum::Float2, 0));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aColor", ShaderInternalType::Enum::Float4, 1));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aTexCoord", ShaderInternalType::Enum::Float2, 2));
 
             //shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasTransform", ShaderStage::Enum::Vertex, BufferUsageType::StaticDraw, sizeof(CanvasTransform), 0, 10));
-            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasCamera", ShaderStage::Enum::Vertex, BufferUsageType::StaticDraw, sizeof(CanvasCamera), 0, 1));
+            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasCamera", ShaderStage::Enum::Vertex, BufferUsageType::Enum::StaticDraw, sizeof(CanvasCamera), 0, 0, 1));
             //shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("CanvasMaterial", ShaderStage::Enum::Fragment, BufferUsageType::StaticDraw, sizeof(CanvasMaterial), 2, 10));
 
             shaderInputLayout->pushConstantInput.AddAttribute(PushConstantInputAttribute("CanvasTransform", ShaderStage::Enum::Vertex, sizeof(CanvasTransform)));
@@ -119,7 +119,7 @@ namespace nkentseu {
 
         bool render_evalable = true;
 
-        if ((m_RenderEnable && m_Shader == nullptr) || !m_Shader->Bind()) {
+        if ((!m_RenderEnable && m_Shader == nullptr) || !m_Shader->Bind()) {
             render_evalable = false;
         }
 
@@ -162,7 +162,7 @@ namespace nkentseu {
             } else if (render_evalable){
                 if (auto renderCommand = Memory::SharedCast<CanvasRenderCommand>(command)) {
                     if (renderCommand->texture) {
-                        renderCommand->texture->Bind();
+                        renderCommand->texture->Bind(0);
                     }
 
                     if (shaderInputLayout != nullptr) {
@@ -174,29 +174,29 @@ namespace nkentseu {
                         material.useColor = 1 << 1;
                         material.useTexture |= renderCommand->texture != nullptr ? 1 << 2 : 0;
                         shaderInputLayout->UpdatePushConstant("CanvasMaterial", &material, sizeof(CanvasMaterial), m_Shader);
-
-                        //shaderInputLayout->Bind();
                     }
-
-                    uint32 primitive = GLConvert::GetPrimitiveType(renderCommand->primitive);
-
-                    glCheckError(first, result, glDrawElements(primitive, renderCommand->indexCount, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32))), "cannot draw elements for canvas");
+                    m_VertexArray->DrawIndex(renderCommand->primitive, offset, renderCommand->indexCount);
                     offset += renderCommand->indexCount;
                 }
             }
         }
 
-        m_VertexArray->UnbindIndex();
+        if (!m_VertexArray->UnbindIndex()) {
+        }
 
-        if (render_evalable) {
-            m_Shader->Unbind();
+        if (render_evalable && !m_Shader->Unbind()) {
         }
 
         if (m_ScissorEnable) {
             glCheckError(first, result, glDisable(GL_SCISSOR_TEST), "cannot disable scissor test");
+
+            if (!result.success) {
+            }
         }
 
         glCheckError(first, result, glEnable(GL_DEPTH_TEST), "cannot enable depth test");
+        if (!result.success) {
+        }
     }
 
 }  //  nkentseu
