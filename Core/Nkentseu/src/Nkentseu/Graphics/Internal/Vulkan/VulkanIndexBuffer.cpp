@@ -37,12 +37,15 @@ namespace nkentseu {
         return success;
     }
 
-    bool VulkanIndexBuffer::SetData(void* data, usize size)
+    bool VulkanIndexBuffer::SetData(const void* data, usize size)
     {
         if (m_Context == nullptr) return false;
-        m_IndexBufferObject.Mapped(m_Context.get(), size, 0);
+
+        usize correctSize = VulkanContext::AlignBufferSize(m_IndexBufferObject.size, dynamicAlignment);
+
+        m_IndexBufferObject.Mapped(m_Context.get(), correctSize, 0);
         bool success = m_IndexBufferObject.WriteToBuffer(data, size, 0);
-        success = m_IndexBufferObject.Flush(m_Context.get(), size, 0);
+        success = m_IndexBufferObject.Flush(m_Context.get(), VK_WHOLE_SIZE, 0);
         m_IndexBufferObject.UnMapped(m_Context.get());
         return success;
     }
@@ -51,52 +54,29 @@ namespace nkentseu {
     {
         if (m_Context == nullptr) return false;
 
-        VulkanResult result;
-        bool first = true;
-        m_IndexType = indexType;
-
-        vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
-        vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
-
-        vk::BufferUsageFlags usage_t = vk::BufferUsageFlagBits::eTransferSrc;
-        vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-        vk::MemoryPropertyFlags propertyFlags2 = vk::MemoryPropertyFlagBits::eDeviceLocal;
-
-        m_IndexBufferObject.size = IndexBufferType::SizeOf(indexType);
-        usize size = m_IndexBufferObject.size * leng;
-
-        VkBufferInternal stanging;
-
-        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage_t, sharingMode, propertyFlags, stanging.buffer, stanging.bufferMemory)) {
-            return false;
-        }
-
-        if (!stanging.Mapped(m_Context.get(), size, 0, {})) {
-            return false;
-        }
-
-        if (!stanging.WriteToBuffer(indices, size, 0)) {
-            return false;
-        }
-
-        if (!stanging.UnMapped(m_Context.get())) {
-            return false;
-        }
-
-        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage, sharingMode, propertyFlags2, m_IndexBufferObject.buffer, m_IndexBufferObject.bufferMemory)) {
-            return false;
-        }
-
-        if (!VkBufferInternal::CopyBuffer(m_Context.get(), stanging.buffer, m_IndexBufferObject.buffer, size)) {
-            return false;
-        }
-
-        bool success = stanging.Destroy(m_Context.get());//*/
-
+        usize size = leng * IndexBufferType::SizeOf(indexType);
+        m_IndexBufferObject.size = size;
         m_Leng = leng;
-        Log_nts.Info("Create index buffer is good");
 
-        return true;
+        if (leng == 0) {
+            Log_nts.Error("Size cannot set to zero");
+            return false;
+        }
+
+        bool success = true;
+
+        if (bufferUsage == BufferUsageType::Enum::StaticDraw && indices != nullptr) {
+            success = StaticBufferCreation(indices);
+        }
+        else {
+            success = DynamicBufferCreation();
+        }
+
+        if (success) {
+            Log_nts.Info("Create index buffer is good");
+        }
+
+        return success;
     }
 
     VkBufferInternal* VulkanIndexBuffer::GetBuffer()
@@ -112,5 +92,81 @@ namespace nkentseu {
     uint32 VulkanIndexBuffer::Leng() const
     {
         return m_Leng;
+    }
+
+    bool VulkanIndexBuffer::StaticBufferCreation(const void* data)
+    {
+        usize size = m_IndexBufferObject.size;
+        range = size;
+        dynamicAlignment = 0;
+
+        vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer;
+        vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
+
+        vk::BufferUsageFlags usage_t = vk::BufferUsageFlagBits::eTransferSrc;
+        vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        vk::MemoryPropertyFlags propertyFlags2 = vk::MemoryPropertyFlagBits::eDeviceLocal;
+
+        VkBufferInternal stanging;
+
+        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage_t, sharingMode, propertyFlags, stanging.buffer, stanging.bufferMemory)) {
+            Log_nts.Error("cannot create stangin buffer");
+            return false;
+        }
+
+        if (!stanging.Mapped(m_Context.get(), size, 0, {})) {
+            Log_nts.Error("cannot mapped stangin buffer");
+            return stanging.Destroy(m_Context.get()) && false;
+        }
+
+        if (!stanging.WriteToBuffer(data, size, 0)) {
+            Log_nts.Error("cannot write in stangin buffer");
+            return stanging.Destroy(m_Context.get()) && false;
+        }
+
+        if (!stanging.UnMapped(m_Context.get())) {
+            Log_nts.Error("cannot unmap stangin buffer");
+            return stanging.Destroy(m_Context.get()) && false;
+        }
+
+        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage, sharingMode, propertyFlags2, m_IndexBufferObject.buffer, m_IndexBufferObject.bufferMemory)) {
+            Log_nts.Error("cannot create buffer");
+            return stanging.Destroy(m_Context.get()) && false;
+        }
+
+        if (!VkBufferInternal::CopyBuffer(m_Context.get(), stanging.buffer, m_IndexBufferObject.buffer, size)) {
+            Log_nts.Error("cannot copy stangin buffer into buffer");
+            return stanging.Destroy(m_Context.get()) && false;
+        }
+
+        if (!stanging.Destroy(m_Context.get())) {
+            Log_nts.Error("cannot destroy stangin buffer");
+            return false;
+        }
+        return true;
+    }
+
+    bool VulkanIndexBuffer::DynamicBufferCreation()
+    {
+        usize size = m_IndexBufferObject.size;
+        vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
+        vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible;
+        vk::BufferUsageFlags usage = vk::BufferUsageFlagBits::eIndexBuffer;
+
+        uint32 minUboAlignment = m_Context->properties.limits.minUniformBufferOffsetAlignment;
+
+        if (minUboAlignment > 0) {
+            dynamicAlignment = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
+        }
+
+        range = dynamicAlignment;
+        size = dynamicAlignment * m_Leng;
+
+        if (!VkBufferInternal::CreateBuffer(m_Context.get(), size, usage, sharingMode, propertyFlags, m_IndexBufferObject.buffer, m_IndexBufferObject.bufferMemory)) {
+            Log_nts.Error("cannot create buffer");
+            return false;
+        }
+
+        return true;
     }
 }  //  nkentseu

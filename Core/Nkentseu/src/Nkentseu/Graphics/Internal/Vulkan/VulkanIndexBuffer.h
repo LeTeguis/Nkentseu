@@ -16,29 +16,34 @@
 
 namespace nkentseu {
     class VulkanContext;
-    
+
     class NKENTSEU_API VulkanIndexBuffer : public IndexBuffer {
-        public:
-            VulkanIndexBuffer(Memory::Shared<Context> context);
-            ~VulkanIndexBuffer();
+    public:
+        VulkanIndexBuffer(Memory::Shared<Context> context);
+        ~VulkanIndexBuffer();
 
-            Memory::Shared<Context> GetContext() override;
+        Memory::Shared<Context> GetContext() override;
 
-            bool Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices) override;
-            bool Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* vertices, uint32 leng) override;
-            bool Destroy() override;
+        bool Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices) override;
+        bool Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* vertices, uint32 leng) override;
+        bool Destroy() override;
 
-            virtual bool SetData(void* data, usize size) override;
+        virtual bool SetData(const void* data, usize size) override;
 
-            VkBufferInternal* GetBuffer();
-            IndexBufferType GetIndexType() const;
-            uint32 Leng() const override;
-        private:
-            Memory::Shared<VulkanContext> m_Context = nullptr;
-            VkBufferInternal m_IndexBufferObject;
-            IndexBufferType m_IndexType = IndexBufferType::Enum::UInt32;
+        VkBufferInternal* GetBuffer();
+        IndexBufferType GetIndexType() const;
+        uint32 Leng() const override;
+    private:
+        Memory::Shared<VulkanContext> m_Context = nullptr;
+        VkBufferInternal m_IndexBufferObject;
+        IndexBufferType m_IndexType = IndexBufferType::Enum::UInt32;
 
-            uint32 m_Leng = 0;
+        uint32 m_Leng = 0;
+        uint32 dynamicAlignment = 0;
+        uint32 range = 0;
+
+        bool StaticBufferCreation(const void* data);
+        bool DynamicBufferCreation();
     };
 
 }  //  nkentseu

@@ -7,381 +7,472 @@
 #include "RenderCache2D.h"
 #include <Logger/Formatter.h>
 
+#include "Nkentseu/Core/Window.h"
+
 namespace nkentseu {
+    using namespace maths;
+    
+    struct MVP2D {
+        maths::matrix4f view = maths::matrix4f::Identity();
+        maths::matrix4f proj = maths::matrix4f::Identity();
+    };
 
-    RenderCache2D::RenderCache2D() : currentCommand(nullptr) {}
+    struct Material2D {
+        int32 useTexture = false;
+        int32 useColor = true;
+    };
 
-    void RenderCache2D::AddCommand(const RenderCommand& command) {
-        commands.push_back(*command);
+    RenderCache2D::RenderCache2D(const Memory::Shared<Context>& context) : beginCommand(false), currentVertice(0), currentIndice(0), m_Context(context) {}
+
+    RenderCache2D::~RenderCache2D() {
+        Clear();
     }
 
-    void RenderCache2D::BeginCommand(RenderPrimitive primitive, float32 lineWidth) {
-        currentCommand = new RenderCommand();
-        currentCommand->GetData()->SetPrimitive(primitive);
-        //currentCommand->lineWidth = lineWidth;
+    bool RenderCache2D::Destroy()
+    {
+        if (m_Context == nullptr) return false;
+        bool success = true;
+
+        if (vertexArray != nullptr) {
+            success = vertexArray->Destroy();
+        }
+
+        if (indexBuffer != nullptr) {
+            success = indexBuffer->Destroy() && success;
+        }
+
+        if (vertexBuffer != nullptr) {
+            success = vertexBuffer->Destroy() && success;
+        }
+
+        if (uniformBuffer != nullptr) {
+            success = uniformBuffer->Destroy() && success;
+        }
+
+        if (defaultTetxure != nullptr) {
+            success = defaultTetxure->Destroy() && success;
+        }
+
+        if (m_Shader != nullptr) {
+            success = m_Shader->Destroy() && success;
+        }
+
+        if (shaderInputLayout != nullptr) {
+            success = shaderInputLayout->Release() && success;
+        }
+
+        return success;
+    }
+
+    bool RenderCache2D::Initialize()
+    {
+        shaderInputLayout = Memory::SharedCast<ShaderInputLayout>(ShaderInputLayout::Create(m_Context));
+
+        if (shaderInputLayout != nullptr) {
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aPos", ShaderInternalType::Enum::Float2, 0));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aColor", ShaderInternalType::Enum::Float4, 1));
+            shaderInputLayout->vertexInput.AddAttribute(VertexInputAttribute("aTexCoord", ShaderInternalType::Enum::Float2, 2));
+            shaderInputLayout->uniformInput.AddAttribute(UniformInputAttribute("MVP2D", ShaderStage::Enum::Vertex, BufferUsageType::Enum::StaticDraw, sizeof(MVP2D), 0, 0, 1));
+            shaderInputLayout->pushConstantInput.AddAttribute(PushConstantInputAttribute("Material2D", ShaderStage::Enum::Fragment, sizeof(Material2D)));
+            shaderInputLayout->samplerInput.AddAttribute(SamplerInputAttribute("TextureSampler", 1, 1, ShaderStage::Enum::Fragment, SamplerType::Enum::CombineImage));
+
+            if (!shaderInputLayout->Initialize()) {
+                Log_nts.Error("linitialisation des input shader ont echouer");
+                return false;
+            }
+        }
+
+        ShaderFilePathLayout shaderFilesLayout({
+            {"Resources/shaders/render2d.vert.glsl", ShaderStage::Enum::Vertex},
+            {"Resources/shaders/render2d.frag.glsl", ShaderStage::Enum::Fragment},
+            });
+
+        m_Shader = Shader::Create(m_Context, shaderFilesLayout, shaderInputLayout);
+        if (m_Shader == nullptr) {
+            Log_nts.Error("Failed to create render cache shader");
+            Destroy();
+            return false;
+        }
+
+        uint32 size = RENDER_CACH_MAX_VERTICES;
+        vertexBuffer = VertexBuffer::Create(m_Context, shaderInputLayout, BufferUsageType::Enum::DynamicDraw, nullptr, size);
+        if (!vertexBuffer) {
+            Log_nts.Error("Failed to create render cache vertex buffer");
+            Destroy();
+            return false;
+        }
+
+        size = RENDER_CACH_MAX_INDICES;
+        indexBuffer = IndexBuffer::Create(m_Context, BufferUsageType::Enum::DynamicDraw, DrawIndexType::UInt32, nullptr, size);
+        if (!indexBuffer) {
+            Log_nts.Error("Failed to create render cache index buffer");
+            Destroy();
+            return false;
+        }
+
+        vertexArray = VertexArray::Create(m_Context, shaderInputLayout);
+        if (!vertexArray) {
+            Log_nts.Error("Failed to create render cache vertex array");
+            Destroy();
+            return false;
+        }
+        else {
+            vertexArray->SetVertexBuffer(vertexBuffer);
+            vertexArray->SetIndexBuffer(indexBuffer);
+        }
+
+        uniformBuffer = UniformBuffer::Create(m_Context, shaderInputLayout, m_Shader, { "MVP2D" });
+        if (uniformBuffer == nullptr) {
+            Log_nts.Error("Cannot create uniform buffer");
+            Destroy();
+            return false;
+        }
+
+        Image image;
+        image.Create({ 100, 100 }, Color::Black());
+
+        defaultTetxure = Texture2D::Create(m_Context, shaderInputLayout);
+
+        if (defaultTetxure == nullptr) {
+            Log_nts.Error("Cannot create texture");
+            Destroy();
+            return false;
+        }
+
+        if (!defaultTetxure->Create(image)) {
+            Log_nts.Error("Cannot load black texture");
+            Destroy();
+            return false;
+        }
+
+        return true;
+    }
+
+    void RenderCache2D::Render(Memory::Shared<Renderer> renderer)
+    {
+        if (renderer == nullptr || vertices.empty() || indices.empty() || commands.empty()) {
+            return;
+        }
+
+        renderer->EnableDepthTest(false);
+        renderer->EnableScissorTest(true);
+        renderer->ResetViewport();
+        renderer->ResetScissor();
+
+        if (m_Shader == nullptr || !m_Shader->Bind()) {
+            return;
+        }
+
+        if (vertexArray == nullptr) {
+            m_Shader->Unbind();
+            return;
+        }
+
+        if (vertexArray->GetVertexBuffer() == nullptr || vertexArray->GetIndexBuffer() == nullptr) {
+            m_Shader->Unbind();
+            return;
+        }
+
+        if (!vertexArray->GetVertexBuffer()->SetData(vertices.data(), vertices.size() * sizeof(Vertex2D))) {
+            Log_nts.Error("Cannot update vertex buffer");
+        }
+
+        if (!vertexArray->GetIndexBuffer()->SetData(indices.data(), indices.size() * sizeof(uint32))) {
+            Log_nts.Error("Cannot update index buffer");
+        }
+
+        if (uniformBuffer != nullptr) {
+            Vector2f size = m_Context->GetWindow()->GetSize();
+
+            MVP2D cameraBuffer{};
+            cameraBuffer.view = matrix4f::Identity();
+
+            if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+                cameraBuffer.proj = matrix4f::Orthogonal(Vector2f(0, 0), Vector2f(size.width, size.height), -1.f, 1.0f);
+            }
+            else {
+                cameraBuffer.proj = matrix4f::Orthogonal(Vector2f(0, size.height), Vector2f(size.width, 0), -1.f, 1.0f);
+            }
+
+            uniformBuffer->SetData("MVP2D", &cameraBuffer, sizeof(MVP2D));
+            uniformBuffer->Bind();
+        }
+
+        if (vertexArray->BindIndex()) {
+            if (defaultTetxure != nullptr) {
+                defaultTetxure->Bind(1);
+            }
+
+            uint32 offset = 0;
+
+            int32 begin = 0;
+            int32 end = commands.size();
+            int32 pas = 1;
+
+            if (m_Context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+                begin = commands.size() - 1;
+                end = -1;
+                pas = -1;
+            }
+
+            for (int32 index = begin; index != end; index += pas) {
+                const auto command = commands[index];
+
+                bool useTexture = false;
+
+                if (command.textureId > 0 && command.textureId < textures.size() && textures[command.textureId] != nullptr) 
+                {
+                    textures[command.textureId]->Bind(0);
+                    useTexture = true;
+                }
+
+                if (command.clipRegion.dimensions != Vector2f()) {
+                    renderer->SetScissor(command.clipRegion.controlPoints);
+                }
+
+                if (shaderInputLayout != nullptr) {
+                    Material2D material;
+                    material.useColor = 1 << 1;
+                    material.useTexture |= useTexture ? 1 << 2 : 0;
+                    shaderInputLayout->UpdatePushConstant("Material2D", &material, sizeof(Material2D), m_Shader);
+                }
+                vertexArray->DrawIndex(command.primitive, command.indexOffset, command.indexCount);
+            }
+            vertexArray->UnbindIndex();
+        }
+
+        if (!m_Shader->Unbind()) {
+        }
+
+        renderer->EnableScissorTest(false);
+        renderer->EnableDepthTest(true);
+        Clear();
+    }
+
+    void RenderCache2D::BeginCommand(RenderPrimitive primitive) {
+        if (beginCommand) return;
+        currentCommand.primitive = primitive;
+        currentGeometry.vertices.clear();
+        currentGeometry.indices.clear();
+        beginCommand = true;
+    }
+
+    void RenderCache2D::AddCommand(const RenderCommand2D& command) {
+        if (!beginCommand) return;
+        commands.push_back(command);
+    }
+
+    void RenderCache2D::SetCommandClipRegion(const ClipRegion& clipRegion) {
+        if (!beginCommand) return;
+        currentCommand.clipRegion = clipRegion;
+    }
+
+    void RenderCache2D::SetCommandTextureId(int32 textureId) {
+        if (!beginCommand) return;
+        currentCommand.textureId = textureId;
+    }
+
+    RenderCommand2D* RenderCache2D::CreateCommand(RenderPrimitive primitive, const ClipRegion& clipRegion, int32 textureId) {
+        if (!beginCommand) return nullptr;
+        currentCommand.primitive = primitive;
+        currentCommand.clipRegion = clipRegion;
+        currentCommand.textureId = textureId;
+        return &currentCommand;
+    }
+
+    RenderCommand2D* RenderCache2D::GetCurrentCommand() {
+        if (!beginCommand) return nullptr;
+        return &currentCommand;
+    }
+
+    RenderCommand2D* RenderCache2D::GetCommand(uint32 index) {
+        if (index < commands.size()) {
+            return &commands[index];
+        }
+        return nullptr;
+    }
+
+    RenderCommand2D* RenderCache2D::GetLastCommand() {
+        if (commands.size() == 0) {
+            return nullptr; // index out of bounds
+        }
+        return &commands[commands.size() - 1]; // return the last command at the given index
+    }
+
+    RenderCommand2D* RenderCache2D::GetBeginCommand() {
+        if (commands.size() == 0) {
+            return nullptr; // index out of bounds
+        }
+        return &commands[0]; // return the first command at the given index
     }
 
     void RenderCache2D::AddVertex(const maths::Vector2f& position, const maths::Vector4f& color, const maths::Vector2f& uv) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add vertex without starting a command");
-        }
-        currentCommand->AddVertex({ position, color, uv });
+        if (!beginCommand) return;
+        Vertex2D vertex;
+        vertex.position = position;
+        vertex.color = color;
+        vertex.texCord = uv;
+        currentGeometry.vertices.push_back(vertex);
     }
 
-    void RenderCache2D::AddIndex(uint32 index)
+    void RenderCache2D::AddIndex(uint32 index) {
+        if (!beginCommand) return;
+        currentGeometry.indices.push_back(index + currentVertice);
+    }
+
+    void RenderCache2D::EndCommand(bool send) {
+        if (!beginCommand) return;
+        if (send) {
+            currentCommand.indexCount = currentGeometry.indices.size();
+            currentCommand.indexOffset = currentIndice;
+            currentCommand.vertexCount = currentGeometry.vertices.size();
+            currentCommand.vertexOffset = currentVertice;
+
+            currentVertice += currentCommand.vertexCount;
+            currentIndice += currentCommand.indexCount;
+
+            vertices.insert(vertices.end(), currentGeometry.vertices.begin(), currentGeometry.vertices.end());
+            indices.insert(indices.end(), currentGeometry.indices.begin(), currentGeometry.indices.end());
+
+            commands.push_back(currentCommand);
+        }
+        currentCommand = RenderCommand2D();
+        currentGeometry.vertices.clear();
+        currentGeometry.indices.clear();
+        beginCommand = false;
+    }
+
+    void RenderCache2D::Clear() {
+        commands.clear();
+        currentCommand = RenderCommand2D();
+        currentVertice = 0;
+        currentIndice = 0;
+        beginCommand = false;
+        vertices.clear();
+        indices.clear();
+        currentGeometry.vertices.clear();
+        currentGeometry.indices.clear();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFilledRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, int32 textureId, const std::vector<maths::Vector2f>& uvs)
     {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add vertex without starting a command");
-        }
-        currentCommand->AddIndex(index);
+        Vector2f uv1 = uvs.size() > 0 ? uvs[0] : Vector2f(0, 0);
+        Vector2f uv2 = uvs.size() > 1 ? uvs[1] : Vector2f(0, 1);
+        Vector2f uv3 = uvs.size() > 2 ? uvs[2] : Vector2f(1, 1);
+        Vector2f uv4 = uvs.size() > 3 ? uvs[3] : Vector2f(1, 0);
+
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        AddVertex(position, color, uv1);
+        AddVertex(position + Vector2f(0, size.y), color, uv2);
+        AddVertex(position + size, color, uv3);
+        AddVertex(position + Vector2f(size.x, 0), color, uv4);
+
+        AddIndex(0);
+        AddIndex(1);
+        AddIndex(2);
+        AddIndex(2);
+        AddIndex(3);
+        AddIndex(0);
+
+        EndCommand(true);
+        return GetLastCommand();
     }
 
-    void RenderCache2D::EndCommand() {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot end command without starting one");
-        }
-        // Ajouter la commande à la liste des commandes à rendre
-        commands.push_back(std::move(currentCommand));
-        currentCommand = nullptr;
-    }
-
-    void RenderCache2D::AddPoint(const maths::Vector2f& position, const maths::Vector4f& color, const maths::Vector2f& uv) 
+    RenderCommand2D* RenderCache2D::AddOutlineRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, float32 lineWidth, int32 textureId, const std::vector<maths::Vector2f>& uvs)
     {
-        AddVertex(position, color, uv);
-        uint32 vertexIndex = 0;
-        AddIndex(vertexIndex + currentVertice);
+        float32 line_width = maths::Min<float32>({lineWidth, size.width, size.height});
 
-        currentVertice += vertexIndex;
-    }
+        Vector2f uv1 = uvs.size() > 0 ? uvs[0] : Vector2f(0, 0);
+        Vector2f uv2 = uvs.size() > 1 ? uvs[1] : Vector2f(0, 1);
+        Vector2f uv3 = uvs.size() > 2 ? uvs[2] : Vector2f(1, 1);
+        Vector2f uv4 = uvs.size() > 3 ? uvs[3] : Vector2f(1, 0);
 
-    void RenderCache2D::AddLine(const maths::Vector2f& start, const maths::Vector2f& end, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2) {
-        AddVertex(start, color, uv1);
-        AddVertex(end, color, uv2);
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
 
-        uint32 vertexIndex = currentVertice;
-        AddIndex(vertexIndex);
-        AddIndex(vertexIndex + 1);
+        AddVertex(position, color, uv1);
+        AddVertex(position + Vector2f(0, size.y), color, uv2);
+        AddVertex(position + size, color, uv3);
+        AddVertex(position + Vector2f(size.x, 0), color, uv4);
 
-        currentVertice += 2;
-    }
+        AddVertex(position + line_width, color, uv1);
+        AddVertex(position + Vector2f(line_width, size.y - line_width), color, uv2);
+        AddVertex(position + size - line_width, color, uv3);
+        AddVertex(position + Vector2f(size.x - line_width, line_width), color, uv4);
 
-    void RenderCache2D::AddLine(const maths::Vector2f& point, const maths::Vector2f& direction, float32 length, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2) {
-        maths::Vector2f start = point;
-        maths::Vector2f end = point + direction * length;
+        for (int32 i = 0; i < 4; i++) {
+            int32 next = (i + 1) % 4;
 
-        AddLine(start, end, color, uv1, uv2);
-    }
+            AddIndex(i);
+            AddIndex(i + 4);
+            AddIndex(next + 4);
 
-    void RenderCache2D::AddRectangle(bool filled, const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4) {
-
-        maths::Vector2f topLeft = position;
-        maths::Vector2f topRight = position + maths::Vector2f(size.x, 0);
-        maths::Vector2f bottomRight = position + size;
-        maths::Vector2f bottomLeft = position + maths::Vector2f(0, size.y);
-
-        AddVertex(topLeft, color, uv1);
-        AddVertex(bottomLeft, color, uv4);
-        AddVertex(bottomRight, color, uv3);
-        AddVertex(topRight, color, uv2);
-
-        if (filled) {
-            uint32 vertexIndex = currentVertice;
-            AddIndex(vertexIndex);
-            AddIndex(vertexIndex + 1);
-            AddIndex(vertexIndex + 2);
-            AddIndex(vertexIndex);
-            AddIndex(vertexIndex + 2);
-            AddIndex(vertexIndex + 3);
-        }
-        else {
-            uint32 vertexIndex = currentVertice;
-            AddIndex(vertexIndex);
-            AddIndex(vertexIndex + 1);
-            AddIndex(vertexIndex + 1);
-            AddIndex(vertexIndex + 2);
-            AddIndex(vertexIndex + 2);
-            AddIndex(vertexIndex + 3);
-            AddIndex(vertexIndex + 3);
-            AddIndex(vertexIndex);
+            AddIndex(i);
+            AddIndex(next + 4);
+            AddIndex(next);
         }
 
-        currentVertice += 4;
+        EndCommand(true);
+        return GetLastCommand();
     }
 
-    void RenderCache2D::AddRectangle(bool filled, const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, float32 borderRadius, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
+    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
     {
-    }
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
 
-    void RenderCache2D::AddRectangle(bool filled, const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector4f& borderRadii, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
-    {
-        maths::Vector2f topLeftRadius(borderRadii.x);
-        maths::Vector2f topRightRadius(borderRadii.y);
-        maths::Vector2f bottomLeftRadius(borderRadii.z);
-        maths::Vector2f bottomRightRadius(borderRadii.w);
-        AddRectangle(filled, position, size, color, topLeftRadius, topRightRadius, bottomRightRadius, bottomLeftRadius, uv1, uv2, uv3, uv4);
-    }
+        float32 radius_ajust = maths::Min<float32>({ radius, size.width * 0.5f, size.height * 0.5f });
+        const float32 segments_haps = 1.0f / (float32)segments;
+        const uint32 indice_count = segments + 1;
+        const uint32 indice_corner_count = indice_count + 1;
 
-    void RenderCache2D::AddRectangle(bool filled, const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& topLeftRadius, const maths::Vector2f& topRightRadius, const maths::Vector2f& bottomRightRadius, const maths::Vector2f& bottomLeftRadius, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
-    {
-        int32 numSegments = 16; // nombre de segments pour le cercle
-        float32 theta = 2 * maths::Pi / numSegments; // angle d'incrémentation
+        std::vector<Vector2f> centers;
+        centers.push_back(position + Vector2f(radius_ajust, radius_ajust));
+        centers.push_back(position + Vector2f(radius_ajust, size.height - radius_ajust));
+        centers.push_back(position + Vector2f(size.width - radius_ajust, size.height - radius_ajust));
+        centers.push_back(position + Vector2f(size.width - radius_ajust, radius_ajust));
 
-        maths::Vector2f topLeft = position;
-        maths::Vector2f topRight = position + maths::Vector2f(size.x, 0);
-        maths::Vector2f bottomRight = position + size;
-        maths::Vector2f bottomLeft = position + maths::Vector2f(0, size.y);
-
-        std::vector<float32> radius;
-        radius.push_back(maths::Min<float32>({ topLeftRadius.x, size.width * 0.5f }));
-        radius.push_back(maths::Min<float32>({ topLeftRadius.y, size.height * 0.5f }));
-        radius.push_back(maths::Min<float32>({ bottomLeftRadius.x, size.width * 0.5f }));
-        radius.push_back(maths::Min<float32>({ bottomLeftRadius.y, size.height * 0.5f }));
-        radius.push_back(maths::Min<float32>({ bottomRightRadius.x, size.width * 0.5f }));
-        radius.push_back(maths::Min<float32>({ bottomRightRadius.y, size.height * 0.5f }));
-        radius.push_back(maths::Min<float32>({ topRightRadius.x, size.width * 0.5f }));
-        radius.push_back(maths::Min<float32>({ topRightRadius.y, size.height * 0.5f }));
-
-        float32 rad = maths::Max<float32>(radius);
-
-        // calcul des points de controle pour les coins arrondis
-        maths::Vector2f radiu(topLeftRadius.x == 0 ? rad : topLeftRadius.x, topLeftRadius.y == 0 ? rad : topLeftRadius.y);
-        maths::Vector2f topLeftCtrl = topLeft + maths::Vector2f(-radiu.x, radiu.y);
-        radiu = maths::Vector2f(topRightRadius.x == 0 ? rad : topRightRadius.x, topRightRadius.y == 0 ? rad : topRightRadius.y);
-        maths::Vector2f topRightCtrl = topRight + maths::Vector2f(radiu.x, radiu.y);
-        radiu = maths::Vector2f(bottomRightRadius.x == 0 ? rad : bottomRightRadius.x, bottomRightRadius.y == 0 ? rad : bottomRightRadius.y);
-        maths::Vector2f bottomRightCtrl = bottomRight + maths::Vector2f(radiu.x, -radiu.y);
-        radiu = maths::Vector2f(bottomLeftRadius.x == 0 ? rad : bottomLeftRadius.x, bottomLeftRadius.y == 0 ? rad : bottomLeftRadius.y);
-        maths::Vector2f bottomLeftCtrl = bottomLeft + maths::Vector2f(-radiu.x, -radiu.y);
-
-        if (filled) {
-            AddVertex(topLeftCtrl, color, uv1);
-        }
-        // ajout des vertices pour les coins arrondis
-        for (int32 i = 0; i < numSegments; i++) {
-            float32 angle = i * theta;
-            maths::Vector2f vertex = topLeftCtrl + maths::Vector2f(cos(angle) * radius[0], sin(angle) * radius[1]);
-            AddVertex(vertex, color, uv1);
-        }
-
-        if (filled) {
-            AddVertex(bottomLeftCtrl, color, uv1);
-        }
-        for (int32 i = 0; i < numSegments; i++) {
-            float32 angle = i * theta;
-            maths::Vector2f vertex = bottomLeftCtrl + maths::Vector2f(cos(angle) * radius[2], sin(angle) * radius[3]);
-            AddVertex(vertex, color, uv2);
-        }
-
-        if (filled) {
-            AddVertex(bottomRightCtrl, color, uv1);
-        }
-        for (int32 i = 0; i < numSegments; i++) {
-            float32 angle = i * theta;
-            maths::Vector2f vertex = bottomRightCtrl + maths::Vector2f(cos(angle) * radius[4], sin(angle) * radius[5]);
-            AddVertex(vertex, color, uv3);
-        }
-
-        if (filled) {
-            AddVertex(topRightCtrl, color, uv1);
-        }
-        for (int32 i = 0; i < numSegments; i++) {
-            float32 angle = i * theta;
-            maths::Vector2f vertex = topRightCtrl + maths::Vector2f(cos(angle) * radius[6], sin(angle) * radius[7]);
-            AddVertex(vertex, color, uv4);
-        }
-
-        if (filled) {
-            // ajout des indices pour les triangles
-            for (int32 i = 0; i <= numSegments; i++) {
-                AddIndex(0); // controleur du coin supérieur gauche
-                AddIndex(i + 1);
-                AddIndex(i + 2);
-            }
-            AddIndex(numSegments + 1); // controleur du coin supérieur gauche
-            AddIndex(numSegments + 3);
-            AddIndex(numSegments + 2);
-
-            for (int32 i = 0; i <= numSegments; i++) {
-                AddIndex(numSegments); // controleur du coin inférieur gauche
-                AddIndex(numSegments + i + 1);
-                AddIndex(numSegments + i + 2);
-            }
-            AddIndex(numSegments * 2 + 1); // controleur du coin supérieur gauche
-            AddIndex(numSegments * 2 + 3);
-            AddIndex(numSegments * 2 + 2);
-
-            for (int32 i = 0; i < numSegments; i++) {
-                AddIndex(numSegments * 2); // controleur du coin inférieur droit
-                AddIndex(numSegments * 2 + i + 1);
-                AddIndex(numSegments * 2 + i + 2);
-            }
-            AddIndex(numSegments * 3 + 1); // controleur du coin supérieur gauche
-            AddIndex(numSegments * 3 + 3);
-            AddIndex(numSegments * 3 + 2);
-
-            for (int32 i = 0; i < numSegments; i++) {
-                AddIndex(numSegments * 3); // controleur du coin supérieur droit
-                AddIndex(numSegments * 3 + i + 1);
-                AddIndex(numSegments * 3 + i + 2);
-            }
-            AddIndex(numSegments * 3 + 1); // controleur du coin supérieur gauche
-            AddIndex(1);
-            AddIndex(0);
-        } else {
-            // ajout des indices pour les triangles
-            for (int32 i = 0; i < numSegments; i++) {
-                AddIndex(i);
-                AddIndex(i + 1);
-            }
-
-            for (int32 i = 0; i < numSegments; i++) {
-                AddIndex(numSegments + i);
-                AddIndex(numSegments + i + 1);
-            }
-
-            for (int32 i = 0; i < numSegments; i++) {
-                AddIndex(numSegments * 2 + i);
-                AddIndex(numSegments * 2 + i + 1);
-            }
-
-            for (int32 i = 0; i < numSegments; i++) {
-                AddIndex(numSegments * 3 + i);
-                AddIndex(numSegments * 3 + i + 1);
-            }
-        }
-
-        currentVertice += numSegments * 4;
-    }
-
-    /*void RenderCache2D::AddRectangle(bool filled, const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& topLeftRadius, const maths::Vector2f& topRightRadius, const maths::Vector2f& bottomRightRadius, const maths::Vector2f& bottomLeftRadius, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
-    {
-        if (topLeftRadius == maths::Vector2f() && topLeftRadius == topRightRadius && topRightRadius == bottomRightRadius && bottomRightRadius == bottomLeftRadius) {
-            return AddRectangle(filled, position, size, color, uv1, uv2, uv3, uv4);
-        }
-
-        if (filled) {
-            BeginCommand(RenderPrimitive::Enum::Triangles);
-        }
-        else {
-            BeginCommand(RenderPrimitive::Enum::Lines);
-        }
-
-        constexpr int32 segments = 16; // Nombre de segments pour approximer le cercle pour les coins
-        constexpr float32 segments_haps = 1.0f / (float32)segments; // Nombre de segments pour approximer le cercle pour les coins
-
-        std::vector<float32> radius_ajust;
-        radius_ajust.push_back(maths::Min<float32>({ topLeftRadius.x, size.width * 0.5f}));
-        radius_ajust.push_back(maths::Min<float32>({ topLeftRadius.y, size.height * 0.5f }));
-        radius_ajust.push_back(maths::Min<float32>({ topRightRadius.x, size.width * 0.5f}));
-        radius_ajust.push_back(maths::Min<float32>({ topRightRadius.y, size.height * 0.5f }));
-        radius_ajust.push_back(maths::Min<float32>({ bottomRightRadius.x, size.width * 0.5f}));
-        radius_ajust.push_back(maths::Min<float32>({ bottomRightRadius.y, size.height * 0.5f }));
-        radius_ajust.push_back(maths::Min<float32>({ bottomLeftRadius.x, size.width * 0.5f}));
-        radius_ajust.push_back(maths::Min<float32>({ bottomLeftRadius.y, size.height * 0.5f }));
-
-        float32 rad = maths::Max<float32>(radius_ajust);
-
-        float32 statical_radius = 50.f;
-
-        std::vector<maths::Vector2f> centers;
-        centers.push_back({ radius_ajust[0] == 0.0f ? position.x + rad : position.x + radius_ajust[0] , radius_ajust[1] == 0.0f ? position.y + rad : position.y + radius_ajust[1] });
-        centers.push_back({ radius_ajust[2] == 0.0f ? position.x + size.x - rad : position.x + size.x - radius_ajust[2] , radius_ajust[3] == 0.0f ? position.y + rad : position.y + radius_ajust[3] });
-        centers.push_back({ radius_ajust[4] == 0.0f ? position.x + size.x - rad : position.x + size.x - radius_ajust[4] , radius_ajust[5] == 0.0f ? position.y + size.y - rad : position.y + size.y - radius_ajust[5] });
-        centers.push_back({ radius_ajust[6] == 0.0f ? position.x + rad : position.x + radius_ajust[6] , radius_ajust[7] == 0.0f ? position.y + size.y - rad : position.y + size.y - radius_ajust[7] });
-
-        std::vector<maths::Vector2f> uvs;
-        uvs.push_back(uv1);
-        uvs.push_back(uv2);
-        uvs.push_back(uv3);
-        uvs.push_back(uv4);
-
-        std::vector<Vertex2D> vertices;
-        std::vector<uint32> indices;
-
-        for (int32 corner = 0; corner < 4; ++corner) {
-            AddVertex(centers[corner], color, uvs[corner]);
-
-            int32 realsegment = segments;
-            float32 realfactor = 0.5f;
-
-            if (radius_ajust[corner * 2] == 0 && radius_ajust[corner * 2 + 1] == 0) {
-                realsegment = 2;
-                realfactor = 0.25f;
-            }
-
-            float32 angle = 0.0f;
-
-            if (corner == 0) {
-                angle = maths::Pi;
-            }
-            else if (corner == 1) {
-                angle = maths::Pi * 1.5f;
-            }
-            else if (corner == 2) {
-                angle = 0;
-            }
-            else if (corner == 3) {
-                angle = maths::Pi * 0.5;
-            }
-
-            for (int32 i = 0; i <= realsegment; ++i) {
-                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * realfactor * maths::Pi) + angle;
-
-                float32 cosAngle = maths::Cos(maths::Angle::FromRadian(theta));
-                float32 sinAngle = maths::Sin(maths::Angle::FromRadian(theta));
-
-                float32 radius_calculus_x = radius_ajust[corner * 2];
-                float32 radius_calculus_y = radius_ajust[corner * 2 + 1];
-
-                if (radius_ajust[corner * 2] == 0) {
-                    cosAngle = (cosAngle < 0) ? -1 : 1;
-                    radius_calculus_x = rad;
-                }
-
-                if (radius_ajust[corner * 2 + 1] == 0) {
-                    sinAngle = (sinAngle < 0) ? -1 : 1;
-                    radius_calculus_y = rad;
-                }
-
-                maths::Vector2f vertex(
-                    centers[corner].x + radius_calculus_x * cosAngle,
-                    centers[corner].y + radius_calculus_y * sinAngle
-                );
-
-                AddVertex(vertex, color, uvs[corner]);
-            }
-        }
-
-        std::vector<int32> center_indices;
-        center_indices.resize(4);
-
-        int32 next_center_indice = 0;
+        std::vector<float32> angles;
+        angles.push_back(maths::Pi);
+        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(0.0f);
+        angles.push_back(maths::Pi * 0.5f);
 
         for (int32 corner = 0; corner < 4; corner++) {
-            center_indices[corner] = next_center_indice;
+            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : Vector2f();
+            AddVertex(centers[corner], color, uv);
 
-            int32 realsegment = segments;
+            for (int32 i = segments; i >= 0; --i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
 
-            if (radius_ajust[corner] == 0.0f) {
-                realsegment = 2;
+                Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+                Vector2f vertex = centers[corner] + trigo * radius_ajust;
+
+                uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
+
+                AddVertex(vertex, color, uv);
             }
+        }
 
+        float32 center_indices[4] = {0, indice_corner_count, indice_corner_count * 2, indice_corner_count * 3};
+
+        for (int32 corner = 0; corner < 4; corner++) {
             // Ajout des indices pour dessiner les triangles
-            for (int32 index = 1; index <= realsegment; ++index) {
-                AddIndex(center_indices[corner]); // Centre du cercle
+            for (int32 index = 1; index < indice_count; ++index) {
+                AddIndex(center_indices[corner]);
                 AddIndex(center_indices[corner] + index);
                 AddIndex(center_indices[corner] + index + 1);
             }
 
-            next_center_indice = (center_indices[corner] + (realsegment + 1) + 1) % (vertices.size());
-
             AddIndex(center_indices[corner]);
-            AddIndex(center_indices[corner] + (realsegment + 1));
-            AddIndex(next_center_indice);
+            AddIndex(center_indices[corner] + indice_count);
+            AddIndex(center_indices[(corner + 1) % 4] + 1);
 
-            AddIndex(center_indices[corner] + (realsegment + 1));
-            AddIndex(next_center_indice + 1);
-            AddIndex(next_center_indice);
+            AddIndex(center_indices[(corner + 1) % 4] + 1);
+            AddIndex(center_indices[(corner + 1) % 4]);
+            AddIndex(center_indices[corner]);
         }
 
         AddIndex(center_indices[0]);
@@ -392,345 +483,798 @@ namespace nkentseu {
         AddIndex(center_indices[3]);
         AddIndex(center_indices[0]);
 
-        EndCommand();
-        // que vaut currentVertice ??
-    }*/
-
-    /*
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector4f& borderRadii, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4) {
-        // TODO: implement border radius logic
-        AddRectangle(position, size, color, uv1, uv2, uv3, uv4);
+        EndCommand(true);
+        return GetLastCommand();
     }
 
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& topLeftRadius, const maths::Vector2f& topRightRadius, const maths::Vector2f& bottomLeftRadius, const maths::Vector2f& bottomRightRadius, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4) {
-        maths::Vector4f borderRadii(topLeftRadius.x, topRightRadius.y, bottomLeftRadius.x, bottomRightRadius.y);
-        AddRectangle(position, size, color, borderRadii, uv1, uv2, uv3, uv4);
-    }
-
-
-
-
-    void RenderCache2D::AddPoint(const maths::Vector2f& position, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add point32 without starting a command");
-        }
-        currentCommand->AddVertex(position, color);
-    }
-
-    void RenderCache2D::AddLine(const maths::Vector2f& start, const maths::Vector2f& end, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add line without starting a command");
-        }
-        currentCommand->AddVertex(start, color);
-        currentCommand->AddVertex(end, color);
-        currentCommand->AddIndex(0);
-        currentCommand->AddIndex(1);
-    }
-
-    void RenderCache2D::AddLine(const maths::Vector2f& point, const maths::Vector2f& direction, float32 length, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add line without starting a command");
-        }
-        maths::Vector2f end = point + direction * length;
-        AddLine(point, end, color);
-    }
-
-    void RenderCache2D::AddSegment(const maths::Vector2f& start, const maths::Vector2f& end, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add segment without starting a command");
-        }
-        AddLine(start, end, color);
-    }
-
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color) {
-        maths::Vector2f uv;
-        AddRectangle(position, size, color, uv, uv, uv, uv);
-    }
-
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, float32 borderRadius) {
-        maths::Vector2f uv;
-        AddRectangle(position, size, color, borderRadius, uv, uv, uv, uv);
-    }
-
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector4f& borderRadii) {
-        maths::Vector2f uv;
-        AddRectangle(position, size, color, borderRadii, uv, uv, uv, uv);
-    }
-
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& topLeftRadius, const maths::Vector2f& topRightRadius, const maths::Vector2f& bottomLeftRadius, const maths::Vector2f& bottomRightRadius) {
-        maths::Vector2f uv;
-        AddRectangle(position, size, color, topLeftRadius, topRightRadius, bottomLeftRadius, bottomRightRadius, uv, uv, uv, uv);
-    }
-
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, float32 borderRadius, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
+    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
     {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add rectangle without starting a command");
-        }
-    }
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
 
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector4f& borderRadii, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
-    {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add rectangle without starting a command");
-        }
-        // Implementation de l'ajout d'un rectangle avec radii individuels
-    }
+        std::vector<float32> angles;
+        angles.push_back(maths::Pi);
+        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(0.0f);
+        angles.push_back(maths::Pi * 0.5f);
 
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& topLeftRadius, const maths::Vector2f& topRightRadius, const maths::Vector2f& bottomLeftRadius, const maths::Vector2f& bottomRightRadius, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4)
-    {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add rectangle without starting a command");
-        }
-        // Implementation de l'ajout d'un rectangle avec radii individuels
-    }
+        const float32 segments_haps = 1.0f / (float32)segments;
+        const uint32 indice_count = segments + 1;
+        const uint32 indice_rect_count = indice_count * 4;
+        const float32 line_width = maths::Min<float32>({ lineWidth, size.width, size.height });
 
-    void RenderCache2D::AddCircle(const maths::Vector2f& center, float32 radius, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add circle without starting a command");
-        }
-        // Implementation de l'ajout d'un cercle
-    }
+        for (int32 box = 0; box < 2; box++) {
 
-    void RenderCache2D::AddEllipse(const maths::Vector2f& center, const maths::Vector2f& radius, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add ellipse without starting a command");
-        }
-        // Implementation de l'ajout d'une ellipse
-    }
+            const float32 radius_ajust = maths::Min<float32>({ radius, (size.width - line_width * box) * 0.5f, (size.height - line_width * box) * 0.5f });
 
-    void RenderCache2D::AddPath(const std::vector<maths::Vector2f>& points, const maths::Vector4f& color, bool closed) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add path without starting a command");
-        }
-        // Implementation de l'ajout d'un chemin
-    }
+            std::vector<Vector2f> centers;
+            centers.push_back(position + Vector2f(radius_ajust, radius_ajust) + line_width * box);
+            centers.push_back(position + Vector2f(radius_ajust, size.height - radius_ajust) + box * Vector2f(line_width,- line_width));
+            centers.push_back(position + Vector2f(size.width - radius_ajust, size.height - radius_ajust) - line_width * box);
+            centers.push_back(position + Vector2f(size.width - radius_ajust, radius_ajust) + box * Vector2f(-line_width, line_width));
 
-    void RenderCache2D::AddBezier(const std::vector<maths::Vector2f>& points, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add Bezier curve without starting a command");
-        }
-        // Implementation de l'ajout d'une courbe de Bézier
-    }
+            for (int32 corner = 0; corner < 4; corner++) {
+                for (int32 i = segments; i >= 0; --i) {
+                    float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
 
-    void RenderCache2D::AddCurve(const std::vector<maths::Vector2f>& points, const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add curve without starting a command");
-        }
-        // Implementation de l'ajout d'une courbe
-    }
+                    Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+                    Vector2f vertex = centers[corner] + trigo * radius_ajust;
 
-    void RenderCache2D::AddPoint(const maths::Vector2f& position, const maths::Vector4f& color, const maths::Vector2f& uv1)
-    {
-    }
+                    Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
 
-    void RenderCache2D::AddLine(const maths::Vector2f& start, const maths::Vector2f& end, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add line without starting a command");
-        }
-        currentCommand->AddVertex(start, color, uv1);
-        currentCommand->AddVertex(end, color, uv2);
-        currentCommand->AddIndex(0);
-        currentCommand->AddIndex(1);
-    }
-
-    void RenderCache2D::AddLine(const maths::Vector2f& point, const maths::Vector2f& direction, float32 length, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2) {
-        maths::Vector2f start = point;
-        maths::Vector2f end = point + direction * length;
-        AddLine(start, end, color, uv1, uv2);
-    }
-
-    void RenderCache2D::AddSegment(const maths::Vector2f& start, const maths::Vector2f& end, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2) {
-        AddLine(start, end, color, uv1, uv2);
-    }
-
-    void RenderCache2D::AddRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& color, const maths::Vector2f& uv1, const maths::Vector2f& uv2, const maths::Vector2f& uv3, const maths::Vector2f& uv4) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add rectangle without starting a command");
-        }
-        maths::Vector2f topLeft = position;
-        maths::Vector2f topRight = position + maths::Vector2f(size.x, 0);
-        maths::Vector2f bottomLeft = position + maths::Vector2f(0, size.y);
-        maths::Vector2f bottomRight = position + size;
-        currentCommand->AddVertex(topLeft, color, uv1);
-        currentCommand->AddVertex(topRight, color, uv2);
-        currentCommand->AddVertex(bottomRight, color, uv3);
-        currentCommand->AddVertex(bottomLeft, color, uv4);
-        currentCommand->AddIndex(0);
-        currentCommand->AddIndex(1);
-        currentCommand->AddIndex(2);
-        currentCommand->AddIndex(2);
-        currentCommand->AddIndex(3);
-        currentCommand->AddIndex(0);
-    }
-
-    void RenderCache2D::AddCircle(const maths::Vector2f& center, float32 radius, const maths::Vector4f& color, const maths::Vector2f& uv) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add circle without starting a command");
-        }
-        int32 segments = 32;
-        float32 angle = 0;
-        float32 angleIncrement = 2 * maths::Pi / segments;
-        for (int32 i = 0; i < segments; i++) {
-            maths::Vector2f point = center + maths::Vector2f(cos(angle), sin(angle)) * radius;
-            currentCommand->AddVertex(point, color, uv);
-            angle += angleIncrement;
-        }
-        for (int32 i = 0; i < segments; i++) {
-            currentCommand->AddIndex(i);
-            currentCommand->AddIndex((i + 1) % segments);
-            currentCommand->AddIndex(segments);
-        }
-    }
-
-    void RenderCache2D::AddEllipse(const maths::Vector2f& center, const maths::Vector2f& radius, const maths::Vector4f& color, const maths::Vector2f& uv) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add ellipse without starting a command");
-        }
-        int32 segments = 32;
-        float32 angle = 0;
-        float32 angleIncrement = 2 * maths::Pi / segments;
-        for (int32 i = 0; i < segments; i++) {
-            maths::Vector2f point = center + maths::Vector2f(cos(angle) * radius.x, sin(angle) * radius.y);
-            currentCommand->AddVertex(point, color, uv);
-            angle += angleIncrement;
-        }
-        for (int32 i = 0; i < segments; i++) {
-            currentCommand->AddIndex(i);
-            currentCommand->AddIndex((i + 1) % segments);
-            currentCommand->AddIndex(segments);
-        }
-    }
-
-    void RenderCache2D::AddPath(const std::vector<maths::Vector2f>& points, const maths::Vector4f& color, const std::vector<maths::Vector2f>& uvs, bool closed) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add path without starting a command");
-        }
-        for (int32 i = 0; i < points.size(); i++) {
-            currentCommand->AddVertex(points[i], color, uvs[i]);
-        }
-        if (closed) {
-            for (int32 i = 0; i < points.size(); i++) {
-                currentCommand->AddIndex(i);
-                currentCommand->AddIndex((i + 1) % points.size());
-                currentCommand->AddIndex(points.size());
+                    AddVertex(vertex, color, uv);
+                }
             }
+        }
+
+        for (int32 index = 0; index < indice_rect_count; ++index) {
+            uint32 next = (index + 1) % indice_rect_count;
+
+            AddIndex(index);
+            AddIndex(next);
+            AddIndex(indice_rect_count + index);
+
+            AddIndex(indice_rect_count + index);
+            AddIndex(next);
+            AddIndex(indice_rect_count + next);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& radius, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        std::vector<float32> angles;
+        angles.push_back(maths::Pi);
+        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(0.0f);
+        angles.push_back(maths::Pi * 0.5f);
+
+        std::vector<float32> radius_ajust = {
+            maths::Min<float32>({radius[0], size.width * 0.5f, size.height * 0.5f}),
+            maths::Min<float32>({radius[1], size.width * 0.5f, size.height * 0.5f}),
+            maths::Min<float32>({radius[2], size.width * 0.5f, size.height * 0.5f}),
+            maths::Min<float32>({radius[3], size.width * 0.5f, size.height * 0.5f})
+        };
+
+        const float32 rad = maths::Max<float32>(radius_ajust);
+        const float32 segments_haps = 1.0f / (float32)segments;
+        const uint32 indice_count = segments + 1;
+        const uint32 indice_corner_count = indice_count + 1;
+
+        std::vector<Vector2f> centers;
+        centers.push_back(position + (radius_ajust[0] == 0 ? rad : radius_ajust[0]));
+        centers.push_back(position + Vector2f(0, size.height) + (radius_ajust[1] == 0 ? Vector2f(rad, -rad) : Vector2f(radius_ajust[1], -radius_ajust[1])));
+        centers.push_back(position + size + (radius_ajust[2] == 0 ? Vector2f(-rad, -rad) : Vector2f(-radius_ajust[2], -radius_ajust[2])));
+        centers.push_back(position + Vector2f(size.width, 0) + (radius_ajust[3] == 0 ? Vector2f(-rad, rad) : Vector2f(-radius_ajust[3], radius_ajust[3])));
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : Vector2f();
+            AddVertex(centers[corner], color, uv);
+
+            for (int32 i = segments; i >= 0; --i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
+
+                Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+
+                float32 radius_calculus = radius_ajust[corner];
+
+                if (radius_ajust[corner] == 0) {
+                    trigo.x = (trigo.x < 0) ? -1 : 1;
+                    trigo.y = (trigo.y < 0) ? -1 : 1;
+                    radius_calculus = rad;
+                }
+
+                Vector2f vertex = centers[corner] + trigo * radius_calculus;
+
+                uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
+
+                AddVertex(vertex, color, uv);
+            }
+        }
+
+        float32 center_indices[4] = { 0, indice_corner_count, indice_corner_count * 2, indice_corner_count * 3 };
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            // Ajout des indices pour dessiner les triangles
+            for (int32 index = 1; index < indice_count; ++index) {
+                AddIndex(center_indices[corner]);
+                AddIndex(center_indices[corner] + index);
+                AddIndex(center_indices[corner] + index + 1);
+            }
+
+            AddIndex(center_indices[corner]);
+            AddIndex(center_indices[corner] + indice_count);
+            AddIndex(center_indices[(corner + 1) % 4] + 1);
+
+            AddIndex(center_indices[(corner + 1) % 4] + 1);
+            AddIndex(center_indices[(corner + 1) % 4]);
+            AddIndex(center_indices[corner]);
+        }
+
+        AddIndex(center_indices[0]);
+        AddIndex(center_indices[1]);
+        AddIndex(center_indices[2]);
+
+        AddIndex(center_indices[2]);
+        AddIndex(center_indices[3]);
+        AddIndex(center_indices[0]);
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& radius, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        std::vector<float32> angles;
+        angles.push_back(maths::Pi);
+        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(0.0f);
+        angles.push_back(maths::Pi * 0.5f);
+
+        const float32 segments_haps = 1.0f / (float32)segments;
+        const uint32 indice_count = segments + 1;
+        uint32 indice_rect_count = 0;
+        const float32 line_width = maths::Min<float32>({ lineWidth, size.width, size.height });
+
+        for (int32 box = 0; box < 2; box++) {
+            indice_rect_count = 0;
+
+            std::vector<float32> radius_ajust = {
+                maths::Min<float32>({radius[0], (size.width - line_width * box) * 0.5f, (size.height - line_width * box) * 0.5f}),
+                maths::Min<float32>({radius[1], (size.width - line_width * box) * 0.5f, (size.height - line_width * box) * 0.5f}),
+                maths::Min<float32>({radius[2], (size.width - line_width * box) * 0.5f, (size.height - line_width * box) * 0.5f}),
+                maths::Min<float32>({radius[3], (size.width - line_width * box) * 0.5f, (size.height - line_width * box) * 0.5f})
+            };
+
+            const float32 rad = maths::Max<float32>(radius_ajust);
+
+            std::vector<Vector2f> centers;
+            centers.push_back(position + (radius_ajust[0] == 0 ? rad : radius_ajust[0]) + line_width * box);
+            centers.push_back(position + Vector2f(0, size.height) + (radius_ajust[1] == 0 ? Vector2f(rad, -rad) : Vector2f(radius_ajust[1], -radius_ajust[1])) + box * Vector2f(line_width, -line_width));
+            centers.push_back(position + size + (radius_ajust[2] == 0 ? Vector2f(-rad, -rad) : Vector2f(-radius_ajust[2], -radius_ajust[2])) - line_width * box);
+            centers.push_back(position + Vector2f(size.width, 0) + (radius_ajust[3] == 0 ? Vector2f(-rad, rad) : Vector2f(-radius_ajust[3], radius_ajust[3])) + box * Vector2f(-line_width, line_width));
+
+            for (int32 corner = 0; corner < 4; corner++) {
+                for (int32 i = segments; i >= 0; --i) {
+                    float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
+
+                    Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+
+                    float32 radius_calculus = radius_ajust[corner];
+
+                    if (radius_ajust[corner] == 0) {
+                        trigo.x = (trigo.x < 0) ? -1 : 1;
+                        trigo.y = (trigo.y < 0) ? -1 : 1;
+                        radius_calculus = rad;
+                    }
+
+                    Vector2f vertex = centers[corner] + trigo * radius_calculus;
+
+                    Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
+
+                    AddVertex(vertex, color, uv);
+                    indice_rect_count++;
+                }
+            }
+        }
+
+        for (int32 index = 0; index < indice_rect_count; ++index) {
+            uint32 next = (index + 1) % indice_rect_count;
+
+            AddIndex(index);
+            AddIndex(next);
+            AddIndex(indice_rect_count + index);
+
+            AddIndex(indice_rect_count + index);
+            AddIndex(next);
+            AddIndex(indice_rect_count + next);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f radius[4], const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        std::vector<float32> angles;
+        angles.push_back(maths::Pi);
+        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(0.0f);
+        angles.push_back(maths::Pi * 0.5f);
+
+        std::vector<float32> radius_ajustX = {
+            maths::Min<float32>({radius[0].x, size.width * 0.5f}), maths::Min<float32>({radius[1].x, size.width * 0.5f}),
+            maths::Min<float32>({radius[2].x, size.width * 0.5f}), maths::Min<float32>({radius[3].x, size.width * 0.5f})
+        };
+        std::vector<float32> radius_ajustY = {
+            maths::Min<float32>({radius[0].y, size.height * 0.5f}), maths::Min<float32>({radius[1].y, size.height * 0.5f}),
+            maths::Min<float32>({radius[2].y, size.height * 0.5f}), maths::Min<float32>({radius[3].y, size.height * 0.5f}),
+        };
+
+        const float32 radX = maths::Max<float32>(radius_ajustX);
+        const float32 radY = maths::Max<float32>(radius_ajustY);
+        const float32 segments_haps = 1.0f / (float32)segments;
+        const uint32 indice_count = segments + 1;
+        const uint32 indice_corner_count = indice_count + 1;
+
+        #define Centering0(vx, vy) Vector2f((vx == 0) ? radX : vx, (vy == 0) ? radY : vy)
+        #define Centering1(vx, vy) Vector2f((vx == 0) ? radX : vx, (vy == 0) ? -radY : -vy)
+        #define Centering2(vx, vy) Vector2f((vx == 0) ? -radX : -vx, (vy == 0) ? -radY : -vy)
+        #define Centering3(vx, vy) Vector2f((vx == 0) ? -radX : -vx, (vy == 0) ? radY : vy)
+
+        std::vector<Vector2f> centers;
+        centers.push_back(position + Centering0(radius_ajustX[0], radius_ajustY[0]));
+        centers.push_back(position + Vector2f(0, size.height) + Centering1(radius_ajustX[1], radius_ajustY[1]));
+        centers.push_back(position + size + Centering2(radius_ajustX[2], radius_ajustY[2]));
+        centers.push_back(position + Vector2f(size.width, 0) + Centering3(radius_ajustX[3], radius_ajustY[3]));
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : Vector2f();
+            AddVertex(centers[corner], color, uv);
+
+            for (int32 i = segments; i >= 0; --i) {
+                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
+
+                Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+
+                Vector2f radius_calculus(radius_ajustX[corner], radius_ajustY[corner]);
+
+                if (radius_ajustX[corner] == 0) {
+                    trigo.x = (trigo.x < 0) ? -1 : 1;
+                    radius_calculus.x = radX;
+                }
+
+                if (radius_ajustY[corner] == 0) {
+                    trigo.y = (trigo.y < 0) ? -1 : 1;
+                    radius_calculus.y = radY;
+                }
+
+                Vector2f vertex = centers[corner] + trigo * radius_calculus;
+
+                uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
+
+                AddVertex(vertex, color, uv);
+            }
+        }
+
+        float32 center_indices[4] = { 0, indice_corner_count, indice_corner_count * 2, indice_corner_count * 3 };
+
+        for (int32 corner = 0; corner < 4; corner++) {
+            // Ajout des indices pour dessiner les triangles
+            for (int32 index = 1; index < indice_count; ++index) {
+                AddIndex(center_indices[corner]);
+                AddIndex(center_indices[corner] + index);
+                AddIndex(center_indices[corner] + index + 1);
+            }
+
+            AddIndex(center_indices[corner]);
+            AddIndex(center_indices[corner] + indice_count);
+            AddIndex(center_indices[(corner + 1) % 4] + 1);
+
+            AddIndex(center_indices[(corner + 1) % 4] + 1);
+            AddIndex(center_indices[(corner + 1) % 4]);
+            AddIndex(center_indices[corner]);
+        }
+
+        AddIndex(center_indices[0]);
+        AddIndex(center_indices[1]);
+        AddIndex(center_indices[2]);
+
+        AddIndex(center_indices[2]);
+        AddIndex(center_indices[3]);
+        AddIndex(center_indices[0]);
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f radius[4], const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        std::vector<float32> angles;
+        angles.push_back(maths::Pi);
+        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(0.0f);
+        angles.push_back(maths::Pi * 0.5f);
+
+        const float32 segments_haps = 1.0f / (float32)segments;
+        const uint32 indice_count = segments + 1;
+        uint32 indice_rect_count = 0;
+        const float32 line_width = maths::Min<float32>({ lineWidth, size.width, size.height });
+
+        for (int32 box = 0; box < 2; box++) {
+            indice_rect_count = 0;
+
+            std::vector<float32> radius_ajustX = {
+                maths::Min<float32>({radius[0].x, (size.width - line_width * box) * 0.5f}), 
+                maths::Min<float32>({radius[1].x, (size.width - line_width * box) * 0.5f}),
+                maths::Min<float32>({radius[2].x, (size.width - line_width * box) * 0.5f}), 
+                maths::Min<float32>({radius[3].x, (size.width - line_width * box) * 0.5f})
+            };
+            std::vector<float32> radius_ajustY = {
+                maths::Min<float32>({radius[0].y, (size.height - line_width * box) * 0.5f}), 
+                maths::Min<float32>({radius[1].y, (size.height - line_width * box) * 0.5f}),
+                maths::Min<float32>({radius[2].y, (size.height - line_width * box) * 0.5f}), 
+                maths::Min<float32>({radius[3].y, (size.height - line_width * box) * 0.5f}),
+            };
+
+            const float32 radX = maths::Max<float32>(radius_ajustX);
+            const float32 radY = maths::Max<float32>(radius_ajustY);
+
+            #define Centering10(vx, vy) (Vector2f((vx == 0) ? radX : vx, (vy == 0) ? radY : vy) + line_width * box)
+            #define Centering11(vx, vy) (Vector2f((vx == 0) ? radX : vx, (vy == 0) ? -radY : -vy) + box * Vector2f(line_width, -line_width))
+            #define Centering12(vx, vy) (Vector2f((vx == 0) ? -radX : -vx, (vy == 0) ? -radY : -vy) - line_width * box)
+            #define Centering13(vx, vy) (Vector2f((vx == 0) ? -radX : -vx, (vy == 0) ? radY : vy) + box * Vector2f(-line_width, line_width))
+
+            std::vector<Vector2f> centers;
+            centers.push_back(position + Centering10(radius_ajustX[0], radius_ajustY[0]));
+            centers.push_back(position + Vector2f(0, size.height) + Centering11(radius_ajustX[1], radius_ajustY[1]));
+            centers.push_back(position + size + Centering12(radius_ajustX[2], radius_ajustY[2]));
+            centers.push_back(position + Vector2f(size.width, 0) + Centering13(radius_ajustX[3], radius_ajustY[3]));
+
+            for (int32 corner = 0; corner < 4; corner++) {
+                for (int32 i = segments; i >= 0; --i) {
+                    float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
+
+                    Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+
+                    Vector2f radius_calculus(radius_ajustX[corner], radius_ajustY[corner]);
+
+                    if (radius_ajustX[corner] == 0) {
+                        trigo.x = (trigo.x < 0) ? -1 : 1;
+                        radius_calculus.x = radX;
+                    }
+
+                    if (radius_ajustY[corner] == 0) {
+                        trigo.y = (trigo.y < 0) ? -1 : 1;
+                        radius_calculus.y = radY;
+                    }
+
+                    Vector2f vertex = centers[corner] + trigo * radius_calculus;
+
+                    Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
+
+                    AddVertex(vertex, color, uv);
+                    indice_rect_count++;
+                }
+            }
+        }
+
+        for (int32 index = 0; index < indice_rect_count; ++index) {
+            uint32 next = (index + 1) % indice_rect_count;
+
+            AddIndex(index);
+            AddIndex(next);
+            AddIndex(indice_rect_count + index);
+
+            AddIndex(indice_rect_count + index);
+            AddIndex(next);
+            AddIndex(indice_rect_count + next);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFilledCircle(const maths::Vector2f& position, float32 radius, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        float32 angleIncrement = 2 * maths::Pi / segments;
+        AddVertex(position, color, uvs.size() <= 0 ? maths::Vector2f(0.5, 0.5) : uvs[0]);
+
+        for (uint32 i = 0; i <= segments; i++) {
+            float32 angle = i * angleIncrement;
+            Vector2f trigo(cos(angle), sin(angle));
+            maths::Vector2f p = position + trigo * radius;
+
+            AddVertex(p, color, uvs.size() <= i + 1 ? trigo : uvs[i + 1]);
+        }
+
+        for (uint32 i = 1; i <= segments; i++) {
+            AddIndex(0);
+            AddIndex(i);
+            AddIndex(i + 1);
+        }
+
+        AddIndex(0);
+        AddIndex(segments);
+        AddIndex(1);
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddOutlineCircle(const maths::Vector2f& position, float32 radius, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+
+        if (radius == lineWidth) {
+            return AddFilledCircle(position, radius, color, segments, textureId, uvs);
+        }
+
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        float32 angleIncrement = 2 * maths::Pi / segments;
+        uint32 circle_vertex_count = 0;
+
+        for (uint32 circle = 0; circle < 2; circle++) {
+            circle_vertex_count = 0;
+            for (uint32 i = 0; i <= segments; i++) {
+                float32 angle = i * angleIncrement;
+                Vector2f trigo(cos(angle), sin(angle));
+                maths::Vector2f p = position + trigo * (radius - lineWidth * circle);
+
+                AddVertex(p, color, uvs.size() <= i ? trigo : uvs[i]);
+                circle_vertex_count++;
+            }
+        }
+
+        for (uint32 index = 0; index < circle_vertex_count; ++index) {
+            uint32 next = (index + 1) % circle_vertex_count;
+
+            AddIndex(index);
+            AddIndex(next);
+            AddIndex(circle_vertex_count + index);
+
+            AddIndex(circle_vertex_count + index);
+            AddIndex(next);
+            AddIndex(circle_vertex_count + next);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFilledEllipse(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        float32 angleIncrement = 2 * maths::Pi / segments;
+        AddVertex(position, color, uvs.size() <= 0 ? maths::Vector2f(0.5, 0.5) : uvs[0]);
+
+        for (uint32 i = 0; i <= segments; i++) {
+            float32 angle = i * angleIncrement;
+            Vector2f trigo(cos(angle), sin(angle));
+            maths::Vector2f p = position + trigo * size;
+
+            AddVertex(p, color, uvs.size() <= i + 1 ? trigo : uvs[i + 1]);
+        }
+
+        for (uint32 i = 1; i <= segments; i++) {
+            AddIndex(0);
+            AddIndex(i);
+            AddIndex(i + 1);
+        }
+
+        AddIndex(0);
+        AddIndex(segments);
+        AddIndex(1);
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddOutlineEllipse(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        float32 angleIncrement = 2 * maths::Pi / segments;
+        uint32 circle_vertex_count = 0;
+
+        for (uint32 circle = 0; circle < 2; circle++) {
+            circle_vertex_count = 0;
+            for (uint32 i = 0; i <= segments; i++) {
+                float32 angle = i * angleIncrement;
+                Vector2f trigo(cos(angle), sin(angle));
+                maths::Vector2f p = position + trigo * (size - lineWidth * circle);
+
+                AddVertex(p, color, uvs.size() <= i ? trigo : uvs[i]);
+                circle_vertex_count++;
+            }
+        }
+
+        for (uint32 index = 0; index < circle_vertex_count; ++index) {
+            uint32 next = (index + 1) % circle_vertex_count;
+
+            AddIndex(index);
+            AddIndex(next);
+            AddIndex(circle_vertex_count + index);
+
+            AddIndex(circle_vertex_count + index);
+            AddIndex(next);
+            AddIndex(circle_vertex_count + next);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFilledTriangle(const maths::Vector2f& p1, const maths::Vector2f& p2, const maths::Vector2f& p3, const Color& color, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        AddVertex(p1, color, uvs.size() > 0 ? uvs[0] : Vector2f(0.5f, 1.0f));
+        AddVertex(p2, color, uvs.size() > 1 ? uvs[1] : Vector2f(0.0f, 0.0f));
+        AddVertex(p3, color, uvs.size() > 2 ? uvs[2] : Vector2f(1.0f, 0.0f));
+
+        AddIndex(0);
+        AddIndex(1);
+        AddIndex(2);
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddOutlineTriangle(const maths::Vector2f& p1, const maths::Vector2f& p2, const maths::Vector2f& p3, const Color& color, float32 lineWidth, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        AddVertex(p1, color, uvs.size() > 0 ? uvs[0] : Vector2f(0.5f, 1.0f));
+        AddVertex(p2, color, uvs.size() > 1 ? uvs[1] : Vector2f(0.0f, 0.0f));
+        AddVertex(p3, color, uvs.size() > 2 ? uvs[2] : Vector2f(1.0f, 0.0f));
+
+        Vector2f p1_p = (((p2 + p3) / 2.0f) - p1).Normalized() * lineWidth + p1;
+        Vector2f p2_p = (((p1 + p3) / 2.0f) - p2).Normalized() * lineWidth + p2;
+        Vector2f p3_p = (((p2 + p1) / 2.0f) - p3).Normalized() * lineWidth + p3;
+
+        AddVertex(p1_p, color, uvs.size() > 3 ? uvs[3] : Vector2f(0.5f, 1.0f));
+        AddVertex(p2_p, color, uvs.size() > 4 ? uvs[4] : Vector2f(0.0f, 0.0f));
+        AddVertex(p3_p, color, uvs.size() > 5 ? uvs[5] : Vector2f(1.0f, 0.0f));
+
+        int32 triangle_vertex_count = 3;
+        for (uint32 index = 0; index < triangle_vertex_count; ++index) {
+            uint32 next = (index + 1) % triangle_vertex_count;
+
+            AddIndex(index);
+            AddIndex(next);
+            AddIndex(triangle_vertex_count + index);
+
+            AddIndex(triangle_vertex_count + index);
+            AddIndex(next);
+            AddIndex(triangle_vertex_count + next);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddLine(const maths::Vector2f& p1, const maths::Vector2f& p2, const Color& color, float32 lineWidth, int32 textureId, maths::Vector2f uv0, maths::Vector2f uv1) {
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        Vector2f normal = (p1 - p2).Normal().Normalized() * lineWidth * 0.5f;
+
+        Vector2f p1_1 = p1 + normal;
+        Vector2f p1_2 = p1 - normal;
+
+        Vector2f p2_1 = p2 + normal;
+        Vector2f p2_2 = p2 - normal;
+
+        AddVertex(p1_1, color, uv0);
+        AddVertex(p1_2, color, uv0);
+        AddVertex(p2_2, color, uv1);
+        AddVertex(p2_1, color, uv1);
+
+        AddIndex(0);
+        AddIndex(1);
+        AddIndex(2);
+
+        AddIndex(2);
+        AddIndex(3);
+        AddIndex(0);
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddFillPath(const std::vector<maths::Vector2f>& points, const Color& color, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        if (points.size() == 0) return nullptr;
+        if (points.size() == 1) {
+            if (uvs.size() >= 1)
+                return AddPoint(points[0], color, 1.0f, textureId, uvs[0]);
+            return AddPoint(points[0], color, 1.0f, textureId);
+        }
+        if (points.size() == 2) {
+            if (uvs.size() >= 2)
+                return AddLine(points[0], points[1], color, 1.0f, textureId, uvs[0], uvs[1]);
+            return AddLine(points[0], points[1], color, 1.0f, textureId);
+        }
+
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        float32 inv = 1.0f / points.size();
+
+        Vector2f prevNormal;
+        int32 last_index = 0;
+
+        for (int32 p = 0; p < points.size(); p++) {
+            AddVertex(points[p], color, uvs.size() > p ? uvs[p] : Vector2f(1).Normalized() * p * inv);
+        }
+
+        for (int32 p = 0; p < points.size() - 2; p++) {
+            AddIndex(0);
+            AddIndex(p + 1);
+            AddIndex(p + 2);
+        }
+
+        if (points.size() > 3) {
+            AddIndex(0);
+            AddIndex(points.size() - 1);
+            AddIndex(points.size() - 2);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddOutlinePath(const std::vector<maths::Vector2f>& points, const Color& color, bool closed, float32 lineWidth, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    {
+        if (points.size() == 0) return nullptr;
+        if (points.size() == 1) {
+            if (uvs.size() >= 1)
+                return AddPoint(points[0], color, lineWidth, textureId, uvs[0]);
+            return AddPoint(points[0], color, lineWidth, textureId);
+        }
+        if (points.size() == 2) {
+            if (uvs.size() >= 2)
+                return AddLine(points[0], points[1], color, lineWidth, textureId, uvs[0], uvs[1]);
+            return AddLine(points[0], points[1], color, lineWidth, textureId);
+        }
+
+        BeginCommand(RenderPrimitive::Enum::Triangles);
+        SetCommandTextureId(textureId);
+
+        float32 inv = 1.0f / points.size();
+
+        Vector2f prevNormal;
+        int32 last_index = 0;
+
+        for (int32 p = 0; p < points.size(); p++) {
+            Vector2f p1 = points[p];
+            Vector2f p2 = points[(p + 1) % points.size()];
+
+            Vector2f normal = (p1 - p2).Normal().Normalized();
+            Vector2f apply;
+
+            if (prevNormal == Vector2f()) apply = normal;
+            else if (p == points.size() - 1 && !closed) apply = prevNormal;
+            else apply = ((normal + prevNormal) / 2.0f).Normalized();
+
+            apply = apply * lineWidth * 0.5f;
+            prevNormal = normal;
+
+            Vector2f p1_1 = p1 + apply;
+            Vector2f p1_2 = p1 - apply;
+
+            AddVertex(p1_1, color, uvs.size() > p ? uvs[p] : Vector2f(1).Normalized() * p * inv);
+            last_index++;
+            AddVertex(p1_2, color, uvs.size() > p ? uvs[p] : Vector2f(1).Normalized() * p * inv);
+            last_index++;
+        }
+
+        for (int32 p = 0; p < points.size(); p++) {
+            AddIndex(p);
+            AddIndex(p + 1);
+            AddIndex(p + 2);
+
+            AddIndex(p + 1);
+            AddIndex(p + 2);
+            AddIndex(p + 3);
+        }
+
+        if (closed) {
+            AddIndex(0);
+            AddIndex(1);
+            AddIndex(last_index - 1);
+
+            AddIndex(last_index - 1);
+            AddIndex(last_index - 2);
+            AddIndex(0);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    RenderCommand2D* RenderCache2D::AddPoint(const maths::Vector2f& p, const Color& color, float32 lineWidth, int32 textureId, maths::Vector2f uv) {
+        BeginCommand(RenderPrimitive::Enum::Points);
+        SetCommandTextureId(textureId);
+        AddVertex(p, color, uv);
+        AddIndex(0);
+        EndCommand(true);
+        return GetLastCommand();
+    }
+
+    int32 RenderCache2D::AddInternalArc(const Vector2f& center, const Vector2f& radius, const Vector2f& rad, const Color& color, float32 departAngle, float32 endAngle, float32 segments, int32 decal, const std::vector<maths::Vector2f>& uvs)
+    {
+        int32 pas = 0;
+        int32 depart = 0;
+        int32 fin = 0;
+        int32 vertex_count = 0;
+        int32 indice_count = segments + 1;
+        float32 inverseg = 1.0f / static_cast<float32>(segments);
+
+        if (departAngle > endAngle) {
+            pas = -1;
+            depart = segments;
+            fin = -1;
+        }
+        else if (departAngle < endAngle) {
+            pas = 1;
+            depart = 0;
+            fin = segments + 1;
         }
         else {
-            for (int32 i = 0; i < points.size() - 1; i++) {
-                currentCommand->AddIndex(i);
-                currentCommand->AddIndex(i + 1);
-                currentCommand->AddIndex(points.size());
+            return 0;
+        }
+
+        int32 i = depart;
+
+        while (i != fin) {
+            float32 theta = (static_cast<float32>(i) * inverseg * maths::Abs(fin - depart)) + depart;
+
+            Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
+
+            Vector2f radius_calculus(radius.x, radius.y);
+
+            if (radius.x == 0) {
+                trigo.x = (trigo.x < 0) ? -1 : 1;
+                radius_calculus.x = rad.x;
             }
-        }
-    }
 
-    void RenderCache2D::AddBezier(const std::vector<maths::Vector2f>& points, const maths::Vector4f& color, const std::vector<maths::Vector2f>& uvs) {
-        if (points.size() < 3) {
-            throw std::runtime_error("A Bezier curve must have at least 3 points");
-        }
-        if (points.size() != uvs.size()) {
-            throw std::runtime_error("The number of points and uvs must be equal");
-        }
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add Bezier curve without starting a command");
-        }
-
-        int32 segments = 16;
-        for (int32 i = 0; i < points.size() - 1; i++) {
-            maths::Vector2f prevPoint = points[i];
-            maths::Vector2f prevPrevPoint = points[i == 0 ? points.size() - 1 : i - 1];
-            for (int32 j = 1; j <= segments; j++) {
-                float32 t = j / (float32)segments;
-                float32 t2 = t * t;
-                float32 t3 = t2 * t;
-                maths::Vector2f p = (1 - t) * ((1 - t) * prevPrevPoint + t * prevPoint) + t * points[i + 1];
-                currentCommand->AddVertex(p, color, uvs[i]);
+            if (radius.y == 0) {
+                trigo.y = (trigo.y < 0) ? -1 : 1;
+                radius_calculus.y = rad.y;
             }
-        }
-        for (int32 i = 0; i < points.size() - 1; i++) {
-            for (int32 j = 1; j <= segments; j++) {
-                currentCommand->AddIndex(i * segments + j - 1);
-                currentCommand->AddIndex((i + 1) * segments + j - 1);
-                currentCommand->AddIndex((i + 1) * segments + j - 2);
-                currentCommand->AddIndex(i * segments + j - 1);
-                currentCommand->AddIndex((i + 1) * segments + j - 2);
-                currentCommand->AddIndex(i * segments + j - 2);
-            }
-        }
-    }
 
-    void RenderCache2D::AddCurve(const std::vector<maths::Vector2f>& points, const maths::Vector4f& color, const std::vector<maths::Vector2f>& uvs) {
-        if (points.size() < 2) {
-            throw std::runtime_error("A curve must have at least 2 points");
-        }
-        if (points.size() != uvs.size()) {
-            throw std::runtime_error("The number of points and uvs must be equal");
-        }
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot add curve without starting a command");
-        }
-        int32 segments = 16;
-        for (int32 i = 0; i < points.size() - 1; i++) {
-            maths::Vector2f prevPoint = points[i];
-            for (int32 j = 1; j <= segments; j++) {
-                float32 t = j / (float32)segments;
-                maths::Vector2f p = (1 - t) * prevPoint + t * points[i + 1];
-                currentCommand->AddVertex(p, color, uvs[i]);
-            }
-        }
-        for (int32 i = 0; i < points.size() - 1; i++) {
-            for (int32 j = 1; j <= segments; j++) {
-                currentCommand->AddIndex(i * segments + j - 1);
-                currentCommand->AddIndex((i + 1) * segments + j - 1);
-                currentCommand->AddIndex((i + 1) * segments + j - 2);
-                currentCommand->AddIndex(i * segments + j - 1);
-                currentCommand->AddIndex((i + 1) * segments + j - 2);
-                currentCommand->AddIndex(i * segments + j - 2);
-            }
-        }
-    }*/
+            Vector2f vertex = center + trigo * radius_calculus;
 
-    void RenderCache2D::SetBorderColor(const maths::Vector4f& color) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot set border color without starting a command");
-        }
-        currentCommand->SetBorderColor(color);
-    }
+            Vector2f uv = uvs.size() > i ? uvs[decal + i] : trigo;
 
-    void RenderCache2D::SetBorderWidth(float32 width) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot set border width without starting a command");
-        }
-        currentCommand->SetBorderWidth(width);
-    }
+            AddVertex(vertex, color, uv);
+            vertex_count++;
 
-    void RenderCache2D::SetBlendMode(BlendMode2D mode) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot set blend mode without starting a command");
+            i += pas;
         }
-        currentCommand->SetBlendMode(mode);
-    }
 
-    void RenderCache2D::SetClipRegion(const ClipRegion& region) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot set clip region without starting a command");
-        }
-        currentCommand->SetClipRegion(region);
-    }
-
-    void RenderCache2D::SetTransform(const maths::matrix4& transform) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot set transform without starting a command");
-        }
-        currentCommand->SetTransform(transform);
-    }
-
-    void RenderCache2D::SetTexture(uint32 textureId) {
-        if (!currentCommand) {
-            throw std::runtime_error("Cannot set texture without starting a command");
-        }
-        currentCommand->SetTextureId(textureId);
+        return vertex_count;
     }
 
 }  //  nkentseu

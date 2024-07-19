@@ -22,19 +22,19 @@ namespace nkentseu {
             virtual Memory::Shared<Context> GetContext() = 0;
             virtual bool Destroy() = 0;
             virtual uint32 Leng() const = 0;
-            virtual bool SetData(void* data, usize size) = 0;
+            virtual bool SetData(const void* data, usize size) = 0;
 
-            virtual bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) = 0;
-            virtual bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) = 0;
+            virtual bool Create(BufferUsageType bufferUsage, const std::vector<float32>& vertices) = 0;
+            virtual bool Create(BufferUsageType bufferUsage, const void* vertices, uint32 leng) = 0;
 
             static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
 
-            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices);
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferUsageType bufferUsage, const std::vector<float32>& vertices);
 
-            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng);
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferUsageType bufferUsage, const void* vertices, uint32 leng);
 
             template <typename T>
-            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices) {
+            static Memory::Shared<VertexBuffer> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferUsageType bufferUsage, const std::vector<T>& vertices) {
                 return Create(context, sil, bufferUsage, vertices.data(), vertices.size());
             }
     };

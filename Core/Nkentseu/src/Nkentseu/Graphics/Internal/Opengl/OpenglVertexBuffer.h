@@ -19,38 +19,39 @@
 
 namespace nkentseu {
     class Context;
-    
-    class NKENTSEU_API OpenglVertexBuffer : public VertexBuffer{
-        public:
-            OpenglVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
-            ~OpenglVertexBuffer();
 
-            Memory::Shared<Context> GetContext() override;
-            bool Destroy() override;
-            uint32 Leng() const override;
+    class NKENTSEU_API OpenglVertexBuffer : public VertexBuffer {
+    public:
+        OpenglVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+        ~OpenglVertexBuffer();
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) override;
-            bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) override;
+        Memory::Shared<Context> GetContext() override;
+        bool Destroy() override;
+        uint32 Leng() const override;
 
-            template <typename T>
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices) {
-                return Create(bufferUsage, vertices.data(), vertices.size());
-            }
+        bool Create(BufferUsageType bufferUsage, const std::vector<float32>& vertices) override;
+        bool Create(BufferUsageType bufferUsage, const void* vertices, uint32 leng) override;
 
-            bool Bind() const;
-            bool Unbind() const;
+        template <typename T>
+        bool Create(BufferUsageType bufferUsage, const std::vector<T>& vertices) {
+            return Create(bufferUsage, vertices.data(), vertices.size());
+        }
 
-            virtual bool SetData(void* data, usize size) override;
+        bool Bind() const;
+        bool Unbind() const;
 
-            uint32 GetBuffer() const;
-            bool AttachToVAO(uint32 vao, bool useDsa);
-        private:
-            Memory::Shared<OpenglShaderInputLayout> m_OglSil;
-            BufferDataUsage::Code m_BufferUsage; 
-            Memory::Shared<Context> m_Context;
+        virtual bool SetData(const void* data, usize size) override;
 
-            uint32 m_Size = 0;
-            OpenglBuffer m_Buffer;
+        uint32 GetBuffer() const;
+        bool AttachToVAO(uint32 vao, bool useDsa);
+    private:
+        Memory::Shared<OpenglShaderInputLayout> m_OglSil;
+        BufferUsageType m_BufferUsage;
+        Memory::Shared<Context> m_Context;
+
+        uint32 m_Size = 0;
+        uint32 m_Leng = 0;
+        OpenglBuffer m_Buffer;
     };
 
 }  //  nkentseu

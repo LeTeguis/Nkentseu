@@ -32,6 +32,9 @@ namespace nkentseu {
             bool SetViewport(float32 x, float32 y, float32 width, float32 height) override;
             bool ResetViewport() override;
 
+            bool EnableDepthTest(bool enabled) override;
+            bool EnableScissorTest(bool enabled) override;
+
             bool SetScissor(const maths::Vector4f& scissor) override;
             bool SetScissor(float32 x, float32 y, float32 width, float32 height) override;
             bool ResetScissor() override;

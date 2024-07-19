@@ -1386,7 +1386,10 @@ namespace nkentseu {
 
     bool VkBufferInternal::WriteToBuffer(const void* data, usize size, usize offset)
     {
-        if (mappedData == nullptr) return false;
+        if (mappedData == nullptr || data == nullptr) {
+            Log_nts.Error("mapped data or data is null");
+            return false;
+        }
 
         if (size == VK_WHOLE_SIZE) {
             memcpy(mappedData, data, this->size);
@@ -1422,7 +1425,10 @@ namespace nkentseu {
     {
         if (context == nullptr || bufferMemory == nullptr || buffer == nullptr || mappedData != nullptr) return false;
 
-        vkCheckErrorVoid(mappedData = context->device.mapMemory(bufferMemory, offset, size, flag));
+        usize realsize = size;
+        if (size == VK_WHOLE_SIZE) realsize = this->size;
+
+        vkCheckErrorVoid(mappedData = context->device.mapMemory(bufferMemory, offset, realsize, flag));
         if (!VulkanStaticDebugInfo::Result()) {
             Log_nts.Error("cannot map buffer memory");
             return false;
@@ -1449,10 +1455,13 @@ namespace nkentseu {
         VulkanResult result;
         bool first = true;
 
+        usize realsize = size;
+        if (size == VK_WHOLE_SIZE) realsize = this->size;
+
         vk::MappedMemoryRange mappedRange = {};
         mappedRange.memory = bufferMemory;
         mappedRange.offset = offset;
-        mappedRange.size = size;
+        mappedRange.size = realsize;
 
         vkCheckError(first, result, context->device.flushMappedMemoryRanges(1, &mappedRange), "cannot flush buffer memory");
         return result.success;

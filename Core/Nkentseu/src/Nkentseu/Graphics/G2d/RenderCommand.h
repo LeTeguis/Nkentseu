@@ -13,64 +13,117 @@
 
 namespace nkentseu {
 
-    struct ClipRegion {
-        std::vector<maths::Vector2f> controlPoints;
+    struct NKENTSEU_API ClipRegion {
+        // Union pour stocker les informations de la région de clipping
+        union {
+            struct {
+                maths::Vector2f offsets; // Offset de la région de clipping
+                maths::Vector2f size; // Taille de la région de clipping
+            };
+            struct {
+                maths::Vector2f topLeft; // Coin supérieur gauche de la région de clipping
+                maths::Vector2f dimensions; // Dimensions de la région de clipping
+            };
+            struct {
+                union { float32 offsetX; float32 x; }; // Offset X de la région de clipping
+                union { float32 offsetY; float32 y; }; // Offset Y de la région de clipping
+                float32 width; // Largeur de la région de clipping
+                float32 height; // Hauteur de la région de clipping
+            };
+            maths::Vector4f controlPoints; // Points de contrôle de la région de clipping
+        };
+
+        // Constructeur par défaut
+        ClipRegion() : controlPoints(maths::Vector4f(0.0f, 0.0f, 0.0f, 0.0f)) {}
+
+        // Constructeur de copie
+        ClipRegion(const ClipRegion& other) {
+            memcpy(this, &other, sizeof(ClipRegion));
+        }
+
+        // Opérateur d'affectation de copie
+        ClipRegion& operator=(const ClipRegion& other) {
+            if (this != &other) {
+                memcpy(this, &other, sizeof(ClipRegion));
+            }
+            return *this;
+        }
+
+        // Constructeur de mouvement
+        ClipRegion(ClipRegion&& other) noexcept {
+            memcpy(this, &other, sizeof(ClipRegion));
+        }
+
+        // Opérateur d'affectation de mouvement
+        ClipRegion& operator=(ClipRegion&& other) noexcept {
+            if (this != &other) {
+                memcpy(this, &other, sizeof(ClipRegion));
+            }
+            return *this;
+        }
     };
-    
-    class NKENTSEU_API RenderCommand {
-    public:
-        RenderCommand();
-        RenderCommand(RenderData2D* data);
 
-        RenderData2D* GetData() const;
-        RenderData2D* GetData();
-        uint32 GetTextureId() const;
-        void SetTextureId(uint32 textureId);
+    struct NKENTSEU_API RenderCommand2D {
+        ClipRegion clipRegion; // Région de clipping de la commande de rendu
+        uint32 vertexCount; // Nombre de vertex de la commande de rendu
+        uint32 vertexOffset; // Offset des vertex de la commande de rendu
+        uint32 indexCount; // Nombre d'indices de la commande de rendu
+        uint32 indexOffset; // Offset des indices de la commande de rendu
+        int32 textureId; // ID de la texture de la commande de rendu
+        float32 lineWidth; // line width
+        RenderPrimitive primitive; // Primitive de la commande de rendu
 
-        // Transformations
-        maths::matrix4f GetTransform() const;
-        void SetTransform(const maths::matrix4f& transform);
+        // Constructeur par défaut
+        RenderCommand2D() : vertexCount(0), vertexOffset(0), indexCount(0), indexOffset(0), textureId(-1), primitive(RenderPrimitive::Enum::Triangles), lineWidth(1.0f){}
 
-        // Clip rectangle
-        ClipRegion GetClipRegion() const;
-        void SetClipRegion(const ClipRegion& clipRect);
-        void AddInClipRegion(const maths::Vector2f& clipRect);
+        // Constructeur de copie
+        RenderCommand2D(const RenderCommand2D& other) : clipRegion(other.clipRegion), vertexCount(other.vertexCount), vertexOffset(other.vertexOffset), indexCount(other.indexCount), indexOffset(other.indexOffset), textureId(other.textureId), primitive(other.primitive), lineWidth(other.lineWidth) {}
 
-        // Blend mode
-        BlendMode2D GetBlendMode() const;
-        void SetBlendMode(BlendMode2D blendMode);
+        // Opérateur d'affectation de copie
+        RenderCommand2D& operator=(const RenderCommand2D& other) {
+            if (this != &other) {
+                clipRegion = other.clipRegion;
+                vertexCount = other.vertexCount;
+                vertexOffset = other.vertexOffset;
+                indexCount = other.indexCount;
+                indexOffset = other.indexOffset;
+                textureId = other.textureId;
+                primitive = other.primitive;
+                lineWidth = other.lineWidth;
+            }
+            return *this;
+        }
 
-        bool Free();
-        void AutoFree(bool autofree);
+        // Constructeur de mouvement
+        RenderCommand2D(RenderCommand2D&& other) noexcept : clipRegion(std::move(other.clipRegion)), vertexCount(other.vertexCount), vertexOffset(other.vertexOffset), indexCount(other.indexCount), indexOffset(other.indexOffset), textureId(other.textureId), primitive(other.primitive), lineWidth(other.lineWidth) {
+            /*other.vertexCount = 0;
+            other.vertexOffset = 0;
+            other.indexCount = 0;
+            other.indexOffset = 0;
+            other.textureId = -1;
+            other.primitive = RenderPrimitive::Enum::Triangles;*/
+        }
 
-        void AddVertex(const maths::Vector2f& position, const maths::Vector4f& color, const maths::Vector2f& textCord);
-        void AddVertex(const maths::Vector2f& position, const maths::Vector4f& color);
-        void AddVertex(const Vertex2D& vertex);
-        void AddIndex(uint32 index);
-
-        // Nouvelles méthodes pour la gestion de la bordure
-        void SetBorderColor(const maths::Vector4f& color);
-        maths::Vector4f GetBorderColor() const;
-
-        void SetBorderWidth(float32 width);
-        float32 GetBorderWidth() const;
-
-        bool HasBorder() const;
-    private:
-        RenderData2D* data;
-        maths::matrix4f transform;
-        ClipRegion clipRect;
-        BlendMode2D blendMode;
-
-        bool isLoad = false;
-
-        std::vector<Vertex2D> vertices;
-        std::vector<uint32> indices;
-
-        // Nouveaux membres pour la gestion de la bordure
-        maths::Vector4f borderColor;
-        float borderWidth;
-        bool hasBorder;
+        // Opérateur d'affectation de mouvement
+        RenderCommand2D& operator=(RenderCommand2D&& other) noexcept {
+            if (this != &other) {
+                clipRegion = std::move(other.clipRegion);
+                vertexCount = other.vertexCount;
+                vertexOffset = other.vertexOffset;
+                indexCount = other.indexCount;
+                indexOffset = other.indexOffset;
+                textureId = other.textureId;
+                primitive = other.primitive;
+                lineWidth = other.lineWidth;
+                /*other.vertexCount = 0;
+                other.vertexOffset = 0;
+                other.indexCount = 0;
+                other.indexOffset = 0;
+                other.textureId = -1;
+                other.primitive = RenderPrimitive::Enum::Triangles;*/
+            }
+            return *this;
+        }
     };
 
 }  //  nkentseu

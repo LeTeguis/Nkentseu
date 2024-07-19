@@ -64,7 +64,7 @@ namespace nkentseu {
         virtual bool Create(InputStream& stream, const maths::IntRect& area = maths::IntRect()) = 0;
         virtual bool Create(const Image& image, const maths::IntRect& area = maths::IntRect()) = 0;
 
-        virtual void Destroy() = 0;
+        virtual bool Destroy() = 0;
 
         static uint32 GetMaximumSize(Memory::Shared<Context> context);
         static uint32 GetValidSize(Memory::Shared<Context> constext, uint32 size);

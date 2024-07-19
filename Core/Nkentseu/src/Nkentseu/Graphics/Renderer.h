@@ -39,6 +39,9 @@ namespace nkentseu {
             virtual bool SetViewport(float32 x, float32 y, float32 width, float32 height) = 0;
             virtual bool ResetViewport() = 0;
 
+            virtual bool EnableDepthTest(bool enabled) = 0;
+            virtual bool EnableScissorTest(bool enabled) = 0;
+
             virtual bool SetScissor(const maths::Vector4f& scissor) = 0;
             virtual bool SetScissor(float32 x, float32 y, float32 width, float32 height) = 0;
             virtual bool ResetScissor() = 0;

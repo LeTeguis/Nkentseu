@@ -142,6 +142,11 @@ namespace nkentseu {
 
             static vk::CommandBuffer BeginSingleTimeCommands(VulkanContext* context);
             static void EndSingleTimeCommands(VulkanContext* context, vk::CommandBuffer commandBuffer);
+
+            static inline uint64 AlignBufferSize(uint64 size, uint64 alignment)
+            {
+                return (size + alignment - 1) & ~(alignment - 1);
+            }
         private:
 
             friend struct VkBufferInternal;
@@ -172,6 +177,8 @@ namespace nkentseu {
             friend class VulkanIndexBuffer;
             friend class VulkanUniformBuffer;
             friend struct VkUniformBufferInternal;
+            friend struct VulkanVertexBuffer;
+            friend struct VulkanIndexBuffer;
 
             void OnEvent(Event& event);
             bool OnWindowResizedEvent(class WindowResizedEvent& event);

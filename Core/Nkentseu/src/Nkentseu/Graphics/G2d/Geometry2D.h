@@ -12,19 +12,12 @@
 #include "Vertex2D.h"
 
 namespace nkentseu {
-    class Geometry2D {
-    public:
-        Geometry2D();
 
-        const std::vector<Vertex2D>& GetVertices() const;
-        const std::vector<uint32>& GetIndices() const;
-        bool IsFilled() const;
-
-    protected:
-        std::vector<Vertex2D> vertices;
-        std::vector<uint32> indices;
-        bool filled;
+    struct NKENTSEU_API Geometry2D {
+        std::vector<Vertex2D> vertices; // Vertex de la géométrie 2D
+        std::vector<uint32> indices; // Indices de la géométrie 2D
     };
+
 }  //  nkentseu
 
 #endif  // __GEOMETRY2_D_H__!

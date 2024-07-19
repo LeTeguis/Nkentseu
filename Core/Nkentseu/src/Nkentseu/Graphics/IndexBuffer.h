@@ -23,7 +23,7 @@ namespace nkentseu {
             virtual Memory::Shared<Context> GetContext() = 0;
             virtual bool Destroy() = 0;
             virtual uint32 Leng() const = 0;
-            virtual bool SetData(void* data, usize size) = 0;
+            virtual bool SetData(const void* data, usize size) = 0;
 
             virtual bool Create(BufferUsageType bufferUsage, const std::vector<uint32>& indices) = 0;
             virtual bool Create(BufferUsageType bufferUsage, IndexBufferType indexType, const void* vertices, uint32 leng) = 0;

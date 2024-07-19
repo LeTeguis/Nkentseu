@@ -87,7 +87,7 @@ namespace nkentseu {
 		bool first = true;
 
 		if (area.width == 0 || (area.height == 0) ||
-			((area.x <= 0) && (area.y <= 0) && (area.width >= width) && (area.height >= height))) {
+			((area.x <= 0) || (area.y <= 0) || (area.width >= width) || (area.height >= height))) {
 			if (Create(m_Format, image.GetSize())) {
 				Update(image);
 				return true;
@@ -467,8 +467,10 @@ namespace nkentseu {
 		}
 	}
 
-	void OpenglTexture2D::Destroy()
+	bool OpenglTexture2D::Destroy()
 	{
+		if (m_Context == nullptr) return false;
+		return true;
 	}
 
 }  //  nkentseu

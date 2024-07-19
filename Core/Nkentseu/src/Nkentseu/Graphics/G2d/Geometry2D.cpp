@@ -8,11 +8,4 @@
 #include <Logger/Formatter.h>
 
 namespace nkentseu {
-
-    Geometry2D::Geometry2D() : vertices({}), indices({}), filled(false) {}
-
-    const std::vector<Vertex2D>& Geometry2D::GetVertices() const { return vertices; }
-    const std::vector<uint32>& Geometry2D::GetIndices() const { return indices; }
-    bool Geometry2D::IsFilled() const { return filled; }
-
 }  //  nkentseu

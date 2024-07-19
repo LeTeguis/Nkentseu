@@ -20,33 +20,38 @@
 
 namespace nkentseu {
     class VulkanContext;
-    
+
     class NKENTSEU_API VulkanVertexBuffer : public VertexBuffer {
-        public:
-            VulkanVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
-            ~VulkanVertexBuffer();
+    public:
+        VulkanVertexBuffer(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+        ~VulkanVertexBuffer();
 
-            Memory::Shared<Context> GetContext() override;
-            bool Destroy() override;
+        Memory::Shared<Context> GetContext() override;
+        bool Destroy() override;
 
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices) override;
-            bool Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng) override;
+        bool Create(BufferUsageType bufferUsage, const std::vector<float32>& vertices) override;
+        bool Create(BufferUsageType bufferUsage, const void* vertices, uint32 leng) override;
 
-            template <typename T>
-            bool Create(BufferDataUsage::Code bufferUsage, const std::vector<T>& vertices) {
-                return Create(bufferUsage, vertices.data(), vertices.size());
-            }
+        template <typename T>
+        bool Create(BufferUsageType bufferUsage, const std::vector<T>& vertices) {
+            return Create(bufferUsage, vertices.data(), vertices.size());
+        }
 
-            virtual bool SetData(void* data, usize size) override;
+        virtual bool SetData(const void* data, usize size) override;
 
-            VkBufferInternal* GetBuffer();
+        VkBufferInternal* GetBuffer();
 
-            uint32 Leng() const override;
-        private:
-            VkBufferInternal m_VertexBufferObject;
-            Memory::Shared<VulkanContext> m_Context = nullptr;
-            Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
-            uint32 m_Leng = 0;
+        uint32 Leng() const override;
+    private:
+        VkBufferInternal m_VertexBufferObject;
+        Memory::Shared<VulkanContext> m_Context = nullptr;
+        Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
+        uint32 m_Leng = 0;
+        uint32 dynamicAlignment = 0;
+        uint32 range = 0;
+
+        bool StaticBufferCreation(const void* data);
+        bool DynamicBufferCreation();
     };
 
 }  //  nkentseu

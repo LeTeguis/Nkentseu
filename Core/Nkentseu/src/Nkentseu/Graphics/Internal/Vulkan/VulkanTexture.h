@@ -58,7 +58,7 @@ namespace nkentseu {
 		static uint32 GetMaximumSize(Memory::Shared<Context> context);
 		static uint32 GetValidSize(Memory::Shared<Context> context, uint32 size);
 
-		void Destroy() override;
+		bool Destroy() override;
 
 	private:
 

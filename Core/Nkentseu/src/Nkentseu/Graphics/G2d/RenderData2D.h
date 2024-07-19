@@ -73,29 +73,113 @@ namespace nkentseu {
         OneMinusConstantAlpha
     );
     
-    class NKENTSEU_API RenderData2D {
-        public:
-            RenderData2D();
-
-            // si use texture est vrai on peut ajouter une texture et une texture cordinate
-            virtual RenderMode2D GetRenderMode();
-            virtual void SetRenderMode(RenderMode2D renderMode);
-
-            virtual void SetPrimitive(RenderPrimitive primitive);
-            virtual RenderPrimitive GetPrimitive();
-
-            uint32 GetId() const;
-
-            virtual void SetTextureId(uint32 textureId);
-            uint32 GetTextureId() const;
-
-            RenderMode2D renderMode;
-            uint32 textureId;
-            RenderPrimitive primitive;
-        private:
-            uint32 renderDataId;
-            static uint32 nextId;
+    struct NKENTSEU_API RenderData2D {
+        virtual Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const = 0;
+        virtual ~RenderData2D() {}
     };
+
+    enum class BorderType {
+        None,
+        Outer,
+        Inner,
+        Both
+    };
+    /*
+    struct NKENTSEU_API RectangleData : public RenderData2D {
+        int32 x, y, width, height;
+        maths::Vector2f topLeftRadius, topRightRadius, bottomLeftRadius, bottomRightRadius;
+        uint32 cornerSegmentCount;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API CircleData : public RenderData2D {
+        int32 x, y, radius;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API EllipseData : public RenderData2D {
+        int32 x, y, radiusX, radiusY;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API PolygonData : public RenderData2D {
+        std::vector<maths::Vector2f> points;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+        bool isClosed; // true if the polygon is closed, false if it's open
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API LineData : public RenderData2D {
+        int32 x1, y1, x2, y2, lineWidth;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        maths::Vector4f lineColor; // RGBA
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API ArcData : public RenderData2D {
+        int32 x, y, radius, startAngle, endAngle;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API CurveData : public RenderData2D {
+        std::vector<maths::Vector2f> points;
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API BezierData : public RenderData2D {
+        std::vector<maths::Vector2f> controlPoints;
+        uint32 degree; // degree of the Bezier curve (e.g. 2 for quadratic, 3 for cubic)
+        std::vector<maths::Vector2f> textureCoords; // coordonnees de texture pour chaque vertex
+        bool autoTexCoords;
+        float32 borderWidth;
+        maths::Vector4f borderColor; // RGBA
+        BorderType borderType;
+
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };
+
+    struct NKENTSEU_API TextData : public RenderData2D {
+        const char* text;
+        int32 x, y;
+        Geometry2D GetGeometry(uint32 currentVertexCount, uint32 currentIndexCount) const override;
+    };*/
 
 }  //  nkentseu
 

@@ -28,6 +28,7 @@
 #include "Unkeny/Graphics/Camera.h"
 #include <Nkentseu/Graphics/PrimitiveMesh.h>
 #include <Nkentseu/Graphics/ShaderInputLayout.h>
+#include <Nkentseu/Graphics/G2d/RenderCache2D.h>
 
 namespace nkentseu {
     using namespace maths;
@@ -499,8 +500,8 @@ namespace nkentseu {
             return false;
         }
 
-        //ContextProperties propertie(GraphicsApiType::VulkanApi);
-        ContextProperties propertie(GraphicsApiType::OpenglApi);
+        ContextProperties propertie(GraphicsApiType::VulkanApi);
+        //ContextProperties propertie(GraphicsApiType::OpenglApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);
@@ -595,12 +596,12 @@ namespace nkentseu {
 
         Cube cube;
         
-        vertexBuffer = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferDataUsage::StaticDraw, shapeCube.vertices);
+        vertexBuffer = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferUsageType::Enum::StaticDraw, shapeCube.vertices);
         if (vertexBuffer == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
 
-        indexBuffer = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, shapeCube.indices);
+        indexBuffer = IndexBuffer::Create(m_Context, BufferUsageType::Enum::StaticDraw, shapeCube.indices);
         if (indexBuffer == nullptr) {
             Log.Error("Cannot create index buffer");
         }
@@ -615,12 +616,12 @@ namespace nkentseu {
             vertexArray->SetIndexBuffer(indexBuffer);
         }
 
-        vertexBuffer2 = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferDataUsage::StaticDraw, shapeCapsule.vertices);
+        vertexBuffer2 = VertexBuffer::Create<VertexTest>(m_Context, shaderInputLayout, BufferUsageType::Enum::StaticDraw, shapeCapsule.vertices);
         if (vertexBuffer2 == nullptr) {
             Log.Error("Cannot create vertex buffer");
         }
 
-        indexBuffer2 = IndexBuffer::Create(m_Context, BufferDataUsage::StaticDraw, shapeCapsule.indices);
+        indexBuffer2 = IndexBuffer::Create(m_Context, BufferUsageType::Enum::StaticDraw, shapeCapsule.indices);
         if (indexBuffer2 == nullptr) {
             Log.Error("Cannot create index buffer");
         }
@@ -668,6 +669,22 @@ namespace nkentseu {
         rectangle.GenerateIndices();
         rectangle.GenerateVertices();
 
+        Memory::Shared<Renderer2D> canvas = nullptr;
+        canvas = Memory::Alloc<Renderer2D>(m_Context);
+
+        if (canvas != nullptr) {
+            if (!canvas->Initialize()) {
+                Log.Error("Cannot initialize canvas");
+                canvas.reset();
+                canvas = nullptr;
+            }
+            else {
+                Log.Info("Canvas is load");
+            }
+        }
+
+        Vector2f moving(400, 200);
+
         while (m_Running) {
             //float64 delta = timer.Elapsed().seconds;
             float64 delta = timer.Reset().seconds;
@@ -701,19 +718,25 @@ namespace nkentseu {
             }
 
             if (Input.IsKeyDown(Keyboard::Y)) {
+                moving.y -= (float32)delta * 10.0f;
             } else if (Input.IsKeyDown(Keyboard::H)) {
+                moving.y += (float32)delta * 10.0f;
             }
 
             if (Input.IsKeyDown(Keyboard::G)) {
+                moving.x -= (float32)delta * 10.0f;
             } else if (Input.IsKeyDown(Keyboard::J)) {
+                moving.x += (float32)delta * 10.0f;
             }
-
+            static bool hiden = false;
             if (m_Window != nullptr) {
                 if (Input.IsKeyDown(Keyboard::C)) {
                     m_Window->ShowMouse(true);
+                    hiden = true;
                 }
                 else if (Input.IsKeyDown(Keyboard::V)) {
                     m_Window->ShowMouse(false);
+                    hiden = false;
                 }
             }
 
@@ -735,6 +758,9 @@ namespace nkentseu {
             }
             else if (Input.IsKeyDown(Keyboard::K)) {
                 pause = false;
+            }
+
+            if (Input.IsKeyDown(Keyboard::N) && canvas != nullptr) {
             }
 
             if (Input.IsKeyDown(Keyboard::W)) {
@@ -768,7 +794,7 @@ namespace nkentseu {
                 continue;
             }
 
-            if (m_RenderWindow != nullptr && m_RenderWindow->Begin(Color::Black())) {
+            if (m_RenderWindow != nullptr && m_RenderWindow->Begin(Color(200, 200, 200))) {
                 if (shader != nullptr && shader->Bind()) {
                     m_RenderWindow->SetCullMode(CullModeType::Enum::NoCull);
                     m_RenderWindow->SetPolygonMode(m_PolygonMode);
@@ -840,6 +866,25 @@ namespace nkentseu {
                         Log.Error("cannot unbind shader");
                     }
                 } else { Log.Error("cannot bind shader"); }
+
+                if (canvas != nullptr) {
+                    canvas->AddFilledRectangle(Vector2f(100, 100), Vector2f(100, 100), Color(31, 31, 31, 100));
+                    canvas->AddOutlineRectangle(moving, Vector2f(100, 100), Color::White());
+                    canvas->AddFilledRoundedRectangle(moving + Vector2f(200, 200), Vector2f(100, 100), 5.0f, Color::White());
+                    canvas->AddOutlineRoundedRectangle(Vector2f(400, 0), Vector2f(100, 100), 5.0f, Color::White());
+                    //canvas->AddFilledRoundedRectangle(Vector2f(600, 100), Vector2f(300, 200), {10, 10, 0, 10}, Color::White());
+                    //canvas->AddOutlineRoundedRectangle(Vector2f(600, 100), Vector2f(300, 200), { 10, 10, 0, 10 }, Color::White());
+                    Vector2f corner[4] = { {10, 10}, {0, 0}, {10, 5}, {0, 0} };
+                    canvas->AddOutlineRoundedRectangle(Vector2f(600, 100), Vector2f(300, 200), corner, Color::White());
+                    //canvas->AddOutlineEllipse(Vector2f(550, 450), { 100, 50 }, Color::YellowGreen(), 5);
+                    canvas->AddFilledTriangle({ 100, 100 }, { 50, 200 }, { 150, 200 }, Color::YellowGreen());
+                    canvas->AddOutlineTriangle({ 100, 100 }, { 50, 200 }, { 150, 200 }, Color::Red(), 5);
+
+                    //canvas->AddLine({ 100, 100 }, { 400, 400 }, Color::Green(), 10);
+                    //canvas->AddPath({ { 100, 100 }, { 400, 400 }, { 200, 400 }, { 100, 600 } }, Color::Green(), true, 1.0f);
+                    canvas->AddFillPath({ { 100, 100 }, { 400, 400 }, { 200, 400 }, { 100, 600 } }, Color::Green());
+                    canvas->Render(m_RenderWindow);
+                }
 
                 m_RenderWindow->End();
             }
@@ -1055,6 +1100,7 @@ namespace nkentseu {
             ubo->Destroy();
         }*/
 
+        if (canvas != nullptr) canvas->Destroy();
         if (tetxure != nullptr) tetxure->Destroy();
         if (shader != nullptr) shader->Destroy();
         if (shaderInputLayout != nullptr) shaderInputLayout->Release();

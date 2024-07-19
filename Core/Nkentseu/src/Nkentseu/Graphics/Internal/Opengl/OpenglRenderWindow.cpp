@@ -152,19 +152,71 @@ namespace nkentseu {
         return false;
     }
 
+    bool OpenglRenderWindow::EnableDepthTest(bool enabled)
+    {
+        if (m_Context == nullptr) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+        if (enabled) {
+            glCheckError(first, result, glEnable(GL_DEPTH_TEST), "cannot enable depth test");
+        }
+        else {
+            glCheckError(first, result, glDisable(GL_DEPTH_TEST), "cannot disable depth test");
+        }
+        return result.success;
+    }
+
+    bool OpenglRenderWindow::EnableScissorTest(bool enabled)
+    {
+        if (m_Context == nullptr) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+        if (enabled) {
+            glCheckError(first, result, glEnable(GL_SCISSOR_TEST), "cannot enable scissor test");
+        }
+        else {
+            glCheckError(first, result, glDisable(GL_SCISSOR_TEST), "cannot disable scissor test");
+        }
+        return result.success;
+    }
+
     bool OpenglRenderWindow::SetScissor(const maths::Vector4f& scissor)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+
+        // Apply scissort
+        glCheckError(first, result, glScissor(scissor.x, scissor.y, scissor.width, scissor.height), "cannot set command scissor in canvas fulsh");
+        return result.result;
     }
 
     bool OpenglRenderWindow::SetScissor(float32 x, float32 y, float32 width, float32 height)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        OpenGLResult result;
+        bool first = true;
+
+        // Apply scissort
+        glCheckError(first, result, glScissor(x, y, width, height), "cannot set command scissor in canvas fulsh");
+        return result.result;
     }
 
     bool OpenglRenderWindow::ResetScissor()
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        maths::Vector2f size = m_Context->GetWindow()->ConvertPixelToDpi(m_Context->GetWindow()->GetSize());
+        return SetScissor(0, 0, size.width, size.height);
     }
 
     bool OpenglRenderWindow::SetPolygonMode(PolygonModeType mode)

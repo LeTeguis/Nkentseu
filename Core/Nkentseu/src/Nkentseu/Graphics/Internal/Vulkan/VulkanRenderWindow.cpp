@@ -132,32 +132,114 @@ namespace nkentseu {
 
     bool VulkanRenderWindow::SetViewport(const maths::Vector4f& viewport)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+
+        vk::Viewport viewport_ = {};
+        viewport_.x = viewport.x;
+        viewport_.y = viewport.y;
+        viewport_.width = viewport.width;
+        viewport_.height = viewport.height;
+        viewport_.maxDepth = 1.0f;
+
+        vkCheckErrorVoid(commandBuffer.setViewport(0, 1, &viewport_));
+        return VulkanStaticDebugInfo::Result();
     }
 
     bool VulkanRenderWindow::SetViewport(float32 x, float32 y, float32 width, float32 height)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+
+        vk::Viewport viewport = {};
+        viewport.x = x;
+        viewport.y = y;
+        viewport.width = width;
+        viewport.height = height;
+        viewport.maxDepth = 1.0f;
+
+        vkCheckErrorVoid(commandBuffer.setViewport(0, 1, &viewport));
+        return VulkanStaticDebugInfo::Result();
     }
 
     bool VulkanRenderWindow::ResetViewport()
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        maths::Vector2u size = m_Context->GetWindow()->ConvertPixelToDpi(m_Context->GetWindow()->GetSize());
+        return SetViewport(0, 0, size.width, size.height);
+    }
+
+    bool VulkanRenderWindow::EnableDepthTest(bool enabled)
+    {
+        if (m_Context == nullptr) {
+            return false;
+        }
+
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+
+        if (enabled) {
+            vkCheckErrorVoid(commandBuffer.setDepthTestEnable(VK_TRUE));
+        }
+        else {
+            vkCheckErrorVoid(commandBuffer.setDepthTestEnable(VK_FALSE));
+        }
+        return VulkanStaticDebugInfo::Result();
+    }
+
+    bool VulkanRenderWindow::EnableScissorTest(bool enabled)
+    {
+        if (m_Context == nullptr) {
+            return false;
+        }
+        return true;
     }
 
     bool VulkanRenderWindow::SetScissor(const maths::Vector4f& scissor)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+
+        vk::Rect2D scissor_ = {};
+        scissor_.extent = vk::Extent2D{ (uint32)scissor.width, (uint32)scissor.height };
+        scissor_.offset = vk::Offset2D{ (int32)scissor.x, (int32)scissor.y };
+
+        vkCheckErrorVoid(commandBuffer.setScissor(0, 1, &scissor_));
+        return VulkanStaticDebugInfo::Result();
     }
 
     bool VulkanRenderWindow::SetScissor(float32 x, float32 y, float32 width, float32 height)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+
+        vk::Rect2D scissor = {};
+        scissor.extent = vk::Extent2D{ (uint32)width, (uint32)height };
+        scissor.offset = vk::Offset2D{ (int32)x, (int32)y };
+        vkCheckErrorVoid(commandBuffer.setScissor(0, 1, &scissor));
+        return VulkanStaticDebugInfo::Result();
     }
 
     bool VulkanRenderWindow::ResetScissor()
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        maths::Vector2f size = m_Context->GetWindow()->ConvertPixelToDpi(m_Context->GetWindow()->GetSize());
+        return SetScissor(0, 0, size.width, size.height);
     }
 
     bool VulkanRenderWindow::SetPolygonMode(PolygonModeType mode)

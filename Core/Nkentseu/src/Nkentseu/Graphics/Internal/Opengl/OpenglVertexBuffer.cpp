@@ -29,22 +29,23 @@ namespace nkentseu {
     OpenglVertexBuffer::~OpenglVertexBuffer() {
     }
 
-    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices)
+    bool OpenglVertexBuffer::Create(BufferUsageType bufferUsage, const std::vector<float32>& vertices)
     {
         if (m_OglSil == nullptr) return false;
         return Create(bufferUsage, vertices.data(), (vertices.size() / m_OglSil->vertexInput.componentCount));
     }
 
-    bool OpenglVertexBuffer::Create(BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng)
+    bool OpenglVertexBuffer::Create(BufferUsageType bufferUsage, const void* vertices, uint32 leng)
     {
         if (m_Buffer.buffer != 0 || m_Context == nullptr || m_OglSil == nullptr) {
             return false;
         }
 
         m_BufferUsage = bufferUsage;
-        m_Size = leng;
+        m_Leng = leng;
 
-        usize size = m_Size * m_OglSil->vertexInput.stride;
+        usize size = m_Leng * m_OglSil->vertexInput.stride;
+        m_Size = size;
 
         //Log_nts.Debug("{0}-{1}", m_Size, m_BufferLayout.stride);
 
@@ -71,14 +72,14 @@ namespace nkentseu {
         return m_Buffer.Unbind();
     }
 
-    bool OpenglVertexBuffer::SetData(void* data, usize size)
+    bool OpenglVertexBuffer::SetData(const void* data, usize size)
     {
         return m_Buffer.WriteToBuffer(data, size);
     }
 
     uint32 OpenglVertexBuffer::Leng() const
     {
-        return m_Size;
+        return m_Leng;
     }
 
     uint32 OpenglVertexBuffer::GetBuffer() const

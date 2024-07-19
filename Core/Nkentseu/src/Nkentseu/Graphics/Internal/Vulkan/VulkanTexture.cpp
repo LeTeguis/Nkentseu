@@ -295,14 +295,16 @@ namespace nkentseu {
 		}
 	}
 
-	void VulkanTexture2D::Destroy()
+	bool VulkanTexture2D::Destroy()
 	{
-		if (m_Context == nullptr) return;
+		if (m_Context == nullptr) return false;
 
-		DestroyDescriptorSet();
-		DestroySampler();
-		DestroyImageView();
-		DestroyImage();
+		bool success = DestroyDescriptorSet();
+		success = DestroySampler() && success;
+		success = DestroyImageView() && success;
+		success = DestroyImage() && success;
+
+		return success;
 	}
 
 	bool VulkanTexture2D::DescriptorSetInternal::Create(Memory::Shared<VulkanContext> context, uint32 binding, vk::DescriptorSetLayout descriptorLayout)

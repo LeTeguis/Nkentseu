@@ -31,7 +31,7 @@ namespace nkentseu {
 		return nullptr;
 	}
 
-	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const void* vertices, uint32 leng)
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferUsageType bufferUsage, const void* vertices, uint32 leng)
     {
 		auto vertexbuffer = Create(context, sil);
 
@@ -43,7 +43,7 @@ namespace nkentseu {
 		return vertexbuffer;
     }
 
-	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferDataUsage::Code bufferUsage, const std::vector<float32>& vertices)
+	Memory::Shared<VertexBuffer> VertexBuffer::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, BufferUsageType bufferUsage, const std::vector<float32>& vertices)
     {
 		auto vertexbuffer = Create(context, sil);
 

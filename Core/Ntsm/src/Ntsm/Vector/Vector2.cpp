@@ -95,6 +95,10 @@ namespace nkentseu {
 			return Vector2f(x * invLen, y * invLen);
 		}
 
+		Vector2f Vector2f::Normal() {
+			return Vector2f(y, -x);
+		}
+
 		bool Vector2f::IsUnit() {
 			return maths::EqualF32(Len(), 1.0);
 		}

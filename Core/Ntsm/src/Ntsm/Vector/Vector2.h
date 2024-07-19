@@ -186,6 +186,7 @@ namespace nkentseu {
 			float32		Len();
 			void		Normalize();
 			Vector2f	Normalized();
+			Vector2f	Normal();
 			bool		IsUnit();
 			Vector2f	Rotate(const Angle& angle);
 			Angle		AngleBetween(const Vector2f& b);

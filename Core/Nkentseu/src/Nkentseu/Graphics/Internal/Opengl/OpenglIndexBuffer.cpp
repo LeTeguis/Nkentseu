@@ -16,9 +16,9 @@
 #include "OpenglIndexBuffer.h"
 
 namespace nkentseu {
-    
+
     // Constructor  (m_ElementBufferObject)
-    OpenglIndexBuffer::OpenglIndexBuffer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<OpenglContext>(context)){
+    OpenglIndexBuffer::OpenglIndexBuffer(Memory::Shared<Context> context) : m_Context(Memory::SharedCast<OpenglContext>(context)) {
         // Ajoutez votre code de constructeur ici
     }
 
@@ -40,15 +40,15 @@ namespace nkentseu {
 
         OpenGLResult result;
         bool first = true;
-        m_Size = leng;
 
         if (m_Buffer.buffer != 0) {
             return false;
         }
 
-        m_Size = leng;
+        m_Leng = leng;
         m_IndexType = indexType;
-        usize size = m_Size * sizeof(uint32);
+        usize size = m_Leng * sizeof(uint32);
+        m_Size = size;
 
         return m_Buffer.Create("index buffer", GL_ELEMENT_ARRAY_BUFFER, GLConvert::UsageType(m_BufferUsage), indices, size, 0, 0, 1);
     }
@@ -82,7 +82,7 @@ namespace nkentseu {
         return m_Buffer.Unbind();
     }
 
-    bool OpenglIndexBuffer::SetData(void* data, usize size)
+    bool OpenglIndexBuffer::SetData(const void* data, usize size)
     {
         if (m_Context == nullptr) {
             return false;
@@ -92,7 +92,7 @@ namespace nkentseu {
 
     uint32 OpenglIndexBuffer::Leng() const
     {
-        return m_Size;
+        return m_Leng;
     }
 
     IndexBufferType OpenglIndexBuffer::GetIndexType() const
