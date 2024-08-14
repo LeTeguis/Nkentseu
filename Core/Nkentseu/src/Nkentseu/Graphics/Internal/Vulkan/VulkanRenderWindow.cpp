@@ -244,27 +244,69 @@ namespace nkentseu {
 
     bool VulkanRenderWindow::SetPolygonMode(PolygonModeType mode)
     {
+        if (m_Context == nullptr) {
+            return false;
+        }
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+        if (commandBuffer == nullptr) return false;
+
+        if (m_Context->cmdSetPolygonModeEXT != nullptr) {
+            vkCheckErrorVoid(m_Context->cmdSetPolygonModeEXT((VkCommandBuffer)commandBuffer, (VkPolygonMode)VulkanConvert::ToPolygonModeType(mode)));
+            if (!VulkanStaticDebugInfo::Result()) {
+                Log_nts.Error("cannot set polygon mode");
+                return false;
+            }
+            return true;
+        }
         return false;
     }
 
     bool VulkanRenderWindow::SetCullMode(CullModeType mode)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+        if (commandBuffer == nullptr) return false;
+
+        vkCheckErrorVoid(commandBuffer.setCullMode(VulkanConvert::ToCullModeType(mode)));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot set cull mode");
+            return false;
+        }
+        return true;
     }
 
     bool VulkanRenderWindow::SetFrontFaceMode(FrontFaceType mode)
     {
-        return false;
+        if (m_Context == nullptr) {
+            return false;
+        }
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+        if (commandBuffer == nullptr) return false;
+
+        vkCheckErrorVoid(commandBuffer.setFrontFace(VulkanConvert::ToFrontFaceType(mode)));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot set front face");
+            return false;
+        }
+        return true;
     }
 
     bool VulkanRenderWindow::SetRenderPrimitive(RenderPrimitive mode)
     {
-        return false;
-    }
+        if (m_Context == nullptr) {
+            return false;
+        }
+        vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+        if (commandBuffer == nullptr) return false;
 
-    Memory::Shared<Canvas> VulkanRenderWindow::GetCanvas()
-    {
-        return nullptr;
+        vkCheckErrorVoid(commandBuffer.setPrimitiveTopology(VulkanConvert::GetPrimitiveType(mode)));
+        if (!VulkanStaticDebugInfo::Result()) {
+            Log_nts.Error("cannot set primitive topology");
+            return false;
+        }
+        return true;
     }
 
     bool VulkanRenderWindow::Recreate(bool force)

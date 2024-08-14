@@ -19,6 +19,25 @@
 #include <unordered_map>
 
 namespace nkentseu {
+
+	class VulkanTexture2DBinding;
+
+	struct DescriptorSetInternal {
+		vk::Sampler sampler = nullptr;
+		vk::ImageView imageView = nullptr;
+
+		// descriptor pool
+		vk::DescriptorPool descriptorPool = nullptr;
+		std::vector<vk::DescriptorPoolSize> poolSizes;
+		bool CreateDescriptorPool(Memory::Shared<VulkanContext> context);
+		bool DestroyDescriptorPool(Memory::Shared<VulkanContext> context);
+		void AddInDescriptorPool(vk::DescriptorType type, uint32 count);
+
+		// descriptor set
+		vk::DescriptorSet descriptorSet = nullptr;
+		bool Create(Memory::Shared<VulkanContext> context, uint32 binding, vk::DescriptorSetLayout descriptorLayout);
+		bool Destroy(Memory::Shared<VulkanContext> context);
+	};
     
 	class NKENTSEU_API VulkanTexture2D : public Texture2D {
 	public:
@@ -30,6 +49,8 @@ namespace nkentseu {
 		bool Create(const void* data, std::size_t size, const maths::IntRect& area = maths::IntRect()) override;
 		bool Create(InputStream& stream, const maths::IntRect& area = maths::IntRect()) override;
 		bool Create(const Image& image, const maths::IntRect& area = maths::IntRect()) override;
+		Memory::Shared<Texture2D> Clone(Memory::Shared<ShaderInputLayout> sil) override;
+		void* InternalID(Memory::Shared<ShaderInputLayout> sil, uint32 slot) override;
 
 		Color* GetColors() override;
 		uint8* GetPixels() override;
@@ -60,7 +81,11 @@ namespace nkentseu {
 
 		bool Destroy() override;
 
+		//bool CreateDescriptorSet();
+		//bool DestroyDescriptorSet();
 	private:
+
+		friend class VulkanTexture2DBinding;
 
 		Memory::Shared<VulkanContext> m_Context;
 		Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
@@ -68,7 +93,6 @@ namespace nkentseu {
 
 		std::filesystem::path m_Path;
 		uint64_t m_CacheId;
-		uint32 m_Handle = 0;
 
 		bool				m_IsRepeated{};
 		bool				m_IsSmooth{};
@@ -97,26 +121,30 @@ namespace nkentseu {
 		// tools
 		void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32 mipL);
 		void CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32 width, uint32 height, const maths::Vector2i& offset);
-		bool CreateDescriptorSet();
-		bool DestroyDescriptorSet();
+		//bool CreateDescriptorSet();
+		//bool DestroyDescriptorSet();
+		//std::unordered_map<std::string, DescriptorSetInternal> m_DescriptorSets;
+		Memory::Shared<VulkanTexture2DBinding> m_Binding = nullptr;
+	};
 
-		struct DescriptorSetInternal {
-			vk::Sampler sampler = nullptr;
-			vk::ImageView imageView = nullptr;
+	class NKENTSEU_API VulkanTexture2DBinding : public Texture2DBinding {
+	public:
 
-			// descriptor pool
-			vk::DescriptorPool descriptorPool = nullptr;
-			std::vector<vk::DescriptorPoolSize> poolSizes;
-			bool CreateDescriptorPool(Memory::Shared<VulkanContext> context);
-			bool DestroyDescriptorPool(Memory::Shared<VulkanContext> context);
-			void AddInDescriptorPool(vk::DescriptorType type, uint32 count);
+		VulkanTexture2DBinding(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+		bool Initialize(Memory::Shared<Texture2D> texture) override;
+		bool Initialize(VulkanTexture2D* texture);
+		bool Destroy() override;
+		void Bind(const std::string& name) override;
+		void Bind(uint32 binding) override;
+		bool Equal(Memory::Shared<Texture2DBinding> binding) override;
+		bool IsDefined(Memory::Shared<Texture2D> binding) override;
 
-			// descriptor set
-			vk::DescriptorSet descriptorSet = nullptr;
-			bool Create(Memory::Shared<VulkanContext> context, uint32 binding, vk::DescriptorSetLayout descriptorLayout);
-			bool Destroy(Memory::Shared<VulkanContext> context);
-		};
+	private:
+		Memory::Shared<VulkanContext> m_Context;
+		Memory::Shared<VulkanShaderInputLayout> m_Vksil = nullptr;
+
 		std::unordered_map<std::string, DescriptorSetInternal> m_DescriptorSets;
+		bool isCreated = false;
 	};
 
 }  //  nkentseu

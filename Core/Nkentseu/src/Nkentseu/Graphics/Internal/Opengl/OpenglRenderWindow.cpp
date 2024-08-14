@@ -239,8 +239,4 @@ namespace nkentseu {
         return false;
     }
 
-    Memory::Shared<Canvas> OpenglRenderWindow::GetCanvas()
-    {
-        return nullptr;
-    }
 }  //  nkentseu

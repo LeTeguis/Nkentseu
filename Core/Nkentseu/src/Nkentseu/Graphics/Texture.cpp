@@ -85,4 +85,26 @@ namespace nkentseu {
 		return texture;
 	}
 
+	Memory::Shared<Texture2DBinding> Texture2DBinding::Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil)
+	{
+		Memory::Shared<Texture2DBinding> textureBinding = nullptr;
+		if (context->GetProperties().graphicsApi == GraphicsApiType::VulkanApi) {
+			textureBinding = Memory::Alloc<VulkanTexture2DBinding>(context, sil);
+		}
+		else if (context->GetProperties().graphicsApi == GraphicsApiType::OpenglApi) {
+			textureBinding = Memory::Alloc<OpenglTexture2DBinding>(context, sil);
+		}
+		return textureBinding;
+	}
+
+	Memory::Shared<Texture2DBinding> Texture2DBinding::CreateInitialize(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, Memory::Shared<Texture2D> texture)
+	{
+		Memory::Shared<Texture2DBinding> textureBinding = Create(context, sil);
+
+		if (textureBinding == nullptr || !textureBinding->Initialize(texture)) {
+			Memory::Reset(textureBinding);
+		}
+		return textureBinding;
+	}
+
 }  //  nkentseu

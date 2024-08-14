@@ -32,6 +32,9 @@ namespace nkentseu {
     
     struct NKENTSEU_API WindowData {
         WINDOW_HANDLE windowHandle = nullptr;
+        maths::Vector2f extend;
+        float32 border;
+        float32 frame;
 
 #ifdef NKENTSEU_PLATFORM_WINDOWS
         HINSTANCE instanceHandle = nullptr;
@@ -44,7 +47,7 @@ namespace nkentseu {
         ITaskbarList3* taskbarList;
         WindowBrush backgroundColor;
         std::wstring windowClassName;
-        bool isCursorVisible;
+        bool isCursorVisible = true;
         bool isCursorGrabbed;
         HCURSOR lastCursor{ LoadCursor(nullptr, IDC_ARROW) };
         bool isMouseInside = true;

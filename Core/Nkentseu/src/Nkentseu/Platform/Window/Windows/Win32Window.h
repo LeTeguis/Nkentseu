@@ -43,6 +43,7 @@ namespace nkentseu {
             maths::Vector2i CurrentDisplayPosition() const override;
 
             void ShowMouse(bool show) override;
+            void ConfineMouse(bool confine) override;
             void SetMouseCursorGrabbed(bool grabbed) override;
             void SetMouseCursor(const WindowCursor& cursor) override;
 
@@ -87,6 +88,7 @@ namespace nkentseu {
             WindowProperties m_Properties;
             bool m_IsWindowCreated = false;
             bool m_IsWindowClosed = true;
+            bool m_CursorIsEnabled = true;
             static uint64 s_WindowIDCounter;
             uint64 m_WindowID;
 
@@ -100,6 +102,7 @@ namespace nkentseu {
             // Ajuster la taille de la fenêtre
             RECT UpdateWindowExtension(const maths::Vector2i& position, const maths::Vector2u& size, DWORD style, DWORD styleEx);
             void InitWindowPosition(const maths::Vector2i& position, const maths::Vector2u& size, WindowPositionType positionType);
+            void InitWindowPosition(DWORD style, DWORD styleEx, const maths::Vector2f& desiredPos, const maths::Vector2f& desiredSize);
 
             // Méthode pour capturer le curseur
             void GrabWindowCursor(bool grabbed);

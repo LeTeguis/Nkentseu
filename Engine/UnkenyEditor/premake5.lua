@@ -17,12 +17,14 @@ project "UnkenyEditor"
         "%{Internals.Logger}/src",
         "%{Internals.NSystem}/src",
         "%{Internals.Ntsm}/src",
-        "%{Internals.Unkeny}/src"
+        "%{Internals.Unkeny}/src",
+        "%{Internals.NGUI}/src",
     }
 
     links {
         "Unkeny",
         "Nkentseu",
+        "NGUI",
         "Ntsm",
         "Logger",
         "NSystem",

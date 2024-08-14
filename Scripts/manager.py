@@ -35,15 +35,27 @@ PROJECTS_NAME = {
     "NSystem" : os.path.join("Core", "NSystem"),
     "Logger" : os.path.join("Core", "Logger"),
     "Ntsm" : os.path.join("Core", "Ntsm"),
+    "NGUI" : os.path.join("Core", "NGUI"),
     "Unitest" : os.path.join("Core", "Unitest"),
     "Nkentseu" : os.path.join("Core", "Nkentseu"),
+
+    "NTSCore"     : os.path.join("Core", "NTSCore"),
+    "NTSLogger"     : os.path.join("Core", "NTSLogger"),
+    "NTSMaths"      : os.path.join("Core", "NTSMaths"),
+    "NTSUnitest"    : os.path.join("Core", "NTSUnitest"),
+    "NTSWindow"     : os.path.join("Core", "NTSWindow"),
+    "NTSGraphics"   : os.path.join("Core", "NTSGraphics"),
+    "NTSGui"        : os.path.join("Core", "NTSGui"),
+
     "Unkeny" : os.path.join("Engine", "Unkeny"),
     "GlobalTests" : os.path.join("Tests", "GlobalTests"),
     "Window" : os.path.join("Exemples", "Window"),
+    "Basic" : os.path.join("Exemples", "Basic"),
     "UnkenyEditor" : os.path.join("Engine", "UnkenyEditor")
 }
 
-DEFAULT_PROJECT = "UnkenyEditor"
+#DEFAULT_PROJECT = "UnkenyEditor"
+DEFAULT_PROJECT = "Basic"
 
 DEFAULT_RESOURCE_DIRECTORY = os.path.join("Resources", "shaders")
 

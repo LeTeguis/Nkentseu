@@ -240,7 +240,18 @@ namespace nkentseu {
 		// create event
 		case WM_CREATE: { return HandleCreateEvent(msg, window); break; }
 
-		case WM_ACTIVATEAPP: { break; }
+		case WM_ACTIVATEAPP:
+		case WM_ACTIVATE: {
+			if (!window->GetData()->isCursorVisible) {
+				if (msg.wParam & WA_ACTIVE) {
+					window->ConfineMouse(true);
+				}
+				else {
+					window->ConfineMouse(false);
+				}
+			}
+			break; 
+		}
 
 						   // window event
 		case WM_PAINT: { return HandleWindowPaintEvent(msg, window); break; }
@@ -561,10 +572,19 @@ namespace nkentseu {
 		Vector2u size;
 
 		if (!resizing) {
-			RECT rect;//, frame, border;
+			RECT rect, frame, border;
+
 			GetClientRect(window->GetData()->windowHandle, &rect);
 			size.width = (float32)(rect.right - rect.left);
 			size.height = (float32)(rect.bottom - rect.top);
+
+			// Récupérer la taille de la frame et du border
+			GetWindowRect(window->GetData()->windowHandle, &frame);
+			border.left = frame.left - rect.left;
+			border.top = frame.top - rect.top;
+			border.right = frame.right - rect.right;
+			border.bottom = frame.bottom - rect.bottom;
+
 			RedrawWindow(window->GetData()->windowHandle, NULL, NULL, RDW_INVALIDATE | RDW_NOERASE | RDW_INTERNALPAINT);
 		}
 		else {
@@ -587,8 +607,8 @@ namespace nkentseu {
 		//Log_nts.Debug();
 
 		float32 scaleFactor = window->GetDpiScale();
-		size.width /= scaleFactor;
-		size.height /= scaleFactor;
+		size.width = (size.width / scaleFactor);// -window->GetData()->extend.width;
+		size.height = (size.height / scaleFactor);// -window->GetData()->extend.height;
 
 		float32 newarea = size.width * size.height;
 		ResizeState::Code state = ResizeState::NotChange;
@@ -616,7 +636,6 @@ namespace nkentseu {
 			return 0;
 		}
 		Vector2i lasPosition = window->GetPosition();
-		Vector2i position = lasPosition;
 		RECT currentWindowRect = { -1, -1, -1, -1 };
 
 		float32 scaleFactor = window->GetDpiScale();
@@ -625,32 +644,19 @@ namespace nkentseu {
 			scaleFactor = 1.0;
 		}
 
-		if (t == 0) {
-			position = Vector2i(LOWORD(msg.lParam) / scaleFactor, HIWORD(msg.lParam) / scaleFactor);
-			window->GetProps().position = position;
-			return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
-		}
-		else if (t == 1) {
+		Vector2f position = Vector2i(LOWORD(msg.lParam), HIWORD(msg.lParam)) / scaleFactor;
+
+		if (t != 0) {
 			RECT* const r = (LPRECT)msg.lParam;
 			if (r) {
 				currentWindowRect = *r;
-				position = Vector2i(r->left / scaleFactor, r->top / scaleFactor);
-				window->GetProps().position = position;
-				return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
+				position = Vector2f(r->left, r->top) * scaleFactor - window->GetData()->extend;
 			}
 		}
-		else if (t == 2) {
-			RECT* const r = (LPRECT)msg.lParam;
-			if (r) {
-				currentWindowRect = *r;
-				float32 x = (float32)r->left / scaleFactor;
-				float32 y = (float32)r->top / scaleFactor;
-				position = Vector2i((int32)x, (int32)y);
-				window->GetProps().position = position;
-				return FinalizePushEvent(new WindowMovedEvent(window->ID(), position, lasPosition), 0, msg, window, currentWindowRect);
-			}
-		}
-		return 0;
+		//window->GetProps().position = position - window->GetData()->extend * 0.5f;
+		window->GetProps().position = position;
+
+		return FinalizePushEvent(new WindowMovedEvent(window->ID(), window->GetProps().position, lasPosition), 0, msg, window, currentWindowRect);
 	}
 
 	LRESULT Win32Event::HandleWindowNCHITTESTEvent(MSG msg, Win32Window* window)
@@ -765,6 +771,7 @@ namespace nkentseu {
 		POINT position;
 		position.x = static_cast<std::int16_t>(LOWORD(msg.lParam));
 		position.y = static_cast<std::int16_t>(HIWORD(msg.lParam));
+		const POINTS pt = MAKEPOINTS(msg.lParam);
 
 		ScreenToClient(window->GetData()->windowHandle, &position);
 
@@ -777,28 +784,34 @@ namespace nkentseu {
 	{
 		if (pressed) {
 			SetCapture(window->GetData()->windowHandle);
+
+			if (!window->GetData()->isCursorVisible) {
+				if (msg.wParam & WA_ACTIVE) {
+					window->ConfineMouse(true);
+				}
+			}
 		}
 		else {
 			ReleaseCapture();
 		}
 
 		previousMousePosition = window->GetPosition();
-
 		float32 scaleFactor = window->GetDpiScale();
 
 		short modifiers = LOWORD(msg.wParam);
 		ModifierState ms(modifiers & MK_CONTROL, modifiers & MK_ALT, modifiers & MK_SHIFT, modifiers & 0);
 
-		Vector2i positionGlobal(GET_X_LPARAM(msg.lParam) / scaleFactor, GET_Y_LPARAM(msg.lParam) / scaleFactor);
+		Vector2i position(GET_X_LPARAM(msg.lParam) / scaleFactor, GET_Y_LPARAM(msg.lParam) / scaleFactor);
 
 		RECT area;
 		GetClientRect(window->GetData()->windowHandle, &area);
-
-		Vector2i position(positionGlobal.x - (area.left / scaleFactor), positionGlobal.y - (area.top / scaleFactor));
-		// previousMousePosition = positionGlobal;
+		MapWindowPoints(window->GetData()->windowHandle, nullptr, reinterpret_cast<POINT*>(&area), 2);
+		area.left /= scaleFactor;
+		area.top /= scaleFactor;
 
 		mousePosition = position;
-		globalMousePosition = positionGlobal;
+		globalMousePosition = position + Vector2i(area.left, area.top);
+
 		bool doubleClick = false;
 		ButtonState::Code state = ButtonState::Released;
 
@@ -849,7 +862,6 @@ namespace nkentseu {
 		LRESULT result = 0;
 
 		float32 scaleFactor = window->GetDpiScale();
-		//Vector2i positionGlobal(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		Vector2i positionGlobal(static_cast<std::int16_t>(LOWORD(msg.lParam)) / scaleFactor, static_cast<std::int16_t>(HIWORD(msg.lParam)) / scaleFactor);
 
 		RECT area;
@@ -893,6 +905,41 @@ namespace nkentseu {
 			return 0;
 		}
 
+		if (!window->GetData()->isCursorVisible) {
+			bool change_cursor_post = false;
+			POINT cursorPos;
+			GetCursorPos(&cursorPos);
+
+			RECT windowRect;
+			GetClientRect(window->GetData()->windowHandle, &windowRect);
+			MapWindowPoints(window->GetData()->windowHandle, nullptr, reinterpret_cast<POINT*>(&windowRect), 2);
+			windowRect.left -= 2;
+			windowRect.right += 2;
+			windowRect.top -= 2;
+			windowRect.bottom += 2;
+
+			if (cursorPos.x <= windowRect.left + window->GetData()->border * 0.5f) {
+				cursorPos.x = windowRect.right - window->GetData()->border * 0.5f;
+				change_cursor_post = true;
+			}
+			else if (cursorPos.x >= windowRect.right - window->GetData()->border * 0.5f) {
+				cursorPos.x = windowRect.left + window->GetData()->border * 0.5f;
+				change_cursor_post = true;
+			}
+
+			if (cursorPos.y <= windowRect.top + window->GetData()->frame + window->GetData()->border * 0.5f) {
+				cursorPos.y = windowRect.bottom - window->GetData()->border * 0.5f;
+				change_cursor_post = true;
+			}
+			else if (cursorPos.y >= windowRect.bottom - window->GetData()->border * 0.5f) {
+				cursorPos.y = windowRect.top + window->GetData()->frame + window->GetData()->border * 0.5f;
+				change_cursor_post = true;
+			}
+
+			if (change_cursor_post) {
+				SetCursorPos(cursorPos.x, cursorPos.y);
+			}
+		}
 		return FinalizePushEvent(new MouseMovedEvent(window->ID(), position, globalMousePosition, move), 0, msg, window);
 	}
 

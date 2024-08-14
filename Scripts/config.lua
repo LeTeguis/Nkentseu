@@ -45,6 +45,7 @@ Externals = {}
 Externals["Glm"] = "%{wks.location}/External/Libs/GLM"
 Externals["Glad"] = "%{wks.location}/External/Libs/Glad"
 Externals["Stb"] = "%{wks.location}/External/Libs/Stb"
+Externals["FreeType"] = "%{wks.location}/External/Libs/FreeType"
 --Externals["SPIRVCross"] = "%{wks.location}/External/libs/SPIRV-Cross/"
 --Externals["Glslang"] = "%{wks.location}/External/Libs/GLSlang"
 --Externals["VkInclude"] = "%{wks.location}/External/Libs/Vulkan-Headers-1.3.272/include"
@@ -61,6 +62,15 @@ Internals["NSystem"]        = "%{wks.location}/Core/NSystem"
 Internals["Logger"]         = "%{wks.location}/Core/Logger"
 Internals["Unitest"]        = "%{wks.location}/Core/Unitest"
 Internals["Ntsm"]           = "%{wks.location}/Core/Ntsm"
+Internals["NGUI"]           = "%{wks.location}/Core/NGUI"
+
+Internals["NTSCore"]            = "%{wks.location}/Core/NTSCore"
+Internals["NTSLogger"]          = "%{wks.location}/Core/NTSLogger"
+Internals["NTSMaths"]           = "%{wks.location}/Core/NTSMaths"
+Internals["NTSUnitest"]         = "%{wks.location}/Core/NTSUnitest"
+Internals["NTSWindow"]          = "%{wks.location}/Core/NTSWindow"
+Internals["NTSGraphics"]        = "%{wks.location}/Core/NTSGraphics"
+Internals["NTSGui"]             = "%{wks.location}/Core/NTSGui"
 
 -- engine
 Internals["Unkeny"]       = "%{wks.location}/Engine/Unkeny"
@@ -71,6 +81,7 @@ Internals["GlobalTests"]    = "%{wks.location}/Tests/GlobalTests"
 
 -- exemples
 Internals["Window"]         = "%{wks.location}/Exemples/Window"
+Internals["Basic"]         = "%{wks.location}/Exemples/Basic"
 
 
 -- Options

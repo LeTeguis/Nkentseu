@@ -614,9 +614,7 @@ namespace nkentseu {
         mat4f mat4f::Translation(const Vector3f& pos) {
             mat4f result(1.0f);
 
-            result.m30 = pos.x;
-            result.m31 = pos.y;
-            result.m32 = pos.z;
+            result.position = pos;
 
             return result;
         }
@@ -625,14 +623,31 @@ namespace nkentseu {
         mat4f mat4f::Translation(const Vector3f& axis, const Vector3f& move) {
             mat4f result(1.0f);
 
-            result.m00 = 1.0f + move.x * axis.x;
-            result.m11 = 1.0f + move.y * axis.y;
-            result.m22 = 1.0f + move.z * axis.z;
-            result.m30 = move.x;
-            result.m31 = move.y;
-            result.m32 = move.z;
+            //result.m00 = 1.0f + move.x * axis.x;
+            //result.m11 = 1.0f + move.y * axis.y;
+            //result.m22 = 1.0f + move.z * axis.z;
+            //result.m30 = move.x;
+            //result.m31 = move.y;
+            //result.m32 = move.z;
+            result.position = Vector3f(axis) * move;
 
             return result;
+        }
+
+        void mat4f::OrthoNormalize()
+        {
+            right.Normalize();
+            up.Normalize();
+            forward.Normalize();
+        }
+
+        mat4f mat4f::OrthoNormalized() const
+        {
+            mat4f tmp(*this);
+
+            tmp.OrthoNormalize();
+
+            return tmp;
         }
 
         // Méthode pour calculer le cofacteur d'un élément spécifique de la matrice

@@ -13,7 +13,6 @@
 #include "Context.h"
 #include "Shader.h"
 #include "Color.h"
-#include "Canvas.h"
 
 #include <Ntsm/Vector/Vector2.h>
 #include <Ntsm/Vector/Vector4.h>
@@ -50,8 +49,6 @@ namespace nkentseu {
             virtual bool SetCullMode(CullModeType mode) = 0;
             virtual bool SetFrontFaceMode(FrontFaceType mode) = 0;
             virtual bool SetRenderPrimitive(RenderPrimitive mode) = 0;
-
-            virtual Memory::Shared<Canvas> GetCanvas() = 0;
 
             static Memory::Shared<Renderer> Create(Memory::Shared<Context> context);
             static Memory::Shared<Renderer> CreateInitialized(Memory::Shared<Context> context);

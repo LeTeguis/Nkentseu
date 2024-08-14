@@ -32,6 +32,8 @@ namespace nkentseu {
         friend class VulkanShader;
         friend class VulkanUniformBuffer;
         friend class VulkanTexture2D;
+        friend class RenderCache2D;
+        friend class VulkanTexture2DBinding;
 
         Memory::Shared<VulkanContext> m_Context;
 

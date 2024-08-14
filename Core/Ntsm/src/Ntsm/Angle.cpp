@@ -23,12 +23,12 @@ namespace nkentseu {
 		}
 
 		float32 Angle::Rad() const {
-			static float32 radiant = (maths::Pi * m_Degree) / 180.0f;
+			static float32 radiant = m_Degree * DEG2RAD;
 			static float32 degree = m_Degree;
 
 			if (m_Degree != degree) {
 				degree = m_Degree;
-				radiant = (maths::Pi * m_Degree) / 180.0f;
+				radiant = m_Degree * DEG2RAD;
 			}
 
 			return radiant;
@@ -39,7 +39,7 @@ namespace nkentseu {
 		}
 
 		void Angle::Rad(float32 rad) {
-			m_Degree = Clamp(180.0f * rad / maths::Pi);
+			m_Degree = Clamp(rad * RAD2DEG);
 		}
 
 		Angle::operator float32 () {

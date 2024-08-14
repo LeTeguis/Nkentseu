@@ -28,7 +28,6 @@
 
 #include "OpenglShader.h"
 #include "OpenglContext.h"
-#include "OpenglCanvas.h"
 #include "OpenglRenderer.h"
 #include "OpenglVertexArray.h"
 #include "OpenglVertexBuffer.h"
@@ -68,10 +67,6 @@ namespace nkentseu {
             makecurrent = m_Context->GetNative()->MakeCurrent();
         }
 
-        if (m_Canvas == nullptr) {
-            m_Canvas = Memory::Alloc<OpenglCanvas>(m_Context);
-        }
-
         EventTraker.AddObserver(REGISTER_CLIENT_EVENT(OpenglRenderer::OnEvent));
         return makecurrent;
     }
@@ -80,10 +75,6 @@ namespace nkentseu {
     {
         if (m_Context == nullptr || !m_Context->IsInitialize()) {
             return false;
-        }
-
-        if (m_Canvas != nullptr) {
-            m_Canvas->Destroy();
         }
 
         bool makecurrent = false;
@@ -112,10 +103,6 @@ namespace nkentseu {
 
         Vector2u size = m_Context->GetWindow()->ConvertPixelToDpi(event.GetSize());
         glCheckError(first, result, glViewport(0, 0, size.width, size.height), "cannot change viewport");
-
-        if (m_Canvas != nullptr) {
-            m_Canvas->m_Size = size;
-        }
 
         return true;
     }
@@ -169,10 +156,6 @@ namespace nkentseu {
     bool OpenglRenderer::End()
     {
         if (!CanRender() || !m_Context->IsCurrent()) return false;
-
-        if (m_Canvas != nullptr) {
-            m_Canvas->Present();
-        }
 
         bool swap = m_Context->Swapchaine();
 
@@ -229,12 +212,6 @@ namespace nkentseu {
     bool OpenglRenderer::ResetScissor()
     {
         return false;
-    }
-
-    Memory::Shared<Canvas> OpenglRenderer::GetCanvas()
-    {
-        if (m_Canvas != nullptr) m_Canvas->Prepare();
-        return m_Canvas;
     }
 
     bool OpenglRenderer::CanRender()

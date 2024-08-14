@@ -41,6 +41,7 @@ namespace nkentseu {
 					Vector4f forward;
 					Vector4f position;
 				};
+				Vector4f component[4];
 			};
 
 			// Constructeurs
@@ -133,6 +134,8 @@ namespace nkentseu {
 			static mat4f Scaling(const Vector3f& axis, const Vector3f& scaleFactors);
 			static mat4f Translation(const Vector3f& pos);
 			static mat4f Translation(const Vector3f& axis, const Vector3f& move);
+			void OrthoNormalize();
+			mat4f OrthoNormalized() const;
 
 			// Méthodes pour l'inverse, cofacteur, déterminant, etc.
 			mat4f Inverse() const;

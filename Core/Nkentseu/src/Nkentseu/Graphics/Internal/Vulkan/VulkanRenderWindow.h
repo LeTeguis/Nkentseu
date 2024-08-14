@@ -43,8 +43,6 @@ namespace nkentseu {
             bool SetCullMode(CullModeType mode) override;
             bool SetFrontFaceMode(FrontFaceType mode) override;
             bool SetRenderPrimitive(RenderPrimitive mode) override;
-
-            Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<VulkanContext> m_Context;
             Color m_PreviousColor;

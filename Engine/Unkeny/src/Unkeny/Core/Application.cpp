@@ -500,8 +500,10 @@ namespace nkentseu {
             return false;
         }
 
-        ContextProperties propertie(GraphicsApiType::VulkanApi);
-        //ContextProperties propertie(GraphicsApiType::OpenglApi);
+        m_Window->ShowMouse(false);
+
+        //ContextProperties propertie(GraphicsApiType::VulkanApi);
+        ContextProperties propertie(GraphicsApiType::OpenglApi);
         //ContextProperties propertie(GraphicsApiType::OpenglApi, Vector2i(4, 6));
 
         m_Context = Context::CreateInitialized(m_Window, propertie);
@@ -660,14 +662,6 @@ namespace nkentseu {
             cameraBuffer.proj[1][1] *= -1;
         }*/
         int32 slot = 0;
-
-        CircleShape circle(100, 100, 36, Color::CadetBlue());
-        circle.GenerateIndices();
-        circle.GenerateVertices();
-
-        RectangleShape rectangle(200, 100, 10, 0, Color::Cyan());
-        rectangle.GenerateIndices();
-        rectangle.GenerateVertices();
 
         Memory::Shared<Renderer2D> canvas = nullptr;
         canvas = Memory::Alloc<Renderer2D>(m_Context);
@@ -868,14 +862,17 @@ namespace nkentseu {
                 } else { Log.Error("cannot bind shader"); }
 
                 if (canvas != nullptr) {
+                    canvas->Prepare(m_RenderWindow);
+
                     canvas->AddFilledRectangle(Vector2f(100, 100), Vector2f(100, 100), Color(31, 31, 31, 100));
                     canvas->AddOutlineRectangle(moving, Vector2f(100, 100), Color::White());
-                    canvas->AddFilledRoundedRectangle(moving + Vector2f(200, 200), Vector2f(100, 100), 5.0f, Color::White());
+                    canvas->AddFilledRoundedRectangle(moving + Vector2f(200, 200), Vector2f(100, 100), 5.0f, Color::White(), 16, tetxure);
                     canvas->AddOutlineRoundedRectangle(Vector2f(400, 0), Vector2f(100, 100), 5.0f, Color::White());
                     //canvas->AddFilledRoundedRectangle(Vector2f(600, 100), Vector2f(300, 200), {10, 10, 0, 10}, Color::White());
                     //canvas->AddOutlineRoundedRectangle(Vector2f(600, 100), Vector2f(300, 200), { 10, 10, 0, 10 }, Color::White());
                     Vector2f corner[4] = { {10, 10}, {0, 0}, {10, 5}, {0, 0} };
                     canvas->AddOutlineRoundedRectangle(Vector2f(600, 100), Vector2f(300, 200), corner, Color::White());
+                    canvas->AddFilledRoundedRectangle(Vector2f(200, 420), Vector2f(300, 200), corner, Color::White(), 16, tetxure);
                     //canvas->AddOutlineEllipse(Vector2f(550, 450), { 100, 50 }, Color::YellowGreen(), 5);
                     canvas->AddFilledTriangle({ 100, 100 }, { 50, 200 }, { 150, 200 }, Color::YellowGreen());
                     canvas->AddOutlineTriangle({ 100, 100 }, { 50, 200 }, { 150, 200 }, Color::Red(), 5);
@@ -883,7 +880,7 @@ namespace nkentseu {
                     //canvas->AddLine({ 100, 100 }, { 400, 400 }, Color::Green(), 10);
                     //canvas->AddPath({ { 100, 100 }, { 400, 400 }, { 200, 400 }, { 100, 600 } }, Color::Green(), true, 1.0f);
                     canvas->AddFillPath({ { 100, 100 }, { 400, 400 }, { 200, 400 }, { 100, 600 } }, Color::Green());
-                    canvas->Render(m_RenderWindow);
+                    canvas->Present(m_RenderWindow);
                 }
 
                 m_RenderWindow->End();
@@ -1160,14 +1157,14 @@ namespace nkentseu {
     {
         if (m_Renderer != nullptr) {
             //m_Renderer->Resize(event.GetSize());
-            //Log.Debug("{0}", event);
+            Log.Debug("{0}", event);
         }
         return false;
     }
 
     bool Application::OnWindowMovedEvent(WindowMovedEvent& event)
     {
-        //Log.Debug("{0}", event);
+        Log.Debug("{0}", event);
         return false;
     }
 

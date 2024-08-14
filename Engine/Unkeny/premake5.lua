@@ -21,11 +21,13 @@ project "Unkeny"
         "%{Internals.Logger}/src",
         "%{Internals.NSystem}/src",
         "%{Internals.Ntsm}/src",
+        "%{Internals.NGUI}/src",
         "%{Externals.Glm}",
     }
 
     links {
         "Nkentseu",
+        "NGUI",
         "Ntsm",
         "Logger",
         "NSystem",

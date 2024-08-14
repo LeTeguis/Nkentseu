@@ -19,12 +19,14 @@ project "GlobalTests"
         "%{Internals.Logger}/src",
         "%{Internals.NSystem}/src",
         "%{Internals.Ntsm}/src",
-        "%{Internals.Unitest}/src"
+        "%{Internals.Unitest}/src",
+        "%{Internals.NGUI}/src",
     }
 
     links {
         "Unitest",
         "Nkentseu",
+        "NGUI",
         "Ntsm",
         "Logger",
         "NSystem",

@@ -18,7 +18,6 @@
 
 #include "Nkentseu/Graphics/ShaderInfo.h"
 #include "Nkentseu/Graphics/Renderer.h"
-#include "Nkentseu/Graphics/Canvas.h"
 #include "Nkentseu/Core/Events.h"
 
 namespace nkentseu {
@@ -51,11 +50,8 @@ namespace nkentseu {
             bool SetScissor(const maths::Vector4f& scissor) override;
             bool SetScissor(float32 x, float32 y, float32 width, float32 height) override;
             bool ResetScissor() override;
-
-            virtual Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
-            Memory::Shared<OpenglCanvas> m_Canvas = nullptr;
             bool m_IsPrepare = false;
 
         private:

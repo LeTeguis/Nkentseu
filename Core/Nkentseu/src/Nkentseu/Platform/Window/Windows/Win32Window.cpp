@@ -145,9 +145,36 @@ namespace nkentseu {
 	void Win32Window::ShowMouse(bool show)
 	{
 		if (IsValidDisplay()) {
-			ShowCursor(show ? TRUE : FALSE);
+			if (show) {
+				m_CursorIsEnabled = true;
+
+				while (ShowCursor(TRUE) < 0);
+			} else {
+				m_CursorIsEnabled = false;
+
+				while (ShowCursor(FALSE) >= 0);
+			}
 			m_Data->isCursorVisible = show;
 			//SetCursor(m_Data->isCursorVisible ? m_Data->lastCursor : nullptr);
+		}
+	}
+
+	void Win32Window::ConfineMouse(bool confine)
+	{
+		if (IsValidDisplay()) {
+			if (confine) {
+				RECT rect;
+				GetClientRect(m_Data->windowHandle, &rect);
+				MapWindowPoints(m_Data->windowHandle, nullptr, reinterpret_cast<POINT*>(&rect), 2);
+				rect.left -= 2;
+				rect.right += 2;
+				rect.top -= 2;
+				rect.bottom += 2;
+				ClipCursor(&rect);
+			}
+			else {
+				ClipCursor(nullptr);
+			}
 		}
 	}
 
@@ -484,16 +511,15 @@ namespace nkentseu {
 
 		// Store the current thread's DPI-awareness context
 		DPI_AWARENESS_CONTEXT previousDpiContext = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		RECT windowRect = UpdateWindowExtension(position, size, dwStyle, dwExStyle);
 
 		std::wstring title(m_Properties.title.begin(), m_Properties.title.end());
 
 		m_Data->windowHandle = CreateWindowEx(0,
 			m_Data->GetWindowClassName(), title.c_str(),
 			dwStyle,
-			windowRect.left, windowRect.top,
-			windowRect.right - windowRect.left,
-			windowRect.bottom - windowRect.top,
+			position.x, position.y,
+			size.width,
+			size.height,
 			NULL, NULL,
 			m_Data->instanceHandle, NULL);
 
@@ -506,7 +532,9 @@ namespace nkentseu {
 		GetCurrent(m_Data->windowHandle);
 
 		if (!m_Properties.fullscreen) {
-			InitWindowPosition(Vector2i(windowRect.left, windowRect.top), Vector2u(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top), m_Properties.positionType);
+			//InitWindowPosition(Vector2i(windowRect.left, windowRect.top), Vector2u(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top), m_Properties.positionType);
+			InitWindowPosition(dwStyle, dwExStyle, position, size);
+			//InitWindowPosition(Vector2i(windowRect.left, windowRect.top), size, m_Properties.positionType);
 		}
 
 		/*if (!m_NativeWindow->CreateHDC()) {
@@ -630,17 +658,17 @@ namespace nkentseu {
 		windowRect.top = position.y;
 		windowRect.right = position.x + (long)size.width;
 		windowRect.bottom = position.y + (long)size.height;
-
 		AdjustWindowRectEx(&windowRect, style, FALSE, styleEx);
 
 		if (windowRect.left < 0) {
-			windowRect.right = windowRect.right - windowRect.left;
+			windowRect.right -= windowRect.left;
 			windowRect.left = 0;
 		}
 		if (windowRect.top < 0) {
-			windowRect.bottom = windowRect.bottom - windowRect.top;
+			windowRect.bottom -= windowRect.top;
 			windowRect.top = 0;
 		}
+
 		return windowRect;
 	}
 
@@ -660,9 +688,40 @@ namespace nkentseu {
 			pos_win.y = Random.NextInt32((long)GetSystemMetrics(SM_CYSCREEN) - size_win.height);
 		}
 
+		m_Data->extend = Vector2i(size_win.width - m_Properties.size.width, size_win.height - m_Properties.size.height);
+
 		m_Properties.position = pos_win;
 		m_Properties.size = size_win;
 		SetWindowPos(m_Data->windowHandle, 0, pos_win.x, pos_win.y, size_win.width, size_win.height, 0);
+	}
+
+	void Win32Window::InitWindowPosition(DWORD style, DWORD styleEx, const maths::Vector2f& desiredPos, const maths::Vector2f& desiredSize)
+	{
+		// Adjust size to match DPI
+		float32 scaleFactor = GetDpiScale();
+
+		RECT windowRectBorder;
+		AdjustWindowRectEx(&windowRectBorder, style, FALSE, styleEx);
+		float32 border = windowRectBorder.right - windowRectBorder.left + 2;
+		float32 frame = windowRectBorder.bottom - windowRectBorder.top - border + 2;
+
+		Vector2f size = desiredSize * scaleFactor + Vector2f(border, border + frame);
+		Vector2f position = desiredPos * scaleFactor;
+		Vector2f screenSize(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+		m_Data->extend = size - desiredSize * scaleFactor;
+		m_Data->border = border;
+		m_Data->frame = frame;
+
+		if (m_Properties.positionType == WindowPositionType::CenteredPosition) {
+			position = (screenSize - size) / 2.0f;
+		}
+		else if (m_Properties.positionType == WindowPositionType::RandomPosition) {
+			position = Vector2f(Random.NextInt32(screenSize.width - size.width), Random.NextInt32(screenSize.height - size.height));
+		}
+
+		m_Properties.position = position;
+		m_Properties.size = size;
+		SetWindowPos(m_Data->windowHandle, 0, position.x, position.y, size.width, size.height, 0);
 	}
 
 	void Win32Window::GrabWindowCursor(bool grabbed)

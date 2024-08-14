@@ -14,6 +14,7 @@ namespace nkentseu {
 
 	VulkanTexture2D::VulkanTexture2D(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<VulkanContext>(context)), m_Vksil(Memory::SharedCast<VulkanShaderInputLayout>(sil))
 	{
+		m_Binding = Memory::Alloc<VulkanTexture2DBinding>(context, sil);
 	}
 
 	VulkanTexture2D::~VulkanTexture2D()
@@ -121,10 +122,77 @@ namespace nkentseu {
 
 			CreateImageView();
 			CreateSampler();
-			return CreateDescriptorSet();
+			//return CreateDescriptorSet();
+			return m_Binding->Initialize(this);
 		}
 
 		return false;
+	}
+
+	Memory::Shared<Texture2D> VulkanTexture2D::Clone(Memory::Shared<ShaderInputLayout> sil)
+	{
+		auto texture = Memory::Alloc<VulkanTexture2D>(m_Context, sil);
+		texture->m_Format = m_Format;
+		texture->m_Path = m_Path;
+		texture->m_CacheId = m_CacheId;
+		texture->m_IsRepeated = m_IsRepeated;
+		texture->m_IsSmooth = m_IsSmooth;
+		texture->m_Size = m_Size;
+		texture->m_ActualSize = m_ActualSize;
+		texture->m_PixelsFlipped = m_PixelsFlipped;
+		texture->m_FboAttachment = m_FboAttachment;
+		texture->m_HasMipmap = m_HasMipmap;
+		texture->image = image;
+		texture->imageMemory = imageMemory;
+		texture->imageView = imageView;
+		texture->mipLevels = mipLevels;
+		texture->sampler = sampler;
+		//texture->CreateDescriptorSet();
+		return texture;
+	}
+
+	void* VulkanTexture2D::InternalID(Memory::Shared<ShaderInputLayout> sil, uint32 slot)
+	{
+		Memory::Shared<VulkanShaderInputLayout> vksil = Memory::SharedCast<VulkanShaderInputLayout>(sil);
+
+		if (m_Context == nullptr || vksil == nullptr) return nullptr;
+		Memory::Shared<DescriptorSetInternal> descriptorSets = nullptr;
+
+		// Recupere le layout du descriptor set pour les uniform buffers
+		auto it = vksil->descriptorSetLayouts.find(BufferSpecificationType::Enum::Texture);
+		if (it == vksil->descriptorSetLayouts.end()) {
+			Log_nts.Error("Texture buffer descriptor set layout not found.");
+			return nullptr;
+		}
+
+		for (auto& attribut : vksil->samplerInput) {
+			if (attribut.binding != slot) continue;
+
+			if (sampler == nullptr || imageView == nullptr) {
+				Log_nts.Fatal();
+				continue;
+			}
+
+			descriptorSets = Memory::Alloc<DescriptorSetInternal>();
+
+			descriptorSets->sampler = sampler;
+			descriptorSets->imageView = imageView;
+
+			vk::DescriptorType dtype = VulkanConvert::SamplerInputAttributType(attribut.type);
+
+			descriptorSets->AddInDescriptorPool(dtype, m_Context->swapchainImages.size());
+			if (!descriptorSets->CreateDescriptorPool(m_Context)) {
+				Log_nts.Error("Cannot create descriptor pool for texture");
+				return nullptr;
+			}
+
+			if (!descriptorSets->Create(m_Context, attribut.binding, it->second)) {
+				Log_nts.Error("Cannot create descriptor set for texture");
+				return nullptr;
+			}
+			return reinterpret_cast<void*>(&descriptorSets);
+		}
+		return nullptr;
 	}
 
 	Color* VulkanTexture2D::GetColors()
@@ -164,7 +232,7 @@ namespace nkentseu {
 
 	void VulkanTexture2D::Update(const Texture& texture, const maths::Vector2i& dest)
 	{
-		Update(texture.CopyToImage());
+		Update(texture.CopyToImage(), dest);
 	}
 
 	void VulkanTexture2D::Update(const Image& image)
@@ -180,11 +248,13 @@ namespace nkentseu {
 	void VulkanTexture2D::SetSmooth(bool smooth)
 	{
 		if (m_IsSmooth == smooth) return;
-		DestroyDescriptorSet();
+		//DestroyDescriptorSet();
+		m_Binding->Destroy();
 		DestroySampler();
 		m_IsSmooth = smooth;
 		CreateSampler();
-		CreateDescriptorSet();
+		m_Binding->Initialize(this);
+		//CreateDescriptorSet();
 	}
 
 	bool VulkanTexture2D::IsSmooth() const
@@ -204,11 +274,13 @@ namespace nkentseu {
 	void VulkanTexture2D::SetRepeated(bool repeated)
 	{
 		if (m_IsRepeated == repeated) return;
-		DestroyDescriptorSet();
+		//DestroyDescriptorSet();
+		m_Binding->Destroy();
 		DestroySampler();
 		m_IsRepeated = repeated;
 		CreateSampler();
-		CreateDescriptorSet();
+		m_Binding->Initialize(this);
+		//CreateDescriptorSet();
 	}
 
 	bool VulkanTexture2D::IsRepeated() const
@@ -231,7 +303,8 @@ namespace nkentseu {
 
 	void VulkanTexture2D::Bind(const std::string& name)
 	{
-		if (m_DescriptorSets.find(name) != m_DescriptorSets.end()) {
+		m_Binding->Bind(name);
+		/*if (m_DescriptorSets.find(name) != m_DescriptorSets.end()) {
 			vk::PipelineBindPoint pbp = vk::PipelineBindPoint::eGraphics;
 			vk::DescriptorSet descriptorSet = m_DescriptorSets[name].descriptorSet;
 			uint32 set = m_Vksil->sets[BufferSpecificationType::Enum::Texture];
@@ -250,18 +323,19 @@ namespace nkentseu {
 			}
 			return;
 		}
-		Log_nts.Error("cannot bind {0}", name);
+		Log_nts.Error("cannot bind {0}", name);*/
 	}
 
 	void VulkanTexture2D::Bind(uint32 binding)
 	{
-		for (auto& attribut : m_Vksil->samplerInput) {
+		m_Binding->Bind(binding);
+		/*for (auto& attribut : m_Vksil->samplerInput) {
 			if (attribut.binding == binding) {
 				Bind(attribut.name);
 				return;
 			}
 		}
-		Log_nts.Error("cannot bind {0}", binding);
+		Log_nts.Error("cannot bind {0}", binding);*/
 	}
 
 	const std::filesystem::path& VulkanTexture2D::GetPath() const
@@ -299,7 +373,8 @@ namespace nkentseu {
 	{
 		if (m_Context == nullptr) return false;
 
-		bool success = DestroyDescriptorSet();
+		//bool success = DestroyDescriptorSet();
+		bool success = m_Binding->Destroy();
 		success = DestroySampler() && success;
 		success = DestroyImageView() && success;
 		success = DestroyImage() && success;
@@ -307,7 +382,7 @@ namespace nkentseu {
 		return success;
 	}
 
-	bool VulkanTexture2D::DescriptorSetInternal::Create(Memory::Shared<VulkanContext> context, uint32 binding, vk::DescriptorSetLayout descriptorLayout)
+	bool DescriptorSetInternal::Create(Memory::Shared<VulkanContext> context, uint32 binding, vk::DescriptorSetLayout descriptorLayout)
 	{
 		if (context == nullptr || descriptorPool == nullptr) return false;
 
@@ -356,7 +431,7 @@ namespace nkentseu {
 		return result.success;
 	}
 
-	bool VulkanTexture2D::DescriptorSetInternal::Destroy(Memory::Shared<VulkanContext> context)
+	bool DescriptorSetInternal::Destroy(Memory::Shared<VulkanContext> context)
 	{
 		if (context == nullptr) return false;
 
@@ -624,7 +699,7 @@ namespace nkentseu {
 
 		VulkanContext::EndSingleTimeCommands(m_Context.get(), commandBuffer);
 	}
-
+	/*
 	bool VulkanTexture2D::CreateDescriptorSet()
 	{
 		if (m_Context == nullptr) return false;
@@ -671,9 +746,9 @@ namespace nkentseu {
 			}
 		}
 		return success;
-	}
+	}*/
 
-	bool VulkanTexture2D::DescriptorSetInternal::CreateDescriptorPool(Memory::Shared<VulkanContext> context)
+	bool DescriptorSetInternal::CreateDescriptorPool(Memory::Shared<VulkanContext> context)
 	{
 		VulkanResult result;
 		bool first = true;
@@ -691,7 +766,7 @@ namespace nkentseu {
 		return result.success;
 	}
 
-	bool VulkanTexture2D::DescriptorSetInternal::DestroyDescriptorPool(Memory::Shared<VulkanContext> context)
+	bool DescriptorSetInternal::DestroyDescriptorPool(Memory::Shared<VulkanContext> context)
 	{
 		if (descriptorPool != nullptr) {
 			vkCheckErrorVoid(context->device.destroyDescriptorPool(descriptorPool, context->allocator));
@@ -704,12 +779,180 @@ namespace nkentseu {
 		return true;
 	}
 
-	void VulkanTexture2D::DescriptorSetInternal::AddInDescriptorPool(vk::DescriptorType type, uint32 count)
+	void DescriptorSetInternal::AddInDescriptorPool(vk::DescriptorType type, uint32 count)
 	{
 		vk::DescriptorPoolSize poolSize{};
 		poolSize.type = type;
 		poolSize.descriptorCount = count;
 		poolSizes.push_back(poolSize);
+	}
+
+	VulkanTexture2DBinding::VulkanTexture2DBinding(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<VulkanContext>(context)), m_Vksil(Memory::SharedCast<VulkanShaderInputLayout>(sil))
+	{
+	}
+
+	bool VulkanTexture2DBinding::Initialize(Memory::Shared<Texture2D> texture)
+	{
+		Memory::Shared<VulkanTexture2D> vkTexture = Memory::SharedCast<VulkanTexture2D>(texture);
+
+		if (m_Context == nullptr || m_Vksil == nullptr || vkTexture == nullptr || vkTexture->sampler == nullptr || vkTexture->image == nullptr || vkTexture->imageMemory == nullptr || vkTexture->imageView == nullptr) return false;
+
+		if (isCreated) {
+			isCreated = false;
+			if (!Destroy()) return false;
+		}
+
+		// Recupere le layout du descriptor set pour les uniform buffers
+		auto it = m_Vksil->descriptorSetLayouts.find(BufferSpecificationType::Enum::Texture);
+		if (it == m_Vksil->descriptorSetLayouts.end()) {
+			Log_nts.Error("Texture buffer descriptor set layout not found.");
+			return false;
+		}
+
+		for (auto& attribut : m_Vksil->samplerInput) {
+			if (vkTexture->sampler == nullptr || vkTexture->imageView == nullptr) {
+				Log_nts.Fatal();
+				continue;
+			}
+
+			m_DescriptorSets[attribut.name] = {};
+			m_DescriptorSets[attribut.name].sampler = vkTexture->sampler;
+			m_DescriptorSets[attribut.name].imageView = vkTexture->imageView;
+
+			vk::DescriptorType dtype = VulkanConvert::SamplerInputAttributType(attribut.type);
+
+			m_DescriptorSets[attribut.name].AddInDescriptorPool(dtype, m_Context->swapchainImages.size());
+			if (!m_DescriptorSets[attribut.name].CreateDescriptorPool(m_Context)) {
+				Log_nts.Error("Cannot create descriptor pool for texture");
+				return false;
+			}
+
+			if (!m_DescriptorSets[attribut.name].Create(m_Context, attribut.binding, it->second)) {
+				Log_nts.Error("Cannot create descriptor set for texture");
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool VulkanTexture2DBinding::Initialize(VulkanTexture2D* texture)
+	{
+		if (m_Context == nullptr || m_Vksil == nullptr || texture == nullptr || texture->sampler == nullptr || texture->image == nullptr || texture->imageMemory == nullptr || texture->imageView == nullptr) return false;
+
+		if (isCreated) {
+			isCreated = false;
+			if (!Destroy()) return false;
+		}
+
+		// Recupere le layout du descriptor set pour les uniform buffers
+		auto it = m_Vksil->descriptorSetLayouts.find(BufferSpecificationType::Enum::Texture);
+		if (it == m_Vksil->descriptorSetLayouts.end()) {
+			Log_nts.Error("Texture buffer descriptor set layout not found.");
+			return false;
+		}
+
+		for (auto& attribut : m_Vksil->samplerInput) {
+			if (texture->sampler == nullptr || texture->imageView == nullptr) {
+				Log_nts.Fatal();
+				continue;
+			}
+
+			m_DescriptorSets[attribut.name] = {};
+			m_DescriptorSets[attribut.name].sampler = texture->sampler;
+			m_DescriptorSets[attribut.name].imageView = texture->imageView;
+
+			vk::DescriptorType dtype = VulkanConvert::SamplerInputAttributType(attribut.type);
+
+			m_DescriptorSets[attribut.name].AddInDescriptorPool(dtype, m_Context->swapchainImages.size());
+			if (!m_DescriptorSets[attribut.name].CreateDescriptorPool(m_Context)) {
+				Log_nts.Error("Cannot create descriptor pool for texture");
+				return false;
+			}
+
+			if (!m_DescriptorSets[attribut.name].Create(m_Context, attribut.binding, it->second)) {
+				Log_nts.Error("Cannot create descriptor set for texture");
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool VulkanTexture2DBinding::Destroy()
+	{
+		bool success = true;
+		for (auto [name, descriptor] : m_DescriptorSets) {
+			if (!descriptor.Destroy(m_Context)) {
+				success = false;
+			}
+		}
+		return success;
+	}
+
+	void VulkanTexture2DBinding::Bind(const std::string& name)
+	{
+		if (m_DescriptorSets.find(name) != m_DescriptorSets.end()) {
+			vk::PipelineBindPoint pbp = vk::PipelineBindPoint::eGraphics;
+			vk::DescriptorSet descriptorSet = m_DescriptorSets[name].descriptorSet;
+			uint32 set = m_Vksil->sets[BufferSpecificationType::Enum::Texture];
+			vk::PipelineLayout pipelineLayout = m_Vksil->pipelineLayout;
+			vk::CommandBuffer commandBuffer = m_Context->GetCommandBuffer();
+
+			if (m_DescriptorSets[name].sampler == nullptr) {
+				Log_nts.Fatal("Error");
+			}
+
+			vkCheckErrorVoid(commandBuffer.bindDescriptorSets(pbp, pipelineLayout, set, 1, &descriptorSet, 0, nullptr));
+
+			if (!VulkanStaticDebugInfo::Result()) {
+				Log_nts.Error("cannot bind {0}", name);
+				return;
+			}
+			return;
+		}
+		Log_nts.Error("cannot bind {0}", name);
+	}
+
+	void VulkanTexture2DBinding::Bind(uint32 binding)
+	{
+		for (auto& attribut : m_Vksil->samplerInput) {
+			if (attribut.binding == binding) {
+				Bind(attribut.name);
+				return;
+			}
+		}
+		Log_nts.Error("cannot bind {0}", binding);
+	}
+
+	bool VulkanTexture2DBinding::Equal(Memory::Shared<Texture2DBinding> binding)
+	{
+		Memory::Shared<VulkanTexture2DBinding> vkBinding = Memory::SharedCast<VulkanTexture2DBinding>(binding);
+		if (m_Context == nullptr || vkBinding == nullptr) return false;
+
+		for (auto& [name, descriptor] : vkBinding->m_DescriptorSets) {
+			for (auto& [name1, descriptor1] : m_DescriptorSets) {
+				if (descriptor.sampler == descriptor1.sampler && descriptor.imageView == descriptor1.imageView) {
+					return true;
+				}
+				return false;
+			}
+		}
+
+		return m_DescriptorSets.empty() && vkBinding->m_DescriptorSets.empty();
+	}
+
+	bool VulkanTexture2DBinding::IsDefined(Memory::Shared<Texture2D> binding)
+	{
+		Memory::Shared<VulkanTexture2D> vkBinding = Memory::SharedCast<VulkanTexture2D>(binding);
+		if (m_Context == nullptr || vkBinding == nullptr) return false;
+
+		for (auto& [name1, descriptor1] : m_DescriptorSets) {
+			if (vkBinding->sampler == descriptor1.sampler && vkBinding->imageView == descriptor1.imageView) {
+				return true;
+			}
+			return false;
+		}
+
+		return vkBinding->sampler == nullptr && vkBinding->imageView == nullptr;
 	}
 
 }  //  nkentseu

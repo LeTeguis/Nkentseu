@@ -43,8 +43,6 @@ namespace nkentseu {
             bool SetCullMode(CullModeType mode) override;
             bool SetFrontFaceMode(FrontFaceType mode) override;
             bool SetRenderPrimitive(RenderPrimitive mode) override;
-
-            virtual Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<OpenglContext> m_Context = nullptr;
             bool m_IsPrepare = false;

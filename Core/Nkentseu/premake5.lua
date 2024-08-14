@@ -22,13 +22,21 @@ project "Nkentseu"
         "%{Internals.NSystem}/src",
         "%{Internals.Logger}/src",
         "%{Internals.Ntsm}/src",
+        "%{Internals.NGUI}/src",
+        "%{Externals.FreeType}/include",
+    }
+
+    libdirs {
+        "%{Externals.FreeType}/lib",
     }
 
     links {
+        "NGUI",
         "Ntsm",
         "Logger",
         "NSystem",
         "Stb",
+        "freetype",
     }
 
     defines {

@@ -56,6 +56,8 @@ namespace nkentseu {
         protected:
     };
 
+    class Texture2DBinding;
+
     class NKENTSEU_API Texture2D : public Texture {
     public:
         virtual bool Create(TextureFormat textureFormat, const maths::Vector2u& size) = 0;
@@ -63,6 +65,9 @@ namespace nkentseu {
         virtual bool Create(const void* data, usize size, const maths::IntRect& area = maths::IntRect()) = 0;
         virtual bool Create(InputStream& stream, const maths::IntRect& area = maths::IntRect()) = 0;
         virtual bool Create(const Image& image, const maths::IntRect& area = maths::IntRect()) = 0;
+        virtual Memory::Shared<Texture2D> Clone(Memory::Shared<ShaderInputLayout> sil) = 0;
+
+        virtual void* InternalID(Memory::Shared<ShaderInputLayout> sil, uint32 slot) = 0;
 
         virtual bool Destroy() = 0;
 
@@ -75,6 +80,19 @@ namespace nkentseu {
         static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const void* data, usize size, const maths::IntRect& area = maths::IntRect());
         static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, InputStream& stream, const maths::IntRect& area = maths::IntRect());
         static Memory::Shared<Texture2D> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, const Image& image, const maths::IntRect& area = maths::IntRect());
+    };
+
+    class NKENTSEU_API Texture2DBinding {
+    public:
+        virtual bool Initialize(Memory::Shared<Texture2D> texture) = 0;
+        virtual bool Destroy() = 0;
+        virtual void Bind(const std::string& name) = 0;
+        virtual void Bind(uint32 binding) = 0;
+        virtual bool Equal(Memory::Shared<Texture2DBinding> binding) = 0;
+        virtual bool IsDefined(Memory::Shared<Texture2D> binding) = 0;
+
+        static Memory::Shared<Texture2DBinding> Create(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+        static Memory::Shared<Texture2DBinding> CreateInitialize(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil, Memory::Shared<Texture2D> texture);
     };
 
 }  //  nkentseu

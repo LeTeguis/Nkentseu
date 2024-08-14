@@ -17,11 +17,13 @@ project "Window"
         "%{Internals.Nkentseu}/src",
         "%{Internals.Logger}/src",
         "%{Internals.NSystem}/src",
-        "%{Internals.Ntsm}/src"
+        "%{Internals.Ntsm}/src",
+        "%{Internals.NGUI}/src",
     }
 
     links {
         "Nkentseu",
+        "NGUI",
         "Ntsm",
         "Logger",
         "NSystem",

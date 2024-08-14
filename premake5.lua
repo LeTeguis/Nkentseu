@@ -37,6 +37,16 @@ group "Core"
 	include "Core/Nkentseu"
 	include "Core/Unitest"
 	include "Core/Ntsm"
+	include "Core/NGUI"
+
+
+	include "Core/NTSCore"
+	include "Core/NTSLogger"
+	include "Core/NTSMaths"
+	include "Core/NTSUnitest"
+	include "Core/NTSWindow"
+	include "Core/NTSGraphics"
+	include "Core/NTSGui"
 group ""
 
 group "Engine"
@@ -46,6 +56,7 @@ group ""
 
 group "Exemples"
 	include "Exemples/Window"
+	include "Exemples/Basic"
 group ""
 
 group "Tests"

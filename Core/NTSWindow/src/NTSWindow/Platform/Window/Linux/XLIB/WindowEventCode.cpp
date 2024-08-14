@@ -1,0 +1,1117 @@
+//
+// Created by TEUGUIA TADJUIDJE Rodolf Séderis on 4/23/2024 at 1:01:09 PM.
+// Copyright (c) 2024 Rihen. All rights reserved.
+//
+
+#include "pch/ntspch.h"
+#include "WindowEventCode.h"
+
+#if defined(NKENTSEU_PLATFORM_LINUX_XLIB)
+
+#include <Nkentseu/Core/NkentseuLogger.h>
+
+#define XK_MISCELLANY
+#define XK_XKB_KEYS
+#define XK_LATIN1
+#define XK_LATIN2
+#define XK_LATIN3
+#define XK_LATIN4
+#define XK_LATIN8
+#define XK_LATIN9
+#define XK_CYRILLIC
+#define XK_GREEK
+#define XK_ARMENIAN
+#include <X11/keysymdef.h>
+#include <xcb/xcb_keysyms.h>
+
+namespace nkentseu {
+    uint64 WindowEventCode::KeycodeToWinkey(Keyboard::Code code) {
+        #define CODE_CONVERT_KC_WK(value, code_id) if (code == code_id) return value
+        CODE_CONVERT_KC_WK(XK_F1, Keyboard::F1);
+        CODE_CONVERT_KC_WK(XK_F2, Keyboard::F2);
+        CODE_CONVERT_KC_WK(XK_F3, Keyboard::F3);
+        CODE_CONVERT_KC_WK(XK_F4, Keyboard::F4);
+        CODE_CONVERT_KC_WK(XK_F5, Keyboard::F5);
+        CODE_CONVERT_KC_WK(XK_F6, Keyboard::F6);
+        CODE_CONVERT_KC_WK(XK_F7, Keyboard::F7);
+        CODE_CONVERT_KC_WK(XK_F8, Keyboard::F8);
+        CODE_CONVERT_KC_WK(XK_F9, Keyboard::F9);
+        CODE_CONVERT_KC_WK(XK_F10, Keyboard::F10);
+        CODE_CONVERT_KC_WK(XK_F11, Keyboard::F11);
+        CODE_CONVERT_KC_WK(XK_F12, Keyboard::F12);
+        CODE_CONVERT_KC_WK(XK_F13, Keyboard::F13);
+        CODE_CONVERT_KC_WK(XK_F14, Keyboard::F14);
+        CODE_CONVERT_KC_WK(XK_F15, Keyboard::F15);
+        CODE_CONVERT_KC_WK(XK_F16, Keyboard::F16);
+        CODE_CONVERT_KC_WK(XK_F17, Keyboard::F17);
+        CODE_CONVERT_KC_WK(XK_F18, Keyboard::F18);
+        CODE_CONVERT_KC_WK(XK_F19, Keyboard::F19);
+        CODE_CONVERT_KC_WK(XK_F20, Keyboard::F20);
+        CODE_CONVERT_KC_WK(XK_F21, Keyboard::F21);
+        CODE_CONVERT_KC_WK(XK_F22, Keyboard::F22);
+        CODE_CONVERT_KC_WK(XK_F23, Keyboard::F23);
+        CODE_CONVERT_KC_WK(XK_F24, Keyboard::F24);
+        CODE_CONVERT_KC_WK(XK_F25, Keyboard::F25);
+        CODE_CONVERT_KC_WK(XK_F26, Keyboard::F26);
+        CODE_CONVERT_KC_WK(XK_F27, Keyboard::F27);
+        CODE_CONVERT_KC_WK(XK_F28, Keyboard::F28);
+        CODE_CONVERT_KC_WK(XK_F29, Keyboard::F29);
+        CODE_CONVERT_KC_WK(XK_F30, Keyboard::F30);
+        CODE_CONVERT_KC_WK(XK_F31, Keyboard::F31);
+        CODE_CONVERT_KC_WK(XK_F32, Keyboard::F32);
+        CODE_CONVERT_KC_WK(XK_F33, Keyboard::F33);
+        CODE_CONVERT_KC_WK(XK_F34, Keyboard::F34);
+        CODE_CONVERT_KC_WK(XK_F35, Keyboard::F35);
+        //Miscellaneous Keys
+        CODE_CONVERT_KC_WK(XK_BackSpace, Keyboard::Backspace);
+        CODE_CONVERT_KC_WK(XK_Delete, Keyboard::Delete);
+        //CODE_CONVERT_KC_WK(XK_LineFeed, Keyboard::Backspace);
+        CODE_CONVERT_KC_WK(XK_Clear, Keyboard::Clear);
+        CODE_CONVERT_KC_WK(XK_Return, Keyboard::Return);
+        CODE_CONVERT_KC_WK(XK_Pause, Keyboard::Pause);
+        CODE_CONVERT_KC_WK(XK_Scroll_Lock, Keyboard::ScrollLock);
+        CODE_CONVERT_KC_WK(XK_Sys_Req, Keyboard::SysReq);
+        CODE_CONVERT_KC_WK(XK_Escape, Keyboard::Escape);
+        CODE_CONVERT_KC_WK(XK_Select, Keyboard::Select);
+        CODE_CONVERT_KC_WK(XK_Print, Keyboard::Print);
+        CODE_CONVERT_KC_WK(XK_Execute, Keyboard::Execute);
+        CODE_CONVERT_KC_WK(XK_Insert, Keyboard::Insert);
+        CODE_CONVERT_KC_WK(XK_Undo, Keyboard::Undo);
+        CODE_CONVERT_KC_WK(XK_Redo, Keyboard::Redo);
+        CODE_CONVERT_KC_WK(XK_Menu, Keyboard::Menu);
+        CODE_CONVERT_KC_WK(XK_Find, Keyboard::Find);
+        CODE_CONVERT_KC_WK(XK_Cancel, Keyboard::Cancel);
+        CODE_CONVERT_KC_WK(XK_Help, Keyboard::Help);
+        CODE_CONVERT_KC_WK(XK_Break, Keyboard::Break);
+        CODE_CONVERT_KC_WK(XK_Mode_switch, Keyboard::ModeSwitch);
+        CODE_CONVERT_KC_WK(XK_script_switch, Keyboard::ScriptSwitch);
+        CODE_CONVERT_KC_WK(XK_Num_Lock, Keyboard::NumLock);
+        //Cursor  Controls
+        CODE_CONVERT_KC_WK(XK_Home, Keyboard::Home);
+        CODE_CONVERT_KC_WK(XK_Left, Keyboard::Left);
+        CODE_CONVERT_KC_WK(XK_Up, Keyboard::Up);
+        CODE_CONVERT_KC_WK(XK_Right, Keyboard::Right);
+        CODE_CONVERT_KC_WK(XK_Down, Keyboard::Down);
+        CODE_CONVERT_KC_WK(XK_Prior, Keyboard::PageUp);
+        CODE_CONVERT_KC_WK(XK_Page_Up, Keyboard::PageUp);
+        CODE_CONVERT_KC_WK(XK_Page_Down, Keyboard::PageDown);
+        CODE_CONVERT_KC_WK(XK_Next, Keyboard::PageDown);
+        CODE_CONVERT_KC_WK(XK_End, Keyboard::End);
+        //CODE_CONVERT_KC_WK(XK_Begin, Keyboard::Backspace);
+        // Keypad Functions and numbers
+        CODE_CONVERT_KC_WK(XK_KP_Space, Keyboard::Space);
+        CODE_CONVERT_KC_WK(XK_KP_Tab, Keyboard::Tab);
+        CODE_CONVERT_KC_WK(XK_KP_Enter, Keyboard::Enter);
+        CODE_CONVERT_KC_WK(XK_KP_F1, Keyboard::F1);
+        CODE_CONVERT_KC_WK(XK_KP_F2, Keyboard::F2);
+        CODE_CONVERT_KC_WK(XK_KP_F3, Keyboard::F3);
+        CODE_CONVERT_KC_WK(XK_KP_F4, Keyboard::F4);
+        CODE_CONVERT_KC_WK(XK_KP_Home, Keyboard::Home);
+        CODE_CONVERT_KC_WK(XK_KP_Left, Keyboard::Left);
+        CODE_CONVERT_KC_WK(XK_KP_Up, Keyboard::Up);
+        CODE_CONVERT_KC_WK(XK_KP_Right, Keyboard::Right);
+        CODE_CONVERT_KC_WK(XK_KP_Down, Keyboard::Down);
+        CODE_CONVERT_KC_WK(XK_KP_Prior, Keyboard::PageUp);
+        CODE_CONVERT_KC_WK(XK_KP_Page_Up, Keyboard::PageUp);
+        CODE_CONVERT_KC_WK(XK_KP_Next, Keyboard::PageDown);
+        CODE_CONVERT_KC_WK(XK_KP_Page_Down, Keyboard::PageDown);
+        CODE_CONVERT_KC_WK(XK_KP_End, Keyboard::End);
+        //CODE_CONVERT_KC_WK(XK_KP_Begin, Keyboard::Begin);
+        CODE_CONVERT_KC_WK(XK_KP_Insert, Keyboard::Insert);
+        CODE_CONVERT_KC_WK(XK_KP_Delete, Keyboard::Delete);
+        CODE_CONVERT_KC_WK(XK_KP_Equal, Keyboard::Equal);
+        CODE_CONVERT_KC_WK(XK_KP_Multiply, Keyboard::Asterisk);
+        CODE_CONVERT_KC_WK(XK_KP_Add, Keyboard::Plus);
+        CODE_CONVERT_KC_WK(XK_KP_Separator, Keyboard::Comma);  //X11 definitions say this is often comma
+        CODE_CONVERT_KC_WK(XK_KP_Subtract, Keyboard::Minus);
+        CODE_CONVERT_KC_WK(XK_KP_Decimal, Keyboard::Period);
+        CODE_CONVERT_KC_WK(XK_KP_Divide, Keyboard::Slash);
+        CODE_CONVERT_KC_WK(XK_KP_0, Keyboard::Keypad0);
+        CODE_CONVERT_KC_WK(XK_KP_1, Keyboard::Keypad1);
+        CODE_CONVERT_KC_WK(XK_KP_2, Keyboard::Keypad2);
+        CODE_CONVERT_KC_WK(XK_KP_3, Keyboard::Keypad3);
+        CODE_CONVERT_KC_WK(XK_KP_4, Keyboard::Keypad4);
+        CODE_CONVERT_KC_WK(XK_KP_5, Keyboard::Keypad5);
+        CODE_CONVERT_KC_WK(XK_KP_6, Keyboard::Keypad6);
+        CODE_CONVERT_KC_WK(XK_KP_7, Keyboard::Keypad7);
+        CODE_CONVERT_KC_WK(XK_KP_8, Keyboard::Keypad8);
+        CODE_CONVERT_KC_WK(XK_KP_9, Keyboard::Keypad9);
+        // Modifier Keys
+        CODE_CONVERT_KC_WK(XK_Shift_L, Keyboard::ShiftLeft);
+        CODE_CONVERT_KC_WK(XK_Shift_R, Keyboard::ShiftRight);
+        CODE_CONVERT_KC_WK(XK_Control_L, Keyboard::ControlLeft);
+        CODE_CONVERT_KC_WK(XK_Control_R, Keyboard::ControlRight);
+        CODE_CONVERT_KC_WK(XK_Caps_Lock, Keyboard::CapsLock);
+        CODE_CONVERT_KC_WK(XK_Shift_Lock, Keyboard::ShiftLock);
+        CODE_CONVERT_KC_WK(XK_Meta_L, Keyboard::MetaLeft);
+        CODE_CONVERT_KC_WK(XK_Meta_R, Keyboard::MetaRight);
+        CODE_CONVERT_KC_WK(XK_Alt_L, Keyboard::AltLeft);
+        CODE_CONVERT_KC_WK(XK_Alt_R, Keyboard::AltRight);
+        CODE_CONVERT_KC_WK(XK_Super_L, Keyboard::SuperLeft);
+        CODE_CONVERT_KC_WK(XK_Super_R, Keyboard::SuperRight);
+        CODE_CONVERT_KC_WK(XK_Hyper_L, Keyboard::HyperLeft);
+        CODE_CONVERT_KC_WK(XK_Hyper_R, Keyboard::HyperRight);
+        CODE_CONVERT_KC_WK(XK_space, Keyboard::Space);
+        CODE_CONVERT_KC_WK(XK_exclam, Keyboard::Exclam);
+        CODE_CONVERT_KC_WK(XK_quotedbl, Keyboard::QuoteDbl);
+        CODE_CONVERT_KC_WK(XK_numbersign, Keyboard::NumberSign);
+        CODE_CONVERT_KC_WK(XK_dollar, Keyboard::Dollar);
+        CODE_CONVERT_KC_WK(XK_percent, Keyboard::Percent);
+        CODE_CONVERT_KC_WK(XK_ampersand, Keyboard::Ampersand);
+        CODE_CONVERT_KC_WK(XK_apostrophe, Keyboard::Apostrophe);
+        CODE_CONVERT_KC_WK(XK_parenleft, Keyboard::ParenLeft);
+        CODE_CONVERT_KC_WK(XK_parenright, Keyboard::ParenRight);
+        CODE_CONVERT_KC_WK(XK_asterisk, Keyboard::Asterisk);
+        CODE_CONVERT_KC_WK(XK_plus, Keyboard::Plus);
+        CODE_CONVERT_KC_WK(XK_comma, Keyboard::Comma);
+        CODE_CONVERT_KC_WK(XK_minus, Keyboard::Minus);
+        CODE_CONVERT_KC_WK(XK_period, Keyboard::Period);
+        CODE_CONVERT_KC_WK(XK_slash, Keyboard::Slash);
+        CODE_CONVERT_KC_WK(XK_0, Keyboard::Numpad0);
+        CODE_CONVERT_KC_WK(XK_1, Keyboard::Numpad1);
+        CODE_CONVERT_KC_WK(XK_2, Keyboard::Numpad2);
+        CODE_CONVERT_KC_WK(XK_3, Keyboard::Numpad3);
+        CODE_CONVERT_KC_WK(XK_4, Keyboard::Numpad4);
+        CODE_CONVERT_KC_WK(XK_5, Keyboard::Numpad5);
+        CODE_CONVERT_KC_WK(XK_6, Keyboard::Numpad6);
+        CODE_CONVERT_KC_WK(XK_7, Keyboard::Numpad7);
+        CODE_CONVERT_KC_WK(XK_8, Keyboard::Numpad8);
+        CODE_CONVERT_KC_WK(XK_9, Keyboard::Numpad9);
+        CODE_CONVERT_KC_WK(XK_colon, Keyboard::Colon);
+        CODE_CONVERT_KC_WK(XK_semicolon, Keyboard::Semicolon);
+        CODE_CONVERT_KC_WK(XK_less, Keyboard::Less);
+        CODE_CONVERT_KC_WK(XK_equal, Keyboard::Equal);
+        CODE_CONVERT_KC_WK(XK_greater, Keyboard::Greater);
+        CODE_CONVERT_KC_WK(XK_question, Keyboard::Question);
+        CODE_CONVERT_KC_WK(XK_at, Keyboard::At);
+        CODE_CONVERT_KC_WK(XK_A, Keyboard::A);
+        CODE_CONVERT_KC_WK(XK_B, Keyboard::B);
+        CODE_CONVERT_KC_WK(XK_C, Keyboard::C);
+        CODE_CONVERT_KC_WK(XK_D, Keyboard::D);
+        CODE_CONVERT_KC_WK(XK_E, Keyboard::E);
+        CODE_CONVERT_KC_WK(XK_F, Keyboard::F);
+        CODE_CONVERT_KC_WK(XK_G, Keyboard::G);
+        CODE_CONVERT_KC_WK(XK_H, Keyboard::H);
+        CODE_CONVERT_KC_WK(XK_I, Keyboard::I);
+        CODE_CONVERT_KC_WK(XK_J, Keyboard::J);
+        CODE_CONVERT_KC_WK(XK_K, Keyboard::K);
+        CODE_CONVERT_KC_WK(XK_L, Keyboard::L);
+        CODE_CONVERT_KC_WK(XK_M, Keyboard::M);
+        CODE_CONVERT_KC_WK(XK_N, Keyboard::N);
+        CODE_CONVERT_KC_WK(XK_O, Keyboard::O);
+        CODE_CONVERT_KC_WK(XK_P, Keyboard::P);
+        CODE_CONVERT_KC_WK(XK_Q, Keyboard::Q);
+        CODE_CONVERT_KC_WK(XK_R, Keyboard::R);
+        CODE_CONVERT_KC_WK(XK_S, Keyboard::S);
+        CODE_CONVERT_KC_WK(XK_T, Keyboard::T);
+        CODE_CONVERT_KC_WK(XK_U, Keyboard::U);
+        CODE_CONVERT_KC_WK(XK_V, Keyboard::V);
+        CODE_CONVERT_KC_WK(XK_W, Keyboard::W);
+        CODE_CONVERT_KC_WK(XK_X, Keyboard::X);
+        CODE_CONVERT_KC_WK(XK_Y, Keyboard::Y);
+        CODE_CONVERT_KC_WK(XK_Z, Keyboard::Z);
+        CODE_CONVERT_KC_WK(XK_bracketleft, Keyboard::BracketLeft);
+        CODE_CONVERT_KC_WK(XK_backslash, Keyboard::Backslash);
+        CODE_CONVERT_KC_WK(XK_bracketright, Keyboard::BracketRight);
+        CODE_CONVERT_KC_WK(XK_asciicircum, Keyboard::AsciiCircum);
+        CODE_CONVERT_KC_WK(XK_underscore, Keyboard::Underscore);
+        CODE_CONVERT_KC_WK(XK_grave, Keyboard::Agrave);
+        CODE_CONVERT_KC_WK(XK_a, Keyboard::A);
+        CODE_CONVERT_KC_WK(XK_b, Keyboard::B);
+        CODE_CONVERT_KC_WK(XK_c, Keyboard::C);
+        CODE_CONVERT_KC_WK(XK_d, Keyboard::D);
+        CODE_CONVERT_KC_WK(XK_e, Keyboard::E);
+        CODE_CONVERT_KC_WK(XK_f, Keyboard::F);
+        CODE_CONVERT_KC_WK(XK_g, Keyboard::G);
+        CODE_CONVERT_KC_WK(XK_h, Keyboard::H);
+        CODE_CONVERT_KC_WK(XK_i, Keyboard::I);
+        CODE_CONVERT_KC_WK(XK_j, Keyboard::J);
+        CODE_CONVERT_KC_WK(XK_k, Keyboard::K);
+        CODE_CONVERT_KC_WK(XK_l, Keyboard::L);
+        CODE_CONVERT_KC_WK(XK_m, Keyboard::M);
+        CODE_CONVERT_KC_WK(XK_n, Keyboard::N);
+        CODE_CONVERT_KC_WK(XK_o, Keyboard::O);
+        CODE_CONVERT_KC_WK(XK_p, Keyboard::P);
+        CODE_CONVERT_KC_WK(XK_q, Keyboard::Q);
+        CODE_CONVERT_KC_WK(XK_r, Keyboard::R);
+        CODE_CONVERT_KC_WK(XK_s, Keyboard::S);
+        CODE_CONVERT_KC_WK(XK_t, Keyboard::T);
+        CODE_CONVERT_KC_WK(XK_u, Keyboard::U);
+        CODE_CONVERT_KC_WK(XK_v, Keyboard::V);
+        CODE_CONVERT_KC_WK(XK_w, Keyboard::W);
+        CODE_CONVERT_KC_WK(XK_x, Keyboard::X);
+        CODE_CONVERT_KC_WK(XK_y, Keyboard::Y);
+        CODE_CONVERT_KC_WK(XK_z, Keyboard::Z);
+        CODE_CONVERT_KC_WK(XK_braceleft, Keyboard::BraceLeft);
+        CODE_CONVERT_KC_WK(XK_bar, Keyboard::Bar);
+        CODE_CONVERT_KC_WK(XK_braceright, Keyboard::BraceRight);
+        CODE_CONVERT_KC_WK(XK_asciitilde, Keyboard::AsciiTilde);
+
+        CODE_CONVERT_KC_WK(XK_nobreakspace, Keyboard::Nobreakspace);
+        CODE_CONVERT_KC_WK(XK_exclamdown, Keyboard::Exclamdown);
+        CODE_CONVERT_KC_WK(XK_cent, Keyboard::Cent);
+        CODE_CONVERT_KC_WK(XK_sterling, Keyboard::Sterling);
+        CODE_CONVERT_KC_WK(XK_currency, Keyboard::Currency);
+        CODE_CONVERT_KC_WK(XK_yen, Keyboard::Yen);
+        CODE_CONVERT_KC_WK(XK_brokenbar, Keyboard::Brokenbar);
+        CODE_CONVERT_KC_WK(XK_section, Keyboard::Section);
+        CODE_CONVERT_KC_WK(XK_diaeresis, Keyboard::Diaeresis);
+        CODE_CONVERT_KC_WK(XK_copyright, Keyboard::Copyright);
+        CODE_CONVERT_KC_WK(XK_ordfeminine, Keyboard::Ordfeminine);
+        CODE_CONVERT_KC_WK(XK_guillemotleft, Keyboard::Guillemotleft);
+        CODE_CONVERT_KC_WK(XK_notsign, Keyboard::Notsign);
+        CODE_CONVERT_KC_WK(XK_hyphen, Keyboard::Hyphen);
+        CODE_CONVERT_KC_WK(XK_registered, Keyboard::Registered);
+        CODE_CONVERT_KC_WK(XK_macron, Keyboard::Macron);
+        CODE_CONVERT_KC_WK(XK_degree, Keyboard::Degree);
+        CODE_CONVERT_KC_WK(XK_plusminus, Keyboard::Plusminus);
+        CODE_CONVERT_KC_WK(XK_twosuperior, Keyboard::Twosuperior);
+        CODE_CONVERT_KC_WK(XK_threesuperior, Keyboard::Threesuperior);
+        CODE_CONVERT_KC_WK(XK_acute, Keyboard::Acute);
+        CODE_CONVERT_KC_WK(XK_mu, Keyboard::Mu);
+        CODE_CONVERT_KC_WK(XK_paragraph, Keyboard::Paragraph);
+        CODE_CONVERT_KC_WK(XK_periodcentered, Keyboard::Periodcentered);
+        CODE_CONVERT_KC_WK(XK_cedilla, Keyboard::Cedilla);
+        CODE_CONVERT_KC_WK(XK_onesuperior, Keyboard::Onesuperior);
+        CODE_CONVERT_KC_WK(XK_masculine, Keyboard::Masculine);
+        CODE_CONVERT_KC_WK(XK_guillemotright, Keyboard::Guillemotright);
+        CODE_CONVERT_KC_WK(XK_onequarter, Keyboard::Onequarter);
+        CODE_CONVERT_KC_WK(XK_onehalf, Keyboard::Onehalf);
+        CODE_CONVERT_KC_WK(XK_threequarters, Keyboard::Threequarters);
+        CODE_CONVERT_KC_WK(XK_questiondown, Keyboard::Questiondown);
+        CODE_CONVERT_KC_WK(XK_Agrave, Keyboard::Agrave);
+        CODE_CONVERT_KC_WK(XK_Aacute, Keyboard::Aacute);
+        CODE_CONVERT_KC_WK(XK_Acircumflex, Keyboard::Acircumflex);
+        CODE_CONVERT_KC_WK(XK_Atilde, Keyboard::Atilde);
+        CODE_CONVERT_KC_WK(XK_Adiaeresis, Keyboard::Adiaeresis);
+        CODE_CONVERT_KC_WK(XK_Aring, Keyboard::Aring);
+        CODE_CONVERT_KC_WK(XK_AE, Keyboard::AE);
+        CODE_CONVERT_KC_WK(XK_Ccedilla, Keyboard::Ccedilla);
+        CODE_CONVERT_KC_WK(XK_Egrave, Keyboard::Egrave);
+        CODE_CONVERT_KC_WK(XK_Eacute, Keyboard::Eacute);
+        CODE_CONVERT_KC_WK(XK_Ecircumflex, Keyboard::Ecircumflex);
+        CODE_CONVERT_KC_WK(XK_Ediaeresis, Keyboard::Ediaeresis);
+        CODE_CONVERT_KC_WK(XK_Igrave, Keyboard::Igrave);
+        CODE_CONVERT_KC_WK(XK_Iacute, Keyboard::Iacute);
+        CODE_CONVERT_KC_WK(XK_Icircumflex, Keyboard::Icircumflex);
+        CODE_CONVERT_KC_WK(XK_Idiaeresis, Keyboard::Idiaeresis);
+        CODE_CONVERT_KC_WK(XK_ETH, Keyboard::ETH);
+        CODE_CONVERT_KC_WK(XK_Eth, Keyboard::Eth);
+        CODE_CONVERT_KC_WK(XK_Ntilde, Keyboard::Ntilde);
+        CODE_CONVERT_KC_WK(XK_Ograve, Keyboard::Ograve);
+        CODE_CONVERT_KC_WK(XK_Oacute, Keyboard::Oacute);
+        CODE_CONVERT_KC_WK(XK_Ocircumflex, Keyboard::Ocircumflex);
+        CODE_CONVERT_KC_WK(XK_Otilde, Keyboard::Otilde);
+        CODE_CONVERT_KC_WK(XK_Odiaeresis, Keyboard::Odiaeresis);
+        CODE_CONVERT_KC_WK(XK_multiply, Keyboard::Multiply);
+        CODE_CONVERT_KC_WK(XK_Oslash, Keyboard::AsciiTilde);
+        CODE_CONVERT_KC_WK(XK_Ooblique, Keyboard::Ooblique);
+        CODE_CONVERT_KC_WK(XK_Ugrave, Keyboard::Ugrave);
+        CODE_CONVERT_KC_WK(XK_Uacute, Keyboard::Uacute);
+        CODE_CONVERT_KC_WK(XK_Ucircumflex, Keyboard::Ucircumflex);
+        CODE_CONVERT_KC_WK(XK_Udiaeresis, Keyboard::Udiaeresis);
+        CODE_CONVERT_KC_WK(XK_Yacute, Keyboard::Yacute);
+        CODE_CONVERT_KC_WK(XK_THORN, Keyboard::THORN);
+        CODE_CONVERT_KC_WK(XK_Thorn, Keyboard::AsciiTilde);
+        CODE_CONVERT_KC_WK(XK_ssharp, Keyboard::Ssharp);
+        return 0;
+    }
+
+	Keyboard::Code WindowEventCode::WinkeyToKeycode(uint64 winkeycode)
+	{
+        #define CODE_CONVERT_WK_KC(value, code_id) if (winkeycode == value) return code_id
+        Log_nts.Debug();
+        
+        CODE_CONVERT_WK_KC(XK_F1, Keyboard::F1);
+        CODE_CONVERT_WK_KC(XK_F2, Keyboard::F2);
+        CODE_CONVERT_WK_KC(XK_F3, Keyboard::F3);
+        CODE_CONVERT_WK_KC(XK_F4, Keyboard::F4);
+        CODE_CONVERT_WK_KC(XK_F5, Keyboard::F5);
+        CODE_CONVERT_WK_KC(XK_F6, Keyboard::F6);
+        CODE_CONVERT_WK_KC(XK_F7, Keyboard::F7);
+        CODE_CONVERT_WK_KC(XK_F8, Keyboard::F8);
+        CODE_CONVERT_WK_KC(XK_F9, Keyboard::F9);
+        CODE_CONVERT_WK_KC(XK_F10, Keyboard::F10);
+        CODE_CONVERT_WK_KC(XK_F11, Keyboard::F11);
+        CODE_CONVERT_WK_KC(XK_F12, Keyboard::F12);
+        CODE_CONVERT_WK_KC(XK_F13, Keyboard::F13);
+        CODE_CONVERT_WK_KC(XK_F14, Keyboard::F14);
+        CODE_CONVERT_WK_KC(XK_F15, Keyboard::F15);
+        CODE_CONVERT_WK_KC(XK_F16, Keyboard::F16);
+        CODE_CONVERT_WK_KC(XK_F17, Keyboard::F17);
+        CODE_CONVERT_WK_KC(XK_F18, Keyboard::F18);
+        CODE_CONVERT_WK_KC(XK_F19, Keyboard::F19);
+        CODE_CONVERT_WK_KC(XK_F20, Keyboard::F20);
+        CODE_CONVERT_WK_KC(XK_F21, Keyboard::F21);
+        CODE_CONVERT_WK_KC(XK_F22, Keyboard::F22);
+        CODE_CONVERT_WK_KC(XK_F23, Keyboard::F23);
+        CODE_CONVERT_WK_KC(XK_F24, Keyboard::F24);
+        CODE_CONVERT_WK_KC(XK_F25, Keyboard::F25);
+        CODE_CONVERT_WK_KC(XK_F26, Keyboard::F26);
+        CODE_CONVERT_WK_KC(XK_F27, Keyboard::F27);
+        CODE_CONVERT_WK_KC(XK_F28, Keyboard::F28);
+        CODE_CONVERT_WK_KC(XK_F29, Keyboard::F29);
+        CODE_CONVERT_WK_KC(XK_F30, Keyboard::F30);
+        CODE_CONVERT_WK_KC(XK_F31, Keyboard::F31);
+        CODE_CONVERT_WK_KC(XK_F32, Keyboard::F32);
+        CODE_CONVERT_WK_KC(XK_F33, Keyboard::F33);
+        CODE_CONVERT_WK_KC(XK_F34, Keyboard::F34);
+        CODE_CONVERT_WK_KC(XK_F35, Keyboard::F35);
+        //Miscellaneous Keys
+        CODE_CONVERT_WK_KC(XK_BackSpace, Keyboard::Backspace);
+        CODE_CONVERT_WK_KC(XK_Delete, Keyboard::Delete);
+        //CODE_CONVERT_WK_KC(XK_LineFeed, Keyboard::Backspace);
+        CODE_CONVERT_WK_KC(XK_Clear, Keyboard::Clear);
+        CODE_CONVERT_WK_KC(XK_Return, Keyboard::Return);
+        CODE_CONVERT_WK_KC(XK_Pause, Keyboard::Pause);
+        CODE_CONVERT_WK_KC(XK_Scroll_Lock, Keyboard::ScrollLock);
+        CODE_CONVERT_WK_KC(XK_Sys_Req, Keyboard::SysReq);
+        CODE_CONVERT_WK_KC(XK_Escape, Keyboard::Escape);
+        CODE_CONVERT_WK_KC(XK_Select, Keyboard::Select);
+        CODE_CONVERT_WK_KC(XK_Print, Keyboard::Print);
+        CODE_CONVERT_WK_KC(XK_Execute, Keyboard::Execute);
+        CODE_CONVERT_WK_KC(XK_Insert, Keyboard::Insert);
+        CODE_CONVERT_WK_KC(XK_Undo, Keyboard::Undo);
+        CODE_CONVERT_WK_KC(XK_Redo, Keyboard::Redo);
+        CODE_CONVERT_WK_KC(XK_Menu, Keyboard::Menu);
+        CODE_CONVERT_WK_KC(XK_Find, Keyboard::Find);
+        CODE_CONVERT_WK_KC(XK_Cancel, Keyboard::Cancel);
+        CODE_CONVERT_WK_KC(XK_Help, Keyboard::Help);
+        CODE_CONVERT_WK_KC(XK_Break, Keyboard::Break);
+        CODE_CONVERT_WK_KC(XK_Mode_switch, Keyboard::ModeSwitch);
+        CODE_CONVERT_WK_KC(XK_script_switch, Keyboard::ScriptSwitch);
+        CODE_CONVERT_WK_KC(XK_Num_Lock, Keyboard::NumLock);
+        //Cursor  Controls
+        CODE_CONVERT_WK_KC(XK_Home, Keyboard::Home);
+        CODE_CONVERT_WK_KC(XK_Left, Keyboard::Left);
+        CODE_CONVERT_WK_KC(XK_Up, Keyboard::Up);
+        CODE_CONVERT_WK_KC(XK_Right, Keyboard::Right);
+        CODE_CONVERT_WK_KC(XK_Down, Keyboard::Down);
+        CODE_CONVERT_WK_KC(XK_Prior, Keyboard::PageUp);
+        CODE_CONVERT_WK_KC(XK_Page_Up, Keyboard::PageUp);
+        CODE_CONVERT_WK_KC(XK_Page_Down, Keyboard::PageDown);
+        CODE_CONVERT_WK_KC(XK_Next, Keyboard::PageDown);
+        CODE_CONVERT_WK_KC(XK_End, Keyboard::End);
+        //CODE_CONVERT_WK_KC(XK_Begin, Keyboard::Backspace);
+        // Keypad Functions and numbers
+        CODE_CONVERT_WK_KC(XK_KP_Space, Keyboard::Space);
+        CODE_CONVERT_WK_KC(XK_KP_Tab, Keyboard::Tab);
+        CODE_CONVERT_WK_KC(XK_KP_Enter, Keyboard::Enter);
+        CODE_CONVERT_WK_KC(XK_KP_F1, Keyboard::F1);
+        CODE_CONVERT_WK_KC(XK_KP_F2, Keyboard::F2);
+        CODE_CONVERT_WK_KC(XK_KP_F3, Keyboard::F3);
+        CODE_CONVERT_WK_KC(XK_KP_F4, Keyboard::F4);
+        CODE_CONVERT_WK_KC(XK_KP_Home, Keyboard::Home);
+        CODE_CONVERT_WK_KC(XK_KP_Left, Keyboard::Left);
+        CODE_CONVERT_WK_KC(XK_KP_Up, Keyboard::Up);
+        CODE_CONVERT_WK_KC(XK_KP_Right, Keyboard::Right);
+        CODE_CONVERT_WK_KC(XK_KP_Down, Keyboard::Down);
+        CODE_CONVERT_WK_KC(XK_KP_Prior, Keyboard::PageUp);
+        CODE_CONVERT_WK_KC(XK_KP_Page_Up, Keyboard::PageUp);
+        CODE_CONVERT_WK_KC(XK_KP_Next, Keyboard::PageDown);
+        CODE_CONVERT_WK_KC(XK_KP_Page_Down, Keyboard::PageDown);
+        CODE_CONVERT_WK_KC(XK_KP_End, Keyboard::End);
+        //CODE_CONVERT_WK_KC(XK_KP_Begin, Keyboard::Begin);
+        CODE_CONVERT_WK_KC(XK_KP_Insert, Keyboard::Insert);
+        CODE_CONVERT_WK_KC(XK_KP_Delete, Keyboard::Delete);
+        CODE_CONVERT_WK_KC(XK_KP_Equal, Keyboard::Equal);
+        CODE_CONVERT_WK_KC(XK_KP_Multiply, Keyboard::Asterisk);
+        CODE_CONVERT_WK_KC(XK_KP_Add, Keyboard::Plus);
+        CODE_CONVERT_WK_KC(XK_KP_Separator, Keyboard::Comma);  //X11 definitions say this is often comma
+        CODE_CONVERT_WK_KC(XK_KP_Subtract, Keyboard::Minus);
+        CODE_CONVERT_WK_KC(XK_KP_Decimal, Keyboard::Period);
+        CODE_CONVERT_WK_KC(XK_KP_Divide, Keyboard::Slash);
+        CODE_CONVERT_WK_KC(XK_KP_0, Keyboard::Keypad0);
+        CODE_CONVERT_WK_KC(XK_KP_1, Keyboard::Keypad1);
+        CODE_CONVERT_WK_KC(XK_KP_2, Keyboard::Keypad2);
+        CODE_CONVERT_WK_KC(XK_KP_3, Keyboard::Keypad3);
+        CODE_CONVERT_WK_KC(XK_KP_4, Keyboard::Keypad4);
+        CODE_CONVERT_WK_KC(XK_KP_5, Keyboard::Keypad5);
+        CODE_CONVERT_WK_KC(XK_KP_6, Keyboard::Keypad6);
+        CODE_CONVERT_WK_KC(XK_KP_7, Keyboard::Keypad7);
+        CODE_CONVERT_WK_KC(XK_KP_8, Keyboard::Keypad8);
+        CODE_CONVERT_WK_KC(XK_KP_9, Keyboard::Keypad9);
+        // Modifier Keys
+        CODE_CONVERT_WK_KC(XK_Shift_L, Keyboard::ShiftLeft);
+        CODE_CONVERT_WK_KC(XK_Shift_R, Keyboard::ShiftRight);
+        CODE_CONVERT_WK_KC(XK_Control_L, Keyboard::ControlLeft);
+        CODE_CONVERT_WK_KC(XK_Control_R, Keyboard::ControlRight);
+        CODE_CONVERT_WK_KC(XK_Caps_Lock, Keyboard::CapsLock);
+        CODE_CONVERT_WK_KC(XK_Shift_Lock, Keyboard::ShiftLock);
+        CODE_CONVERT_WK_KC(XK_Meta_L, Keyboard::MetaLeft);
+        CODE_CONVERT_WK_KC(XK_Meta_R, Keyboard::MetaRight);
+        CODE_CONVERT_WK_KC(XK_Alt_L, Keyboard::AltLeft);
+        CODE_CONVERT_WK_KC(XK_Alt_R, Keyboard::AltRight);
+        CODE_CONVERT_WK_KC(XK_Super_L, Keyboard::SuperLeft);
+        CODE_CONVERT_WK_KC(XK_Super_R, Keyboard::SuperRight);
+        CODE_CONVERT_WK_KC(XK_Hyper_L, Keyboard::HyperLeft);
+        CODE_CONVERT_WK_KC(XK_Hyper_R, Keyboard::HyperRight);
+        CODE_CONVERT_WK_KC(XK_space, Keyboard::Space);
+        CODE_CONVERT_WK_KC(XK_exclam, Keyboard::Exclam);
+        CODE_CONVERT_WK_KC(XK_quotedbl, Keyboard::QuoteDbl);
+        CODE_CONVERT_WK_KC(XK_numbersign, Keyboard::NumberSign);
+        CODE_CONVERT_WK_KC(XK_dollar, Keyboard::Dollar);
+        CODE_CONVERT_WK_KC(XK_percent, Keyboard::Percent);
+        CODE_CONVERT_WK_KC(XK_ampersand, Keyboard::Ampersand);
+        CODE_CONVERT_WK_KC(XK_apostrophe, Keyboard::Apostrophe);
+        CODE_CONVERT_WK_KC(XK_parenleft, Keyboard::ParenLeft);
+        CODE_CONVERT_WK_KC(XK_parenright, Keyboard::ParenRight);
+        CODE_CONVERT_WK_KC(XK_asterisk, Keyboard::Asterisk);
+        CODE_CONVERT_WK_KC(XK_plus, Keyboard::Plus);
+        CODE_CONVERT_WK_KC(XK_comma, Keyboard::Comma);
+        CODE_CONVERT_WK_KC(XK_minus, Keyboard::Minus);
+        CODE_CONVERT_WK_KC(XK_period, Keyboard::Period);
+        CODE_CONVERT_WK_KC(XK_slash, Keyboard::Slash);
+        CODE_CONVERT_WK_KC(XK_0, Keyboard::Numpad0);
+        CODE_CONVERT_WK_KC(XK_1, Keyboard::Numpad1);
+        CODE_CONVERT_WK_KC(XK_2, Keyboard::Numpad2);
+        CODE_CONVERT_WK_KC(XK_3, Keyboard::Numpad3);
+        CODE_CONVERT_WK_KC(XK_4, Keyboard::Numpad4);
+        CODE_CONVERT_WK_KC(XK_5, Keyboard::Numpad5);
+        CODE_CONVERT_WK_KC(XK_6, Keyboard::Numpad6);
+        CODE_CONVERT_WK_KC(XK_7, Keyboard::Numpad7);
+        CODE_CONVERT_WK_KC(XK_8, Keyboard::Numpad8);
+        CODE_CONVERT_WK_KC(XK_9, Keyboard::Numpad9);
+        CODE_CONVERT_WK_KC(XK_colon, Keyboard::Colon);
+        CODE_CONVERT_WK_KC(XK_semicolon, Keyboard::Semicolon);
+        CODE_CONVERT_WK_KC(XK_less, Keyboard::Less);
+        CODE_CONVERT_WK_KC(XK_equal, Keyboard::Equal);
+        CODE_CONVERT_WK_KC(XK_greater, Keyboard::Greater);
+        CODE_CONVERT_WK_KC(XK_question, Keyboard::Question);
+        CODE_CONVERT_WK_KC(XK_at, Keyboard::At);
+        CODE_CONVERT_WK_KC(XK_A, Keyboard::A);
+        CODE_CONVERT_WK_KC(XK_B, Keyboard::B);
+        CODE_CONVERT_WK_KC(XK_C, Keyboard::C);
+        CODE_CONVERT_WK_KC(XK_D, Keyboard::D);
+        CODE_CONVERT_WK_KC(XK_E, Keyboard::E);
+        CODE_CONVERT_WK_KC(XK_F, Keyboard::F);
+        CODE_CONVERT_WK_KC(XK_G, Keyboard::G);
+        CODE_CONVERT_WK_KC(XK_H, Keyboard::H);
+        CODE_CONVERT_WK_KC(XK_I, Keyboard::I);
+        CODE_CONVERT_WK_KC(XK_J, Keyboard::J);
+        CODE_CONVERT_WK_KC(XK_K, Keyboard::K);
+        CODE_CONVERT_WK_KC(XK_L, Keyboard::L);
+        CODE_CONVERT_WK_KC(XK_M, Keyboard::M);
+        CODE_CONVERT_WK_KC(XK_N, Keyboard::N);
+        CODE_CONVERT_WK_KC(XK_O, Keyboard::O);
+        CODE_CONVERT_WK_KC(XK_P, Keyboard::P);
+        CODE_CONVERT_WK_KC(XK_Q, Keyboard::Q);
+        CODE_CONVERT_WK_KC(XK_R, Keyboard::R);
+        CODE_CONVERT_WK_KC(XK_S, Keyboard::S);
+        CODE_CONVERT_WK_KC(XK_T, Keyboard::T);
+        CODE_CONVERT_WK_KC(XK_U, Keyboard::U);
+        CODE_CONVERT_WK_KC(XK_V, Keyboard::V);
+        CODE_CONVERT_WK_KC(XK_W, Keyboard::W);
+        CODE_CONVERT_WK_KC(XK_X, Keyboard::X);
+        CODE_CONVERT_WK_KC(XK_Y, Keyboard::Y);
+        CODE_CONVERT_WK_KC(XK_Z, Keyboard::Z);
+        CODE_CONVERT_WK_KC(XK_bracketleft, Keyboard::BracketLeft);
+        CODE_CONVERT_WK_KC(XK_backslash, Keyboard::Backslash);
+        CODE_CONVERT_WK_KC(XK_bracketright, Keyboard::BracketRight);
+        CODE_CONVERT_WK_KC(XK_asciicircum, Keyboard::AsciiCircum);
+        CODE_CONVERT_WK_KC(XK_underscore, Keyboard::Underscore);
+        CODE_CONVERT_WK_KC(XK_grave, Keyboard::Agrave);
+        CODE_CONVERT_WK_KC(XK_a, Keyboard::A);
+        CODE_CONVERT_WK_KC(XK_b, Keyboard::B);
+        CODE_CONVERT_WK_KC(XK_c, Keyboard::C);
+        CODE_CONVERT_WK_KC(XK_d, Keyboard::D);
+        CODE_CONVERT_WK_KC(XK_e, Keyboard::E);
+        CODE_CONVERT_WK_KC(XK_f, Keyboard::F);
+        CODE_CONVERT_WK_KC(XK_g, Keyboard::G);
+        CODE_CONVERT_WK_KC(XK_h, Keyboard::H);
+        CODE_CONVERT_WK_KC(XK_i, Keyboard::I);
+        CODE_CONVERT_WK_KC(XK_j, Keyboard::J);
+        CODE_CONVERT_WK_KC(XK_k, Keyboard::K);
+        CODE_CONVERT_WK_KC(XK_l, Keyboard::L);
+        CODE_CONVERT_WK_KC(XK_m, Keyboard::M);
+        CODE_CONVERT_WK_KC(XK_n, Keyboard::N);
+        CODE_CONVERT_WK_KC(XK_o, Keyboard::O);
+        CODE_CONVERT_WK_KC(XK_p, Keyboard::P);
+        CODE_CONVERT_WK_KC(XK_q, Keyboard::Q);
+        CODE_CONVERT_WK_KC(XK_r, Keyboard::R);
+        CODE_CONVERT_WK_KC(XK_s, Keyboard::S);
+        CODE_CONVERT_WK_KC(XK_t, Keyboard::T);
+        CODE_CONVERT_WK_KC(XK_u, Keyboard::U);
+        CODE_CONVERT_WK_KC(XK_v, Keyboard::V);
+        CODE_CONVERT_WK_KC(XK_w, Keyboard::W);
+        CODE_CONVERT_WK_KC(XK_x, Keyboard::X);
+        CODE_CONVERT_WK_KC(XK_y, Keyboard::Y);
+        CODE_CONVERT_WK_KC(XK_z, Keyboard::Z);
+        CODE_CONVERT_WK_KC(XK_braceleft, Keyboard::BraceLeft);
+        CODE_CONVERT_WK_KC(XK_bar, Keyboard::Bar);
+        CODE_CONVERT_WK_KC(XK_braceright, Keyboard::BraceRight);
+        CODE_CONVERT_WK_KC(XK_asciitilde, Keyboard::AsciiTilde);
+
+        CODE_CONVERT_WK_KC(XK_nobreakspace, Keyboard::Nobreakspace);
+        CODE_CONVERT_WK_KC(XK_exclamdown, Keyboard::Exclamdown);
+        CODE_CONVERT_WK_KC(XK_cent, Keyboard::Cent);
+        CODE_CONVERT_WK_KC(XK_sterling, Keyboard::Sterling);
+        CODE_CONVERT_WK_KC(XK_currency, Keyboard::Currency);
+        CODE_CONVERT_WK_KC(XK_yen, Keyboard::Yen);
+        CODE_CONVERT_WK_KC(XK_brokenbar, Keyboard::Brokenbar);
+        CODE_CONVERT_WK_KC(XK_section, Keyboard::Section);
+        CODE_CONVERT_WK_KC(XK_diaeresis, Keyboard::Diaeresis);
+        CODE_CONVERT_WK_KC(XK_copyright, Keyboard::Copyright);
+        CODE_CONVERT_WK_KC(XK_ordfeminine, Keyboard::Ordfeminine);
+        CODE_CONVERT_WK_KC(XK_guillemotleft, Keyboard::Guillemotleft);
+        CODE_CONVERT_WK_KC(XK_notsign, Keyboard::Notsign);
+        CODE_CONVERT_WK_KC(XK_hyphen, Keyboard::Hyphen);
+        CODE_CONVERT_WK_KC(XK_registered, Keyboard::Registered);
+        CODE_CONVERT_WK_KC(XK_macron, Keyboard::Macron);
+        CODE_CONVERT_WK_KC(XK_degree, Keyboard::Degree);
+        CODE_CONVERT_WK_KC(XK_plusminus, Keyboard::Plusminus);
+        CODE_CONVERT_WK_KC(XK_twosuperior, Keyboard::Twosuperior);
+        CODE_CONVERT_WK_KC(XK_threesuperior, Keyboard::Threesuperior);
+        CODE_CONVERT_WK_KC(XK_acute, Keyboard::Acute);
+        CODE_CONVERT_WK_KC(XK_mu, Keyboard::Mu);
+        CODE_CONVERT_WK_KC(XK_paragraph, Keyboard::Paragraph);
+        CODE_CONVERT_WK_KC(XK_periodcentered, Keyboard::Periodcentered);
+        CODE_CONVERT_WK_KC(XK_cedilla, Keyboard::Cedilla);
+        CODE_CONVERT_WK_KC(XK_onesuperior, Keyboard::Onesuperior);
+        CODE_CONVERT_WK_KC(XK_masculine, Keyboard::Masculine);
+        CODE_CONVERT_WK_KC(XK_guillemotright, Keyboard::Guillemotright);
+        CODE_CONVERT_WK_KC(XK_onequarter, Keyboard::Onequarter);
+        CODE_CONVERT_WK_KC(XK_onehalf, Keyboard::Onehalf);
+        CODE_CONVERT_WK_KC(XK_threequarters, Keyboard::Threequarters);
+        CODE_CONVERT_WK_KC(XK_questiondown, Keyboard::Questiondown);
+        CODE_CONVERT_WK_KC(XK_Agrave, Keyboard::Agrave);
+        CODE_CONVERT_WK_KC(XK_Aacute, Keyboard::Aacute);
+        CODE_CONVERT_WK_KC(XK_Acircumflex, Keyboard::Acircumflex);
+        CODE_CONVERT_WK_KC(XK_Atilde, Keyboard::Atilde);
+        CODE_CONVERT_WK_KC(XK_Adiaeresis, Keyboard::Adiaeresis);
+        CODE_CONVERT_WK_KC(XK_Aring, Keyboard::Aring);
+        CODE_CONVERT_WK_KC(XK_AE, Keyboard::AE);
+        CODE_CONVERT_WK_KC(XK_Ccedilla, Keyboard::Ccedilla);
+        CODE_CONVERT_WK_KC(XK_Egrave, Keyboard::Egrave);
+        CODE_CONVERT_WK_KC(XK_Eacute, Keyboard::Eacute);
+        CODE_CONVERT_WK_KC(XK_Ecircumflex, Keyboard::Ecircumflex);
+        CODE_CONVERT_WK_KC(XK_Ediaeresis, Keyboard::Ediaeresis);
+        CODE_CONVERT_WK_KC(XK_Igrave, Keyboard::Igrave);
+        CODE_CONVERT_WK_KC(XK_Iacute, Keyboard::Iacute);
+        CODE_CONVERT_WK_KC(XK_Icircumflex, Keyboard::Icircumflex);
+        CODE_CONVERT_WK_KC(XK_Idiaeresis, Keyboard::Idiaeresis);
+        CODE_CONVERT_WK_KC(XK_ETH, Keyboard::ETH);
+        CODE_CONVERT_WK_KC(XK_Eth, Keyboard::Eth);
+        CODE_CONVERT_WK_KC(XK_Ntilde, Keyboard::Ntilde);
+        CODE_CONVERT_WK_KC(XK_Ograve, Keyboard::Ograve);
+        CODE_CONVERT_WK_KC(XK_Oacute, Keyboard::Oacute);
+        CODE_CONVERT_WK_KC(XK_Ocircumflex, Keyboard::Ocircumflex);
+        CODE_CONVERT_WK_KC(XK_Otilde, Keyboard::Otilde);
+        CODE_CONVERT_WK_KC(XK_Odiaeresis, Keyboard::Odiaeresis);
+        CODE_CONVERT_WK_KC(XK_multiply, Keyboard::Multiply);
+        CODE_CONVERT_WK_KC(XK_Oslash, Keyboard::AsciiTilde);
+        CODE_CONVERT_WK_KC(XK_Ooblique, Keyboard::Ooblique);
+        CODE_CONVERT_WK_KC(XK_Ugrave, Keyboard::Ugrave);
+        CODE_CONVERT_WK_KC(XK_Uacute, Keyboard::Uacute);
+        CODE_CONVERT_WK_KC(XK_Ucircumflex, Keyboard::Ucircumflex);
+        CODE_CONVERT_WK_KC(XK_Udiaeresis, Keyboard::Udiaeresis);
+        CODE_CONVERT_WK_KC(XK_Yacute, Keyboard::Yacute);
+        CODE_CONVERT_WK_KC(XK_THORN, Keyboard::THORN);
+        CODE_CONVERT_WK_KC(XK_Thorn, Keyboard::AsciiTilde);
+        CODE_CONVERT_WK_KC(XK_ssharp, Keyboard::Ssharp);
+
+        return Keyboard::NotDefine;
+	}
+
+    uint64 WindowEventCode::ScancodeToWinkey(Keyboard::Code code)
+    {
+        #define CODE_CONVERT_SC_WK(code_id, value) if (code == Keyboard::code_id) return value;
+
+        //CODE_CONVERT_SC_WK()
+
+        return 0;
+    }
+
+    Keyboard::Code WindowEventCode::WinkeyToScancode(uint64 winkeycode)
+{
+    #define CODE_CONVERT_WK_SC(code_id, value) if (winkeycode == value) return Keyboard::code_id
+
+    // Misc keys
+    CODE_CONVERT_WK_SC(Escape, 9);
+    CODE_CONVERT_WK_SC(Tab, 23);
+    CODE_CONVERT_WK_SC(Backtab, 22);
+    CODE_CONVERT_WK_SC(Backspace, 8);
+    CODE_CONVERT_WK_SC(Return, 36);
+    CODE_CONVERT_WK_SC(Enter, 36);
+    CODE_CONVERT_WK_SC(Insert, 118);
+    CODE_CONVERT_WK_SC(Delete, 119);
+    CODE_CONVERT_WK_SC(Pause, 127);
+    CODE_CONVERT_WK_SC(Print, 107);
+    CODE_CONVERT_WK_SC(SysReq, 107);
+    CODE_CONVERT_WK_SC(Clear, 12);
+
+    // Cursor movement
+    CODE_CONVERT_WK_SC(Home, 110);
+    CODE_CONVERT_WK_SC(End, 115);
+    CODE_CONVERT_WK_SC(Left, 113);
+    CODE_CONVERT_WK_SC(Up, 111);
+    CODE_CONVERT_WK_SC(Right, 114);
+    CODE_CONVERT_WK_SC(Down, 116);
+    CODE_CONVERT_WK_SC(PageUp, 112);
+    CODE_CONVERT_WK_SC(PageDown, 117);
+
+    // Modifiers
+    CODE_CONVERT_WK_SC(ShiftLock, 122);
+    CODE_CONVERT_WK_SC(Shift, 50);
+    CODE_CONVERT_WK_SC(ShiftLeft, 50);
+    CODE_CONVERT_WK_SC(ShiftRight, 62);
+    CODE_CONVERT_WK_SC(Control, 37);
+    CODE_CONVERT_WK_SC(ControlLeft, 37);
+    CODE_CONVERT_WK_SC(ControlRight, 105);
+    CODE_CONVERT_WK_SC(Meta, 133);
+    CODE_CONVERT_WK_SC(MetaLeft, 133);
+    CODE_CONVERT_WK_SC(MetaRight, 134);
+    CODE_CONVERT_WK_SC(Alt, 64);
+    CODE_CONVERT_WK_SC(AltLeft, 64);
+    CODE_CONVERT_WK_SC(AltRight, 108);
+    CODE_CONVERT_WK_SC(CapsLock, 66);
+    CODE_CONVERT_WK_SC(NumLock, 77);
+    CODE_CONVERT_WK_SC(ScrollLock, 78);
+
+    // Function keys
+    CODE_CONVERT_WK_SC(F1, 67);
+    CODE_CONVERT_WK_SC(F2, 68);
+    CODE_CONVERT_WK_SC(F3, 69);
+    CODE_CONVERT_WK_SC(F4, 70);
+    CODE_CONVERT_WK_SC(F5, 71);
+    CODE_CONVERT_WK_SC(F6, 72);
+    CODE_CONVERT_WK_SC(F7, 73);
+    CODE_CONVERT_WK_SC(F8, 74);
+    CODE_CONVERT_WK_SC(F9, 75);
+    CODE_CONVERT_WK_SC(F10, 76);
+    CODE_CONVERT_WK_SC(F11, 95);
+    CODE_CONVERT_WK_SC(F12, 96);
+    CODE_CONVERT_WK_SC(F13, 120);
+    CODE_CONVERT_WK_SC(F14, 121);
+    CODE_CONVERT_WK_SC(F15, 122);
+    CODE_CONVERT_WK_SC(F16, 123);
+    CODE_CONVERT_WK_SC(F17, 124);
+    CODE_CONVERT_WK_SC(F18, 125);
+    CODE_CONVERT_WK_SC(F19, 126);
+    CODE_CONVERT_WK_SC(F20, 127);
+    CODE_CONVERT_WK_SC(F21, 128);
+    CODE_CONVERT_WK_SC(F22, 129);
+    CODE_CONVERT_WK_SC(F23, 130);
+    CODE_CONVERT_WK_SC(F24, 131);
+    CODE_CONVERT_WK_SC(F25, 132);
+    CODE_CONVERT_WK_SC(F26, 133);
+    CODE_CONVERT_WK_SC(F27, 134);
+    CODE_CONVERT_WK_SC(F28, 135);
+    CODE_CONVERT_WK_SC(F29, 136);
+    CODE_CONVERT_WK_SC(F30, 137);
+    CODE_CONVERT_WK_SC(F31, 138);
+    CODE_CONVERT_WK_SC(F32, 139);
+    CODE_CONVERT_WK_SC(F33, 140);
+    CODE_CONVERT_WK_SC(F34, 141);
+    CODE_CONVERT_WK_SC(F35, 142);
+
+    // Other keys
+    CODE_CONVERT_WK_SC(SuperLeft, 133);
+    CODE_CONVERT_WK_SC(SuperRight, 134);
+    CODE_CONVERT_WK_SC(Undo, 119);
+    CODE_CONVERT_WK_SC(Redo, 121);
+    CODE_CONVERT_WK_SC(Menu, 135);
+    CODE_CONVERT_WK_SC(Find, 136);
+    CODE_CONVERT_WK_SC(HyperLeft, 120);
+    CODE_CONVERT_WK_SC(HyperRight, 122);
+    CODE_CONVERT_WK_SC(Help, 138);
+    CODE_CONVERT_WK_SC(DirectionLeft, 113);
+    CODE_CONVERT_WK_SC(DirectionRight, 114);
+    CODE_CONVERT_WK_SC(Space, 65);
+    CODE_CONVERT_WK_SC(Any, 65);
+    CODE_CONVERT_WK_SC(Exclam, 10);
+    CODE_CONVERT_WK_SC(QuoteDbl, 11);
+    CODE_CONVERT_WK_SC(NumberSign, 12);
+    CODE_CONVERT_WK_SC(Dollar, 13);
+    CODE_CONVERT_WK_SC(Percent, 14);
+    CODE_CONVERT_WK_SC(Ampersand, 15);
+    CODE_CONVERT_WK_SC(Apostrophe, 16);
+    CODE_CONVERT_WK_SC(ParenLeft, 17);
+    CODE_CONVERT_WK_SC(ParenRight, 18);
+    CODE_CONVERT_WK_SC(Asterisk, 19);
+    CODE_CONVERT_WK_SC(Plus, 20);
+    CODE_CONVERT_WK_SC(Comma, 51);
+    CODE_CONVERT_WK_SC(Minus, 35);
+    CODE_CONVERT_WK_SC(Period, 52);
+    CODE_CONVERT_WK_SC(Decimal, 52);
+    CODE_CONVERT_WK_SC(Slash, 53);
+    CODE_CONVERT_WK_SC(Divide, 53);
+
+    // Add more conversions here for other keys...
+    // Misc keys (suite)
+    CODE_CONVERT_WK_SC(Nobreakspace, 65);
+    CODE_CONVERT_WK_SC(Exclamdown, 10);
+    CODE_CONVERT_WK_SC(Cent, 11);
+    CODE_CONVERT_WK_SC(Sterling, 12);
+    CODE_CONVERT_WK_SC(Currency, 13);
+    CODE_CONVERT_WK_SC(Yen, 14);
+    CODE_CONVERT_WK_SC(Brokenbar, 15);
+    CODE_CONVERT_WK_SC(Section, 16);
+    CODE_CONVERT_WK_SC(Diaeresis, 17);
+    CODE_CONVERT_WK_SC(Copyright, 18);
+    CODE_CONVERT_WK_SC(Ordfeminine, 19);
+    CODE_CONVERT_WK_SC(Guillemotleft, 20);
+    CODE_CONVERT_WK_SC(Notsign, 21);
+    CODE_CONVERT_WK_SC(Hyphen, 35);
+    CODE_CONVERT_WK_SC(Registered, 36);
+    CODE_CONVERT_WK_SC(Macron, 54);
+    CODE_CONVERT_WK_SC(Degree, 55);
+    CODE_CONVERT_WK_SC(Plusminus, 56);
+    CODE_CONVERT_WK_SC(Twosuperior, 57);
+    CODE_CONVERT_WK_SC(Threesuperior, 58);
+    CODE_CONVERT_WK_SC(Acute, 59);
+    CODE_CONVERT_WK_SC(Mu, 60);
+    CODE_CONVERT_WK_SC(Paragraph, 61);
+    CODE_CONVERT_WK_SC(Periodcentered, 62);
+    CODE_CONVERT_WK_SC(Cedilla, 63);
+    CODE_CONVERT_WK_SC(Onesuperior, 64);
+    CODE_CONVERT_WK_SC(Masculine, 65);
+    CODE_CONVERT_WK_SC(Guillemotright, 66);
+    CODE_CONVERT_WK_SC(Onequarter, 67);
+    CODE_CONVERT_WK_SC(Onehalf, 68);
+    CODE_CONVERT_WK_SC(Threequarters, 69);
+    CODE_CONVERT_WK_SC(Questiondown, 70);
+    CODE_CONVERT_WK_SC(Agrave, 96);
+    CODE_CONVERT_WK_SC(Aacute, 97);
+    CODE_CONVERT_WK_SC(Acircumflex, 98);
+    CODE_CONVERT_WK_SC(Atilde, 99);
+    CODE_CONVERT_WK_SC(Adiaeresis, 100);
+    CODE_CONVERT_WK_SC(Aring, 101);
+    CODE_CONVERT_WK_SC(AE, 102);
+    CODE_CONVERT_WK_SC(Ccedilla, 103);
+    CODE_CONVERT_WK_SC(Egrave, 104);
+    CODE_CONVERT_WK_SC(Eacute, 105);
+    CODE_CONVERT_WK_SC(Ecircumflex, 106);
+    CODE_CONVERT_WK_SC(Ediaeresis, 107);
+    CODE_CONVERT_WK_SC(Igrave, 108);
+    CODE_CONVERT_WK_SC(Iacute, 109);
+    CODE_CONVERT_WK_SC(Icircumflex, 110);
+    CODE_CONVERT_WK_SC(Idiaeresis, 111);
+    CODE_CONVERT_WK_SC(ETH, 112);
+    CODE_CONVERT_WK_SC(Ntilde, 113);
+    CODE_CONVERT_WK_SC(Ograve, 114);
+    CODE_CONVERT_WK_SC(Oacute, 115);
+    CODE_CONVERT_WK_SC(Ocircumflex, 116);
+    CODE_CONVERT_WK_SC(Otilde, 117);
+    CODE_CONVERT_WK_SC(Odiaeresis, 118);
+    CODE_CONVERT_WK_SC(Multiply, 85);
+    CODE_CONVERT_WK_SC(Ooblique, 51);
+    CODE_CONVERT_WK_SC(Ugrave, 120);
+    CODE_CONVERT_WK_SC(Uacute, 121);
+    CODE_CONVERT_WK_SC(Ucircumflex, 122);
+    CODE_CONVERT_WK_SC(Udiaeresis, 123);
+    CODE_CONVERT_WK_SC(Yacute, 124);
+    CODE_CONVERT_WK_SC(THORN, 125);
+    CODE_CONVERT_WK_SC(Ssharp, 126);
+    CODE_CONVERT_WK_SC(Division, 84);
+    CODE_CONVERT_WK_SC(Ydiaeresis, 128);
+
+    // Autres touches (suite)
+    CODE_CONVERT_WK_SC(AltGr, 108);
+    CODE_CONVERT_WK_SC(MultiKey, 122);
+    CODE_CONVERT_WK_SC(Codeinput, 128);
+    CODE_CONVERT_WK_SC(SingleCandidate, 129);
+    CODE_CONVERT_WK_SC(MultipleCandidate, 130);
+    CODE_CONVERT_WK_SC(PreviousCandidate, 131);
+    CODE_CONVERT_WK_SC(ModeSwitch, 203);
+    CODE_CONVERT_WK_SC(ScriptSwitch, 204);
+    CODE_CONVERT_WK_SC(Kanji, 213);
+    CODE_CONVERT_WK_SC(Muhenkan, 214);
+    CODE_CONVERT_WK_SC(HenkanMode, 215);
+    CODE_CONVERT_WK_SC(Henkan, 216);
+    CODE_CONVERT_WK_SC(Romaji, 217);
+    CODE_CONVERT_WK_SC(Hiragana, 218);
+    CODE_CONVERT_WK_SC(Katakana, 219);
+    CODE_CONVERT_WK_SC(HiraganaKatakana, 220);
+    CODE_CONVERT_WK_SC(Zenkaku, 221);
+    CODE_CONVERT_WK_SC(Hankaku, 222);
+    CODE_CONVERT_WK_SC(ZenkakuHankaku, 223);
+    CODE_CONVERT_WK_SC(Touroku, 224);
+    CODE_CONVERT_WK_SC(Massyo, 225);
+    CODE_CONVERT_WK_SC(KanaLock, 226);
+    CODE_CONVERT_WK_SC(KanaShift, 227);
+    CODE_CONVERT_WK_SC(EisuShift, 228);
+    CODE_CONVERT_WK_SC(EisuToggle, 229);
+    CODE_CONVERT_WK_SC(KanjiBangou, 230);
+    CODE_CONVERT_WK_SC(ZenKoho, 231);
+    CODE_CONVERT_WK_SC(MaeKoho, 232);
+    CODE_CONVERT_WK_SC(Hangul, 240);
+    CODE_CONVERT_WK_SC(HangulStart, 241);
+    CODE_CONVERT_WK_SC(HangulEnd, 242);
+    CODE_CONVERT_WK_SC(HangulHanja, 243);
+    CODE_CONVERT_WK_SC(HangulJamo, 244);
+    CODE_CONVERT_WK_SC(HangulRomaja, 245);
+    CODE_CONVERT_WK_SC(HangulCodeinput, 246);
+    CODE_CONVERT_WK_SC(HangulJeonja, 247);
+    CODE_CONVERT_WK_SC(HangulBanja, 248);
+    CODE_CONVERT_WK_SC(HangulPreHanja, 249);
+    CODE_CONVERT_WK_SC(HangulPostHanja, 250);
+    CODE_CONVERT_WK_SC(HangulSingleCandidate, 251);
+    CODE_CONVERT_WK_SC(HangulMultipleCandidate, 252);
+    CODE_CONVERT_WK_SC(HangulPreviousCandidate, 253);
+    CODE_CONVERT_WK_SC(HangulSpecial, 254);
+    CODE_CONVERT_WK_SC(Hangulswitch, 255);
+    
+    // Dead keys
+    CODE_CONVERT_WK_SC(DeadGrave, 68);
+    CODE_CONVERT_WK_SC(DeadAcute, 70);
+    CODE_CONVERT_WK_SC(DeadCircumflex, 72);
+    CODE_CONVERT_WK_SC(DeadTilde, 74);
+    CODE_CONVERT_WK_SC(DeadMacron, 76);
+    CODE_CONVERT_WK_SC(DeadBreve, 78);
+    CODE_CONVERT_WK_SC(DeadAbovedot, 80);
+    CODE_CONVERT_WK_SC(DeadDiaeresis, 82);
+    CODE_CONVERT_WK_SC(DeadAbovering, 84);
+    CODE_CONVERT_WK_SC(DeadDoubleacute, 86);
+    CODE_CONVERT_WK_SC(DeadCaron, 88);
+    CODE_CONVERT_WK_SC(DeadCedilla, 90);
+    CODE_CONVERT_WK_SC(DeadOgonek, 92);
+    CODE_CONVERT_WK_SC(DeadIota, 94);
+    CODE_CONVERT_WK_SC(DeadVoicedSound, 96);
+    CODE_CONVERT_WK_SC(DeadSemivoicedSound, 98);
+    CODE_CONVERT_WK_SC(DeadBelowdot, 100);
+    CODE_CONVERT_WK_SC(DeadHook, 102);
+    CODE_CONVERT_WK_SC(DeadHorn, 104);
+
+    // Touches multimédia
+    CODE_CONVERT_WK_SC(Back, 166);
+    CODE_CONVERT_WK_SC(Forward, 167);
+    CODE_CONVERT_WK_SC(Stop, 168);
+    CODE_CONVERT_WK_SC(Refresh, 169);
+    CODE_CONVERT_WK_SC(VolumeDown, 174);
+    CODE_CONVERT_WK_SC(VolumeMute, 173);
+    CODE_CONVERT_WK_SC(VolumeUp, 176);
+    CODE_CONVERT_WK_SC(BassBoost, 190);
+    CODE_CONVERT_WK_SC(BassUp, 188);
+    CODE_CONVERT_WK_SC(BassDown, 189);
+    CODE_CONVERT_WK_SC(TrebleUp, 191);
+    CODE_CONVERT_WK_SC(TrebleDown, 192);
+    CODE_CONVERT_WK_SC(MediaPlay, 207);
+    CODE_CONVERT_WK_SC(MediaStop, 208);
+    CODE_CONVERT_WK_SC(MediaPrevious, 209);
+    CODE_CONVERT_WK_SC(MediaNext, 210);
+    CODE_CONVERT_WK_SC(MediaRecord, 211);
+    CODE_CONVERT_WK_SC(MediaPause, 212);
+    CODE_CONVERT_WK_SC(MediaTogglePlayPause, 176);
+    CODE_CONVERT_WK_SC(HomePage, 172);
+    CODE_CONVERT_WK_SC(Favorites, 166);
+    CODE_CONVERT_WK_SC(Search, 65);
+    CODE_CONVERT_WK_SC(Standby, 223);
+    CODE_CONVERT_WK_SC(OpenUrl, 65);
+    
+    // Touches d'accès rapide
+    CODE_CONVERT_WK_SC(LaunchMail, 171);
+    CODE_CONVERT_WK_SC(LaunchMedia, 172);
+    CODE_CONVERT_WK_SC(Launch0, 164);
+    CODE_CONVERT_WK_SC(Launch1, 165);
+    CODE_CONVERT_WK_SC(Launch2, 166);
+    CODE_CONVERT_WK_SC(Launch3, 167);
+    CODE_CONVERT_WK_SC(Launch4, 168);
+    CODE_CONVERT_WK_SC(Launch5, 169);
+    CODE_CONVERT_WK_SC(Launch6, 170);
+    CODE_CONVERT_WK_SC(Launch7, 171);
+    CODE_CONVERT_WK_SC(Launch8, 172);
+    CODE_CONVERT_WK_SC(Launch9, 173);
+    CODE_CONVERT_WK_SC(LaunchA, 164);
+    CODE_CONVERT_WK_SC(LaunchB, 165);
+    CODE_CONVERT_WK_SC(LaunchC, 166);
+    CODE_CONVERT_WK_SC(LaunchD, 167);
+    CODE_CONVERT_WK_SC(LaunchE, 168);
+    CODE_CONVERT_WK_SC(LaunchF, 169);
+
+    // Touches de contrôle de l'écran
+    CODE_CONVERT_WK_SC(MonBrightnessUp, 233);
+    CODE_CONVERT_WK_SC(MonBrightnessDown, 234);
+    CODE_CONVERT_WK_SC(KeyboardLightOnOff, 248);
+    CODE_CONVERT_WK_SC(KeyboardBrightnessUp, 238);
+    CODE_CONVERT_WK_SC(KeyboardBrightnessDown, 239);
+    CODE_CONVERT_WK_SC(PowerOff, 222);
+    CODE_CONVERT_WK_SC(WakeUp, 143);
+    CODE_CONVERT_WK_SC(Eject, 162);
+    CODE_CONVERT_WK_SC(ScreenSaver, 248);
+
+    // Touches Internet
+    CODE_CONVERT_WK_SC(WWW, 150);
+    CODE_CONVERT_WK_SC(Memo, 149);
+    CODE_CONVERT_WK_SC(LightBulb, 235);
+    CODE_CONVERT_WK_SC(Shop, 152);
+    CODE_CONVERT_WK_SC(History, 151);
+    CODE_CONVERT_WK_SC(AddFavorite, 154);
+    CODE_CONVERT_WK_SC(HotLinks, 153);
+    CODE_CONVERT_WK_SC(BrightnessAdjust, 235);
+    CODE_CONVERT_WK_SC(Finance, 158);
+    CODE_CONVERT_WK_SC(Community, 157);
+    CODE_CONVERT_WK_SC(AudioRewind, 175);
+    CODE_CONVERT_WK_SC(BackForward, 168);
+    CODE_CONVERT_WK_SC(ApplicationLeft, 166);
+    CODE_CONVERT_WK_SC(ApplicationRight, 167);
+
+    // Touches Office
+    CODE_CONVERT_WK_SC(Book, 184);
+    CODE_CONVERT_WK_SC(CD, 200);
+    CODE_CONVERT_WK_SC(Calculator, 215);
+    CODE_CONVERT_WK_SC(ToDoList, 184);
+    CODE_CONVERT_WK_SC(ClearGrab, 160);
+    CODE_CONVERT_WK_SC(Close, 159);
+    CODE_CONVERT_WK_SC(Copy, 220);
+    CODE_CONVERT_WK_SC(Cut, 218);
+    CODE_CONVERT_WK_SC(Display, 240);
+    CODE_CONVERT_WK_SC(DOS, 228);
+    CODE_CONVERT_WK_SC(Documents, 226);
+    CODE_CONVERT_WK_SC(Excel, 216);
+    CODE_CONVERT_WK_SC(Explorer, 227);
+    CODE_CONVERT_WK_SC(Game, 236);
+    CODE_CONVERT_WK_SC(Go, 237);
+    CODE_CONVERT_WK_SC(iTouch, 238);
+    CODE_CONVERT_WK_SC(LogOff, 145);
+    CODE_CONVERT_WK_SC(Market, 238);
+    CODE_CONVERT_WK_SC(Meeting, 247);
+    CODE_CONVERT_WK_SC(MenuKB, 236);
+    CODE_CONVERT_WK_SC(MenuPB, 237);
+    CODE_CONVERT_WK_SC(MySites, 238);
+    CODE_CONVERT_WK_SC(News, 239);
+    CODE_CONVERT_WK_SC(OfficeHome, 240);
+    CODE_CONVERT_WK_SC(Option, 241);
+    CODE_CONVERT_WK_SC(Paste, 221);
+    CODE_CONVERT_WK_SC(Phone, 142);
+    CODE_CONVERT_WK_SC(Calendar, 243);
+    CODE_CONVERT_WK_SC(Reply, 145);
+    CODE_CONVERT_WK_SC(Reload, 152);
+    CODE_CONVERT_WK_SC(RotateWindows, 125);
+    CODE_CONVERT_WK_SC(RotationPB, 126);
+    CODE_CONVERT_WK_SC(RotationKB, 127);
+    CODE_CONVERT_WK_SC(Save, 228);
+    CODE_CONVERT_WK_SC(Send, 141);
+    CODE_CONVERT_WK_SC(Spell, 154);
+    CODE_CONVERT_WK_SC(SplitScreen, 125);
+    CODE_CONVERT_WK_SC(Support, 154);
+    CODE_CONVERT_WK_SC(TaskPane, 122);
+    CODE_CONVERT_WK_SC(Terminal, 123);
+    CODE_CONVERT_WK_SC(Tools, 124);
+    CODE_CONVERT_WK_SC(Travel, 239);
+    CODE_CONVERT_WK_SC(Video, 238);
+    CODE_CONVERT_WK_SC(Word, 229);
+    CODE_CONVERT_WK_SC(Xfer, 234);
+    CODE_CONVERT_WK_SC(ZoomIn, 235);
+    CODE_CONVERT_WK_SC(ZoomOut, 236);
+
+    // Touches multimédia (suite)
+    CODE_CONVERT_WK_SC(Away, 244);
+    CODE_CONVERT_WK_SC(Messenger, 245);
+    CODE_CONVERT_WK_SC(WebCam, 148);
+    CODE_CONVERT_WK_SC(MailForward, 146);
+    CODE_CONVERT_WK_SC(Pictures, 147);
+    CODE_CONVERT_WK_SC(Music, 148);
+    CODE_CONVERT_WK_SC(Battery, 244);
+    CODE_CONVERT_WK_SC(Bluetooth, 245);
+    CODE_CONVERT_WK_SC(WLAN, 246);
+    CODE_CONVERT_WK_SC(UWB, 247);
+    CODE_CONVERT_WK_SC(AudioForward, 207);
+    CODE_CONVERT_WK_SC(AudioRepeat, 208);
+    CODE_CONVERT_WK_SC(AudioRandomPlay, 209);
+    CODE_CONVERT_WK_SC(Subtitle, 212);
+    CODE_CONVERT_WK_SC(AudioCycleTrack, 232);
+    CODE_CONVERT_WK_SC(Time, 240);
+    CODE_CONVERT_WK_SC(Hibernate, 222);
+    CODE_CONVERT_WK_SC(View, 221);
+    CODE_CONVERT_WK_SC(TopMenu, 178);
+    CODE_CONVERT_WK_SC(PowerDown, 222);
+    CODE_CONVERT_WK_SC(Suspend, 223);
+    CODE_CONVERT_WK_SC(ContrastAdjust, 235);
+    
+    // Touches de lancement (suite)
+    CODE_CONVERT_WK_SC(LaunchG, 164);
+    CODE_CONVERT_WK_SC(LaunchH, 173);
+
+    // Touches du touchpad
+    CODE_CONVERT_WK_SC(TouchpadToggle, 199);
+    CODE_CONVERT_WK_SC(TouchpadOn, 200);
+    CODE_CONVERT_WK_SC(TouchpadOff, 201);
+
+    // Touches du microphone
+    CODE_CONVERT_WK_SC(MicMute, 198);
+
+    // Touches de couleur
+    CODE_CONVERT_WK_SC(Red, 167);
+    CODE_CONVERT_WK_SC(Green, 168);
+    CODE_CONVERT_WK_SC(Yellow, 169);
+    CODE_CONVERT_WK_SC(Blue, 170);
+
+    // Touches des canaux
+    CODE_CONVERT_WK_SC(ChannelUp, 201);
+    CODE_CONVERT_WK_SC(ChannelDown, 202);
+
+    // Dernière touche
+    CODE_CONVERT_WK_SC(MediaLast, 252);
+
+    // Touches génériques
+    CODE_CONVERT_WK_SC(Select, 191);
+    CODE_CONVERT_WK_SC(Yes, 152);
+    CODE_CONVERT_WK_SC(No, 153);
+    CODE_CONVERT_WK_SC(Cancel, 156);
+    CODE_CONVERT_WK_SC(Printer, 232);
+    CODE_CONVERT_WK_SC(Execute, 170);
+    CODE_CONVERT_WK_SC(Sleep, 150);
+    CODE_CONVERT_WK_SC(Play, 207);
+    CODE_CONVERT_WK_SC(Zoom, 235);
+    CODE_CONVERT_WK_SC(Jisho, 246);
+    CODE_CONVERT_WK_SC(Oyayubi_Left, 138);
+    CODE_CONVERT_WK_SC(Oyayubi_Right, 139);
+
+    // Touches de contexte
+    CODE_CONVERT_WK_SC(Context1, 172);
+    CODE_CONVERT_WK_SC(Context2, 173);
+    CODE_CONVERT_WK_SC(Context3, 174);
+    CODE_CONVERT_WK_SC(Context4, 175);
+    CODE_CONVERT_WK_SC(Call, 76);
+    CODE_CONVERT_WK_SC(Hangup, 77);
+    CODE_CONVERT_WK_SC(Flip, 78);
+    CODE_CONVERT_WK_SC(ToggleCallHangup, 79);
+    CODE_CONVERT_WK_SC(VoiceDial, 80);
+    CODE_CONVERT_WK_SC(LastNumberRedial, 81);
+
+    // Touches de conversion
+    CODE_CONVERT_WK_SC(Kana, 112);
+    CODE_CONVERT_WK_SC(One, 111);
+    CODE_CONVERT_WK_SC(Junja, 113);
+    CODE_CONVERT_WK_SC(Final, 114);
+    CODE_CONVERT_WK_SC(Hanja, 115);
+    CODE_CONVERT_WK_SC(Off, 118);
+
+    // Touches de conversion (suite)
+    CODE_CONVERT_WK_SC(Convert, 121);
+    CODE_CONVERT_WK_SC(NonConvert, 123);
+    CODE_CONVERT_WK_SC(Accept, 126);
+    CODE_CONVERT_WK_SC(ModeChange, 127);
+    CODE_CONVERT_WK_SC(PrintScreen, 99);
+    CODE_CONVERT_WK_SC(Apps, 118);
+    CODE_CONVERT_WK_SC(Separator, 132);
+    CODE_CONVERT_WK_SC(Attn, 120);
+    CODE_CONVERT_WK_SC(CrSel, 121);
+    CODE_CONVERT_WK_SC(ExSel, 122);
+    CODE_CONVERT_WK_SC(EraseEOF, 99);
+    CODE_CONVERT_WK_SC(NoName, 124);
+    CODE_CONVERT_WK_SC(Pa1, 125);
+    CODE_CONVERT_WK_SC(Quotation, 126);
+    CODE_CONVERT_WK_SC(Backtick, 129);
+
+    // Touches de la caméra
+    CODE_CONVERT_WK_SC(Camera, 208);
+    CODE_CONVERT_WK_SC(CameraFocus, 209);
+
+    return Keyboard::NotDefine;
+}
+
+    ModifierState WindowEventCode::ModifierStateToWinkey()
+    {
+        /*bool ctrl = GetKeyState(VK_CONTROL) & 0x8000;
+        bool alt = GetKeyState(VK_MENU) & 0x8000;
+        bool shift = (GetKeyState(VK_SHIFT) & 0x8000) | (GetKeyState(VK_CAPITAL) & 0x0001);
+        bool super = false;
+        return ModifierState(ctrl, alt, shift, super);*/
+         return ModifierState(false, false, false, false);
+    }
+
+}    // namespace nkentseu
+
+#endif

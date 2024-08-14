@@ -80,7 +80,7 @@ namespace nkentseu{
     #define ARRAY_SIZE(arr)             sizeof (arr) / sizeof (arr[0])
 
     #ifndef SIZE_MAX
-    #    define SIZE_MAX ((nts_size)1 << (sizeof (nts_size) * 8 - 1))
+        #define SIZE_MAX ((usize)1 << (sizeof (usize) * 8 - 1))
     #endif
 
     NKENTSEU_INLINE uint64 NKENTSEU_API GetAligned(uint64 operand, uint64 granularity) {

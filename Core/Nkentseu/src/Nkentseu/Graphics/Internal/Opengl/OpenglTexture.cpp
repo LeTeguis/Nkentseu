@@ -130,6 +130,28 @@ namespace nkentseu {
 		}
 	}
 
+	Memory::Shared<Texture2D> OpenglTexture2D::Clone(Memory::Shared<ShaderInputLayout> sil)
+	{
+		auto texture = Memory::Alloc<OpenglTexture2D>(m_Context, sil);
+		texture->m_Handle = m_Handle;
+		texture->m_Format = m_Format;
+		texture->m_Path = m_Path;
+		texture->m_CacheId = m_CacheId;
+		texture->m_IsRepeated = m_IsRepeated;
+		texture->m_IsSmooth = m_IsSmooth;
+		texture->m_Size = m_Size;
+		texture->m_ActualSize = m_ActualSize;
+		texture->m_PixelsFlipped = m_PixelsFlipped;
+		texture->m_FboAttachment = m_FboAttachment;
+		texture->m_HasMipmap = m_HasMipmap;
+		return texture;
+	}
+
+	void* OpenglTexture2D::InternalID(Memory::Shared<ShaderInputLayout> sil, uint32 slot)
+	{
+		return reinterpret_cast<void*>(m_Handle);
+	}
+
 	Color* OpenglTexture2D::GetColors()
 	{
 		return CopyToImage().GetColors();
@@ -471,6 +493,79 @@ namespace nkentseu {
 	{
 		if (m_Context == nullptr) return false;
 		return true;
+	}
+
+	OpenglTexture2DBinding::OpenglTexture2DBinding(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil) : m_Context(Memory::SharedCast<OpenglContext>(context)), m_Handle(0)
+	{
+		if (sil != nullptr) {
+			m_InputLayout = sil->samplerInput;
+		}
+	}
+
+	bool OpenglTexture2DBinding::Initialize(Memory::Shared<Texture2D> texture)
+	{
+		Memory::Shared<OpenglTexture2D> oglTexture = Memory::SharedCast<OpenglTexture2D>(texture);
+		if (m_Context == nullptr || texture == nullptr) return false;
+		m_Handle = oglTexture->m_Handle;
+		return true;
+	}
+
+	bool OpenglTexture2DBinding::Destroy()
+	{
+		if (m_Context == nullptr) return false;
+		return true;
+	}
+
+	void OpenglTexture2DBinding::Bind(const std::string& name)
+	{
+		if (m_Context == nullptr) return;
+
+		OpenGLResult result;
+		bool first = true;
+
+		if (m_Handle) {
+			for (auto attribut : m_InputLayout) {
+				if (attribut.name == name) {
+					glCheckError(first, result, glBindTextureUnit(attribut.binding, m_Handle), "cannot bind {0}", name);
+					return;
+				}
+			}
+		}
+		Log_nts.Error("cannot bind {0}", name);
+	}
+
+	void OpenglTexture2DBinding::Bind(uint32 binding)
+	{
+		if (m_Context == nullptr) return;
+
+		OpenGLResult result;
+		bool first = true;
+
+		if (m_Handle) {
+			for (auto attribut : m_InputLayout) {
+				if (attribut.binding == binding) {
+					glCheckError(first, result, glBindTextureUnit(attribut.binding, m_Handle), "cannot bind {0}", attribut.name);
+					return;
+				}
+			}
+		}
+		Log_nts.Error("cannot bind {0}", binding);
+	}
+
+	bool OpenglTexture2DBinding::Equal(Memory::Shared<Texture2DBinding> binding)
+	{
+		Memory::Shared<OpenglTexture2DBinding> oglBinding = Memory::SharedCast<OpenglTexture2DBinding>(binding);
+		if (m_Context == nullptr || oglBinding == nullptr) return false;
+
+		return m_Handle == oglBinding->m_Handle;
+	}
+
+	bool OpenglTexture2DBinding::IsDefined(Memory::Shared<Texture2D> binding)
+	{
+		Memory::Shared<OpenglTexture2D> oglBinding = Memory::SharedCast<OpenglTexture2D>(binding);
+		if (m_Context == nullptr || oglBinding == nullptr) return false;
+
+		return m_Handle == oglBinding->m_Handle;
 	}
 
 }  //  nkentseu

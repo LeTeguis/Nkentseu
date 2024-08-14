@@ -27,6 +27,8 @@ namespace nkentseu {
 		bool Create(const void* data, std::size_t size, const maths::IntRect& area = maths::IntRect()) override;
 		bool Create(InputStream& stream, const maths::IntRect& area = maths::IntRect()) override;
 		bool Create(const Image& image, const maths::IntRect& area = maths::IntRect()) override;
+		virtual Memory::Shared<Texture2D> Clone(Memory::Shared<ShaderInputLayout> sil) override;
+		virtual void* InternalID(Memory::Shared<ShaderInputLayout> sil, uint32 slot) override;
 
 		Color* GetColors() override;
 		uint8* GetPixels() override;
@@ -57,6 +59,8 @@ namespace nkentseu {
 
 		bool Destroy() override;
     private:
+		friend class OpenglTexture2DBinding;
+
 		SamplerInputLayout m_InputLayout;
         Memory::Shared<OpenglContext> m_Context;
         TextureFormat m_Format = TextureFormat::Enum::RGBA8;
@@ -73,6 +77,22 @@ namespace nkentseu {
         bool				m_FboAttachment{};
         bool				m_HasMipmap{};
     };
+
+	class NKENTSEU_API OpenglTexture2DBinding : public Texture2DBinding {
+	public:
+		OpenglTexture2DBinding(Memory::Shared<Context> context, Memory::Shared<ShaderInputLayout> sil);
+		bool Initialize(Memory::Shared<Texture2D> texture) override;
+		bool Destroy() override;
+		void Bind(const std::string& name) override;
+		void Bind(uint32 binding) override;
+		bool Equal(Memory::Shared<Texture2DBinding> binding) override;
+		bool IsDefined(Memory::Shared<Texture2D> binding) override;
+
+	private:
+		uint32 m_Handle = 0;
+		Memory::Shared<OpenglContext> m_Context;
+		SamplerInputLayout m_InputLayout;
+	};
 
 }  //  nkentseu
 

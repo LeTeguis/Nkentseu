@@ -65,7 +65,6 @@ namespace nkentseu {
             bool isOffscreen = false;
 
             if (IsValide(m_Window)) {
-                //m_WindowHandle = m_Window->GetInternal()->GetWindowDisplay()->windowHandle;
                 m_WindowHandle = m_Window->GetData()->windowHandle;
                 title = m_Window->GetTitle();
                 isOffscreen = false;
@@ -259,6 +258,10 @@ namespace nkentseu {
             ReleaseDC(windowHandle, m_DeviceContext);
             if (m_Window == nullptr) DestroyWindow(windowHandle);
             return false;
+        }
+
+        if (m_ContextInfo.pixelFormat.flags && GraphicsFlag::DoubleBuffer) {
+            EnableVSync();
         }
 
         m_IsInitialize = true;

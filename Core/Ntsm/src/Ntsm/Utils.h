@@ -90,6 +90,9 @@ namespace nkentseu {
 		const float64 Sqrt2 = 1.41421356237;
 		const float64 Sqrt3 = 1.73205080757;
 
+		const float64 DEG2RAD = Pi / 180.0f;
+		const float64 RAD2DEG = 180.0f / Pi;
+
 		const float64 PuissanceApprox = 8192.0;
 
 		const float64 Epsilon = 0.000001220703125;

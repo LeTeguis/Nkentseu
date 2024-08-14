@@ -169,6 +169,7 @@ namespace nkentseu {
             bool CallRecreateCallback(std::vector<RerecreateCallBackFn>& callbackListe);
 
         private:
+            friend class VulkanTexture2DBinding;
             friend class VulkanRenderWindow;
             friend class VulkanRenderTexture;
             friend class VulkanShader;
@@ -179,6 +180,7 @@ namespace nkentseu {
             friend struct VkUniformBufferInternal;
             friend struct VulkanVertexBuffer;
             friend struct VulkanIndexBuffer;
+            friend struct DescriptorSetInternal;
 
             void OnEvent(Event& event);
             bool OnWindowResizedEvent(class WindowResizedEvent& event);

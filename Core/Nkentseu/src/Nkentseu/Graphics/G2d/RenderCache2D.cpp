@@ -8,9 +8,12 @@
 #include <Logger/Formatter.h>
 
 #include "Nkentseu/Core/Window.h"
+#include <Nkentseu/Graphics/Internal/Vulkan/VulkanTexture.h>
 
 namespace nkentseu {
     using namespace maths;
+
+#define UV_NORMALISED(point) ((point - position) / size)
     
     struct MVP2D {
         maths::matrix4f view = maths::matrix4f::Identity();
@@ -32,6 +35,11 @@ namespace nkentseu {
     {
         if (m_Context == nullptr) return false;
         bool success = true;
+
+        for (auto& binding : textureBindings) {
+            binding->Destroy();
+        }
+        textureBindings.clear();
 
         if (vertexArray != nullptr) {
             success = vertexArray->Destroy();
@@ -148,7 +156,15 @@ namespace nkentseu {
         return true;
     }
 
-    void RenderCache2D::Render(Memory::Shared<Renderer> renderer)
+    void RenderCache2D::Prepare(Memory::Shared<Renderer> renderer)
+    {
+        for (auto& binding : textureBindings) {
+            binding->Destroy();
+        }
+        textureBindings.clear();
+    }
+
+    void RenderCache2D::Present(Memory::Shared<Renderer> renderer)
     {
         if (renderer == nullptr || vertices.empty() || indices.empty() || commands.empty()) {
             return;
@@ -220,9 +236,9 @@ namespace nkentseu {
 
                 bool useTexture = false;
 
-                if (command.textureId > 0 && command.textureId < textures.size() && textures[command.textureId] != nullptr) 
+                if (command.textureId >= 0 && command.textureId < textureBindings.size() && textureBindings[command.textureId] != nullptr)
                 {
-                    textures[command.textureId]->Bind(0);
+                    textureBindings[command.textureId]->Bind(1);
                     useTexture = true;
                 }
 
@@ -252,8 +268,8 @@ namespace nkentseu {
     void RenderCache2D::BeginCommand(RenderPrimitive primitive) {
         if (beginCommand) return;
         currentCommand.primitive = primitive;
-        currentGeometry.vertices.clear();
-        currentGeometry.indices.clear();
+        currentVertices.clear();
+        currentIndices.clear();
         beginCommand = true;
     }
 
@@ -267,16 +283,38 @@ namespace nkentseu {
         currentCommand.clipRegion = clipRegion;
     }
 
-    void RenderCache2D::SetCommandTextureId(int32 textureId) {
-        if (!beginCommand) return;
-        currentCommand.textureId = textureId;
+    void RenderCache2D::SetCommandTextureId(Memory::Shared<Texture2D> texture) {
+        if (!beginCommand || texture == nullptr) return;
+
+        for (auto& binding : textureBindings) {
+            binding->Destroy();
+        }
+        textureBindings.clear();
+        int32 id = 0;
+        for (auto binding : textureBindings) {
+            if (binding->IsDefined(texture)) {
+                currentCommand.textureId = id;
+                return;
+            }
+            id++;
+        }
+
+        Memory::Shared<Texture2DBinding> textureBinding = Texture2DBinding::CreateInitialize(m_Context, shaderInputLayout, texture);
+
+        if (textureBinding != nullptr) {
+            textureBindings.push_back(textureBinding);
+            currentCommand.textureId = textureBindings.size() - 1;
+        }
+        else {
+            Log_nts.Error("Cannot add texture");
+        }
     }
 
-    RenderCommand2D* RenderCache2D::CreateCommand(RenderPrimitive primitive, const ClipRegion& clipRegion, int32 textureId) {
+    RenderCommand2D* RenderCache2D::CreateCommand(RenderPrimitive primitive, const ClipRegion& clipRegion, Memory::Shared<Texture2D> texture) {
         if (!beginCommand) return nullptr;
         currentCommand.primitive = primitive;
         currentCommand.clipRegion = clipRegion;
-        currentCommand.textureId = textureId;
+        SetCommandTextureId(texture);
         return &currentCommand;
     }
 
@@ -312,33 +350,60 @@ namespace nkentseu {
         vertex.position = position;
         vertex.color = color;
         vertex.texCord = uv;
-        currentGeometry.vertices.push_back(vertex);
+        currentVertices.push_back(vertex);
+    }
+
+    void RenderCache2D::AddVertex(const Vertex2D& vertex)
+    {
+        if (!beginCommand) return;
+        currentVertices.push_back(vertex);
     }
 
     void RenderCache2D::AddIndex(uint32 index) {
         if (!beginCommand) return;
-        currentGeometry.indices.push_back(index + currentVertice);
+        currentIndices.push_back(index + currentVertice);
+    }
+
+    RenderCommand2D* RenderCache2D::AddShape(Shape2D* shape)
+    {
+        if (shape == nullptr) return nullptr;
+
+        BeginCommand(shape->GetPrimitive());
+
+        SetCommandTextureId(shape->GetTexture());
+        SetCommandClipRegion(shape->GetClipRegion());
+
+        for (auto vertice : shape->GetVertices()) {
+            AddVertex(vertice);
+        }
+
+        for (auto indice : shape->GetIndices()) {
+            AddIndex(indice);
+        }
+
+        EndCommand(true);
+        return GetLastCommand();
     }
 
     void RenderCache2D::EndCommand(bool send) {
         if (!beginCommand) return;
         if (send) {
-            currentCommand.indexCount = currentGeometry.indices.size();
+            currentCommand.indexCount = currentIndices.size();
             currentCommand.indexOffset = currentIndice;
-            currentCommand.vertexCount = currentGeometry.vertices.size();
+            currentCommand.vertexCount = currentVertices.size();
             currentCommand.vertexOffset = currentVertice;
 
             currentVertice += currentCommand.vertexCount;
             currentIndice += currentCommand.indexCount;
 
-            vertices.insert(vertices.end(), currentGeometry.vertices.begin(), currentGeometry.vertices.end());
-            indices.insert(indices.end(), currentGeometry.indices.begin(), currentGeometry.indices.end());
+            vertices.insert(vertices.end(), currentVertices.begin(), currentVertices.end());
+            indices.insert(indices.end(), currentIndices.begin(), currentIndices.end());
 
             commands.push_back(currentCommand);
         }
         currentCommand = RenderCommand2D();
-        currentGeometry.vertices.clear();
-        currentGeometry.indices.clear();
+        currentVertices.clear();
+        currentIndices.clear();
         beginCommand = false;
     }
 
@@ -350,11 +415,11 @@ namespace nkentseu {
         beginCommand = false;
         vertices.clear();
         indices.clear();
-        currentGeometry.vertices.clear();
-        currentGeometry.indices.clear();
+        currentVertices.clear();
+        currentIndices.clear();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddFilledRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         Vector2f uv1 = uvs.size() > 0 ? uvs[0] : Vector2f(0, 0);
         Vector2f uv2 = uvs.size() > 1 ? uvs[1] : Vector2f(0, 1);
@@ -362,7 +427,7 @@ namespace nkentseu {
         Vector2f uv4 = uvs.size() > 3 ? uvs[3] : Vector2f(1, 0);
 
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         AddVertex(position, color, uv1);
         AddVertex(position + Vector2f(0, size.y), color, uv2);
@@ -380,7 +445,7 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, float32 lineWidth, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddOutlineRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, float32 lineWidth, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         float32 line_width = maths::Min<float32>({lineWidth, size.width, size.height});
 
@@ -390,7 +455,7 @@ namespace nkentseu {
         Vector2f uv4 = uvs.size() > 3 ? uvs[3] : Vector2f(1, 0);
 
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         AddVertex(position, color, uv1);
         AddVertex(position + Vector2f(0, size.y), color, uv2);
@@ -418,10 +483,16 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
+
+        Vector2f textureSize(1);
+
+        if (texture != nullptr) {
+            textureSize = texture->GetSize();
+        }
 
         float32 radius_ajust = maths::Min<float32>({ radius, size.width * 0.5f, size.height * 0.5f });
         const float32 segments_haps = 1.0f / (float32)segments;
@@ -435,25 +506,17 @@ namespace nkentseu {
         centers.push_back(position + Vector2f(size.width - radius_ajust, radius_ajust));
 
         std::vector<float32> angles;
-        angles.push_back(maths::Pi);
-        angles.push_back(maths::Pi * 1.5f);
-        angles.push_back(0.0f);
         angles.push_back(maths::Pi * 0.5f);
+        angles.push_back(-maths::Pi);
+        angles.push_back(-maths::Pi * 0.5f);
+        angles.push_back(0.0f);
 
+        uint32 vertices_count = 0;
         for (int32 corner = 0; corner < 4; corner++) {
-            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : Vector2f();
+            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : UV_NORMALISED(centers[corner]);
             AddVertex(centers[corner], color, uv);
-
-            for (int32 i = segments; i >= 0; --i) {
-                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
-
-                Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
-                Vector2f vertex = centers[corner] + trigo * radius_ajust;
-
-                uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
-
-                AddVertex(vertex, color, uv);
-            }
+            vertices_count++;
+            vertices_count = AddInternalArc(vertices_count, centers[corner], position, size, Vector2f(radius_ajust), Vector2f(size.x * 0.1f, size.y * 0.1f), color, angles[corner], angles[corner] + maths::Pi * 0.5f, segments, uvs);
         }
 
         float32 center_indices[4] = {0, indice_corner_count, indice_corner_count * 2, indice_corner_count * 3};
@@ -487,16 +550,18 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, float32 radius, const Color& color, float32 lineWidth, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         std::vector<float32> angles;
-        angles.push_back(maths::Pi);
-        angles.push_back(maths::Pi * 1.5f);
-        angles.push_back(0.0f);
         angles.push_back(maths::Pi * 0.5f);
+        angles.push_back(-maths::Pi);
+        angles.push_back(-maths::Pi * 0.5f);
+        angles.push_back(0.0f);
+
+        uint32 vertices_count = 0;
 
         const float32 segments_haps = 1.0f / (float32)segments;
         const uint32 indice_count = segments + 1;
@@ -513,17 +578,9 @@ namespace nkentseu {
             centers.push_back(position + Vector2f(size.width - radius_ajust, size.height - radius_ajust) - line_width * box);
             centers.push_back(position + Vector2f(size.width - radius_ajust, radius_ajust) + box * Vector2f(-line_width, line_width));
 
+
             for (int32 corner = 0; corner < 4; corner++) {
-                for (int32 i = segments; i >= 0; --i) {
-                    float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
-
-                    Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
-                    Vector2f vertex = centers[corner] + trigo * radius_ajust;
-
-                    Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
-
-                    AddVertex(vertex, color, uv);
-                }
+                vertices_count = AddInternalArc(vertices_count, centers[corner], position, size, Vector2f(radius_ajust), Vector2f(size.x * 0.1f, size.y * 0.1f), color, angles[corner], angles[corner] + maths::Pi * 0.5f, segments, uvs);
             }
         }
 
@@ -543,10 +600,10 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& radius, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& radius, const Color& color, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         std::vector<float32> angles;
         angles.push_back(maths::Pi);
@@ -573,7 +630,7 @@ namespace nkentseu {
         centers.push_back(position + Vector2f(size.width, 0) + (radius_ajust[3] == 0 ? Vector2f(-rad, rad) : Vector2f(-radius_ajust[3], radius_ajust[3])));
 
         for (int32 corner = 0; corner < 4; corner++) {
-            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : Vector2f();
+            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : UV_NORMALISED(centers[corner]);
             AddVertex(centers[corner], color, uv);
 
             for (int32 i = segments; i >= 0; --i) {
@@ -628,10 +685,10 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& radius, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector4f& radius, const Color& color, float32 lineWidth, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         std::vector<float32> angles;
         angles.push_back(maths::Pi);
@@ -702,16 +759,16 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f radius[4], const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddFilledRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f radius[4], const Color& color, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         std::vector<float32> angles;
-        angles.push_back(maths::Pi);
-        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(maths::Pis2);
+        angles.push_back(-maths::Pi);
+        angles.push_back(-maths::Pis2);
         angles.push_back(0.0f);
-        angles.push_back(maths::Pi * 0.5f);
 
         std::vector<float32> radius_ajustX = {
             maths::Min<float32>({radius[0].x, size.width * 0.5f}), maths::Min<float32>({radius[1].x, size.width * 0.5f}),
@@ -726,6 +783,7 @@ namespace nkentseu {
         const float32 radY = maths::Max<float32>(radius_ajustY);
         const float32 segments_haps = 1.0f / (float32)segments;
         const uint32 indice_count = segments + 1;
+        uint32 indice_rect_count = 0;
         const uint32 indice_corner_count = indice_count + 1;
 
         #define Centering0(vx, vy) Vector2f((vx == 0) ? radX : vx, (vy == 0) ? radY : vy)
@@ -740,32 +798,9 @@ namespace nkentseu {
         centers.push_back(position + Vector2f(size.width, 0) + Centering3(radius_ajustX[3], radius_ajustY[3]));
 
         for (int32 corner = 0; corner < 4; corner++) {
-            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : Vector2f();
+            Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count] : UV_NORMALISED(centers[corner]);
             AddVertex(centers[corner], color, uv);
-
-            for (int32 i = segments; i >= 0; --i) {
-                float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
-
-                Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
-
-                Vector2f radius_calculus(radius_ajustX[corner], radius_ajustY[corner]);
-
-                if (radius_ajustX[corner] == 0) {
-                    trigo.x = (trigo.x < 0) ? -1 : 1;
-                    radius_calculus.x = radX;
-                }
-
-                if (radius_ajustY[corner] == 0) {
-                    trigo.y = (trigo.y < 0) ? -1 : 1;
-                    radius_calculus.y = radY;
-                }
-
-                Vector2f vertex = centers[corner] + trigo * radius_calculus;
-
-                uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
-
-                AddVertex(vertex, color, uv);
-            }
+            indice_rect_count = AddInternalArc(indice_rect_count, centers[corner], position, size, Vector2f(radius_ajustX[corner], radius_ajustY[corner]), Vector2f(radX, radY), color, angles[corner], angles[corner] + maths::Pi * 0.5f, segments, uvs);
         }
 
         float32 center_indices[4] = { 0, indice_corner_count, indice_corner_count * 2, indice_corner_count * 3 };
@@ -799,16 +834,16 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f radius[4], const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddOutlineRoundedRectangle(const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f radius[4], const Color& color, float32 lineWidth, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         std::vector<float32> angles;
-        angles.push_back(maths::Pi);
-        angles.push_back(maths::Pi * 1.5f);
+        angles.push_back(maths::Pis2);
+        angles.push_back(-maths::Pi);
+        angles.push_back(-maths::Pis2);
         angles.push_back(0.0f);
-        angles.push_back(maths::Pi * 0.5f);
 
         const float32 segments_haps = 1.0f / (float32)segments;
         const uint32 indice_count = segments + 1;
@@ -846,30 +881,7 @@ namespace nkentseu {
             centers.push_back(position + Vector2f(size.width, 0) + Centering13(radius_ajustX[3], radius_ajustY[3]));
 
             for (int32 corner = 0; corner < 4; corner++) {
-                for (int32 i = segments; i >= 0; --i) {
-                    float32 theta = (static_cast<float32>(i) / static_cast<float32>(segments) * 0.5 * maths::Pi) - angles[corner];
-
-                    Vector2f trigo(maths::Cos(Angle::FromRadian(theta)), maths::Sin(Angle::FromRadian(theta)));
-
-                    Vector2f radius_calculus(radius_ajustX[corner], radius_ajustY[corner]);
-
-                    if (radius_ajustX[corner] == 0) {
-                        trigo.x = (trigo.x < 0) ? -1 : 1;
-                        radius_calculus.x = radX;
-                    }
-
-                    if (radius_ajustY[corner] == 0) {
-                        trigo.y = (trigo.y < 0) ? -1 : 1;
-                        radius_calculus.y = radY;
-                    }
-
-                    Vector2f vertex = centers[corner] + trigo * radius_calculus;
-
-                    Vector2f uv = uvs.size() > corner * indice_count ? uvs[corner * indice_count + i + 1] : trigo;
-
-                    AddVertex(vertex, color, uv);
-                    indice_rect_count++;
-                }
+                indice_rect_count = AddInternalArc(indice_rect_count, centers[corner], position, size, Vector2f(radius_ajustX[corner], radius_ajustY[corner]), Vector2f(radX, radY), color, angles[corner], angles[corner] + maths::Pi * 0.5f, segments, uvs);
             }
         }
 
@@ -889,19 +901,21 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledCircle(const maths::Vector2f& position, float32 radius, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+    RenderCommand2D* RenderCache2D::AddFilledCircle(const maths::Vector2f& position, float32 radius, const Color& color, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs) {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
+
+        Vector2f size(radius * 2.0f);
 
         float32 angleIncrement = 2 * maths::Pi / segments;
-        AddVertex(position, color, uvs.size() <= 0 ? maths::Vector2f(0.5, 0.5) : uvs[0]);
+        AddVertex(position, color, uvs.size() <= 0 ? UV_NORMALISED(position + (size * 0.5f)) : uvs[0]);
 
         for (uint32 i = 0; i <= segments; i++) {
             float32 angle = i * angleIncrement;
             Vector2f trigo(cos(angle), sin(angle));
             maths::Vector2f p = position + trigo * radius;
 
-            AddVertex(p, color, uvs.size() <= i + 1 ? trigo : uvs[i + 1]);
+            AddVertex(p, color, uvs.size() <= i + 1 ? UV_NORMALISED(p) : uvs[i + 1]);
         }
 
         for (uint32 i = 1; i <= segments; i++) {
@@ -918,14 +932,16 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineCircle(const maths::Vector2f& position, float32 radius, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+    RenderCommand2D* RenderCache2D::AddOutlineCircle(const maths::Vector2f& position, float32 radius, const Color& color, float32 lineWidth, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs) {
 
         if (radius == lineWidth) {
-            return AddFilledCircle(position, radius, color, segments, textureId, uvs);
+            return AddFilledCircle(position, radius, color, segments, texture, uvs);
         }
 
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
+
+        Vector2f size(radius * 2.0f);
 
         float32 angleIncrement = 2 * maths::Pi / segments;
         uint32 circle_vertex_count = 0;
@@ -937,7 +953,7 @@ namespace nkentseu {
                 Vector2f trigo(cos(angle), sin(angle));
                 maths::Vector2f p = position + trigo * (radius - lineWidth * circle);
 
-                AddVertex(p, color, uvs.size() <= i ? trigo : uvs[i]);
+                AddVertex(p, color, uvs.size() <= i ? UV_NORMALISED(p) : uvs[i]);
                 circle_vertex_count++;
             }
         }
@@ -958,20 +974,22 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledEllipse(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddFilledEllipse(const maths::Vector2f& position, const maths::Vector2f& radius, const Color& color, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
+
+        Vector2f size(radius * 2.0f);
 
         float32 angleIncrement = 2 * maths::Pi / segments;
-        AddVertex(position, color, uvs.size() <= 0 ? maths::Vector2f(0.5, 0.5) : uvs[0]);
+        AddVertex(position, color, uvs.size() <= 0 ? UV_NORMALISED(position + (size * 0.5f)) : uvs[0]);
 
         for (uint32 i = 0; i <= segments; i++) {
             float32 angle = i * angleIncrement;
             Vector2f trigo(cos(angle), sin(angle));
-            maths::Vector2f p = position + trigo * size;
+            maths::Vector2f p = position + trigo * radius;
 
-            AddVertex(p, color, uvs.size() <= i + 1 ? trigo : uvs[i + 1]);
+            AddVertex(p, color, uvs.size() <= i + 1 ? UV_NORMALISED(p) : uvs[i + 1]);
         }
 
         for (uint32 i = 1; i <= segments; i++) {
@@ -988,10 +1006,12 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineEllipse(const maths::Vector2f& position, const maths::Vector2f& size, const Color& color, float32 lineWidth, uint32 segments, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddOutlineEllipse(const maths::Vector2f& position, const maths::Vector2f& radius, const Color& color, float32 lineWidth, uint32 segments, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
+
+        Vector2f size(radius * 2.0f);
 
         float32 angleIncrement = 2 * maths::Pi / segments;
         uint32 circle_vertex_count = 0;
@@ -1001,9 +1021,9 @@ namespace nkentseu {
             for (uint32 i = 0; i <= segments; i++) {
                 float32 angle = i * angleIncrement;
                 Vector2f trigo(cos(angle), sin(angle));
-                maths::Vector2f p = position + trigo * (size - lineWidth * circle);
+                maths::Vector2f p = position + trigo * (radius - lineWidth * circle);
 
-                AddVertex(p, color, uvs.size() <= i ? trigo : uvs[i]);
+                AddVertex(p, color, uvs.size() <= i ? UV_NORMALISED(p) : uvs[i]);
                 circle_vertex_count++;
             }
         }
@@ -1024,9 +1044,9 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFilledTriangle(const maths::Vector2f& p1, const maths::Vector2f& p2, const maths::Vector2f& p3, const Color& color, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+    RenderCommand2D* RenderCache2D::AddFilledTriangle(const maths::Vector2f& p1, const maths::Vector2f& p2, const maths::Vector2f& p3, const Color& color, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs) {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         AddVertex(p1, color, uvs.size() > 0 ? uvs[0] : Vector2f(0.5f, 1.0f));
         AddVertex(p2, color, uvs.size() > 1 ? uvs[1] : Vector2f(0.0f, 0.0f));
@@ -1040,9 +1060,9 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlineTriangle(const maths::Vector2f& p1, const maths::Vector2f& p2, const maths::Vector2f& p3, const Color& color, float32 lineWidth, int32 textureId, const std::vector<maths::Vector2f>& uvs) {
+    RenderCommand2D* RenderCache2D::AddOutlineTriangle(const maths::Vector2f& p1, const maths::Vector2f& p2, const maths::Vector2f& p3, const Color& color, float32 lineWidth, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs) {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         AddVertex(p1, color, uvs.size() > 0 ? uvs[0] : Vector2f(0.5f, 1.0f));
         AddVertex(p2, color, uvs.size() > 1 ? uvs[1] : Vector2f(0.0f, 0.0f));
@@ -1073,9 +1093,9 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddLine(const maths::Vector2f& p1, const maths::Vector2f& p2, const Color& color, float32 lineWidth, int32 textureId, maths::Vector2f uv0, maths::Vector2f uv1) {
+    RenderCommand2D* RenderCache2D::AddLine(const maths::Vector2f& p1, const maths::Vector2f& p2, const Color& color, float32 lineWidth, Memory::Shared<Texture2D> texture, maths::Vector2f uv0, maths::Vector2f uv1) {
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         Vector2f normal = (p1 - p2).Normal().Normalized() * lineWidth * 0.5f;
 
@@ -1102,22 +1122,22 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddFillPath(const std::vector<maths::Vector2f>& points, const Color& color, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddFillPath(const std::vector<maths::Vector2f>& points, const Color& color, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         if (points.size() == 0) return nullptr;
         if (points.size() == 1) {
             if (uvs.size() >= 1)
-                return AddPoint(points[0], color, 1.0f, textureId, uvs[0]);
-            return AddPoint(points[0], color, 1.0f, textureId);
+                return AddPoint(points[0], color, 1.0f, texture, uvs[0]);
+            return AddPoint(points[0], color, 1.0f, texture);
         }
         if (points.size() == 2) {
             if (uvs.size() >= 2)
-                return AddLine(points[0], points[1], color, 1.0f, textureId, uvs[0], uvs[1]);
-            return AddLine(points[0], points[1], color, 1.0f, textureId);
+                return AddLine(points[0], points[1], color, 1.0f, texture, uvs[0], uvs[1]);
+            return AddLine(points[0], points[1], color, 1.0f, texture);
         }
 
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         float32 inv = 1.0f / points.size();
 
@@ -1144,22 +1164,22 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddOutlinePath(const std::vector<maths::Vector2f>& points, const Color& color, bool closed, float32 lineWidth, int32 textureId, const std::vector<maths::Vector2f>& uvs)
+    RenderCommand2D* RenderCache2D::AddOutlinePath(const std::vector<maths::Vector2f>& points, const Color& color, bool closed, float32 lineWidth, Memory::Shared<Texture2D> texture, const std::vector<maths::Vector2f>& uvs)
     {
         if (points.size() == 0) return nullptr;
         if (points.size() == 1) {
             if (uvs.size() >= 1)
-                return AddPoint(points[0], color, lineWidth, textureId, uvs[0]);
-            return AddPoint(points[0], color, lineWidth, textureId);
+                return AddPoint(points[0], color, lineWidth, texture, uvs[0]);
+            return AddPoint(points[0], color, lineWidth, texture);
         }
         if (points.size() == 2) {
             if (uvs.size() >= 2)
-                return AddLine(points[0], points[1], color, lineWidth, textureId, uvs[0], uvs[1]);
-            return AddLine(points[0], points[1], color, lineWidth, textureId);
+                return AddLine(points[0], points[1], color, lineWidth, texture, uvs[0], uvs[1]);
+            return AddLine(points[0], points[1], color, lineWidth, texture);
         }
 
         BeginCommand(RenderPrimitive::Enum::Triangles);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
 
         float32 inv = 1.0f / points.size();
 
@@ -1213,9 +1233,9 @@ namespace nkentseu {
         return GetLastCommand();
     }
 
-    RenderCommand2D* RenderCache2D::AddPoint(const maths::Vector2f& p, const Color& color, float32 lineWidth, int32 textureId, maths::Vector2f uv) {
+    RenderCommand2D* RenderCache2D::AddPoint(const maths::Vector2f& p, const Color& color, float32 lineWidth, Memory::Shared<Texture2D> texture, maths::Vector2f uv) {
         BeginCommand(RenderPrimitive::Enum::Points);
-        SetCommandTextureId(textureId);
+        SetCommandTextureId(texture);
         AddVertex(p, color, uv);
         AddIndex(0);
         EndCommand(true);
@@ -1275,6 +1295,39 @@ namespace nkentseu {
         }
 
         return vertex_count;
+    }
+
+    int32 RenderCache2D::AddInternalArc(uint32 depart, const maths::Vector2f& center, const maths::Vector2f& position, const maths::Vector2f& size, const maths::Vector2f& radius, const maths::Vector2f& rad, const Color& color, float32 startAngle, float32 endAngle, uint32 segments, const std::vector<maths::Vector2f>& uvs)
+    {
+        int32 vertexLeng = 0;
+        float32 angleIncrement = maths::Abs(endAngle - startAngle) / segments;
+
+        for (int32 vertice = segments; vertice >= 0; --vertice) {
+            float32 angle = vertice * angleIncrement - endAngle;
+            Vector2f trigo = Vector2f(cos(angle), sin(angle));
+
+            Vector2f radius_calculus(radius.x, radius.y);
+
+            if (radius.x == 0) {
+                trigo.x = (trigo.x < 0) ? -1 : 1;
+                radius_calculus.x = rad.x;
+            }
+
+            if (radius.y == 0) {
+                trigo.y = (trigo.y < 0) ? -1 : 1;
+                radius_calculus.y = rad.y;
+            }
+
+            Vertex2D vertex;
+            vertex.position = center + radius_calculus * trigo;
+            vertex.texCord = uvs.size() > depart + vertice ? uvs[depart + vertice] : UV_NORMALISED(vertex.position);
+            vertex.color = color;
+
+            AddVertex(vertex);
+            vertexLeng++;
+        }
+
+        return vertexLeng + depart;
     }
 
 }  //  nkentseu

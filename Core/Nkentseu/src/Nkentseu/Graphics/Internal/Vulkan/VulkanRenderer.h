@@ -14,7 +14,6 @@
 #include <Nkentseu/Graphics/ShaderInfo.h>
 #include <Nkentseu/Graphics/Color.h>
 #include <Nkentseu/Graphics/Renderer.h>
-#include <Nkentseu/Graphics/Canvas.h>
 #include <Ntsm/Vector/Vector2.h>
 #include "Nkentseu/Core/Events.h"
 
@@ -50,11 +49,8 @@ namespace nkentseu {
             bool SetScissor(const maths::Vector4f& scissor) override;
             bool SetScissor(float32 x, float32 y, float32 width, float32 height) override;
             bool ResetScissor() override;
-
-            Memory::Shared<Canvas> GetCanvas() override;
         private:
             Memory::Shared<VulkanContext> m_Context;
-            Memory::Shared<VulkanCanvas> m_Canvas = nullptr;
 
             bool m_IsPrepare = false;
             bool beginRenderPass = false;

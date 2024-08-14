@@ -47,6 +47,7 @@ namespace nkentseu {
         virtual maths::Vector2i CurrentDisplayPosition() const = 0;
 
         virtual void ShowMouse(bool show) = 0;
+        virtual void ConfineMouse(bool confine) = 0;
         virtual void SetMouseCursorGrabbed(bool grabbed) = 0;
         virtual void SetMouseCursor(const WindowCursor& cursor) = 0;
 

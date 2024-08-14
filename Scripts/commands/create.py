@@ -119,7 +119,7 @@ def classGeneratorCpp(className, hasConstructor):
 '''
     return f'''{constructor}
     std::string {className}::ToString() const {{
-        return FORMATTER.Format(""); // mettez votre formatteur To string entre les guillemets
+        return ""; // mettez votre formatteur To string entre les guillemets
     }}
 
     std::string ToString(const {className}& {firstLower(className)}) {{
@@ -166,16 +166,16 @@ def headerGenerated(fileName, content, userWhoCreated, companyWhoCreated, fileDe
 // Copyright (c) {creationYear} {companyWhoCreated}. All rights reserved.
 //
 {format_file_description}
-#ifndef __{guard}_H__
-#define __{guard}_H__
+#ifndef __NKENTSEU_{guard}_H__
+#define __NKENTSEU_{guard}_H__
 
 #pragma once
 
-#include <System/System.h>
+#include <NTSCore/System.h>
 
 {content}
 
-#endif  // __{guard}_H__!'''
+#endif  // __NKENTSEU_{guard}_H__!'''
 
 def cppGenerator(fileName, content, hasPch, projectName, userWhoCreated, companyWhoCreated):
     guard = fileSeparater(fileName).upper()
@@ -185,7 +185,8 @@ def cppGenerator(fileName, content, hasPch, projectName, userWhoCreated, company
 
     pchInclude = ""
     if hasPch:
-        pchInclude = f'#include "{projectName}Pch/ntspch.h"'
+        #pchInclude = f'#include "{projectName}Pch/ntspch.h"'
+        pchInclude = f'#include "pch/ntspch.h"'
 
     return f'''//
 // Created by {userWhoCreated} on {creationDate} at {creationTime}.
@@ -194,7 +195,6 @@ def cppGenerator(fileName, content, hasPch, projectName, userWhoCreated, company
 
 {pchInclude}
 #include "{fileName}.h"
-#include <Logger/Formatter.h>
 
 {content}'''
 
@@ -347,7 +347,7 @@ def parse_arguments(args):
             return None
     
     # Vérifier si toutes les propriétés nécessaires sont définies
-    required_properties = ["project", "path", "type", "file"]
+    required_properties = ["project", "type", "file"]
     for prop in required_properties:
         if generatorProperties[prop] == "":
             print(f"La propriété '{prop}' est manquante.")
